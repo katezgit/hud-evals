@@ -1,0 +1,66 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+.next/
+dist/
+build/
+out/
+
+# Turborepo
+.turbo/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+
+# Testing
+coverage/
+test-results/
+playwright-report/
+chromatic-archives/
+
+# Storybook
+storybook-static/
+build-storybook.log
+
+# TypeScript
+*.tsbuildinfo
+next-env.d.ts
+
+# Debug
+npm-debug.log*
+pnpm-debug.log*
+
+# Claude local settings
+.claude/settings.local.json
+.claude/worktrees/
+.claude/*.local.md
+.claude/operator.local.md
+.claude/screenshots/
+.claude/scheduled_tasks.lock
+packages/*/.claude/
+apps/.claude/
+.claude-screenshots/
+
+# Project management (private)
+/index.md
+private/
+docs/design/materials/
+.gstack/
+
+# Live session state (auto-maintained by hooks, not project history)
+.state/in-flight-work.md
+
+# Intermediate / discovery workspace — drafts, scratch, WIP
+# Canonical record lives in docs/ after Operator approval.
+# See CLAUDE.md → Hard rules → "Intermediate vs canonical artifacts"
+.intermediate/

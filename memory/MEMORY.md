@@ -1,0 +1,3 @@
+- [Work in main checkout — no worktrees](feedback_no_worktrees.md) — Operator prefers direct work in the main repo; skip the per-topic worktree dance from CLAUDE.md.
+- [Teaching style — Chinese + ASCII + value-level WHY](feedback_teaching_style.md) — For "why" questions, explain in Chinese with ASCII visualizations and walk through failed alternatives before the answer.
+- [Card title/description: weight, not size](feedback_card_title_description_weight.md) — Both sit on text-body; differentiate via font-medium vs regular, not text-body vs text-label.

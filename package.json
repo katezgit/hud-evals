@@ -1,0 +1,42 @@
+{
+  "name": "project-template",
+  "private": true,
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "lint": "turbo run lint",
+    "format": "prettier --write \"**/*.{ts,tsx,md}\"",
+    "check-types": "turbo run check-types",
+    "test": "turbo run test",
+    "test:e2e": "turbo run test:e2e",
+    "storybook": "pnpm --filter ui storybook",
+    "chromatic": "pnpm --filter ui chromatic",
+    "prepare": "husky",
+    "postinstall": "rm -rf apps/*/.next"
+  },
+  "devDependencies": {
+    "@lhci/cli": "^0.15.1",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.2.7",
+    "prettier": "^3.7.4",
+    "turbo": "^2.8.1",
+    "typescript": "5.9.2"
+  },
+  "lint-staged": {
+    "*.css": [
+      "prettier --write",
+      "stylelint --fix --config packages/ui/.stylelintrc.json"
+    ],
+    "*.{ts,tsx}": [
+      "prettier --write",
+      "eslint --fix"
+    ],
+    "*.{md,json}": [
+      "prettier --write"
+    ]
+  },
+  "packageManager": "pnpm@9.0.0",
+  "engines": {
+    "node": ">=18"
+  }
+}

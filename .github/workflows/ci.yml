@@ -1,0 +1,409 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    types: [opened, synchronize]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+env:
+  TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
+  TURBO_TEAM: ${{ vars.TURBO_TEAM }}
+  REGISTRY: ghcr.io
+  API_IMAGE_NAME: ${{ github.repository }}/api
+
+jobs:
+  # Detect which packages changed for conditional jobs
+  changes:
+    name: Detect Changes
+    runs-on: ubuntu-latest
+    outputs:
+      ui: ${{ steps.filter.outputs.ui }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            ui:
+              - 'packages/ui/src/**'
+              - '!packages/ui/src/**/*.test.tsx'
+              - 'packages/ui/.storybook/**'
+
+  quality:
+    name: Lint & Type Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - uses: ./.github/actions/setup
+
+      - run: pnpm turbo run lint check-types
+
+      - name: Forbidden token patterns
+        run: |
+          set -e
+          # Hex/rgb/oklch literals in property values outside the primitives directory.
+          # Pattern matches the value portion before any trailing comment (--prop: <value> /* comment */).
+          # The [^/]* between the colon and the literal ensures we're in the value, not a comment.
+          if grep -rEn '^\s+--[^:]+:\s+[^/]*(#[0-9a-fA-F]{3,8}|rgb\(|rgba\(|oklch\(|oklab\(|hsl\(|hsla\()' \
+            packages/ui/src/styles/semantic/ packages/ui/src/styles/base.css packages/ui/src/styles/utilities.css \
+            --include='*.css'; then
+            echo "ERROR: literal color values found outside primitives — add to packages/ui/src/styles/primitives/color.css instead"
+            exit 1
+          fi
+          # Arbitrary Tailwind bracket values in packages/ui components and stories.
+          # (apps/** has pre-existing legacy usage caught by ESLint; grep only covers the design-system layer.)
+          # Lines with eslint-disable comments are legitimate documented exceptions.
+          if grep -rEn '\b(bg|text|border|ring|fill|stroke|outline|divide|decoration|accent|caret|placeholder|from|via|to|shadow|blur|backdrop-blur|rounded)-\[' \
+            packages/ui/src/components/ packages/ui/src/stories/ \
+            --include='*.tsx' --include='*.ts' | grep -v 'eslint-disable' | grep -v '^\s*/\*\|^\S*:\s*//'; then
+            echo "ERROR: arbitrary Tailwind bracket values found in packages/ui — use a token (bg-primary) or v4 prop-(--x) syntax"
+            exit 1
+          fi
+          echo "Token pattern check passed."
+
+  test:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - uses: ./.github/actions/setup
+
+      - run: pnpm turbo run test
+
+  chromatic:
+    name: Visual Review (Components)
+    needs: [changes]
+    if: needs.changes.outputs.ui == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: ./.github/actions/setup
+
+      - name: Build Storybook
+        run: pnpm turbo run build-storybook --filter=@repo/ui
+
+      - name: Run Chromatic
+        uses: chromaui/action@latest
+        with:
+          projectToken: ${{ secrets.CHROMATIC_PROJECT_TOKEN }}
+          workingDir: packages/ui
+          storybookBuildDir: storybook-static
+          onlyChanged: true
+          autoAcceptChanges: main
+          exitZeroOnChanges: true
+          externals: |
+            src/styles/**
+
+  build:
+    name: Build
+    needs: [quality, test]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - uses: ./.github/actions/setup
+
+      - run: pnpm turbo run build
+        env:
+          NEXT_PUBLIC_API_URL: http://localhost:3002
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: web-build
+          path: apps/web/.next
+          retention-days: 1
+          include-hidden-files: true
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: portal-build
+          path: apps/portal/.next
+          retention-days: 1
+          include-hidden-files: true
+
+      - name: Generate Prisma client for production
+        run: |
+          pnpm --filter @repo/api exec prisma generate
+
+          # Find the Prisma client path (handles version variations)
+          PRISMA_CLIENT_PATH=$(find node_modules/.pnpm -path "*/@prisma+client@*/node_modules/.prisma" -type d 2>/dev/null | head -1)
+
+          if [ -z "$PRISMA_CLIENT_PATH" ]; then
+            echo "Error: Could not find generated Prisma client"
+            echo "Contents of node_modules/.pnpm:"
+            ls -la node_modules/.pnpm/ | head -20
+            exit 1
+          fi
+
+          echo "Found Prisma client at: $PRISMA_CLIENT_PATH"
+          mkdir -p apps/api/node_modules/.prisma
+          cp -r "$PRISMA_CLIENT_PATH"/* apps/api/node_modules/.prisma/
+
+          # Verify copy succeeded
+          if [ ! -d "apps/api/node_modules/.prisma/client" ]; then
+            echo "Error: Prisma client copy failed"
+            ls -la apps/api/node_modules/.prisma/ || true
+            exit 1
+          fi
+
+          echo "Prisma client copied successfully:"
+          ls -la apps/api/node_modules/.prisma/
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: api-build
+          path: |
+            apps/api/dist
+            apps/api/prisma
+            apps/api/package.json
+            apps/api/node_modules/.prisma
+          retention-days: 1
+          include-hidden-files: true
+
+  build-api-image:
+    name: Build API Image
+    needs: [build]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            apps/api/Dockerfile
+            apps/api/.dockerignore
+
+      - name: Download API build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: api-build
+          path: apps/api
+
+      - name: Verify artifact structure
+        run: |
+          echo "=== apps/api directory structure ==="
+          ls -la apps/api/
+          echo "=== Checking for Prisma client ==="
+          ls -la apps/api/node_modules/.prisma/client/ | head -5 || echo "ERROR: Prisma client not found!"
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.API_IMAGE_NAME }}
+          tags: |
+            type=sha,prefix=,format=long
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: apps/api
+          file: apps/api/Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  e2e:
+    name: E2E & Lighthouse
+    needs: [build-api-image]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
+    env:
+      E2E_TEST_EMAIL: admin@test.com
+      E2E_TEST_PASSWORD: test123
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: employee_db
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: ./.github/actions/setup
+
+      - name: Download portal build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: portal-build
+          path: apps/portal/.next
+
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Run database migrations and seed
+        working-directory: apps/api
+        run: |
+          pnpm exec prisma migrate deploy
+          pnpm exec prisma db seed
+        env:
+          DATABASE_URL: postgresql://test:test@localhost:5432/employee_db
+
+      - name: Start services
+        run: |
+          # Start Playwright install in background
+          pnpm --filter @repo/portal exec playwright install --with-deps chromium &
+          PLAYWRIGHT_PID=$!
+
+          # Pull and start API container
+          docker run -d \
+            --name api \
+            --network host \
+            -e DATABASE_URL="postgresql://test:test@localhost:5432/employee_db" \
+            -e JWT_SECRET="test-secret" \
+            -e E2E_TEST_EMAIL="${{ env.E2E_TEST_EMAIL }}" \
+            -e E2E_TEST_PASSWORD="${{ env.E2E_TEST_PASSWORD }}" \
+            -e PORT=3002 \
+            ${{ env.REGISTRY }}/${{ env.API_IMAGE_NAME }}:${{ github.sha }}
+
+          # Wait for API (30 second timeout)
+          echo "Waiting for API..."
+          API_READY=false
+          for i in {1..30}; do
+            if curl -sf http://localhost:3002/health > /dev/null 2>&1; then
+              echo "API ready after $i seconds!"
+              API_READY=true
+              break
+            fi
+            sleep 1
+          done
+
+          # Fail fast with logs if API not ready
+          if [ "$API_READY" != "true" ]; then
+            echo "::error::API failed to start within 30 seconds"
+            echo "=== Container Status ==="
+            docker ps -a
+            echo "=== Container Logs ==="
+            docker logs api 2>&1
+            exit 1
+          fi
+
+          # Start portal server in background
+          NEXT_PUBLIC_API_URL=http://localhost:3002 pnpm --filter @repo/portal start --port 3001 &
+          PORTAL_PID=$!
+          echo "PORTAL_PID=$PORTAL_PID" >> $GITHUB_ENV
+
+          # Wait for portal (30 second timeout)
+          echo "Waiting for Portal..."
+          PORTAL_READY=false
+          for i in {1..30}; do
+            if curl -sf http://localhost:3001 > /dev/null 2>&1; then
+              echo "Portal ready after $i seconds!"
+              PORTAL_READY=true
+              break
+            fi
+            sleep 1
+          done
+
+          if [ "$PORTAL_READY" != "true" ]; then
+            echo "::error::Portal failed to start within 30 seconds"
+            exit 1
+          fi
+
+          # Wait for Playwright (fail if install failed)
+          if ! wait $PLAYWRIGHT_PID; then
+            echo "::error::Playwright install failed"
+            exit 1
+          fi
+          echo "Playwright ready!"
+
+      - name: Run E2E and Lighthouse
+        run: |
+          # Run both in parallel
+          pnpm --filter @repo/portal test:e2e &
+          E2E_PID=$!
+
+          pnpm --filter @repo/portal lighthouse &
+          LH_PID=$!
+
+          # Track failures
+          FAILED=0
+
+          # Wait for E2E
+          if ! wait $E2E_PID; then
+            echo "::error::E2E tests failed"
+            FAILED=1
+          fi
+
+          # Wait for Lighthouse
+          if ! wait $LH_PID; then
+            echo "::error::Lighthouse failed"
+            FAILED=1
+          fi
+
+          exit $FAILED
+        env:
+          REUSE_SERVER: "true"
+          NEXT_PUBLIC_API_URL: http://localhost:3002
+          E2E_TEST_EMAIL: ${{ env.E2E_TEST_EMAIL }}
+          E2E_TEST_PASSWORD: ${{ env.E2E_TEST_PASSWORD }}
+          LHCI_GITHUB_APP_TOKEN: ${{ secrets.LHCI_GITHUB_APP_TOKEN }}
+
+      - name: Visual Review (Pages)
+        if: success() || failure()
+        uses: chromaui/action@latest
+        with:
+          projectToken: ${{ secrets.CHROMATIC_PROJECT_TOKEN }}
+          workingDir: apps/portal
+          playwright: true
+          exitZeroOnChanges: true
+          autoAcceptChanges: main
+
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: apps/portal/playwright-report
+          retention-days: 7
+
+      - name: Stop services
+        if: always()
+        run: |
+          kill $PORTAL_PID || true
+          docker stop api || true
