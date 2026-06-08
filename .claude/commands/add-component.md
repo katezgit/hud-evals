@@ -10,7 +10,7 @@ packages/ui/src/components/<name>.test.tsx     test   — unit-test-engineer    
 packages/ui/src/components/<name>.stories.tsx  story  — storybook-documenter   (step 5)
 ```
 
-Multi-agent chain. Tests come **after** a11y + reviewer converges, otherwise reviewer-driven fixes (prop renames, accessible-name changes) invalidate just-written tests. Stories follow tests because they reference the final API too. Feature-worktree pattern from [`.claude/workflows/feature-worktree-protocol.md`](../workflows/feature-worktree-protocol.md): one shared worktree, one feature branch, one merge.
+Multi-agent chain. Tests come **after** a11y + reviewer converges, otherwise reviewer-driven fixes (prop renames, accessible-name changes) invalidate just-written tests. Stories follow tests because they reference the final API too. Chain pattern from [`.claude/workflows/worktree-protocol.md`](../workflows/worktree-protocol.md) § Solo vs chain: one shared worktree, one feature branch, one merge.
 
 0. **Create the feature worktree before spawning any agent:**
 

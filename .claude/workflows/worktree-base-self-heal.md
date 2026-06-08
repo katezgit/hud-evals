@@ -1,6 +1,6 @@
 # Worktree base self-heal
 
-Used by worktree-isolated agents (e.g. `staff-frontend-engineer`, `design-system-architect`) when **not** part of a multi-agent feature chain. Skip this entirely if the orchestrator's prompt includes `FEATURE_WORKTREE: <path>` and `FEATURE_BRANCH: feat/<name>` directives — see [`feature-worktree-protocol.md`](feature-worktree-protocol.md). In that case the orchestrator owns the base; running the reset below would discard prior agents' commits on the feature branch.
+Used by worktree-isolated agents (e.g. `staff-frontend-engineer`, `design-system-architect`) when **not** part of a multi-agent feature chain. Skip this entirely if the orchestrator's prompt includes `FEATURE_WORKTREE: <path>` and `FEATURE_BRANCH: feat/<name>` directives — see [`worktree-protocol.md`](worktree-protocol.md). In that case the orchestrator owns the base; running the reset below would discard prior agents' commits on the feature branch.
 
 ## Why
 

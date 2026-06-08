@@ -48,14 +48,13 @@ atomic worktree merge blocked.
 Rule: merging a worktree branch without --no-commit creates the commit before
 anything loads in the browser. If the merge breaks the page, the only exit is
 git revert (extra commit in history). With --no-commit the staged merge can be
-wiped cleanly via git merge --abort if Kate rejects after browser verify.
+wiped cleanly via git merge --abort if the Operator rejects after browser verify.
 
 Fix — per .claude/workflows/worktree-return-protocol.md:
 
   git merge --no-commit --no-ff worktree-agent-<id>
-  # resolve any conflicts
-  ./reload.sh                        # load for Kate's browser verify
-  git commit -m "<merge-message>"    # only after Kate confirms
+  # resolve any conflicts; Next.js fast-refresh picks up staged files automatically
+  git commit -m "<merge-message>"    # only after Operator confirms
   git worktree remove -f .claude/worktrees/agent-<id>
   git branch -d worktree-agent-<id>
 EOF

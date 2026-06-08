@@ -1,12 +1,11 @@
 # Parallel Work (multi-session safety)
 
-Two Claude sessions against one checkout race at three layers: filesystem (last-writer-wins, no merge conflict surfaces), build/process (`dist/`, `.next/`, pm2 procs), and runtime data (`private/oak.db`). Worktrees fix the first layer; the rules below fix the other two.
+Two Claude sessions against one checkout race at two layers: filesystem (last-writer-wins, no merge conflict surfaces) and build/process (`.next/`, `dist/`, dev-server port). Worktrees fix the first layer; the rules below fix the second.
 
 ## Core invariants (quoted in CLAUDE.md)
 
-1. **Only the main checkout runs `./reload.sh` and owns pm2.** `reload.sh` hard-refuses from any `.claude/worktrees/` path — do not work around it; merge to main first if you need a live server. For pre-merge live preview, use `./worktree-preview.sh` from inside the worktree — it runs `next dev` on a dedicated port (3810–3899) and shares the main `oak-server:3100` backend.
-2. **Second substantive session → worktree.** `claude --worktree <name>` for fresh sessions; heavy-edit sub-agents (`staff-frontend-engineer`, `staff-backend-engineer`, `design-system-architect`, `storybook-documenter`) carry `isolation: worktree` and get a fresh sandbox per `Task()` call. Trivial reads / one-file tweaks stay in main.
-3. **Worktrees do NOT solve Oak DB races** from MCP tool calls (`oak_update_*`, `capture`, etc.) — serialize Oak data mutations through one session.
+1. **Pre-merge live preview inside a worktree: run `pnpm dev` in `apps/portal/`.** Next.js auto-retries the next free port when 3000 is busy (verified at `next-dev.js` L192, `portSource === 'default'` enables retry). Main typically holds 3000; worktrees land on 3001, 3002, etc. The chosen URL is printed in the terminal that ran `pnpm dev`. Full mechanism: [`worktree-protocol.md`](worktree-protocol.md) § Portal port.
+2. **Second substantive session → worktree.** `claude --worktree <name>` for fresh sessions; heavy-edit sub-agents (`staff-frontend-engineer`, `design-system-architect`, `storybook-documenter`, `library-engineer`) carry `isolation: worktree` and get a fresh sandbox per `Task()` call. Trivial reads / one-file tweaks stay in main.
 
 ## In-flight registry
 

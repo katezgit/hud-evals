@@ -64,21 +64,7 @@ Rules governing the interaction protocol between Operator and model — how sign
 
 **Turn-end self-check (before sending any response that contains an `Agent` call or follows a returning agent):** (1) every unblocked task list item has an `Agent` call in this message, (2) every newly-created task is either dispatched or annotated with its blocker, (3) no in_progress task lacks an active or just-fired dispatch. If any check fails, fix it before sending — do not defer to the next turn.
 
-**Hard stop: before any edit (main thread) or sub-agent dispatch, decide which worktree the work belongs in.** State the decision in one line before acting. Topic state machine:
-
-- New topic, no existing worktree for it → `git worktree add -b <prefix>/<topic> .claude/worktrees/<topic> main` (cut from `main`; prefix per `docs/conventions/git.md` § Branch Naming). `cd` into it before editing. Sub-agents inherit the worktree by being told the path in their prompt.
-- Worktree for the topic already exists at `.claude/worktrees/<topic>` (prior session left it) → `cd` into it. If its branch matches the topic, continue; if not, ask the operator.
-- Currently in a worktree matching the topic → continue in it.
-- In a worktree NOT matching the work → stop and ask the operator: continue here, or spawn a new worktree from `main`?
-- Never branch off another feature branch. Worktree-per-topic enforces this structurally — see `docs/conventions/git.md` § Branch Lifecycle.
-
-Operator weak-verb authorization ("go", "yes", "ship it") applies to the most recent proposed worktree/branch decision the same way it applies to commit/push.
-
-**Cross-session prune — invoke `release-manager` in "Prune Merged Branches" mode** (see `.claude/agents/release-manager.md` § Prune Merged Branches) **only on explicit operator request** — phrases like "prune", "clean branches", "tidy worktrees".
-
-Do **not** auto-fire on session start, after merge, or before worktree spawn. Prune scans across *all* local branches regardless of session and deletes anything with a merged PR — that breaches the "Commit scope = this session's changes only" principle when invoked implicitly (other sessions' branches get touched without their owner authorizing it).
-
-**This-session cleanup is separate and stays automatic:** `release-manager`'s `Merge a PR` workflow deletes the current PR's branch and worktree (step 3 of that workflow). That's session-scoped — touches only what this session named — and is the right default. Cross-session prune is the deliberate, operator-invoked tool for namespace bloat across parallel sessions.
+**Hard stop: before any edit (main thread) or sub-agent dispatch, read [`.claude/workflows/worktree-protocol.md`](.claude/workflows/worktree-protocol.md) and apply the topic state machine there.** It is the single source of truth for: when to spawn a worktree, solo vs chain coordination, portal port handling (Next.js auto-retries — zero per-worktree config), return + merge protocol, cleanup, and cross-session prune. State the spawn decision in one line before acting. Operator weak-verb authorization ("go", "yes", "ship it") applies to the most recent proposed worktree/branch decision the same way it applies to commit/push.
 
 | Path / scope                                                                                      | Agent                     |
 | ------------------------------------------------------------------------------------------------- | ------------------------- |

@@ -68,9 +68,8 @@ Fix: land worktree work via git merge, per
 .claude/workflows/worktree-return-protocol.md:
 
   git merge --no-commit --no-ff worktree-agent-<id>
-  # resolve any conflicts
-  ./reload.sh                        # load for Kate's browser verify
-  git commit -m "<merge-message>"    # only after Kate confirms
+  # resolve any conflicts; Next.js fast-refresh picks up staged files automatically
+  git commit -m "<merge-message>"    # only after Operator confirms
   git worktree remove -f .claude/worktrees/agent-<id>
   git branch -d worktree-agent-<id>
 EOF
