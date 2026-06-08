@@ -1,0 +1,65 @@
+/* No @layer wrapper here — index.css imports this with `layer(base)`. Adding
+ * an inner @layer base { } creates a base.base sublayer that loses to Tailwind
+ * preflight on button/input resets. */
+
+*, *::before, *::after {
+  border-color: var(--color-border);
+}
+
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  background-color: var(--color-background);
+  color: var(--color-foreground);
+  font-family: var(--font-sans);
+  font-size: var(--text-body);
+  line-height: 1.5;
+}
+
+/* outline: 2px solid transparent is the forced-colors fallback — Windows HC mode
+ * ignores box-shadow but renders outline with the system color. #fff is pinned to
+ * Tailwind v4's --tw-ring-offset-color default; do not tokenize. */
+*:focus-visible {
+  outline: 2px solid transparent;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--color-ring);
+}
+
+/* Ties on specificity (0,2,0) with .focus-inset *:focus-visible below; the inset
+ * rule wins on source order, so disabled elements inside .focus-inset still get the
+ * inset ring. Bump selector specificity if that combination becomes reachable. */
+*:disabled:focus-visible,
+[aria-disabled="true"]:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+
+[aria-invalid="true"]:focus-visible {
+  outline-color: transparent;
+  box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--color-state-errored);
+}
+
+/* 
+ * @todo
+ * Inset variant for elements inside overflow:hidden containers (popovers, dropdowns,
+ * sidebar items flush against a rail) where the outer box-shadow would clip.
+ * outline-offset: -4px pulls the HC-mode outline inside the 4px inset band. */
+.focus-inset:focus-visible,
+.focus-inset *:focus-visible {
+  outline: 2px solid transparent;
+  outline-offset: -4px;
+  box-shadow: inset 0 0 0 2px #fff, inset 0 0 0 4px var(--color-ring);
+}
+
+/* Thumb colors track <ScrollArea> — keep in sync. */
+::-webkit-scrollbar { width: var(--size-scrollbar); height: var(--size-scrollbar); }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: color-mix(in srgb, var(--color-muted-foreground) 40%, transparent); border-radius: var(--radius-full); }
+::-webkit-scrollbar-thumb:hover { background: var(--color-muted-foreground); }
+
+/* Firefox */
+* { scrollbar-width: thin; scrollbar-color: color-mix(in srgb, var(--color-muted-foreground) 40%, transparent) transparent; }

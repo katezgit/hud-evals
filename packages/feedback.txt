@@ -1,0 +1,11 @@
+## Button
+
+secondary use outline effect, no need to have background color when it is not on hover state
+
+## The copy button of the code block is too prominent, find a better color
+
+## verify if the select list item hover background color is consistent with the switch idle status background color
+
+## I need you list the values of the colors, on the token stories
+
+remove the overlay from the colors story category

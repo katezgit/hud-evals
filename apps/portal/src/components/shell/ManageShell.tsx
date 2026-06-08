@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { BrandMark } from "@repo/ui/components/brand-mark";
 
 interface ManageShellProps {
   children: React.ReactNode;
@@ -13,7 +12,7 @@ export function ManageShell({ children }: ManageShellProps) {
     <div className="grid min-h-dvh grid-cols-[240px_1fr] grid-rows-[56px_1fr] bg-background text-foreground">
       <header className="col-span-2 flex items-center gap-4 border-b border-border px-6">
         <Link href="/" aria-label="Back to app" className="focus-inset rounded-control">
-          <BrandMark />
+          <span className="font-semibold">Portal</span>
         </Link>
         <span className="text-meta-foreground">Manage</span>
       </header>

@@ -1,6 +1,4 @@
 import type { Metadata } from "next";
-import { EmptyState } from "@repo/ui/components/empty-state";
-import { Inbox } from "lucide-react";
 import { listItems } from "./_data/items";
 import { ItemRow } from "./_components";
 
@@ -11,12 +9,10 @@ export default async function ItemsPage() {
 
   if (items.length === 0) {
     return (
-      <EmptyState
-        variant="zero-state"
-        icon={Inbox}
-        title="No items yet"
-        subtitle="Create your first item to get started."
-      />
+      <div className="p-8 text-center">
+        <h2 className="text-foreground">No items yet</h2>
+        <p className="text-muted-foreground">Create your first item to get started.</p>
+      </div>
     );
   }
 

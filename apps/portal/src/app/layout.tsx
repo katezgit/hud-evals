@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { ThemeProvider } from "next-themes";
-import { Toaster } from "@repo/ui/components/toast";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -12,7 +11,7 @@ interface RootLayoutProps {
   children: React.ReactNode;
 }
 
-// Root layout — the only place that owns <html>, <body>, ThemeProvider, Toaster.
+// Root layout — the only place that owns <html>, <body>, ThemeProvider.
 // next-themes is wired with `attribute="data-theme"` because token themes key off
 // [data-theme="dark"] in packages/ui/src/styles/color.css. suppressHydrationWarning
 // is required on <html> because next-themes writes the attribute on first paint.
@@ -22,7 +21,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
       <body>
         <ThemeProvider attribute="data-theme" defaultTheme="system" enableSystem>
           {children}
-          <Toaster />
+          {/* TODO: re-add Toaster once @repo/ui ships a toast component. */}
         </ThemeProvider>
       </body>
     </html>

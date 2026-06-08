@@ -1,0 +1,6 @@
+/*
+ * Re-export entry for the design-system stylesheet.
+ * Consumers import this via `@repo/ui/styles.css` (declared in package.json exports).
+ * Actual tokens, base styles, and utilities live in `./styles/index.css`.
+ */
+@import './styles/index.css';

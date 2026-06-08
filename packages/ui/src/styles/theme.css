@@ -1,0 +1,313 @@
+/* =============================================================================
+ * Theme tokens — semantic role tokens that describe what values MEAN in the
+ * design system. Almost always references a primitive via var(--primitive) or
+ * uses light-dark(var(--x), var(--y)) to map mode-specific values.
+ *
+ * @theme {} self-targets @layer theme — no layer() annotation needed on the @import.
+ * ============================================================================= */
+
+/* ─── Color scheme ───────────────────────────────────────────────────────────
+ * Mode mapping. color-scheme declarations are theme (mode mapping). */
+:root            { color-scheme: light; }
+[data-theme="dark"] { color-scheme: dark; }
+
+/* ─── Color roles ────────────────────────────────────────────────────────────
+ * Semantic --color-* roles are defined ONCE via light-dark(<lightPrimitive>, <darkPrimitive>).
+ * Theme switching is controlled solely by color-scheme on :root — no per-token overrides.
+ *
+ * Plain @theme {}: Tailwind exposes each role as a :root CSS custom property and generates
+ * utilities that reference it via var(--color-X). light-dark() resolves at runtime against
+ * color-scheme. base.css references var(--color-foreground) etc. directly — plain @theme
+ * (not @theme inline) is required so the vars exist on :root. */
+@theme {
+   /* wipe out tailwind colors */
+   --color-*: initial; 
+  /* ═══════════════════════════════════════════════════════════════════════════
+   * FOUNDATION — the canvas. Neutral surfaces, typography, structural borders.
+   * ═══════════════════════════════════════════════════════════════════════════ */
+
+  /* Surfaces — vertical depth hierarchy.
+   *   background: app body backdrop
+   *   panel:      raised content (cards, sheets, popovers)
+   *   page:       deepest recess (rail edges, frame backdrop)
+   *   elevated:   subtle lift above background (hovered rows, inset wells) */
+  --color-background: light-dark(var(--surface-bg-light),       var(--surface-bg-dark));
+  --color-panel:      light-dark(var(--surface-panel-light),    var(--surface-panel-dark));
+  --color-page:       light-dark(var(--surface-page-light),     var(--surface-page-dark));
+  --color-elevated:   light-dark(var(--surface-elevated-light), var(--surface-elevated-dark));
+
+  /* Typography — 3-tier reading hierarchy.
+   *   foreground:       PRIMARY — body, headings, main values.
+   *   muted-foreground: READ / ANCHOR — nav, subtitles, helper text, tooltip
+   *                     body. ~25pp gap to foreground.
+   *   meta-foreground:  GLANCE / SCAFFOLDING — column headers, axis labels,
+   *                     placeholders, count badges. ~42pp gap to foreground.
+   *   text-disabled:    DISABLED — non-interactive controls only.
+   *
+   * Picking: READS → muted. SCAFFOLDING → meta. DISABLED → text-disabled.
+   * Otherwise → foreground. */
+  --color-foreground:        light-dark(var(--ink-900), var(--ink-50));
+  --color-muted-foreground:  light-dark(var(--ink-800), var(--ink-100));
+  --color-meta-foreground:   light-dark(var(--ink-700), var(--ink-200));
+  --color-text-disabled:     light-dark(var(--ink-400), var(--ink-500));
+
+  /* Muted / Secondary surfaces — neutral fills.
+   *   muted:     low-contrast block (sidebar, inert chip)
+   *   secondary: stronger neutral (secondary button, selected row) */
+  --color-muted:                light-dark(var(--surface-muted-light),     var(--surface-muted-dark));
+  --color-secondary:            light-dark(var(--surface-secondary-light), var(--surface-secondary-dark));
+  --color-secondary-foreground: light-dark(var(--ink-900),                 var(--ink-50));
+
+  /* Borders — alpha-tinted hairlines, compose on any surface.
+   *   border:        default hairline
+   *   border-strong: +10pp alpha for selected/active edges */
+  --color-border:        light-dark(rgb(var(--border-seed-light) / .17), rgb(var(--border-seed-dark) / .08));
+  --color-border-strong: light-dark(rgb(var(--border-seed-light) / .28), rgb(var(--border-seed-dark) / .18));
+
+  /* ═══════════════════════════════════════════════════════════════════════════
+   * IDENTITY — brand-meaningful hues. Sparse usage.
+   * ═══════════════════════════════════════════════════════════════════════════ */
+
+  /* Primary — brand action identity. Primary buttons, active tabs,
+   * checkbox/radio fills, switch on-state, progress bars, links.
+   * Interactive variants live under STATE below. */
+  --color-primary:            light-dark(var(--teal-700), var(--teal-400));
+  --color-primary-foreground: light-dark(var(--white),    #06201C); /* PINNED — dark fg on teal-400 fill; not a palette step */
+
+  /* Brand — logo/mark surfaces only. Never interactive. Distinct hue from
+   * warning to avoid status ambiguity. */
+  --color-brand:            var(--gold);
+  --color-brand-foreground: var(--ink-900);                                    /* AA contrast on brand */
+  --color-brand-hover:      #D49A0E; /* PINNED — darkened gold for hover; not a palette step */
+  --color-brand-glow:       color-mix(in srgb, var(--gold) 16%, transparent);
+
+  /* ═══════════════════════════════════════════════════════════════════════════
+   * STATE — interaction + status. Status hues follow the triplet pattern:
+   *   SOLID (icon, dot, fill) + SUBTLE (~10% alpha backdrop) + TEXT (alias).
+   * ═══════════════════════════════════════════════════════════════════════════ */
+
+  /* Primary interactive variants. */
+  --color-primary-hover: light-dark(var(--teal-800), var(--teal-500));
+  --color-primary-glow:  light-dark(
+    color-mix(in srgb, var(--teal-600) 12%, transparent),
+    color-mix(in srgb, var(--teal-400) 14%, transparent)
+  );
+  /* Soft / border: alpha tints for badges and selection pills. */
+  --color-primary-soft:   light-dark(
+    color-mix(in srgb, var(--teal-700) 10%, transparent),
+    color-mix(in srgb, var(--teal-400) 10%, transparent)
+  );
+  --color-primary-border: light-dark(
+    color-mix(in srgb, var(--teal-700) 25%, transparent),
+    color-mix(in srgb, var(--teal-400) 25%, transparent)
+  );
+  /* Disabled must read as LESS prominent, not darker. Absolute light-dark
+   * values avoid the alpha-on-dark inversion (e.g. 38% alpha over dark canvas
+   * → near-black, ends up darker than the enabled state). */
+  --color-primary-disabled: light-dark(#9BBFBA, #1B5E55); /* PINNED — desaturated teal steps; not in palette ramp */
+  --color-border-disabled:  light-dark(#C8CDD6, #3A4455); /* PINNED — neutral-adjacent; not in palette ramp */
+
+  /* Interaction surfaces. hover / surface-hover currently match; kept separate
+   * for future role divergence. */
+  --color-surface-hover: light-dark(var(--surface-elevated-light),  var(--surface-elevated-dark));
+  --color-selected:      light-dark(var(--surface-secondary-light), var(--surface-secondary-dark));
+  --color-hover:         light-dark(var(--surface-elevated-light),  var(--surface-elevated-dark));
+
+  /* Focus ring + glow. */
+  --color-ring:      light-dark(var(--teal-700), var(--teal-500));
+  --color-ring-glow: light-dark(
+    color-mix(in srgb, var(--teal-600) 18%, transparent),
+    color-mix(in srgb, var(--teal-400) 14%, transparent)
+  );
+
+  /* Destructive — irreversible action affordance. Shares the errored hue family. */
+  --color-destructive:            light-dark(var(--errored-600),              var(--errored-400));
+  --color-destructive-foreground: light-dark(var(--white),                    var(--white));
+  --color-destructive-hover:      light-dark(#B82E20, #E04540); /* PINNED — stepped from errored-600/400; not a palette step */
+  --color-destructive-active:     light-dark(#A0241A, #C53A36); /* PINNED — pressed state below hover; not a palette step */
+
+  /* Status states — process / outcome semantics.
+   *   scored:  success / passed
+   *   running: in-progress
+   *   errored: failure (shares destructive hue)
+   *   warning: flagged non-fatal
+   *   not-run: queued / inactive */
+  --color-state-scored:         light-dark(var(--scored-600), var(--scored-400));
+  --color-state-scored-subtle:  light-dark(
+    color-mix(in srgb, var(--scored-600) 11%, transparent),
+    color-mix(in srgb, var(--scored-400) 12%, transparent)
+  );
+  --color-state-scored-text:    light-dark(var(--scored-600), var(--scored-400));
+
+  --color-state-running:        light-dark(var(--running-600), var(--running-400));
+  --color-state-running-subtle: light-dark(
+    color-mix(in srgb, var(--running-600) 12%, transparent),
+    color-mix(in srgb, var(--running-400) 12%, transparent)
+  );
+  --color-state-running-text:   light-dark(var(--running-600), var(--running-400));
+
+  --color-state-errored:        light-dark(var(--errored-600), var(--errored-400));
+  --color-state-errored-subtle: light-dark(
+    color-mix(in srgb, var(--errored-600) 10%, transparent),
+    color-mix(in srgb, var(--errored-400) 12%, transparent)
+  );
+  --color-state-errored-text:   light-dark(var(--errored-600), var(--errored-400));
+
+  --color-state-warning:        light-dark(var(--warning-600), var(--warning-400));
+  --color-state-warning-subtle: light-dark(
+    color-mix(in srgb, var(--warning-600) 12%, transparent),
+    color-mix(in srgb, var(--warning-400) 12%, transparent)
+  );
+  --color-state-warning-text:   light-dark(var(--warning-600), var(--warning-400));
+
+  --color-state-not-run:        light-dark(var(--ink-800), var(--ink-100)); /* status text must be readable → READ tier */
+  --color-state-not-run-subtle: light-dark(var(--surface-muted-light), var(--surface-muted-dark));
+
+  /* ═══════════════════════════════════════════════════════════════════════════
+   * DATA VIZ — categorical chart palette. chart-1 and chart-7 anchor to brand
+   * primitives for default brand-aligned series.
+   * ═══════════════════════════════════════════════════════════════════════════ */
+  --color-chart-1: light-dark(var(--teal-600),    var(--teal-400));
+  --color-chart-2: light-dark(#C26A00,            #FFB454);
+  --color-chart-3: light-dark(#CE2F6B,            #F46EB0);
+  --color-chart-4: light-dark(#5B43C9,            #9D8CFF);
+  --color-chart-5: light-dark(#3C8C3F,            #8DDB4A);
+  --color-chart-6: light-dark(#D33B2C,            #FF7066);
+  --color-chart-7: light-dark(var(--running-600), var(--running-400));
+  --color-chart-8: light-dark(#5C6B7C,            #C0CAD6);
+}
+
+/* ─── Surface roles ──────────────────────────────────────────────────────────
+ * Component-specific token aliases.
+ * Maps semantic primitives → component roles. New components add their token bindings here.
+ * Foundational tokens (primitives + general semantic roles) live in primitive.css.
+ *
+ * Note: @theme self-targets @layer theme — no layer() annotation needed on the @import. */
+@theme {
+  /* Card — pure-white surface on light, near-black on dark, via --color-panel.
+   * Foreground inherits the canonical text color (--color-foreground). */
+  --color-card:            var(--color-panel);
+  --color-card-foreground: var(--color-foreground);
+
+  /* Popover — same surface role as card. */
+  --color-popover:            var(--color-panel);
+  --color-popover-foreground: var(--color-foreground);
+}
+
+/* ─── Overlay roles ──────────────────────────────────────────────────────────
+ * --color-overlay-* live in @theme (generate bg-overlay-* utilities).
+ * --blur-overlay-* live in :root (composite values; not blur amounts — no
+ * blur-overlay-* utility should exist). Reference with prop-(--blur-overlay-*)
+ * syntax, same pattern as --motion-* composites. */
+@theme {
+  --color-overlay-dialog: color-mix(in srgb, var(--neutral-950) 10%, transparent);
+  --color-overlay-drawer: color-mix(in srgb, var(--neutral-950)  2%, transparent);
+}
+
+:root {
+  --blur-overlay-dialog: var(--blur-xs);   /* 4px — heavier; content behind recedes */
+  --blur-overlay-drawer: 2px;              /* lighter; background reads through */
+}
+
+/* ─── Shadow aliases ─────────────────────────────────────────────────────────
+ * Semantic shadow roles mapping elevation tier primitives to component contexts.
+ * Shadow design + rationale: docs/design/foundations/shadows-light-dark-unification.md
+ *
+ * --shadow-focus-ring, --shadow-focus-errored are theme (semantic focus state).
+ * --shadow-sw-thumb-off is theme (component-specific role).
+ * --shadow-scroll-cue / --shadow-scroll-cue-inverted are theme (component behavior role). */
+@theme {
+  /* Symmetric scroll-cue pair — header (downward) + footer (upward). Both pair with a border-color
+   * toggle; border carries the bulk of the signal, shadow adds depth. */
+  --shadow-scroll-cue:          0  2px 3px light-dark(rgba(28,32,36,.05), rgba(0,0,0,.22));
+  --shadow-scroll-cue-inverted: 0 -2px 3px light-dark(rgba(28,32,36,.05), rgba(0,0,0,.22));
+  /* Stepped above --shadow-chip — Switch off-state is the only surface where shadow is the sole separation cue. */
+  --shadow-sw-thumb-off: 0 1px 2px light-dark(rgba(28,32,36,.30), rgba(0,0,0,.60)),
+                         0 2px 6px  light-dark(rgba(28,32,36,.18), rgba(0,0,0,.44));
+  --shadow-focus-errored: 0 0 0 3px light-dark(rgba(220,62,66,.12), rgba(255,91,82,.18));
+  /* Matches base.css *:focus-visible exactly — #fff is intentional; do not replace with a token. */
+  --shadow-focus-ring:    0 0 0 2px #fff, 0 0 0 4px var(--color-ring);
+
+  --shadow-card:        var(--shadow-1);
+  --shadow-popover:     var(--shadow-2);
+  --shadow-modal:       var(--shadow-3);
+  --shadow-command:     var(--shadow-3);
+  --shadow-drawer:      var(--shadow-3);
+  --shadow-drawer-edge: var(--shadow-3), inset 1px 0 0 var(--color-border);
+}
+
+/* ─── Primitive passthrough — @theme inline ──────────────────────────────────
+ * Each @theme inline block passes a primitive's :root value through to Tailwind
+ * utility generation without duplicating the literal. The actual value lives on
+ * :root in primitive.css; @theme inline inlines the var() ref into generated
+ * utility classes (e.g. `spacing-4` compiles to `margin: calc(4 * var(--spacing))`).
+ *
+ * This pattern is required for any primitive that is ALSO read at runtime via
+ * var() — e.g. --duration-* is overridden by the prefers-reduced-motion block
+ * below, and --blur-xs is read by --blur-overlay-dialog. */
+
+/* ─── Spacing ────────────────────────────────────────────────────────────────*/
+@theme inline {
+  --spacing: var(--spacing);
+}
+
+/* ─── Blur ───────────────────────────────────────────────────────────────────*/
+@theme inline {
+  --blur-2xs: var(--blur-2xs);
+}
+
+/* ─── Duration ───────────────────────────────────────────────────────────────*/
+@theme inline {
+  --duration-*:       initial;           /* wipe Tailwind defaults before our named scale */
+  --duration-instant: var(--duration-instant);
+  --duration-fast:    var(--duration-fast);
+  --duration-subtle:  var(--duration-subtle);
+  --duration-base:    var(--duration-base);
+}
+
+/* ─── Easing ─────────────────────────────────────────────────────────────────*/
+@theme inline {
+  --ease-out-standard:    var(--ease-out-standard);
+  --ease-out-emphasized:  var(--ease-out-emphasized);
+  --ease-in-accelerated:  var(--ease-in-accelerated);
+  --ease-linear:          var(--ease-linear);
+  --ease-natural:         var(--ease-natural);
+}
+
+/* ─── Animations ─────────────────────────────────────────────────────────────*/
+@theme inline {
+  --animate-fade-in:        var(--animate-fade-in);
+  --animate-fade-out:       var(--animate-fade-out);
+  --animate-slide-up-in:    var(--animate-slide-up-in);
+  --animate-slide-down-out: var(--animate-slide-down-out);
+  --animate-row-reveal:     var(--animate-row-reveal);
+  --animate-shimmer:        var(--animate-shimmer);
+  --animate-running-pulse:  var(--animate-running-pulse);
+}
+
+
+/* ─── Component aliases ──────────────────────────────────────────────────────
+ * Badge, Switch, scroll-cue semantic role aliases. */
+@theme {
+  /* Badge */
+  --radius-badge: var(--radius-sm);
+}
+
+/* ─── Reduced motion ─────────────────────────────────────────────────────────
+ * Durations collapse to 0ms; loop animations are suppressed via --motion-continuous.
+ * Translations are removed on individual elements (transform: none) — engineers
+ * do not need separate animation declarations beyond token override.
+ * Shimmer/pulse loops are suppressed here because --motion-continuous is a
+ * composite (cannot be zeroed by duration alone). The static fallback replaces
+ * the loop; consumers use: animation: none; background: var(--secondary).
+ *
+ * Overrides theme-layer primitive durations — lives at the theme layer. */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --duration-instant: 0ms;
+    --duration-fast:    0ms;
+    --duration-subtle:  0ms;
+    --duration-base:    0ms;
+    --motion-continuous: none; /* shimmer stops; static --secondary fill replaces it */
+  }
+}

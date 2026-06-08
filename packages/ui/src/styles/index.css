@@ -1,0 +1,35 @@
+/* =============================================================================
+ * HUD Design System — style entry point
+ *
+ * Architecture: two-file token split
+ *   primitive.css — raw scalar/positional values (palette, typography, spacing,
+ *                   radius, blur, opacity, elevation tiers, z-index, duration,
+ *                   easing, keyframes). Names describe what a value IS.
+ *   theme.css     — semantic role tokens that describe what values MEAN.
+ *                   Maps primitives via var() and light-dark() for mode support.
+ *                   Includes color roles, shadow aliases, motion composites,
+ *                   component aliases, color-scheme declarations, and the
+ *                   prefers-reduced-motion override block.
+ *
+ * Tailwind v4 layers: theme, base, utilities
+ *   - primitive.css and theme.css use @theme {} internally → self-target
+ *     @layer theme. No layer() annotation needed on their @imports.
+ *   - base.css uses element-level resets; imported with layer(base).
+ *   - utilities.css uses @utility declarations; @utility self-registers into the
+ *     utilities layer automatically — do NOT wrap with layer() on this import or
+ *     nest @utility inside @layer utilities {} in the file itself.
+ * ============================================================================= */
+
+@import 'tailwindcss';
+
+@source "..";
+
+/* ── DESIGN TOKENS — theme layer ─────────────────────────────────────────── */
+@import './primitive.css';
+@import './theme.css';
+
+/* ── BASE STYLES — base layer ────────────────────────────────────────────── */
+@import './base.css' layer(base);
+
+/* ── UTILITIES — utilities layer ─────────────────────────────────────────── */
+@import './utilities.css';

@@ -1,0 +1,264 @@
+/* =============================================================================
+ * Primitive tokens — raw scalar/positional values with no semantic role.
+ * Names describe what a value IS (a number, a hue ramp step, a curve, a size).
+ * No var() references to semantic roles; values are literal or compose other primitives.
+ *
+ * Dual-layout pattern (migrated sections): literal values live on :root here;
+ * @theme inline { --x: var(--x) } in theme.css passes them through to Tailwind
+ * utility generation without moving the value off :root (required by motion
+ * composites + prefers-reduced-motion overrides in theme.css).
+ *
+ * Typography (@theme {}) is excluded from the migration — it does not have any
+ * :root runtime consumers, so plain @theme {} is correct there.
+ * ============================================================================= */
+
+/* ─── Color palette ──────────────────────────────────────────────────────────
+ * Theme-agnostic raw values, named by hue + step. Consumed only by theme.css semantic roles.
+ * --color-*: initial in @theme wipes Tailwind's default white utility, so use --white. */
+:root {
+  /* Neutral — theme-agnostic raw values.
+   * --color-*: initial in @theme wipes Tailwind's default white utility, so use --white. */
+  --neutral-950: #1c2024;
+  --neutral-50:  #F8FAFB;
+  --white:       #FFFFFF;
+
+  /* Brand */
+  --gold: #f7b717;
+
+  /* Ink — text scale at low saturation. Light/dark step pairs.
+   *   ink-900 → foreground
+   *   ink-800 → muted-foreground — secondary text (~25pp contrast gap to primary)
+   *   ink-700 → meta-foreground  — tertiary text / scaffolding (~42pp contrast gap to primary)
+   *   ink-400 → text-disabled
+   *   ink-600 / ink-300: reserved, no current mapping. */
+  --ink-900: #18212E;   /* ↔ --ink-50 dark */
+  --ink-50:  #E8EEF5;
+  --ink-800: #3D5269;   /* ~7.0:1 vs #FFF, ~6.7:1 vs bg  ↔  --ink-100 dark */
+  --ink-100: #B3BFCE;   /* ~7.6:1 vs panel, ~8.5:1 vs bg  ↔  --ink-800 light */
+  --ink-700: #6C7A8C;   /* ↔ --ink-200 dark */
+  --ink-200: #7A8494;
+  --ink-600: #7C8087;   /* reserved  ↔  --ink-300 dark */
+  --ink-300: #718190;
+  --ink-400: #A4ADB9;   /* ↔ --ink-500 dark */
+  --ink-500: #475260;
+
+  /* Surfaces — light / dark pairs */
+  --surface-bg-light:        #F6F8FA;
+  --surface-bg-dark:         #0C1016;
+  --surface-panel-light:     #FFFFFF;
+  --surface-panel-dark:      #11161F;
+  --surface-page-light:      #EBEEF2;
+  --surface-page-dark:       #07090D;
+  --surface-elevated-light:  #F0F2F6;
+  --surface-elevated-dark:   #161D28;
+  --surface-muted-light:     #F0F2F6;
+  --surface-muted-dark:      #161D28;
+  --surface-secondary-light: #E2E7ED;
+  --surface-secondary-dark:  #1E2733;
+
+  /* Teal — action / brand hue */
+  --teal-800: #055E55;   /* primary-hover light */
+  --teal-700: #087A6C;   /* primary light, ring light */
+  --teal-600: #0E9888;   /* primary-glow seed, chart-1 light */
+  --teal-500: #1A9183;   /* primary-hover dark, ring dark */
+  --teal-400: #2BE0C8;   /* primary dark, chart-1 dark */
+
+  /* Scored (green) — success */
+  --scored-600: #2E9E43;
+  --scored-400: #35C46B;
+
+  /* Running (blue) — in-progress */
+  --running-600: #2462C5;
+  --running-400: #4FA8FF;
+
+  /* Errored (red) — failure; shared with destructive */
+  --errored-600: #D23B2C;
+  --errored-400: #FF5B52;
+
+  /* Warning (amber) */
+  --warning-600: #C47A0A;
+  --warning-400: #E5A52E;
+
+  /* Border — RGB channel seeds for alpha-based borders. */
+  --border-seed-light: 20 30 25;
+  --border-seed-dark:  255 255 255;
+
+/* ─── Elevation tiers ────────────────────────────────────────────────────────
+ * Components should use semantic aliases (shadow-card, shadow-popover, etc.) from theme.css.
+ * See design docs for shadow rationale and dark-mode color base. */
+  --shadow-1: 0 1px 1px light-dark(rgba(28,32,36,.05), rgba(0,0,0,.18)),
+              0 2px 3px light-dark(rgba(28,32,36,.07), rgba(0,0,0,.24));
+  --shadow-2: 0 1px 2px light-dark(rgba(28,32,36,.05), rgba(0,0,0,.19)),
+              0 3px 5px light-dark(rgba(28,32,36,.06), rgba(0,0,0,.26));
+  --shadow-3: 0 2px 4px light-dark(rgba(28,32,36,.05), rgba(0,0,0,.25)),
+              0 4px 9px light-dark(rgba(28,32,36,.08), rgba(0,0,0,.31)),
+              inset 0 1px 0 light-dark(rgba(255,255,255,.00), rgba(255,255,255,.07));
+  --shadow-chip: 0 1px 1px light-dark(rgba(28,32,36,.04), rgba(0,0,0,.16)),
+                 0 1px 2px light-dark(rgba(28,32,36,.05), rgba(0,0,0,.19));
+
+/* ─── Z-index ─────────────────────────────────────────────────────────────────
+ * Z-overlay is shared by every portaled overlay; stacking is resolved by Radix
+ * Portal mount order. Splitting backdrop/content tiers caused portaled dropdowns
+ * to render behind drawers — do not split.
+ * NOTE: Tailwind v4 doesn't auto-generate z-* utilities from --z-* tokens;
+ * z index value provided by tailwind v4 will wiped out in the theme.css
+ * utilities.css has explicit @utility z-sticky/overlay/toast bridges. */
+  --z-sticky:  10;
+  --z-overlay: 50;
+  --z-toast:   60;
+
+  /* ─── Opacity ─────────────────────────────────────────────────────────────────
+ * Opacity primitives → opacity-* utilities. tailwind v4 opacity value will be wiped out in theme.css */
+  --opacity-dim:  0.38;   /* heavily reduced — solid filled disabled shapes (preserves form) */
+  --opacity-mid:  0.55;   /* default disabled — interactive elements that are off */
+  --opacity-mute: 0.70;   /* lightly reduced — disabled placeholder text (stays legible) */
+}
+
+/* ─── Spacing ────────────────────────────────────────────────────────────────
+ * Single-scale multiplier. All spacing utilities derive from this base.
+ * --size-scrollbar is intentionally omitted from the scale (non-multiplier).  */
+:root {
+  /* --spacing: 0.25rem; */
+  /* using tailwind 4px tier */
+  /* --size-scrollbar: 6px; */
+}
+
+/* ─── Blur ───────────────────────────────────────────────────────────────────
+ * Named blur stops. --blur-xs is the Tailwind v4 default and matches
+ * --blur-overlay-dialog in theme.css. */
+:root {
+  --blur-2xs: 2px;
+  --blur-xs:  4px;   /* Tailwind v4 default; matches --blur-overlay-dialog in theme.css */
+}
+
+/* ─── Duration ───────────────────────────────────────────────────────────────
+ * Named duration stops for motion tokens. */
+:root {
+  --duration-instant: 80ms;    /* Hover bg, press overlay */
+  --duration-fast:    120ms;   /* Focus ring, badge state change, icon swap */
+  --duration-subtle:  180ms;   /* Button press scale, row select highlight */
+  --duration-base:    220ms;   /* Modal/popover enter, row reveal, skeleton shimmer period — 220ms ceiling for UI feedback; don't exceed for any state change (continuous loops use --motion-continuous) */
+}
+
+/* ─── Easing ─────────────────────────────────────────────────────────────────
+ * Named easing curves. */
+:root {
+  --ease-out-standard:   cubic-bezier(0.2, 0, 0, 1);       /* General state changes */
+  --ease-out-emphasized:  cubic-bezier(0.05, 0.7, 0.1, 1); /* Enter transitions */
+  --ease-in-accelerated:  cubic-bezier(0.3, 0, 1, 1);      /* Exit/dismissal — clears stage fast */
+  --ease-linear:          linear;                           /* Shimmer, progress loops only */
+  --ease-natural:         cubic-bezier(0.25, 0.1, 0.25, 1); /* Drawer panel enter — drawer-only. Non-zero initial velocity (CSS `ease` keyword) so the panel moves from frame one; --ease-out-emphasized's near-flat start would introduce windup from the viewport edge */
+}
+
+/* ─── Animations ─────────────────────────────────────────────────────────────
+ * Composite animation shorthand values referencing duration + easing primitives
+ * above. These resolve at runtime since --duration-* and --ease-* are on :root. */
+:root {
+  --animate-fade-in:        fade-in          var(--duration-base)   var(--ease-out-standard);
+  --animate-fade-out:       fade-out         var(--duration-fast)   var(--ease-in-accelerated);
+  --animate-slide-up-in:    slide-up-in      var(--duration-base)   var(--ease-out-emphasized); /* dialog/popover panel enter — content-pop, 6px translate */
+  --animate-slide-down-out: slide-down-out   var(--duration-fast)   var(--ease-in-accelerated);
+  --animate-row-reveal:     row-reveal       var(--duration-base)   var(--ease-out-emphasized) both; /* streaming table row arrival — 4px translate, fill-mode both for staggered reveal */
+  --animate-shimmer:        shimmer          1800ms                  var(--ease-linear) infinite;
+  --animate-running-pulse:  running-pulse    1600ms                  var(--ease-linear) infinite;
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes fade-out {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+
+@keyframes slide-up-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slide-down-out {
+  from { opacity: 1; transform: translateY(0); }
+  to   { opacity: 0; transform: translateY(8px); }
+}
+
+@keyframes row-reveal {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes shimmer {
+  from { background-position: 200% center; }
+  to   { background-position: -200% center; }
+}
+
+@keyframes running-pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.45; }
+}
+
+@keyframes copy-confirm-pulse {
+  0%   { transform: scale(1); }
+  50%  { transform: scale(1.18); }
+  100% { transform: scale(1); }
+}
+
+@keyframes table-head-scroll-cue {
+  entry 0%  { box-shadow: none; border-color: transparent; }
+  entry 10% { box-shadow: var(--shadow-scroll-cue); border-color: var(--color-border); }
+}
+
+
+/* ─── Motion composites ──────────────────────────────────────────────────────
+ * These live in :root (not @theme) because they compose two primitives into a
+ * shorthand value that doesn't map to a single Tailwind utility category.
+ * Reference with prop-(--motion-*) syntax in Tailwind className strings. */
+:root {
+  /* hover bg, focus ring, badge state swap */
+  --motion-state-change: var(--duration-fast) var(--ease-out-standard);
+
+  /* button press scale, row select highlight */
+  --motion-micro:        var(--duration-subtle) var(--ease-out-standard);
+
+  /* modal/popover open, row reveal, tooltip appear */
+  --motion-enter:        var(--duration-base) var(--ease-out-emphasized);
+
+  /* modal/popover close, tooltip dismiss — clears stage fast */
+  --motion-exit:         var(--duration-fast) var(--ease-in-accelerated);
+
+  /* skeleton shimmer, indeterminate progress — loops only */
+  --motion-continuous:   1800ms var(--ease-linear) infinite;
+}
+
+
+/* ─── Typography ─────────────────────────────────────────────────────────────
+ * Typography primitives — font families, sizes, weights, and paired line-heights.
+ * Generates: font-sans, text-{body,subtitle,display}, font-{regular,semibold},
+ * tracking-*, leading-*.
+ * v4 paired-value: --text-X--line-height attaches to --text-X. */
+@theme {
+  --text-*: initial; /* close namespace — only the named scale below generates text-{name} utilities */
+
+  /* Font families — IBM Plex suite */
+  --font-sans: 'IBM Plex Sans', ui-sans-serif, system-ui, -apple-system, sans-serif;
+
+  /* Font sizes with paired line-heights */
+  --text-body:    0.875rem;  /* 14px — primary reading size */
+  --text-body--line-height: 1.375rem;
+
+  --text-subtitle: 1rem;      /* 16px — surface-anchor headers: dialog, drawer, sheet, section headings */
+  --text-subtitle--line-height: 1.375rem;
+
+  --text-display: 1.5rem;    /* 24px — page / hero display */
+  --text-display--line-height: 2rem;
+
+  /* Letter-spacing paired tokens */
+  --text-display--letter-spacing:  -0.02em;
+  --text-subtitle--letter-spacing: -0.01em;
+  --text-body--letter-spacing:      0em;
+
+  /* Font weights */
+  --font-weight-regular:  400;
+  --font-weight-semibold: 600;
+}
