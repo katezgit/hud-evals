@@ -1,0 +1,5 @@
+/* Portal stylesheet entry. The full token + base + utilities stack ships from
+ * @repo/ui — importing it here generates every utility this app uses. Do NOT
+ * re-declare tokens in this file; if a value is missing, add it upstream in
+ * packages/ui/src/styles/, then it lights up here automatically. */
+@import "@repo/ui/styles.css";
