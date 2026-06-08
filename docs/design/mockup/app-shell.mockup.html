@@ -1,0 +1,1325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>App Shell — Responsive Preview</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+  <style>
+    /* HUD color approximations using Tailwind defaults */
+    :root {
+      --sidebar-bg: #0f1117;
+      --sidebar-border: #1e2230;
+      --page-bg: #090c12;
+      --accent: #10b981;       /* emerald-500 — teal/green accent */
+      --accent-subtle: rgba(16,185,129,0.10);
+      --accent-ring: rgba(16,185,129,0.25);
+      --muted-fg: #6b7280;     /* gray-500 */
+      --default-fg: #e5e7eb;   /* gray-200 */
+      --brand-mark: #f59e0b;   /* amber-500 — saturated yellow brand mark */
+      --new-chip: #f59e0b;
+      --chip-bg: rgba(245,158,11,0.15);
+    }
+
+    body {
+      background: #06080e;
+      color: var(--default-fg);
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    }
+
+    /* Device frame wrapper */
+    .device-frame {
+      background: var(--sidebar-bg);
+      border: 1px solid var(--sidebar-border);
+      border-radius: 8px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* Shell layout inside frame */
+    .shell-layout {
+      display: flex;
+      height: 100%;
+      background: var(--page-bg);
+    }
+
+    /* ── SIDEBAR ── */
+    .sidebar {
+      background: var(--sidebar-bg);
+      border-right: 1px solid var(--sidebar-border);
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    .sidebar-lg { width: 220px; }
+    .sidebar-md { width: 56px; }
+    .sidebar-sm-drawer { width: 280px; }
+
+    /* ── NAV ITEMS ── */
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 5px 12px;
+      font-size: 13px;
+      color: var(--muted-fg);
+      cursor: pointer;
+      position: relative;
+      border-radius: 4px;
+      margin: 1px 4px;
+      transition: background 0.1s;
+    }
+
+    .nav-item:hover {
+      background: rgba(255,255,255,0.04);
+      color: var(--default-fg);
+    }
+
+    .nav-item.selected {
+      color: var(--accent);
+    }
+
+    /* AppShell selected: leading bar + tinted bg */
+    .nav-item.selected.appshell-style::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background: var(--accent);
+      border-radius: 0 2px 2px 0;
+    }
+
+    .nav-item.selected.appshell-style {
+      background: var(--accent-subtle);
+    }
+
+    /* ManageShell selected: bar + full pill */
+    .nav-item.selected.manageshell-style::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background: var(--accent);
+      border-radius: 0 2px 2px 0;
+    }
+
+    .nav-item.selected.manageshell-style {
+      background: rgba(16,185,129,0.15);
+    }
+
+    .nav-item-icon {
+      width: 16px;
+      height: 16px;
+      flex-shrink: 0;
+      color: inherit;
+      opacity: 0.8;
+    }
+
+    .nav-item.selected .nav-item-icon { opacity: 1; }
+
+    .nav-item-label { flex: 1; white-space: nowrap; }
+
+    .nav-item-count {
+      font-size: 11px;
+      color: var(--muted-fg);
+      margin-left: auto;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .nav-item-ext {
+      font-size: 10px;
+      color: var(--muted-fg);
+      margin-left: auto;
+    }
+
+    .unread-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--accent);
+      flex-shrink: 0;
+      margin-left: 2px;
+    }
+
+    /* ── GROUP LABEL ── */
+    .group-label {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted-fg);
+      padding: 0 16px;
+      margin-top: 20px;
+      margin-bottom: 4px;
+    }
+
+    /* ── BRAND SLOT ── */
+    .brand-slot {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 14px 16px 12px;
+      border-bottom: 1px solid var(--sidebar-border);
+      flex-shrink: 0;
+    }
+
+    .brand-mark {
+      width: 20px;
+      height: 20px;
+      background: var(--brand-mark);
+      border-radius: 4px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .brand-wordmark {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--default-fg);
+      letter-spacing: -0.02em;
+    }
+
+    /* ── CREDITS WIDGET ── */
+    .credits-widget {
+      margin: 0 8px 4px;
+      padding: 8px 10px;
+      border-radius: 6px;
+      border: 1px solid var(--sidebar-border);
+      cursor: pointer;
+    }
+
+    .credits-widget:hover {
+      background: var(--accent-subtle);
+    }
+
+    .credits-label {
+      font-size: 10px;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--muted-fg);
+    }
+
+    .credits-numbers {
+      display: flex;
+      justify-content: flex-end;
+      align-items: baseline;
+      gap: 2px;
+      margin: 2px 0;
+    }
+
+    .credits-current {
+      font-size: 13px;
+      font-variant-numeric: tabular-nums;
+      color: var(--default-fg);
+      font-family: 'JetBrains Mono', 'Fira Code', monospace;
+    }
+
+    .credits-cap {
+      font-size: 11px;
+      font-variant-numeric: tabular-nums;
+      color: var(--muted-fg);
+      font-family: 'JetBrains Mono', 'Fira Code', monospace;
+    }
+
+    .credits-bar-bg {
+      height: 3px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 2px;
+      overflow: hidden;
+      margin: 4px 0;
+    }
+
+    .credits-bar-fill {
+      height: 100%;
+      background: var(--accent);
+      border-radius: 2px;
+    }
+
+    .credits-meta {
+      display: flex;
+      justify-content: space-between;
+      font-size: 10px;
+      color: var(--muted-fg);
+      margin-top: 2px;
+    }
+
+    /* ── USER CHIP ── */
+    .user-chip {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 10px;
+      margin: 4px 6px 6px;
+      border-radius: 6px;
+      border: 1px solid var(--sidebar-border);
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    .user-chip:hover { background: rgba(255,255,255,0.04); }
+
+    .avatar {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: #1e2230;
+      border: 1px solid var(--sidebar-border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--default-fg);
+      flex-shrink: 0;
+    }
+
+    .user-info { flex: 1; overflow: hidden; min-width: 0; }
+
+    .user-name {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--default-fg);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .user-meta {
+      font-size: 10px;
+      color: var(--muted-fg);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .switcher-icon {
+      color: var(--muted-fg);
+      flex-shrink: 0;
+    }
+
+    /* ── PAGE CONTENT PLACEHOLDER ── */
+    .page-content {
+      flex: 1;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .content-placeholder-header {
+      height: 20px;
+      background: rgba(255,255,255,0.04);
+      border-radius: 4px;
+      width: 40%;
+    }
+
+    .content-placeholder-line {
+      height: 10px;
+      background: rgba(255,255,255,0.03);
+      border-radius: 3px;
+    }
+
+    .content-placeholder-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-top: 4px;
+    }
+
+    .content-card {
+      height: 60px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--sidebar-border);
+      border-radius: 6px;
+    }
+
+    /* ── ICON RAIL (md) ── */
+    .icon-rail-item {
+      width: 40px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 6px;
+      margin: 1px auto;
+      cursor: pointer;
+      color: var(--muted-fg);
+      position: relative;
+    }
+
+    .icon-rail-item:hover { background: rgba(255,255,255,0.06); color: var(--default-fg); }
+
+    .icon-rail-item.selected {
+      background: var(--accent-subtle);
+      color: var(--accent);
+    }
+
+    /* ── CREDITS RING (md) ── */
+    .credits-ring-wrapper {
+      width: 40px;
+      height: 40px;
+      margin: 2px auto;
+      position: relative;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .credits-ring-wrapper svg.ring-svg {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      transform: rotate(-90deg);
+    }
+
+    .credits-ring-icon {
+      z-index: 1;
+      color: var(--accent);
+      width: 14px;
+      height: 14px;
+    }
+
+    /* ── TOP BAR (sm) ── */
+    .top-bar {
+      height: 48px;
+      background: var(--sidebar-bg);
+      border-bottom: 1px solid var(--sidebar-border);
+      display: flex;
+      align-items: center;
+      padding: 0 12px;
+      gap: 10px;
+      flex-shrink: 0;
+    }
+
+    .hamburger {
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 6px;
+      cursor: pointer;
+      color: var(--muted-fg);
+    }
+
+    .hamburger:hover { background: rgba(255,255,255,0.06); color: var(--default-fg); }
+
+    .top-bar-brand {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex: 1;
+    }
+
+    /* ── DRAWER OVERLAY (sm) ── */
+    .drawer-overlay {
+      position: absolute;
+      inset: 0;
+      z-index: 20;
+      display: flex;
+    }
+
+    .drawer-scrim {
+      position: absolute;
+      inset: 0;
+      background: rgba(0,0,0,0.6);
+      backdrop-filter: blur(2px);
+    }
+
+    .drawer-panel {
+      position: relative;
+      z-index: 21;
+      width: 240px;
+      background: var(--sidebar-bg);
+      border-right: 1px solid var(--sidebar-border);
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      flex-shrink: 0;
+    }
+
+    .drawer-close {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 4px;
+      cursor: pointer;
+      color: var(--muted-fg);
+    }
+
+    .drawer-close:hover { background: rgba(255,255,255,0.06); }
+
+    /* ── BACK TO APP ── */
+    .back-link {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: var(--muted-fg);
+      padding: 6px 16px;
+      cursor: pointer;
+    }
+
+    .back-link:hover { color: var(--default-fg); }
+
+    /* ── SETTINGS HEADER ── */
+    .settings-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px 10px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--default-fg);
+    }
+
+    /* ── NEW CHIP ── */
+    .new-chip {
+      font-size: 9px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      background: var(--chip-bg);
+      color: var(--new-chip);
+      border-radius: 3px;
+      padding: 1px 4px;
+      margin-left: auto;
+    }
+
+    /* ── DIVIDER ── */
+    .divider {
+      height: 1px;
+      background: var(--sidebar-border);
+      margin: 6px 0;
+    }
+
+    /* ── SPACER ── */
+    .spacer { flex: 1; }
+
+    /* ── PAGE SECTION LABELS ── */
+    .section-header {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--muted-fg);
+      margin-bottom: 6px;
+    }
+
+    .snapshot-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--default-fg);
+      margin-bottom: 4px;
+    }
+
+    .snapshot-caption {
+      font-size: 11px;
+      color: var(--muted-fg);
+      margin-top: 8px;
+      line-height: 1.5;
+      max-width: 280px;
+    }
+
+    .shell-row-label {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--default-fg);
+      letter-spacing: -0.01em;
+      padding: 8px 0 12px;
+      border-bottom: 1px solid var(--sidebar-border);
+      margin-bottom: 20px;
+    }
+
+    .shell-section {
+      margin-bottom: 48px;
+    }
+
+    /* Inline SVG icons */
+    .icon { display: inline-block; width: 14px; height: 14px; vertical-align: middle; }
+  </style>
+</head>
+<body class="min-h-screen p-8">
+
+  <!-- ── PAGE HEADER ── -->
+  <div class="max-w-[1100px] mx-auto">
+    <div class="mb-2">
+      <h1 style="font-size:20px;font-weight:700;color:#e5e7eb;letter-spacing:-0.02em;">App Shell — Responsive Preview</h1>
+      <p style="font-size:12px;color:#6b7280;margin-top:4px;">
+        Exploratory HTML preview for
+        <code style="font-size:11px;background:#1e2230;padding:1px 5px;border-radius:3px;color:#a3e635;">docs/design/screens/app-shell.wireframe.md</code>
+        ·
+        <code style="font-size:11px;background:#1e2230;padding:1px 5px;border-radius:3px;color:#a3e635;">docs/design/screens/manage.wireframe.md</code>
+      </p>
+      <p style="font-size:11px;color:#4b5563;margin-top:6px;">Six snapshots (2 shells × 3 breakpoints). Fixed-width device frames — not the viewport.</p>
+    </div>
+
+    <div style="height:1px;background:#1e2230;margin:20px 0;"></div>
+
+    <!-- ════════════════════════════════════════════════════════════ -->
+    <!-- APPSHELL SECTION                                           -->
+    <!-- ════════════════════════════════════════════════════════════ -->
+    <div class="shell-section">
+      <div class="shell-row-label">AppShell — main application nav (<code style="font-size:11px;font-weight:400;color:#6b7280;">/(app)/...</code>)</div>
+
+      <div style="display:flex;gap:32px;flex-wrap:wrap;align-items:flex-start;">
+
+        <!-- ── AppShell LG ── -->
+        <div>
+          <div class="snapshot-label">lg — desktop sidebar</div>
+          <div class="device-frame" style="width:520px;height:580px;">
+            <div class="shell-layout">
+              <!-- Sidebar -->
+              <div class="sidebar sidebar-lg">
+                <!-- Brand -->
+                <div class="brand-slot">
+                  <div class="brand-mark">
+                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><rect width="12" height="12" rx="2" fill="#78350f"/><path d="M2 9L6 3L10 9" stroke="#f59e0b" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                  </div>
+                  <span class="brand-wordmark">hud</span>
+                </div>
+
+                <!-- WORKSPACE -->
+                <div class="group-label">Workspace</div>
+                <a class="nav-item selected appshell-style">
+                  <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="5" height="5" rx="1"/><rect x="9" y="2" width="5" height="5" rx="1"/><rect x="2" y="9" width="5" height="5" rx="1"/><rect x="9" y="9" width="5" height="5" rx="1"/></svg>
+                  <span class="nav-item-label">Home</span>
+                  <span class="unread-dot"></span>
+                </a>
+                <a class="nav-item">
+                  <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4h12M2 8h8M2 12h10"/><circle cx="13" cy="11" r="2.5"/></svg>
+                  <span class="nav-item-label">Tasksets</span>
+                  <span class="nav-item-count">12</span>
+                </a>
+                <a class="nav-item">
+                  <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="12" height="10" rx="2"/><path d="M5 3V2M11 3V2M2 7h12"/></svg>
+                  <span class="nav-item-label">Environments</span>
+                  <span class="nav-item-count">8</span>
+                </a>
+                <a class="nav-item">
+                  <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="3"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2M3.22 3.22l1.42 1.42M11.36 11.36l1.42 1.42M3.22 12.78l1.42-1.42M11.36 4.64l1.42-1.42"/></svg>
+                  <span class="nav-item-label">Models</span>
+                  <span class="nav-item-count">5</span>
+                </a>
+                <a class="nav-item">
+                  <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="5" r="2.5"/><path d="M3 14c0-2.76 2.24-5 5-5s5 2.24 5 5"/></svg>
+                  <span class="nav-item-label">Agents</span>
+                  <span class="nav-item-count">4</span>
+                </a>
+                <a class="nav-item">
+                  <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 2h8a1 1 0 011 1v10a1 1 0 01-1 1H4a1 1 0 01-1-1V3a1 1 0 011-1z"/><path d="M6 6h4M6 9h4M6 12h2"/></svg>
+                  <span class="nav-item-label">Library</span>
+                </a>
+
+                <!-- OBSERVE -->
+                <div class="group-label">Observe</div>
+                <a class="nav-item">
+                  <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="8" width="3" height="5" rx="0.5"/><rect x="6.5" y="5" width="3" height="8" rx="0.5"/><rect x="11" y="2" width="3" height="11" rx="0.5"/></svg>
+                  <span class="nav-item-label">Dashboard</span>
+                </a>
+                <a class="nav-item">
+                  <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="6"/><path d="M8 4v4l3 1.5"/></svg>
+                  <span class="nav-item-label">Progress</span>
+                </a>
+
+                <div class="spacer"></div>
+
+                <!-- Credits widget -->
+                <div class="credits-widget">
+                  <div class="credits-label">credits</div>
+                  <div class="credits-numbers">
+                    <span class="credits-current">4,230</span>
+                    <span class="credits-cap">&nbsp;/ 10,000</span>
+                  </div>
+                  <div class="credits-bar-bg">
+                    <div class="credits-bar-fill" style="width:42.3%"></div>
+                  </div>
+                  <div class="credits-meta">
+                    <span>~92 cr/hr</span>
+                    <span>~38h left</span>
+                  </div>
+                </div>
+
+                <!-- External links -->
+                <div style="padding:2px 4px;">
+                  <a class="nav-item" style="font-size:12px;">
+                    <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3H3a1 1 0 00-1 1v9a1 1 0 001 1h9a1 1 0 001-1V9"/><path d="M10 2h4v4M14 2L7 9"/></svg>
+                    <span class="nav-item-label">Marketplace</span>
+                    <span class="nav-item-ext">↗</span>
+                  </a>
+                  <a class="nav-item" style="font-size:12px;">
+                    <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3H3a1 1 0 00-1 1v9a1 1 0 001 1h9a1 1 0 001-1V9"/><path d="M10 2h4v4M14 2L7 9"/></svg>
+                    <span class="nav-item-label">Documentation</span>
+                    <span class="nav-item-ext">↗</span>
+                  </a>
+                </div>
+
+                <!-- User chip -->
+                <div class="user-chip">
+                  <div class="avatar">D</div>
+                  <div class="user-info">
+                    <div class="user-name">Demo User</div>
+                    <div class="user-meta">Acme Robotics · owner</div>
+                  </div>
+                  <svg class="switcher-icon" width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4.5L6 2 9 4.5M3 7.5L6 10 9 7.5"/></svg>
+                </div>
+              </div>
+
+              <!-- Main content -->
+              <div class="page-content">
+                <div class="content-placeholder-header"></div>
+                <div class="content-placeholder-line" style="width:60%"></div>
+                <div class="content-placeholder-grid">
+                  <div class="content-card"></div>
+                  <div class="content-card"></div>
+                  <div class="content-card"></div>
+                  <div class="content-card"></div>
+                  <div class="content-card"></div>
+                  <div class="content-card"></div>
+                </div>
+                <div class="content-placeholder-line" style="width:80%;margin-top:8px;"></div>
+                <div class="content-placeholder-line" style="width:55%"></div>
+              </div>
+            </div>
+          </div>
+          <div class="snapshot-caption">Full persistent sidebar. All labels, counts, credits widget, and user chip visible. Alex's primary context — sidebar is muscle memory.</div>
+        </div>
+
+        <!-- ── AppShell MD ── -->
+        <div>
+          <div class="snapshot-label">md — icon rail (tablet)</div>
+          <div class="device-frame" style="width:320px;height:580px;">
+            <div class="shell-layout">
+              <!-- Icon rail -->
+              <div class="sidebar sidebar-md">
+                <!-- Brand mark only -->
+                <div style="padding:13px 0 11px;display:flex;justify-content:center;border-bottom:1px solid var(--sidebar-border);">
+                  <div class="brand-mark">
+                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><rect width="12" height="12" rx="2" fill="#78350f"/><path d="M2 9L6 3L10 9" stroke="#f59e0b" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                  </div>
+                </div>
+
+                <!-- Nav icons: WORKSPACE + OBSERVE combined, no group separators -->
+                <div style="margin-top:8px;display:flex;flex-direction:column;gap:2px;">
+                  <!-- Home selected -->
+                  <div class="icon-rail-item selected" title="Home">
+                    <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="5" height="5" rx="1"/><rect x="9" y="2" width="5" height="5" rx="1"/><rect x="2" y="9" width="5" height="5" rx="1"/><rect x="9" y="9" width="5" height="5" rx="1"/></svg>
+                    <span style="position:absolute;top:3px;right:3px;width:5px;height:5px;border-radius:50%;background:var(--accent);"></span>
+                  </div>
+                  <div class="icon-rail-item" title="Tasksets — 12">
+                    <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4h12M2 8h8M2 12h10"/><circle cx="13" cy="11" r="2.5"/></svg>
+                  </div>
+                  <div class="icon-rail-item" title="Environments — 8">
+                    <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="12" height="10" rx="2"/><path d="M5 3V2M11 3V2M2 7h12"/></svg>
+                  </div>
+                  <div class="icon-rail-item" title="Models — 5">
+                    <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="3"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2M3.22 3.22l1.42 1.42M11.36 11.36l1.42 1.42M3.22 12.78l1.42-1.42M11.36 4.64l1.42-1.42"/></svg>
+                  </div>
+                  <div class="icon-rail-item" title="Agents — 4">
+                    <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="5" r="2.5"/><path d="M3 14c0-2.76 2.24-5 5-5s5 2.24 5 5"/></svg>
+                  </div>
+                  <div class="icon-rail-item" title="Library">
+                    <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 2h8a1 1 0 011 1v10a1 1 0 01-1 1H4a1 1 0 01-1-1V3a1 1 0 011-1z"/><path d="M6 6h4M6 9h4M6 12h2"/></svg>
+                  </div>
+
+                  <!-- faint divider -->
+                  <div style="height:1px;background:var(--sidebar-border);margin:4px 8px;"></div>
+
+                  <div class="icon-rail-item" title="Dashboard">
+                    <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="8" width="3" height="5" rx="0.5"/><rect x="6.5" y="5" width="3" height="8" rx="0.5"/><rect x="11" y="2" width="3" height="11" rx="0.5"/></svg>
+                  </div>
+                  <div class="icon-rail-item" title="Progress">
+                    <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="6"/><path d="M8 4v4l3 1.5"/></svg>
+                  </div>
+                </div>
+
+                <div class="spacer"></div>
+
+                <!-- Credits ring -->
+                <div style="display:flex;justify-content:center;padding-bottom:4px;" title="Credits: 4,230 / 10,000 · ~38h left">
+                  <div class="credits-ring-wrapper">
+                    <!-- SVG ring: circumference ~= 2π×15 ≈ 94.25; 42.3% fill = ~39.87 -->
+                    <svg class="ring-svg" viewBox="0 0 40 40">
+                      <circle cx="20" cy="20" r="15" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="3"/>
+                      <circle cx="20" cy="20" r="15" fill="none" stroke="#10b981" stroke-width="3"
+                        stroke-dasharray="94.25" stroke-dashoffset="54.38" stroke-linecap="round"/>
+                    </svg>
+                    <svg class="credits-ring-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M8 2a6 6 0 100 12A6 6 0 008 2z"/><path d="M8 5v3l2 1"/>
+                    </svg>
+                  </div>
+                </div>
+
+                <!-- External icon links -->
+                <div style="display:flex;flex-direction:column;gap:2px;padding-bottom:4px;">
+                  <div class="icon-rail-item" title="Marketplace ↗">
+                    <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3H3a1 1 0 00-1 1v9a1 1 0 001 1h9a1 1 0 001-1V9"/><path d="M10 2h4v4M14 2L7 9"/></svg>
+                  </div>
+                  <div class="icon-rail-item" title="Documentation ↗">
+                    <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 2h8a1 1 0 011 1v10a1 1 0 01-1 1H4a1 1 0 01-1-1V3a1 1 0 011-1z"/><path d="M6 6h4M6 9h4"/></svg>
+                  </div>
+                </div>
+
+                <!-- Avatar only -->
+                <div style="display:flex;justify-content:center;padding-bottom:8px;" title="Demo User · Acme Robotics">
+                  <div class="avatar" style="cursor:pointer;">D</div>
+                </div>
+              </div>
+
+              <!-- Main content -->
+              <div class="page-content">
+                <div class="content-placeholder-header" style="width:50%"></div>
+                <div class="content-placeholder-line" style="width:70%"></div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px;">
+                  <div class="content-card"></div>
+                  <div class="content-card"></div>
+                  <div class="content-card"></div>
+                  <div class="content-card"></div>
+                </div>
+                <div class="content-placeholder-line" style="width:80%;margin-top:8px;"></div>
+              </div>
+            </div>
+          </div>
+          <div class="snapshot-caption">Labels + counts hidden; icons only. Credits collapses to progress ring (~42% fill = ~42% consumed). Alex checks budget at a glance before starting a Job.</div>
+        </div>
+
+        <!-- ── AppShell SM ── -->
+        <div>
+          <div class="snapshot-label">sm — top bar + drawer (mobile)</div>
+          <div class="device-frame" style="width:360px;height:580px;position:relative;">
+            <div style="display:flex;flex-direction:column;height:100%;">
+              <!-- Top bar -->
+              <div class="top-bar">
+                <div class="hamburger">
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M2 4h12M2 8h12M2 12h12"/></svg>
+                </div>
+                <div class="top-bar-brand">
+                  <div class="brand-mark">
+                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><rect width="12" height="12" rx="2" fill="#78350f"/><path d="M2 9L6 3L10 9" stroke="#f59e0b" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                  </div>
+                  <span class="brand-wordmark">hud</span>
+                </div>
+                <div class="avatar" style="cursor:pointer;">D</div>
+              </div>
+
+              <!-- Page content (behind) -->
+              <div class="page-content" style="background:var(--page-bg);">
+                <div class="content-placeholder-header" style="width:45%"></div>
+                <div class="content-placeholder-line" style="width:65%"></div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px;">
+                  <div class="content-card"></div>
+                  <div class="content-card"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Drawer overlay (shown open) -->
+            <div class="drawer-overlay">
+              <div class="drawer-scrim"></div>
+              <div class="drawer-panel">
+                <!-- Brand + close -->
+                <div class="brand-slot" style="position:relative;">
+                  <div class="brand-mark">
+                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><rect width="12" height="12" rx="2" fill="#78350f"/><path d="M2 9L6 3L10 9" stroke="#f59e0b" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                  </div>
+                  <span class="brand-wordmark">hud</span>
+                  <div class="drawer-close" style="position:absolute;right:8px;">
+                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M2 2l10 10M12 2L2 12"/></svg>
+                  </div>
+                </div>
+
+                <!-- WORKSPACE -->
+                <div class="group-label">Workspace</div>
+                <a class="nav-item selected appshell-style">
+                  <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="5" height="5" rx="1"/><rect x="9" y="2" width="5" height="5" rx="1"/><rect x="2" y="9" width="5" height="5" rx="1"/><rect x="9" y="9" width="5" height="5" rx="1"/></svg>
+                  <span class="nav-item-label">Home</span>
+                  <span class="unread-dot"></span>
+                </a>
+                <a class="nav-item">
+                  <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4h12M2 8h8M2 12h10"/><circle cx="13" cy="11" r="2.5"/></svg>
+                  <span class="nav-item-label">Tasksets</span>
+                  <span class="nav-item-count">12</span>
+                </a>
+                <a class="nav-item">
+                  <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="12" height="10" rx="2"/><path d="M5 3V2M11 3V2M2 7h12"/></svg>
+                  <span class="nav-item-label">Environments</span>
+                  <span class="nav-item-count">8</span>
+                </a>
+                <a class="nav-item">
+                  <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="3"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2M3.22 3.22l1.42 1.42M11.36 11.36l1.42 1.42M3.22 12.78l1.42-1.42M11.36 4.64l1.42-1.42"/></svg>
+                  <span class="nav-item-label">Models</span>
+                  <span class="nav-item-count">5</span>
+                </a>
+                <a class="nav-item">
+                  <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="5" r="2.5"/><path d="M3 14c0-2.76 2.24-5 5-5s5 2.24 5 5"/></svg>
+                  <span class="nav-item-label">Agents</span>
+                  <span class="nav-item-count">4</span>
+                </a>
+                <a class="nav-item">
+                  <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 2h8a1 1 0 011 1v10a1 1 0 01-1 1H4a1 1 0 01-1-1V3a1 1 0 011-1z"/><path d="M6 6h4M6 9h4M6 12h2"/></svg>
+                  <span class="nav-item-label">Library</span>
+                </a>
+
+                <!-- OBSERVE -->
+                <div class="group-label">Observe</div>
+                <a class="nav-item">
+                  <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="8" width="3" height="5" rx="0.5"/><rect x="6.5" y="5" width="3" height="8" rx="0.5"/><rect x="11" y="2" width="3" height="11" rx="0.5"/></svg>
+                  <span class="nav-item-label">Dashboard</span>
+                </a>
+                <a class="nav-item">
+                  <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="6"/><path d="M8 4v4l3 1.5"/></svg>
+                  <span class="nav-item-label">Progress</span>
+                </a>
+
+                <div class="spacer"></div>
+
+                <!-- Credits widget (full, same as lg+) -->
+                <div class="credits-widget">
+                  <div class="credits-label">credits</div>
+                  <div class="credits-numbers">
+                    <span class="credits-current">4,230</span>
+                    <span class="credits-cap">&nbsp;/ 10,000</span>
+                  </div>
+                  <div class="credits-bar-bg">
+                    <div class="credits-bar-fill" style="width:42.3%"></div>
+                  </div>
+                  <div class="credits-meta">
+                    <span>~92 cr/hr</span>
+                    <span>~38h left</span>
+                  </div>
+                </div>
+
+                <!-- External links -->
+                <div style="padding:2px 4px;">
+                  <a class="nav-item" style="font-size:12px;">
+                    <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3H3a1 1 0 00-1 1v9a1 1 0 001 1h9a1 1 0 001-1V9"/><path d="M10 2h4v4M14 2L7 9"/></svg>
+                    <span class="nav-item-label">Marketplace</span>
+                    <span class="nav-item-ext">↗</span>
+                  </a>
+                  <a class="nav-item" style="font-size:12px;">
+                    <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3H3a1 1 0 00-1 1v9a1 1 0 001 1h9a1 1 0 001-1V9"/><path d="M10 2h4v4M14 2L7 9"/></svg>
+                    <span class="nav-item-label">Documentation</span>
+                    <span class="nav-item-ext">↗</span>
+                  </a>
+                </div>
+
+                <!-- User chip -->
+                <div class="user-chip">
+                  <div class="avatar">D</div>
+                  <div class="user-info">
+                    <div class="user-name">Demo User</div>
+                    <div class="user-meta">Acme Robotics · owner</div>
+                  </div>
+                  <svg class="switcher-icon" width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4.5L6 2 9 4.5M3 7.5L6 10 9 7.5"/></svg>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="snapshot-caption">Top bar with hamburger + brand + avatar. Drawer shown open, overlaying content with translucent scrim. Full lg+ sidebar content inside drawer — no degraded experience on mobile.</div>
+        </div>
+
+      </div><!-- /AppShell row -->
+    </div><!-- /AppShell section -->
+
+    <div style="height:1px;background:#1e2230;margin:8px 0 32px;"></div>
+
+    <!-- ════════════════════════════════════════════════════════════ -->
+    <!-- MANAGESHELL SECTION                                        -->
+    <!-- ════════════════════════════════════════════════════════════ -->
+    <div class="shell-section">
+      <div class="shell-row-label">ManageShell — settings context (<code style="font-size:11px;font-weight:400;color:#6b7280;">/manage/...</code>)</div>
+
+      <div style="display:flex;gap:32px;flex-wrap:wrap;align-items:flex-start;">
+
+        <!-- ── ManageShell LG ── -->
+        <div>
+          <div class="snapshot-label">lg — desktop sidebar</div>
+          <div class="device-frame" style="width:520px;height:640px;">
+            <div class="shell-layout">
+              <!-- Sidebar -->
+              <div class="sidebar sidebar-lg">
+                <!-- Brand -->
+                <div class="brand-slot">
+                  <div class="brand-mark">
+                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><rect width="12" height="12" rx="2" fill="#78350f"/><path d="M2 9L6 3L10 9" stroke="#f59e0b" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                  </div>
+                  <span class="brand-wordmark">hud</span>
+                </div>
+
+                <!-- Back to app -->
+                <div style="padding:10px 16px 6px;">
+                  <a class="back-link" style="padding:0;">
+                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2L3 6l5 4"/></svg>
+                    Back to app
+                  </a>
+                </div>
+                <div class="divider"></div>
+
+                <!-- Settings header -->
+                <div class="settings-header">
+                  <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="2.5"/><path d="M8 1.5v1M8 13.5v1M1.5 8h1M13.5 8h1M3.4 3.4l.7.7M11.9 11.9l.7.7M3.4 12.6l.7-.7M11.9 4.1l.7-.7"/></svg>
+                  Settings
+                </div>
+
+                <!-- PERSONAL -->
+                <div class="group-label" style="margin-top:4px;">Personal</div>
+                <a class="nav-item selected manageshell-style">
+                  <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="5" r="2.5"/><path d="M3 14c0-2.76 2.24-5 5-5s5 2.24 5 5"/></svg>
+                  <span class="nav-item-label">Profile</span>
+                </a>
+                <a class="nav-item">
+                  <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2a2 2 0 012 2v1a4 4 0 012 3.5v1.5a1 1 0 001 1H1a1 1 0 001-1V8.5A4 4 0 014 5V4a2 2 0 012-2z"/><path d="M6 13a2 2 0 004 0"/></svg>
+                  <span class="nav-item-label">Notifications</span>
+                </a>
+                <a class="nav-item">
+                  <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="3"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2"/></svg>
+                  <span class="nav-item-label">Appearance</span>
+                </a>
+
+                <!-- ORGANIZATION -->
+                <div class="group-label" style="margin-top:16px;">Organization</div>
+                <a class="nav-item">
+                  <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="12" height="8" rx="1"/><path d="M5 6V4a3 3 0 016 0v2"/></svg>
+                  <span class="nav-item-label">Organization</span>
+                </a>
+                <a class="nav-item">
+                  <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="5" r="2"/><circle cx="11" cy="5" r="2"/><path d="M1 14c0-2.21 2.24-4 5-4M8 14c0-2.21 1.34-4 3-4"/></svg>
+                  <span class="nav-item-label">Members</span>
+                </a>
+                <a class="nav-item">
+                  <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="12" height="9" rx="1"/><path d="M5 4V3a1 1 0 011-1h4a1 1 0 011 1v1M6 9h4"/></svg>
+                  <span class="nav-item-label">Billing</span>
+                  <span class="new-chip">new</span>
+                </a>
+                <a class="nav-item">
+                  <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="8" width="3" height="5" rx="0.5"/><rect x="6.5" y="5" width="3" height="8" rx="0.5"/><rect x="11" y="2" width="3" height="11" rx="0.5"/></svg>
+                  <span class="nav-item-label">Usage</span>
+                </a>
+                <a class="nav-item">
+                  <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="6"/><path d="M8 5v3M8 11v.5"/></svg>
+                  <span class="nav-item-label">Limits</span>
+                  <span class="new-chip">new</span>
+                </a>
+                <a class="nav-item">
+                  <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="10" height="7" rx="1"/><path d="M5 7V5a3 3 0 016 0v2"/><circle cx="8" cy="11" r="1"/></svg>
+                  <span class="nav-item-label">API keys</span>
+                </a>
+                <a class="nav-item">
+                  <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="9" r="3"/><path d="M10 7l3-3M13 4l-1-1"/></svg>
+                  <span class="nav-item-label">Secrets</span>
+                  <span class="new-chip">new</span>
+                </a>
+                <a class="nav-item">
+                  <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2a6 6 0 100 12A6 6 0 008 2z"/><path d="M8 6v2M8 10v.5M5 4.5A4 4 0 0112 8"/></svg>
+                  <span class="nav-item-label">Privacy controls</span>
+                  <span class="new-chip">new</span>
+                </a>
+
+                <div class="spacer"></div>
+
+                <!-- User chip (no org switcher) -->
+                <div class="user-chip">
+                  <div class="avatar">D</div>
+                  <div class="user-info">
+                    <div class="user-name">Demo User</div>
+                    <div class="user-meta">demo@hud.app</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Main content -->
+              <div class="page-content">
+                <div style="margin-bottom:16px;">
+                  <div style="font-size:16px;font-weight:600;color:var(--default-fg);margin-bottom:6px;">Profile</div>
+                  <div class="content-placeholder-line" style="width:50%;margin-bottom:12px;"></div>
+                  <div style="display:grid;gap:10px;">
+                    <div style="height:36px;background:rgba(255,255,255,0.04);border:1px solid var(--sidebar-border);border-radius:5px;"></div>
+                    <div style="height:36px;background:rgba(255,255,255,0.04);border:1px solid var(--sidebar-border);border-radius:5px;"></div>
+                    <div style="height:36px;background:rgba(255,255,255,0.04);border:1px solid var(--sidebar-border);border-radius:5px;"></div>
+                  </div>
+                </div>
+                <div class="content-placeholder-line" style="width:70%;"></div>
+                <div class="content-placeholder-line" style="width:55%;"></div>
+              </div>
+            </div>
+          </div>
+          <div class="snapshot-caption">ManageShell lg: back link + Settings header + PERSONAL/ORGANIZATION groups. Four new items marked with amber "new" chip. Pill selection (heavier fill) appropriate for the less-dense list.</div>
+        </div>
+
+        <!-- ── ManageShell MD ── -->
+        <div>
+          <div class="snapshot-label">md — icon rail (tablet)</div>
+          <div class="device-frame" style="width:320px;height:640px;">
+            <div class="shell-layout">
+              <!-- Icon rail -->
+              <div class="sidebar sidebar-md">
+                <!-- Brand mark only -->
+                <div style="padding:13px 0 11px;display:flex;justify-content:center;border-bottom:1px solid var(--sidebar-border);">
+                  <div class="brand-mark">
+                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><rect width="12" height="12" rx="2" fill="#78350f"/><path d="M2 9L6 3L10 9" stroke="#f59e0b" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                  </div>
+                </div>
+
+                <!-- Back arrow -->
+                <div style="margin-top:8px;display:flex;flex-direction:column;gap:2px;">
+                  <div class="icon-rail-item" title="Back to app" style="color:var(--muted-fg);">
+                    <svg width="15" height="15" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2L3 6l5 4"/></svg>
+                  </div>
+
+                  <!-- small divider -->
+                  <div style="height:1px;background:var(--sidebar-border);margin:3px 6px;"></div>
+
+                  <!-- Gear (Settings) -->
+                  <div class="icon-rail-item" title="Settings" style="color:var(--default-fg);">
+                    <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="2.5"/><path d="M8 1.5v1M8 13.5v1M1.5 8h1M13.5 8h1M3.4 3.4l.7.7M11.9 11.9l.7.7M3.4 12.6l.7-.7M11.9 4.1l.7-.7"/></svg>
+                  </div>
+
+                  <!-- small divider -->
+                  <div style="height:1px;background:var(--sidebar-border);margin:3px 6px;"></div>
+
+                  <!-- PERSONAL icons: Profile (selected), Notifications, Appearance -->
+                  <div class="icon-rail-item selected" title="Profile">
+                    <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="5" r="2.5"/><path d="M3 14c0-2.76 2.24-5 5-5s5 2.24 5 5"/></svg>
+                  </div>
+                  <div class="icon-rail-item" title="Notifications">
+                    <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2a2 2 0 012 2v1a4 4 0 012 3.5v1.5a1 1 0 001 1H1a1 1 0 001-1V8.5A4 4 0 014 5V4a2 2 0 012-2z"/><path d="M6 13a2 2 0 004 0"/></svg>
+                  </div>
+                  <div class="icon-rail-item" title="Appearance">
+                    <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="3"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2"/></svg>
+                  </div>
+
+                  <!-- faint divider -->
+                  <div style="height:1px;background:var(--sidebar-border);margin:3px 6px;"></div>
+
+                  <!-- ORGANIZATION icons: Org, Members, Billing, Usage, Limits, API keys, Secrets, Privacy -->
+                  <div class="icon-rail-item" title="Organization">
+                    <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="12" height="8" rx="1"/><path d="M5 6V4a3 3 0 016 0v2"/></svg>
+                  </div>
+                  <div class="icon-rail-item" title="Members">
+                    <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="5" r="2"/><circle cx="11" cy="5" r="2"/><path d="M1 14c0-2.21 2.24-4 5-4M8 14c0-2.21 1.34-4 3-4"/></svg>
+                  </div>
+                  <div class="icon-rail-item" title="Billing [new]" style="position:relative;">
+                    <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="12" height="9" rx="1"/><path d="M5 4V3a1 1 0 011-1h4a1 1 0 011 1v1M6 9h4"/></svg>
+                    <span style="position:absolute;top:3px;right:3px;width:5px;height:5px;border-radius:50%;background:var(--brand-mark);"></span>
+                  </div>
+                  <div class="icon-rail-item" title="Usage">
+                    <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="8" width="3" height="5" rx="0.5"/><rect x="6.5" y="5" width="3" height="8" rx="0.5"/><rect x="11" y="2" width="3" height="11" rx="0.5"/></svg>
+                  </div>
+                  <div class="icon-rail-item" title="Limits [new]" style="position:relative;">
+                    <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="6"/><path d="M8 5v3M8 11v.5"/></svg>
+                    <span style="position:absolute;top:3px;right:3px;width:5px;height:5px;border-radius:50%;background:var(--brand-mark);"></span>
+                  </div>
+                  <div class="icon-rail-item" title="API keys">
+                    <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="10" height="7" rx="1"/><path d="M5 7V5a3 3 0 016 0v2"/><circle cx="8" cy="11" r="1"/></svg>
+                  </div>
+                  <div class="icon-rail-item" title="Secrets [new]" style="position:relative;">
+                    <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="9" r="3"/><path d="M10 7l3-3M13 4l-1-1"/></svg>
+                    <span style="position:absolute;top:3px;right:3px;width:5px;height:5px;border-radius:50%;background:var(--brand-mark);"></span>
+                  </div>
+                  <div class="icon-rail-item" title="Privacy controls [new]" style="position:relative;">
+                    <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2a6 6 0 100 12A6 6 0 008 2z"/><path d="M8 6v2M8 10v.5M5 4.5A4 4 0 0112 8"/></svg>
+                    <span style="position:absolute;top:3px;right:3px;width:5px;height:5px;border-radius:50%;background:var(--brand-mark);"></span>
+                  </div>
+                </div>
+
+                <div class="spacer"></div>
+
+                <!-- Avatar only -->
+                <div style="display:flex;justify-content:center;padding-bottom:8px;" title="Demo User · demo@hud.app">
+                  <div class="avatar" style="cursor:pointer;">D</div>
+                </div>
+              </div>
+
+              <!-- Main content -->
+              <div class="page-content">
+                <div style="font-size:14px;font-weight:600;color:var(--default-fg);margin-bottom:10px;">Profile</div>
+                <div style="display:grid;gap:8px;">
+                  <div style="height:32px;background:rgba(255,255,255,0.04);border:1px solid var(--sidebar-border);border-radius:5px;"></div>
+                  <div style="height:32px;background:rgba(255,255,255,0.04);border:1px solid var(--sidebar-border);border-radius:5px;"></div>
+                  <div style="height:32px;background:rgba(255,255,255,0.04);border:1px solid var(--sidebar-border);border-radius:5px;"></div>
+                </div>
+                <div class="content-placeholder-line" style="width:60%;margin-top:12px;"></div>
+                <div class="content-placeholder-line" style="width:40%;margin-top:6px;"></div>
+              </div>
+            </div>
+          </div>
+          <div class="snapshot-caption">ManageShell icon rail: back-arrow at top, gear icon for Settings context, all nav items as icons. New items carry an amber dot indicator. No label space at this width.</div>
+        </div>
+
+        <!-- ── ManageShell SM ── -->
+        <div>
+          <div class="snapshot-label">sm — top bar + drawer (mobile)</div>
+          <div class="device-frame" style="width:360px;height:640px;position:relative;">
+            <div style="display:flex;flex-direction:column;height:100%;">
+              <!-- Top bar -->
+              <div class="top-bar">
+                <div class="hamburger">
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M2 4h12M2 8h12M2 12h12"/></svg>
+                </div>
+                <div class="top-bar-brand">
+                  <div class="brand-mark">
+                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><rect width="12" height="12" rx="2" fill="#78350f"/><path d="M2 9L6 3L10 9" stroke="#f59e0b" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                  </div>
+                  <span class="brand-wordmark">hud</span>
+                </div>
+                <div class="avatar" style="cursor:pointer;">D</div>
+              </div>
+
+              <!-- Page content (behind) -->
+              <div class="page-content" style="background:var(--page-bg);">
+                <div style="font-size:14px;font-weight:600;color:var(--default-fg);margin-bottom:8px;">Profile</div>
+                <div style="display:grid;gap:8px;">
+                  <div style="height:32px;background:rgba(255,255,255,0.04);border:1px solid var(--sidebar-border);border-radius:5px;"></div>
+                  <div style="height:32px;background:rgba(255,255,255,0.04);border:1px solid var(--sidebar-border);border-radius:5px;"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- ManageShell Drawer overlay (shown open) -->
+            <div class="drawer-overlay">
+              <div class="drawer-scrim"></div>
+              <div class="drawer-panel">
+                <!-- Brand + close -->
+                <div class="brand-slot" style="position:relative;">
+                  <div class="brand-mark">
+                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><rect width="12" height="12" rx="2" fill="#78350f"/><path d="M2 9L6 3L10 9" stroke="#f59e0b" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                  </div>
+                  <span class="brand-wordmark">hud</span>
+                  <div class="drawer-close" style="position:absolute;right:8px;">
+                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M2 2l10 10M12 2L2 12"/></svg>
+                  </div>
+                </div>
+
+                <!-- Back to app -->
+                <div style="padding:8px 12px 4px;">
+                  <a class="back-link" style="padding:0;">
+                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2L3 6l5 4"/></svg>
+                    Back to app
+                  </a>
+                </div>
+                <div class="divider"></div>
+
+                <!-- Settings header -->
+                <div class="settings-header" style="font-size:12px;padding:6px 16px 8px;">
+                  <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="2.5"/><path d="M8 1.5v1M8 13.5v1M1.5 8h1M13.5 8h1M3.4 3.4l.7.7M11.9 11.9l.7.7M3.4 12.6l.7-.7M11.9 4.1l.7-.7"/></svg>
+                  Settings
+                </div>
+
+                <!-- PERSONAL -->
+                <div class="group-label" style="margin-top:2px;">Personal</div>
+                <a class="nav-item selected manageshell-style">
+                  <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="5" r="2.5"/><path d="M3 14c0-2.76 2.24-5 5-5s5 2.24 5 5"/></svg>
+                  <span class="nav-item-label">Profile</span>
+                </a>
+                <a class="nav-item">
+                  <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2a2 2 0 012 2v1a4 4 0 012 3.5v1.5a1 1 0 001 1H1a1 1 0 001-1V8.5A4 4 0 014 5V4a2 2 0 012-2z"/><path d="M6 13a2 2 0 004 0"/></svg>
+                  <span class="nav-item-label">Notifications</span>
+                </a>
+                <a class="nav-item">
+                  <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="3"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2"/></svg>
+                  <span class="nav-item-label">Appearance</span>
+                </a>
+
+                <!-- ORGANIZATION -->
+                <div class="group-label" style="margin-top:12px;">Organization</div>
+                <a class="nav-item">
+                  <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="12" height="8" rx="1"/><path d="M5 6V4a3 3 0 016 0v2"/></svg>
+                  <span class="nav-item-label">Organization</span>
+                </a>
+                <a class="nav-item">
+                  <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="5" r="2"/><circle cx="11" cy="5" r="2"/><path d="M1 14c0-2.21 2.24-4 5-4M8 14c0-2.21 1.34-4 3-4"/></svg>
+                  <span class="nav-item-label">Members</span>
+                </a>
+                <a class="nav-item">
+                  <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="12" height="9" rx="1"/><path d="M5 4V3a1 1 0 011-1h4a1 1 0 011 1v1M6 9h4"/></svg>
+                  <span class="nav-item-label">Billing</span>
+                  <span class="new-chip">new</span>
+                </a>
+                <a class="nav-item">
+                  <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="8" width="3" height="5" rx="0.5"/><rect x="6.5" y="5" width="3" height="8" rx="0.5"/><rect x="11" y="2" width="3" height="11" rx="0.5"/></svg>
+                  <span class="nav-item-label">Usage</span>
+                </a>
+                <a class="nav-item">
+                  <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="6"/><path d="M8 5v3M8 11v.5"/></svg>
+                  <span class="nav-item-label">Limits</span>
+                  <span class="new-chip">new</span>
+                </a>
+                <a class="nav-item">
+                  <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="10" height="7" rx="1"/><path d="M5 7V5a3 3 0 016 0v2"/><circle cx="8" cy="11" r="1"/></svg>
+                  <span class="nav-item-label">API keys</span>
+                </a>
+                <a class="nav-item">
+                  <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="9" r="3"/><path d="M10 7l3-3M13 4l-1-1"/></svg>
+                  <span class="nav-item-label">Secrets</span>
+                  <span class="new-chip">new</span>
+                </a>
+                <a class="nav-item">
+                  <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2a6 6 0 100 12A6 6 0 008 2z"/><path d="M8 6v2M8 10v.5M5 4.5A4 4 0 0112 8"/></svg>
+                  <span class="nav-item-label">Privacy controls</span>
+                  <span class="new-chip">new</span>
+                </a>
+
+                <div class="spacer"></div>
+
+                <!-- User chip (email variant, no switcher) -->
+                <div class="user-chip">
+                  <div class="avatar">D</div>
+                  <div class="user-info">
+                    <div class="user-name">Demo User</div>
+                    <div class="user-meta">demo@hud.app</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="snapshot-caption">ManageShell drawer: "Back to app" is the first exit path after brand, settings header below the divider. Full item list with new chips. Email in user chip — no org switcher in settings context.</div>
+        </div>
+
+      </div><!-- /ManageShell row -->
+    </div><!-- /ManageShell section -->
+
+    <!-- ── LEGEND ── -->
+    <div style="height:1px;background:#1e2230;margin:8px 0 24px;"></div>
+    <div style="display:flex;gap:24px;flex-wrap:wrap;padding-bottom:40px;">
+      <div style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--muted-fg);">
+        <div style="width:10px;height:10px;border-radius:50%;background:var(--accent);"></div>
+        Accent (emerald-500 proxy for teal/green)
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--muted-fg);">
+        <div style="width:10px;height:10px;border-radius:3px;background:var(--brand-mark);"></div>
+        Brand mark (amber-500 proxy)
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--muted-fg);">
+        <span style="background:var(--chip-bg);color:var(--new-chip);font-size:9px;font-weight:600;padding:1px 4px;border-radius:3px;">new</span>
+        New items (Billing, Limits, Secrets, Privacy controls — not yet in manage.wireframe.md)
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--muted-fg);">
+        <div style="width:5px;height:5px;border-radius:50%;background:var(--brand-mark);"></div>
+        Amber dot = "new" indicator at icon rail (md) breakpoint
+      </div>
+      <div style="font-size:11px;color:#4b5563;margin-left:auto;">
+        .intermediate/design/app-shell/responsive.html — gitignored exploration artifact
+      </div>
+    </div>
+
+  </div><!-- /max-w container -->
+</body>
+</html>
