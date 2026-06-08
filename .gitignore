@@ -64,3 +64,6 @@ docs/design/materials/
 # Canonical record lives in docs/ after Operator approval.
 # See CLAUDE.md → Hard rules → "Intermediate vs canonical artifacts"
 .intermediate/
+
+# Auto-memory (per-project, do not commit)
+memory/
