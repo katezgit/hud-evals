@@ -12,33 +12,36 @@ Phases gate what can be built → agents are method calls with declared inputs �
 
 ```
 discovery  ─── product-designer
-     │
-     ┌────┴────────┐
+       │           writes: platform, personas,
+       │                   primary-workflow, user-stories
+       │
+     ┌─┴───────────┐
      ▼             ▼
 personality   ux-flows        ◄── parallel
      │             │
      ▼             │
-design-tokens     │           ◄── entry: personality approved
-     │             │
-     └─────┬───────┘
-           ▼
-      wireframes  ◄─── human-approved; entry: tokens + ux-flows approved
-           ▼
-      screens
-           │
-           ├──► components   ◄── trigger: pattern in 2–3 screens
-           ├──► patterns     ◄── trigger: cross-component need
-           ▼
-      motion  ─── motion-designer
-           ▼
-      implementation ─┬── design-system-architect  (packages/ui/)
-                      └── staff-frontend-engineer  (apps/)
-           ▼
-      design-qa  ─── product-designer + motion-designer
-           ▼
-      review  ─── accessibility-expert + reviewer
-           ▼
-      ship  ─── release-manager
+design-tokens      │           ◄── entry: personality approved
+     │             │              refined by wireframes feedback
+     └──────┬──────┘
+            ▼
+       wireframes               ◄── entry: tokens + ux-flows approved
+            │                      refines design-tokens; human-approved
+            ▼
+       screens
+            │
+            ├──► components   ◄── trigger: pattern in 2–3 screens
+            ├──► patterns     ◄── trigger: cross-component need
+            ▼
+       motion  ─── motion-designer
+            ▼
+       implementation ─┬── design-system-architect  (packages/ui/)
+                       └── staff-frontend-engineer  (apps/)
+            ▼
+       design-qa  ─── product-designer + motion-designer
+            ▼
+       review  ─── accessibility-expert + reviewer
+            ▼
+       ship  ─── release-manager
 ```
 
 Every arrow crosses a **human approval gate** (the `agent:review` task produced by the Artifact Rule). Phases never advance automatically. Current phase lives in `.state/state.md`.
