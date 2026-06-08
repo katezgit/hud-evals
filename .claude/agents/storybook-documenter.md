@@ -16,15 +16,24 @@ You create Storybook documentation for design system components in `packages/ui/
 
 ## Inputs
 
-- **COMPONENT_NAME**: the kebab-case component name (e.g. `button`, `data-table`). The component lives at `packages/ui/src/components/<COMPONENT_NAME>.tsx` (flat file, not a nested folder).
+- **COMPONENT_NAME**: the kebab-case component name (e.g. `button`, `data-table`). The component lives at the path defined by the **Placement convention** below.
 - **SPEC_PATH** (optional): `docs/design/components/<COMPONENT_NAME>/spec.md` if a component spec exists. The spec is the source of truth for which states and variants exist — the component code is the source of truth for the actual API. **If both exist and disagree, the spec wins for which stories to write; flag the disagreement in your return.**
 - **REVIEW_FEEDBACK** (optional): when the architect spawns you for a follow-up iteration, the brief lists specific gaps (missing states, wrong props, broken gates). Address every item before returning.
 
 ## Output
 
-- `packages/ui/src/components/<COMPONENT_NAME>.stories.tsx` (flat, co-located with the component file)
+- `<COMPONENT_NAME>.stories.tsx` co-located with the component file (path per **Placement convention**).
 - All gates green: `pnpm --filter @repo/ui build`, `check-types`
 - Storybook renders all stories without errors
+
+## Placement convention — primitive vs composite
+
+The component's category determines its on-disk layout; the story file lives alongside.
+
+- **Primitive** — Radix wrapper or single semantic element (Button, Input, Badge, Switch, Avatar). Flat: `packages/ui/src/components/<name>.tsx` + sibling `<name>.test.tsx` and `<name>.stories.tsx`.
+- **Composite** — multi-element block with internal layout (EmptyState, ErrorState, ResourceNotFound, DataTable). Folder: `packages/ui/src/components/<name>/` containing `index.ts` (re-exports `./<name>`), `<name>.tsx`, `<name>.test.tsx`, `<name>.stories.tsx`.
+
+Match the layout the component already uses — never relocate. If it looks wrong for the component's nature, flag it; restructuring is an architect decision.
 
 ## Hard rules (read before workflow)
 
@@ -38,10 +47,10 @@ You create Storybook documentation for design system components in `packages/ui/
 
 1. **Read conventions** — [Storybook Stories](../../docs/conventions/design-system.md#storybook-stories). The "When NOT to Add a Story" red-flag list is binding, not advisory.
 2. **Read the component spec** (if `SPEC_PATH` provided) — enumerate the states/variants the spec promises. The spec is the contract; that contract sets your story budget. If no spec exists, your budget is exactly Playground + Variants — stop there.
-3. **Read the component code** — `packages/ui/src/components/<COMPONENT_NAME>.tsx`. Understand props, variants, ref forwarding, slots/children. Reconcile against the spec — surface gaps.
-4. **Check existing patterns** — Read 1-2 existing stories in `packages/ui/src/stories/` and any `packages/ui/src/components/*.stories.tsx` already shipped to see how the template is applied in practice.
+3. **Read the component code** — at the path determined by the **Placement convention**. Understand props, variants, ref forwarding, slots/children. Reconcile against the spec — surface gaps.
+4. **Check existing patterns** — Read 1-2 existing stories in `packages/ui/src/stories/` and any `packages/ui/src/components/**/*.stories.tsx` already shipped to see how the template is applied in practice.
 5. **If stories already exist, prune before adding.** Re-evaluate every existing story against the rules above. Delete recipes, duplicates, broken `args`+`render` mixes, and interaction-state stories before considering additions.
-6. **Create / update stories** — Write `<COMPONENT_NAME>.stories.tsx` (flat path):
+6. **Create / update stories** — Write `<COMPONENT_NAME>.stories.tsx` co-located with the component file:
    - Playground (1) — all props controllable via args, default render (no custom `render`)
    - Variants (1) — all visual variants grouped in one frame
    - Feature stories — one per spec-enumerated state that is *not* already visible in Variants (e.g. structural edge cases like "icon omitted → grid collapses," "multi-paragraph description"). Each must justify itself against rule §1.
