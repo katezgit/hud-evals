@@ -1,5 +1,7 @@
 # Tasksets Index — Screen Wireframe (`/tasksets`)
 
+> Wireframe convention: structure, hierarchy, copy, and flow only. Pixel sizes, Tailwind class hints, and color tokens belong to the screen-spec and design-tokens phases.
+
 Cross-links:
 - [`docs/design/screens/app-shell.wireframe.md`](./app-shell.wireframe.md) — AppShell outer chrome (sidebar, credits widget, user chip). This wireframe covers the `MAIN` region only.
 - [`docs/design/screens/manage.wireframe.md`](./manage.wireframe.md) — Settings shell
@@ -16,6 +18,21 @@ The page must serve two browse loops without friction-switching between them:
 
 These loops are structurally different: discovery wants density + leaderboard data visible at a glance (grid default would expose 6–8 Tasksets with leaderboard); find-mine wants scan speed by name (list view is faster). The solution: default to List view (denser, Alex's bias as documented in the task prompt state machine), but make grid the natural second option. Both views show leaderboard data — the difference is how many rows of the leaderboard are exposed per card.
 
+The page must also scale from Alex with 3 Tasksets to DoorDash (Sam enterprise) with 120+ Tasksets without two different layouts. Grouping, owner filtering, and pagination are progressive disclosure — they surface only when the data justifies them, preserving Alex's simple flat-list experience.
+
+---
+
+## Taskset volume by persona
+
+| Persona | Realistic My Team count | How they use the index |
+|---|---|---|
+| **Alex** (Frontier RL Researcher — PRIMARY) | 0–15 | Scans Public tab to find hard benchmarks; lands on My Team for his personal Tasksets he runs against repeatedly. Flat list. Sort by starred or most tasks. |
+| **Sam SMB** (Applied Agent Engineer, small team) | 5–25 | Navigates directly to My Team, finds the regression Taskset by name. Flat list. Sort by starred or newest. |
+| **Sam enterprise (DoorDash-scale)** | 50–150+ | Multiple agent surfaces (menu, support, dasher, marketplace ops, recommendations) × per-surface { baseline + weekly regression + edge-case bank + per-model-migration comparison Tasksets }. Flat list breaks — needs grouping by Environment and owner filtering to navigate. DoorDash is the named enterprise customer that anchors the upper end of this range. |
+| **Riley** (RL Environment Vendor — TERTIARY) | 10–50 | Per client × 2–5 Taskset versions × 3–5 active clients. Navigates by client/project name. Grouping by owner is useful here too. |
+
+**Progressive disclosure principle**: Group by and Owner filter have sensible "off / Anyone" defaults. At Alex-scale (3 Tasksets) these controls are invisible in effect. At DoorDash-scale they become the primary navigation pattern.
+
 ---
 
 ## 1. Shared layout note
@@ -24,7 +41,7 @@ The `MAIN` region is the content area to the right of AppShell's persistent side
 
 ```
 ┌─────────────────────┬─────────────────────────────────────────────────────────┐
-│  SIDEBAR (AppShell) │  MAIN  flex-1  bg-page                                  │
+│  SIDEBAR (AppShell) │  MAIN                                                   │
 │  [see app-shell     │                                                          │
 │   wireframe.md]     │  [TASKSETS INDEX CONTENT — this file]                   │
 │                     │                                                          │
@@ -37,11 +54,11 @@ The `MAIN` region is the content area to the right of AppShell's persistent side
 
 ```
 ┌──────────────────────────────────────────────────────────────────────────────────┐
-│  PAGE HEADER  px-6 pt-6 pb-4                                                     │
+│  PAGE HEADER                                                                     │
 │                                                                                  │
 │  ┌─────────────────────────────────────────────┐  ┌───────────────────────────┐ │
 │  │  Tasksets                                   │  │  + New Taskset            │ │
-│  │  text-display  font-medium                  │  │  Button  primary  sm      │ │
+│  │  (h1 / page title)                          │  │  (primary button)         │ │
 │  └─────────────────────────────────────────────┘  └───────────────────────────┘ │
 │                                                                                  │
 └──────────────────────────────────────────────────────────────────────────────────┘
@@ -58,98 +75,104 @@ The `MAIN` region is the content area to the right of AppShell's persistent side
 
 ```
 ┌──────────────────────────────────────────────────────────────────────────────────┐
-│  TAB + FILTER ROW  px-6 pb-3  border-b                                           │
+│  TAB + FILTER ROW                                                                │
 │                                                                                  │
 │  ┌───────────────────────────────────────────────────────────────────────┐       │
 │  │  TAB BAR  (left-aligned, inline with search)                          │       │
 │  │                                                                       │       │
 │  │  [Public  42]  [My Team  3]                                           │       │
-│  │  ← tab underline variant; active tab = underline + default-fg         │       │
-│  │     inactive tab = muted-fg; count chip = muted-fg text-meta          │       │
+│  │  ← tab underline variant; active tab underlined; count chip muted     │       │
 │  └───────────────────────────────────────────────────────────────────────┘       │
 │                                                                                  │
 │  ─────────────────────────────────────────────────────────────────────────────  │
-│  Filter row  (below tabs, full width, flex items-center gap-3)                   │
+│  Filter row  (below tabs, full width, horizontally arranged)                     │
 │                                                                                  │
 │  ┌──────────────────────────────────────────────────┐                           │
 │  │  [🔍]  Search Tasksets…                          │                           │
-│  │  Input  search  bg-muted  text-body  flex-1       │                           │
+│  │  (search input, expands to fill available space)  │                           │
 │  └──────────────────────────────────────────────────┘                           │
 │                                                                                  │
 │  [⊞ Grid]  [☰ List ✓]     ←  view toggle, right of search                       │
 │  Segmented control, 2 items  (List = default, persists in localStorage)          │
 │                                                                                  │
 │  [↕ Starred first ▾]   ← sort button, rightmost                                 │
-│  Button  variant="outline"  sm  opens sort menu (see §7)                         │
+│  Outline button, opens sort menu (see §7)                                        │
+│                                                                                  │
+│  [Group by None ▾]   ← group control, right of sort                             │
+│  Outline button, opens group menu (see §8)                                       │
+│                                                                                  │
+│  MY TEAM TAB ONLY — shown when org has 10+ distinct owners:                      │
+│  [Owner: Anyone ▾]   ← owner filter chip, leftmost of right-side controls       │
+│  Multi-select dropdown. Hidden when <10 distinct owners in the tab.              │
 │                                                                                  │
 └──────────────────────────────────────────────────────────────────────────────────┘
 ```
 
 **Annotations:**
 
-- **Tab counts**: `Public 42 · My Team 3` in the tab label area. Count is live (reflects filtered org Tasksets count, not a static cache). Format: space-separated integer after the tab label, rendered in `text-meta muted-fg` to not compete with the label. Observed on `02b-tasksets-public.png` and `02a-tasksets-my.png`.
+- **Tab counts**: `Public 42 · My Team 3` in the tab label area. Count is live (reflects filtered org Tasksets count, not a static cache). Format: space-separated integer after the tab label, rendered smaller and muted to not compete with the label. Observed on `02b-tasksets-public.png` and `02a-tasksets-my.png`.
 
 - **Tab default logic**: `My Team` is the default active tab when the user has ≥1 team Tasksets; `Public` is the default when they have zero. This prevents a blank My Team tab being the first thing a new user sees.
 
 - **Search scope**: filters within the active tab only. Placeholder text adapts: "Search public Tasksets…" on Public tab, "Search team Tasksets…" on My Team tab. Observed `02a-tasksets-my.png`: search placeholder "Search my tasksets..." and `02b-tasksets-public.png`: "Search public tasksets...".
 
-- **"My tasksets" toggle**: `02a-tasksets-my.png` shows a `My tasksets` chip/pill active on the My Team tab. This appears to be a sub-filter showing only the current user's Tasksets within the team org. Annotated as an open question — see §11.
+- **"My tasksets" toggle**: `02a-tasksets-my.png` shows a `My tasksets` chip/pill active on the My Team tab. This appears to be a sub-filter showing only the current user's Tasksets within the team org. Annotated as an open question — see §14.
 
-- **View toggle**: two segments `Grid | List`. List is the default — Alex's density preference and the state machine spec. Toggle state persists to localStorage. At `sm` breakpoint, toggle is hidden; List layout is forced.
+- **View toggle**: two segments `Grid | List`. List is the default — Alex's density preference and the state machine spec. Toggle state persists to localStorage. On mobile, toggle is hidden; List layout is forced.
 
 - **Sort button**: shows current sort label inline. Clicking opens the sort menu (§7). Label updates on selection. Screenshot `02a-tasksets-my.png` confirms "Starred first" as the visible default sort label.
+
+- **Group by control**: defaults to `None`. Options: `None` / `Environment` / `Owner`. When set to anything other than `None`, the list or grid renders with collapsible group headers instead of a flat list. See §8 for group view behavior. Off by default — Alex's small-team flat list is unchanged.
+
+- **Owner filter**: appears in My Team tab only when the org has 10 or more distinct owners. Hidden otherwise. Multi-select: selecting one or more owners narrows the list to Tasksets owned by those people. Default: "Anyone" (no filter applied). This threshold hides the control for Alex's lab-scale team (typically 1–5 people) and surfaces it for DoorDash-scale orgs.
 
 ---
 
 ## 4. Grid card anatomy (view = Grid)
 
-Grid layout: `grid-cols-3` at `lg+`, `grid-cols-2` at `md`, `grid-cols-1` at `sm`. Each card is equal height within a row via CSS grid stretching.
+Grid layout: 3-column at desktop, 2-column at tablet, 1-column at mobile. Each card is equal height within a row.
 
 ```
 ┌──────────────────────────────────────────────────────────────────────────────────┐
-│  GRID CARD  — one card  border  rounded  bg-card                                 │
+│  GRID CARD  — one card                                                           │
 │  clickable region (entire card)  → navigates to /tasksets/[slug]                 │
 │                                                                                  │
 │  ── CARD HEADER ──────────────────────────────────────────────────────────────  │
 │  ┌────────────────────────────────────────────────────────────────────────────┐ │
 │  │  [ENV ICON]  OSWorld-Verified                          ☆  3               │ │
-│  │  icon sm     text-title  font-medium  flex-1           star  count         │ │
-│  │              muted-fg when hovered                     muted-fg text-meta  │ │
+│  │  (small icon)  (task name, prominent)                  (star, count)       │ │
 │  └────────────────────────────────────────────────────────────────────────────┘ │
-│  px-4 pt-4 pb-2                                                                  │
 │                                                                                  │
 │  ── LEADERBOARD PREVIEW ──────────────────────────────────────────────────────  │
 │  ┌────────────────────────────────────────────────────────────────────────────┐ │
-│  │  col headers (only on first card, or sticky above the block — TBD)         │ │
+│  │  col headers                                                               │ │
 │  │              Avg   Best@3  Best@5                                          │ │
-│  │              text-meta  muted-fg  right-aligned                            │ │
+│  │              (right-aligned, muted)                                        │ │
 │  │                                                                            │ │
 │  │  ┌──┐  Claude Sonnet 4.5    54%    —      —                               │ │
-│  │  │ 1│  text-body            accent  muted  muted                           │ │
+│  │  │ 1│  (model name)         (score columns)                                │ │
 │  │  └──┘  [env-name tag]                                                      │ │
-│  │        text-meta  muted-fg                                                 │ │
+│  │        (muted, small)                                                      │ │
 │  │                                                                            │ │
 │  │  ┌──┐  Claude Sonnet 4      42%    53%    —                               │ │
-│  │  │ 2│                       muted  muted  muted                            │ │
+│  │  │ 2│                                                                      │ │
 │  │  └──┘  [env-name tag]                                                      │ │
 │  │                                                                            │ │
 │  │  ┌──┐  Claude Sonnet 3.7    33%    44%    —                               │ │
-│  │  │ 3│                       muted  muted  muted                            │ │
+│  │  │ 3│                                                                      │ │
 │  │  └──┘  [env-name tag]                                                      │ │
 │  │                                                                            │ │
 │  └────────────────────────────────────────────────────────────────────────────┘ │
-│  px-4                                                                            │
 │                                                                                  │
 │  ── CARD FOOTER ──────────────────────────────────────────────────────────────  │
 │  ┌────────────────────────────────────────────────────────────────────────────┐ │
 │  │  [task icon]  367 tasks   [model icon]  5 models                           │ │
-│  │  text-meta  muted-fg                                                       │ │
+│  │  (muted, small)                                                            │ │
 │  │                                                                            │ │
 │  │  [owner]  HUD              [Public badge]                                  │ │
-│  │  text-meta  muted-fg       bg-accent-subtle  text-accent  rounded text-xs  │ │
+│  │  (org name, small, muted)  (visibility pill)                               │ │
 │  │  ← org name, not user name                                                 │ │
 │  └────────────────────────────────────────────────────────────────────────────┘ │
-│  px-4 pb-4 pt-2  border-t                                                        │
 │                                                                                  │
 └──────────────────────────────────────────────────────────────────────────────────┘
 ```
@@ -159,25 +182,24 @@ Grid layout: `grid-cols-3` at `lg+`, `grid-cols-2` at `md`, `grid-cols-1` at `sm
 | Field | Source (screenshot) | Notes |
 |---|---|---|
 | Environment icon | `02b-tasksets-public.png` — small square icon left of Taskset name | Represents the primary Environment type. Icon is decorative; label is the primary affordance. |
-| Taskset name | All screenshots | `text-title font-medium`. No truncation at `lg+`; single line with `truncate` at `sm`. |
-| Star icon + count | All screenshots — `☆ 3` visible on OSWorld-Verified, `☆ 2` on WikiGames 2 | Interactive: clicking the star toggles starred state for the current user. Filled star = starred; outline = not starred. Count reflects total community stars on Public Tasksets. My Team Tasksets show personal star toggle only (count TBD — see §11). |
-| Leaderboard rows | `02b-tasksets-public.png` — 3 rows per card, medal rank badges, model name, env-name tag below model, `Avg / Best@3 / Best@5` columns | Top 3 ranked models by `Avg` score. Medal badges: 1st = gold, 2nd = silver, 3rd = bronze (token-assigned colors). Scores are exact percentage values. `—` when the metric has not been run (e.g., no Best@3 data available yet). |
+| Taskset name | All screenshots | Prominent, single-line. |
+| Star icon + count | All screenshots — `☆ 3` visible on OSWorld-Verified, `☆ 2` on WikiGames 2 | Interactive: clicking the star toggles starred state for the current user. Filled star = starred; outline = not starred. Count reflects total community stars on Public Tasksets. My Team Tasksets show personal star toggle only (count TBD — see §14). |
+| Leaderboard rows | `02b-tasksets-public.png` — 3 rows per card, rank badges, model name, env-name tag below model, `Avg / Best@3 / Best@5` columns | Top 3 ranked models by `Avg` score. Rank badges: 1st, 2nd, 3rd (rank indicator only — no color named here; token-phase decision). Scores are exact percentage values. `—` when the metric has not been run. |
 | Footer: task count | `02b-tasksets-public.png` — "367 tasks" with task/clipboard icon | Exact integer. |
 | Footer: model count | `02b-tasksets-public.png` — "5 models" with model icon | Total models that have run against this Taskset. |
-| Footer: owner | `02b-tasksets-public.png` — org initials badge + org name | For Public Tasksets, owner is the publishing org (e.g., "HUD", "Princeton NLP", "Adept Research"). Not the individual user. Org initials badge is same pattern as user chip avatar. |
-| Visibility badge | `02b-tasksets-public.png` — lock icon for private, HUD green badge for public | Public = `bg-accent-subtle text-accent` pill. Private = lock icon + "Private" text, `muted-fg`. Observed: a HUD "lock" icon + colored badge pattern. |
+| Footer: owner | `02b-tasksets-public.png` — org initials badge + org name | For Public Tasksets, owner is the publishing org (e.g., "HUD", "Princeton NLP", "Adept Research"). Not the individual user. |
+| Visibility badge | `02b-tasksets-public.png` — lock icon for private, HUD badge for public | Public = highlighted pill. Private = lock icon + "Private" text, muted. |
 
-**Leaderboard column headers**: screenshots show `Avg  Best@3  Best@5` as column headers within each card. Headers appear once per card (not once for the full page grid) — each card is self-contained.
+**Leaderboard column headers**: each card is self-contained with its own `Avg / Best@3 / Best@5` headers.
 
-**Score color coding**: scores are colored by magnitude. From screenshots: high scores (`100%`) render in a distinct accent (green-ish); middle scores (`42%–67%`) render in muted-fg; very low scores may render in muted. Exact hue assignments are design-token phase. The wireframe notes the pattern exists without specifying color.
+**Score signal**: scores are visually differentiated by magnitude. High scores, middle scores, and low scores each read differently. Exact hue assignments are design-token phase. The wireframe notes the pattern exists without specifying color.
 
 **"No leaderboard yet" state** (card has Tasks but zero Jobs run):
 ```
 │  ── LEADERBOARD PREVIEW ──────────────────────────────────────────────│
 │                                                                        │
 │  No models run yet.                                                    │
-│  text-meta  muted-fg  ← single line, vertically centered in           │
-│  the space where leaderboard rows would appear                         │
+│  (single line, muted, vertically centered in the leaderboard area)     │
 │                                                                        │
 ```
 
@@ -189,23 +211,19 @@ List layout: a single-column vertical stack of rows. Denser than grid — Alex's
 
 ```
 ┌──────────────────────────────────────────────────────────────────────────────────┐
-│  LIST ROW  — one row  border-b  bg-card (or bg-page, no card bg)                 │
-│  hover: bg-accent-subtle/10  cursor-pointer                                      │
+│  LIST ROW  — one row                                                             │
 │  clickable region → /tasksets/[slug]                                              │
 │                                                                                  │
-│  px-4 py-3  flex items-center gap-4                                              │
+│  ┌──────────────┐  ┌────────────────────────┐  ┌────────────────────────────┐   │
+│  │ IDENTITY     │  │ LEADERBOARD (inline)   │  │ META                       │   │
+│  │              │  │                        │  │                            │   │
+│  │ [env icon]   │  │ #1 Claude Sonnet 4.5   │  │ [task icon]  367           │   │
+│  │ Name         │  │    54% Avg             │  │ [model icon]  5            │   │
+│  │ ☆  3         │  │ #2 Claude Sonnet 4     │  │ [owner badge]  HUD         │   │
+│  │              │  │    42% Avg             │  │ [visibility badge]         │   │
+│  └──────────────┘  └────────────────────────┘  └────────────────────────────┘   │
 │                                                                                  │
-│  ┌──────────┐  ┌──────────────────────┐  ┌─────────────────────────────────┐    │
-│  │IDENTITY  │  │LEADERBOARD (inline)  │  │META                             │    │
-│  │          │  │                      │  │                                 │    │
-│  │[env icon]│  │#1 Claude Sonnet 4.5  │  │[task icon]  367  [model icon]  5│    │
-│  │Name      │  │   54% Avg            │  │text-meta  muted-fg              │    │
-│  │text-title│  │#2 Claude Sonnet 4    │  │                                 │    │
-│  │☆  3      │  │   42% Avg            │  │[owner badge]  HUD               │    │
-│  │          │  │text-meta  muted-fg   │  │[visibility badge]               │    │
-│  └──────────┘  └──────────────────────┘  └─────────────────────────────────┘    │
-│                                                                                  │
-│  flex proportions:  [identity ~30%]  [leaderboard ~45%]  [meta ~25%]            │
+│  proportions:  [identity ~30%]  [leaderboard ~45%]  [meta ~25%]                 │
 │                                                                                  │
 └──────────────────────────────────────────────────────────────────────────────────┘
 ```
@@ -214,7 +232,7 @@ List layout: a single-column vertical stack of rows. Denser than grid — Alex's
 
 | Field | Collapsed from grid? | Notes |
 |---|---|---|
-| Identity block | Same as grid header | Env icon + Taskset name + star toggle + star count. Name uses `text-label font-medium` (slightly smaller than grid's `text-title` for density). |
+| Identity block | Same as grid header | Env icon + Taskset name + star toggle + star count. Slightly smaller type than grid title for density. |
 | Leaderboard inline | Grid shows 3 rows; list shows top 2 | Rank number + model name + `Avg` score only in list view. `Best@3` and `Best@5` are collapsed — they are detail data; Avg is the primary scan signal. |
 | Meta block | Same as grid footer | Task count + model count + owner + visibility badge. Condensed to a single line with icon separators. |
 
@@ -222,7 +240,7 @@ List layout: a single-column vertical stack of rows. Denser than grid — Alex's
 
 **No-leaderboard-yet state in list row:**
 ```
-│  [env icon]  Taskset Name  ☆  |  No models run yet.  muted-fg  text-meta  |  N tasks  N models  owner  badge  │
+│  [env icon]  Taskset Name  ☆  |  No models run yet.  (muted)  |  N tasks  N models  owner  badge  │
 ```
 
 ---
@@ -233,11 +251,10 @@ The list view renders a sticky column header row above the rows so the user know
 
 ```
 ┌──────────────────────────────────────────────────────────────────────────────────┐
-│  COLUMN HEADERS  bg-page  border-b  sticky top-0  z-10                           │
-│  px-4 py-2  flex items-center gap-4                                              │
+│  COLUMN HEADERS  (sticky at top of list, below filter row)                       │
 │                                                                                  │
 │  Taskset                     Top models (Avg)         Tasks  Models  Owner       │
-│  text-meta  muted-fg         text-meta  muted-fg      ← right-aligned numerics  │
+│  (muted, small)              (muted, small)           (right-aligned numerics)   │
 │                                                                                  │
 └──────────────────────────────────────────────────────────────────────────────────┘
 ```
@@ -251,110 +268,183 @@ The grid view has no column header row — each card is self-contained with its 
 Triggered by the `[↕ Starred first ▾]` button in the filter row. Opens as a dropdown below the trigger.
 
 ```
-┌─────────────────────────────┐
-│  SORT MENU  min-w-[180px]   │
-│  border  rounded  bg-popover│
-│  shadow-md                  │
-│                             │
-│  ┌─────────────────────────┐│
-│  │  ✓  Starred first        ││  ← active = checkmark + accent label
-│  └─────────────────────────┘│
-│  ┌─────────────────────────┐│
-│  │     Newest first         ││
-│  └─────────────────────────┘│
-│  ┌─────────────────────────┐│
-│  │     Oldest first         ││
-│  └─────────────────────────┘│
-│  ┌─────────────────────────┐│
-│  │     Name (A–Z)           ││
-│  └─────────────────────────┘│
-│  ┌─────────────────────────┐│
-│  │     Name (Z–A)           ││
-│  └─────────────────────────┘│
-│  ┌─────────────────────────┐│
-│  │     Most tasks           ││
-│  └─────────────────────────┘│
-│                             │
-└─────────────────────────────┘
+┌─────────────────────────┐
+│  SORT MENU              │
+│                         │
+│  ✓  Starred first        │  ← active = checkmark
+│     Newest first         │
+│     Oldest first         │
+│     Last activity        │  ← NEW: sorts by most-recent Job run
+│     Name (A–Z)           │
+│     Name (Z–A)           │
+│     Most tasks           │
+│                         │
+└─────────────────────────┘
 ```
 
 **Annotations:**
 - Single-select. Selected option persists in URL query param (`?sort=starred-first`), so sharing the URL preserves sort context.
 - The button label updates to reflect the active selection: `[↕ Name (A–Z) ▾]`.
 - Keyboard: `Enter` / `Space` selects an item and closes; `Escape` closes without selecting; arrow keys navigate items.
-- `role="menu"`, each item is `role="menuitem"`. Checkmark on active item is `aria-checked="true"` or communicated via `aria-label`.
+- `role="menu"`, each item is `role="menuitem"`. Checkmark on active item is communicated via `aria-checked="true"` or `aria-label`.
+
+**"Last activity" sort**: sorts by the most-recent Job run on the Taskset. At DoorDash-scale, "what did we touch this week" is more useful than alphabetical. See open question §15 item 7 for which signal to use (last Job run vs. last Taskset edit).
 
 **Alex's primary sort is "Starred first"** — he accumulates starred Public Tasksets that he runs against regularly. "Most tasks" is his secondary sort when discovering hard new Tasksets (larger Tasksets = more comprehensive eval = harder to saturate).
 
----
-
-## 8. Star toggle interaction
-
-The star icon appears in the card header (grid) and in the identity block (list). It is an inline interactive control — it does not navigate, just toggles state.
-
-**State machine:**
-1. **Not starred, idle**: outline star `☆` + count. `muted-fg`.
-2. **Not starred, hovered**: outline star fills partially (filled star silhouette with reduced opacity). Cursor indicates clickability.
-3. **Not starred, activated (click/Enter)**: immediate optimistic toggle to starred state. Star fills. Count increments by 1 (optimistic). POST to server; on failure, revert + show inline error toast: `"Could not star Taskset — try again."`.
-4. **Starred, idle**: filled star `★` + count. Accent color.
-5. **Starred, hovered**: filled star lightens slightly. Indicates unstar is available.
-6. **Starred, activated**: toggles to not-starred. Count decrements. Same optimistic + revert pattern.
-
-**Star semantics:**
-- Stars are **personal** (per-user), not org-level. Two users in the same org can star different Tasksets independently.
-- On Public Tasksets: the count is community-wide (total unique users who starred). Clicking increments/decrements the community count.
-- On My Team Tasksets: count is the org members who starred it — small number (typically 0–5). Confirm behavior with platform — see §11.
-
-**Accessibility:**
-- Star button: `role="button"` or `<button>`, `aria-label="Star OSWorld-Verified"` / `"Unstar OSWorld-Verified"`. Label reflects current action (not current state) to follow action-labeling convention.
-- `aria-pressed="true/false"` on the button to communicate toggle state.
+**Star sort at enterprise scale**: starring 100 Tasksets is not realistic. "Starred first" still works for the user's top 5–10 Tasksets. At DoorDash-scale, grouping + owner filter become the primary navigation pattern; star sort remains useful for frequently-visited anchor Tasksets.
 
 ---
 
-## 9. Empty states
+## 8. Group by menu and group view
 
-### 9a. My Team tab — zero Tasksets
+Triggered by `[Group by None ▾]`. Opens as a dropdown below the trigger.
+
+```
+┌─────────────────────────┐
+│  GROUP BY               │
+│                         │
+│  ✓  None                 │  ← default
+│     Environment          │
+│     Owner                │
+│                         │
+└─────────────────────────┘
+```
+
+**Group view behavior** (when Group by ≠ None):
 
 ```
 ┌──────────────────────────────────────────────────────────────────────────────────┐
-│  EMPTY STATE  (My Team tab, zero team Tasksets)                                  │
-│  centered in the content area below the filter row                               │
-│  py-16  flex flex-col items-center gap-4                                         │
+│  GROUP HEADER — collapsible                                                      │
 │                                                                                  │
-│  [Taskset icon  size-8  muted-fg]                                                │
+│  ▼  menu-agent-env  (12)       ← env name + Taskset count in group              │
+│  ─────────────────────────────────────────────────────────────────────────────  │
+│  [LIST ROWS or GRID CARDS for Tasksets in this group, sorted by active sort]     │
 │                                                                                  │
-│  No Tasksets yet.                                                                │
-│  text-title  font-medium                                                         │
+│  ▼  support-agent-env  (8)                                                       │
+│  ─────────────────────────────────────────────────────────────────────────────  │
+│  [LIST ROWS or GRID CARDS ...]                                                   │
 │                                                                                  │
-│  ┌────────────────────────────────────────────────────────┐                     │
-│  │  hud taskset new                                        │  [⎘]               │
-│  │  monospace  bg-code  text-sm                            │                    │
-│  └────────────────────────────────────────────────────────┘                     │
-│                                                                                  │
-│  [+ New Taskset]                                                                 │
-│  Button  primary  sm                                                             │
+│  ▶  dasher-env  (5)            ← collapsed group                                │
 │                                                                                  │
 └──────────────────────────────────────────────────────────────────────────────────┘
 ```
 
 **Annotations:**
-- CLI command `hud taskset new` is TBD — exact command not confirmed in platform docs. Mark as TBD in implementation; the pattern (CLI command in empty state) follows the established personality principle: "Empty states show the CLI command." See §11 open questions.
+- Collapsible group headers. Toggle icon: `▼` expanded, `▶` collapsed. Collapsed state persists in session (not URL).
+- Group count shows the number of Tasksets in that group (respects active search + owner filter).
+- Sort applies within each group independently.
+- Search filters Tasksets across all groups; groups with zero matching Tasksets collapse automatically.
+- Group by `None` restores the flat list.
+- Group by `Owner` groups by the Taskset owner (user display name). Useful for Riley (per-client grouping) and DoorDash-scale Sam (per-squad grouping).
+- Group by `Environment` groups by the primary Environment the Taskset's Tasks reference. This is the most common grouping at DoorDash-scale — "show me everything against the menu-agent environment."
+
+---
+
+## 9. Pagination / load-more behavior
+
+The My Team tab and the Public tab both paginate. The list does not load all records at once.
+
+**Default page size**: 50 Tasksets. This covers Alex (0–15), Sam SMB (5–25), and Riley (10–50) without a load-more in most cases. DoorDash-scale My Team (50–150+) will see a load-more.
+
+**Load-more affordance**: explicit "Load more" button below the last row/card, not infinite scroll. Rationale: infinite scroll interacts poorly with keyboard navigation and with the user returning to a known position after opening a detail page.
+
+```
+┌──────────────────────────────────────────────────────────────────────────────────┐
+│  [last row / card]                                                               │
+│                                                                                  │
+│  ─────────────────────────────────────────────────────────────────────────────  │
+│                                                                                  │
+│  Showing 50 of 127  ·  [Load more]                                               │
+│  (muted count label)   (outline button)                                          │
+│                                                                                  │
+└──────────────────────────────────────────────────────────────────────────────────┘
+```
+
+**Behavior rules:**
+- "Showing N of M" count reflects the active search + filter + group state. When a search is active: "Showing 20 of 34 matching results · Load more".
+- After loading more, the count updates: "Showing 100 of 127 · Load more". When all records are shown: "Showing 127 of 127" (no Load more button).
+- Loading more appends rows/cards below the existing list. No full-page reload. An inline loading indicator (skeleton rows) appears below the last row while the next page loads.
+- Sort and search are preserved across load-more calls. Changing sort or search resets to page 1.
+- In group view: each group loads independently. A "Load more" appears below a group that has more items than the per-group display limit (same 50-item threshold per group).
+- Public tab paginator works the same way. Public tab may have hundreds of Tasksets.
+
+---
+
+## 10. Error state (network / fetch failure)
+
+Shown when the Tasksets list fails to load due to a network error, server error, or timeout.
+
+```
+┌──────────────────────────────────────────────────────────────────────────────────┐
+│  ERROR STATE  (list / grid content area, below filter row)                       │
+│                                                                                  │
+│  [tabs, search, sort, group controls remain accessible — see note below]         │
+│                                                                                  │
+│  ─────────────────────────────────────────────────────────────────────────────  │
+│                                                                                  │
+│  [alert icon]                                                                    │
+│                                                                                  │
+│  Couldn't load Tasksets — try again.                                             │
+│  (prominent, centered)                                                           │
+│                                                                                  │
+│  [Retry]                                                                         │
+│  (primary button)                                                                │
+│                                                                                  │
+└──────────────────────────────────────────────────────────────────────────────────┘
+```
+
+**Annotations:**
+- Error state replaces only the list/grid content area. The page header (`Tasksets` h1, `+ New Taskset`), the tab bar, the search input, the sort button, and the group by control all remain rendered and interactive. The user can switch tabs, change search, or change sort as a recovery action (these all trigger a fresh fetch).
+- "Retry" triggers the same fetch that failed. Clicking it shows a skeleton loading state, then either populates the list or shows the error again.
+- The error is not an inline toast — it replaces the content region because the entire data load failed, not a single row action.
+- This error state is distinct from the empty state (§11). If the fetch succeeds but returns zero results, the empty state shows. If the fetch itself fails, this error state shows.
+- Error copy is flat and actionable: "Couldn't load Tasksets — try again." No stack traces. No HTTP status codes. Personality: exact, not chatty.
+
+---
+
+## 11. Empty states
+
+### 11a. My Team tab — zero Tasksets
+
+```
+┌──────────────────────────────────────────────────────────────────────────────────┐
+│  EMPTY STATE  (My Team tab, zero team Tasksets)                                  │
+│  centered in the content area below the filter row                               │
+│                                                                                  │
+│  [Taskset icon]                                                                  │
+│                                                                                  │
+│  No Tasksets yet.                                                                │
+│  (prominent)                                                                     │
+│                                                                                  │
+│  ┌────────────────────────────────────────────────────────┐                     │
+│  │  hud taskset new                                        │  [⎘]               │
+│  │  (monospace, copyable CLI command)                      │                    │
+│  └────────────────────────────────────────────────────────┘                     │
+│                                                                                  │
+│  [+ New Taskset]                                                                 │
+│  (primary button)                                                                │
+│                                                                                  │
+└──────────────────────────────────────────────────────────────────────────────────┘
+```
+
+**Annotations:**
+- CLI command `hud taskset new` is TBD — exact command not confirmed in platform docs. Mark as TBD in implementation; the pattern (CLI command in empty state) follows the established personality principle: "Empty states show the CLI command." See §15 open questions.
 - The `+ New Taskset` button duplicates the page header CTA — this is intentional; the empty state gives the user a direct path without scrolling back up.
 - No illustration, no marketing copy. Personality: Spare + Earnest.
 
-### 9b. Search — no matches
+### 11b. Search — no matches
 
 ```
 ┌──────────────────────────────────────────────────────────────────────────────────┐
 │  EMPTY STATE  (search query has no matches in the active tab)                    │
 │  centered in the content area                                                    │
-│  py-12  flex flex-col items-center gap-3                                         │
 │                                                                                  │
 │  No Tasksets match "osworld-v2"                                                  │
-│  text-title  font-medium                                                         │
+│  (prominent, query echoed verbatim in quotes)                                    │
 │                                                                                  │
 │  [Clear search]                                                                  │
-│  Button  variant="outline"  sm                                                   │
+│  (outline button)                                                                │
 │                                                                                  │
 └──────────────────────────────────────────────────────────────────────────────────┘
 ```
@@ -367,16 +457,17 @@ The star icon appears in the card header (grid) and in the identity block (list)
 
 ---
 
-## 10. Responsive behavior
+## 12. Responsive behavior
 
-### `lg+` — full layout
+### Desktop — full layout
 
 ```
 ┌────────────────────────────────────────────────────────────────────────────────┐
 │  [Tasksets]                                              [+ New Taskset]        │
 │                                                                                 │
 │  [Public 42]  [My Team 3]                                                       │
-│  [Search Tasksets…]                              [Grid | List ✓]  [↕ Sort ▾]   │
+│  [Search Tasksets…]          [Grid | List ✓]  [↕ Sort ▾]  [Group by None ▾]   │
+│  (My Team + DoorDash-scale also shows: [Owner: Anyone ▾])                       │
 │                                                                                 │
 │  LIST VIEW (default):                                                           │
 │  ┌─────────────────────┬─────────────────────────┬───────────────────────────┐ │
@@ -385,30 +476,35 @@ The star icon appears in the card header (grid) and in the identity block (list)
 │  │  SheeBench-50 ☆     │  #1 Opus 4.6    40% Avg  │   50  6  HUD  Public     │ │
 │  │  …                  │  …                        │  …                       │ │
 │  └─────────────────────┴─────────────────────────┴───────────────────────────┘ │
+│                                                                                 │
+│  Showing 50 of 127  ·  [Load more]                                              │
 └────────────────────────────────────────────────────────────────────────────────┘
 ```
 
-### `md` — tablet adaptations
+### Tablet — adaptations
 
 - Sidebar collapses to icon rail (see app-shell.wireframe.md §5).
-- Grid view: `grid-cols-2` (from `grid-cols-3`).
+- Grid view: 2 columns (from 3 at desktop).
 - List view: unchanged — list is naturally responsive.
-- **Leaderboard preview in grid cards collapses to top-2 rows** (from top-3). At `md` card width, three leaderboard rows with three score columns become too cramped to read. Top-2 preserves primary scan signal.
-- Sort button label truncates to icon-only `[↕]` with a tooltip "Sort". Active sort is communicated via `aria-label` on the button.
+- **Leaderboard preview in grid cards collapses to top-2 rows** (from top-3). At tablet card width, three leaderboard rows with three score columns become too cramped to read. Top-2 preserves primary scan signal.
+- Sort button label truncates to icon only `[↕]` with a tooltip "Sort". Active sort is communicated via `aria-label` on the button.
+- Group by button label truncates to icon only with a tooltip "Group by".
 
-### `sm` — mobile
+### Mobile
 
 - Sidebar hides; top bar appears with hamburger (see app-shell.wireframe.md §5).
-- View toggle hidden — list view is forced at `sm` (grid cards are too narrow to show leaderboard meaningfully at single-column width).
-- **Leaderboard preview in list rows collapses to #1 only** — rank number + model name + Avg score. Rationale: at mobile width, the full leaderboard column cannot share horizontal space with the identity and meta blocks. Showing #1 preserves the "is this hard?" signal.
+- View toggle hidden — list view is forced on mobile (grid cards are too narrow to show leaderboard meaningfully at single-column width).
+- **Leaderboard preview in list rows collapses to top-1 only** — rank number + model name + Avg score. Rationale: at mobile width, the full leaderboard column cannot share horizontal space with the identity and meta blocks. Showing the top result preserves the "is this hard?" signal.
 - Sort button remains; label truncates to `[↕]`.
+- Group by button remains; label truncates to icon.
+- Owner filter chip hidden on mobile (too much filter UI for mobile width; accessible via desktop).
 - `+ New Taskset` button collapses to `+` icon-only button with `aria-label="New Taskset"` in the page header to preserve horizontal space.
 - Search input expands to full width (takes up its own row below the tabs).
 - Footer meta in list rows collapses: task count and model count remain; owner + visibility badge hidden (recoverable from detail page).
 
 ```
 ┌─────────────────────────────────────────────┐
-│  [Tasksets]                             [+]  │  ← sm: icon-only CTA
+│  [Tasksets]                             [+]  │  ← mobile: icon-only CTA
 │                                              │
 │  [Public 42]  [My Team 3]                    │
 │  ──────────────────────────────────────────  │
@@ -420,12 +516,14 @@ The star icon appears in the card header (grid) and in the identity block (list)
 │  WikiGames 2  ☆  2                           │
 │  #1 Sonnet 4.6  25%         35  4            │
 │  ────────────────────────────────────────    │
+│                                              │
+│  Showing 50 of 127  ·  [Load more]           │
 └─────────────────────────────────────────────┘
 ```
 
 ---
 
-## 11. Keyboard and accessibility
+## 13. Keyboard and accessibility
 
 **Page landmark structure:**
 - `<main id="main-content">` wraps the entire Tasksets index MAIN region.
@@ -434,7 +532,7 @@ The star icon appears in the card header (grid) and in the identity block (list)
 - Each Taskset card or list row is a `<a>` linking to `/tasksets/[slug]` — not a `<div>` with an `onClick`. The star button inside is a `<button>` that stops event propagation to prevent navigation on star click.
 
 **Tab navigation:**
-- `Tab` cycles through: "Public" tab, "My Team" tab, search input, view toggle (two buttons), sort button, then into the Taskset cards/rows.
+- `Tab` cycles through: "Public" tab, "My Team" tab, search input, view toggle (two buttons), sort button, group by button, owner filter (when visible), then into the Taskset cards/rows.
 - Arrow keys (`←` / `→`) navigate between tabs within the tab bar (standard `role="tablist"` behavior).
 
 **Card/row focus:**
@@ -442,21 +540,30 @@ The star icon appears in the card header (grid) and in the identity block (list)
 - `Enter` navigates to the Taskset detail page.
 - The star button within the card receives focus separately via `Tab` when the card is focused (or `Shift+Tab` from the next card).
 
-**Sort menu:**
-- See §7 for keyboard behavior. `aria-haspopup="menu"` on the sort button. `aria-expanded` reflects open state.
+**Sort menu / Group by menu:**
+- See §7 for keyboard behavior. `aria-haspopup="menu"` on the sort and group buttons. `aria-expanded` reflects open state.
+
+**Owner filter:**
+- Multi-select dropdown. `role="listbox"` with `aria-multiselectable="true"`. Each option is `role="option"` with `aria-selected`.
 
 **Search input:**
 - `aria-label="Search Tasksets"`. As the user types, the list region announces live results count: `aria-live="polite"` region reads `"12 Tasksets found"` after debounce.
+
+**Group headers:**
+- Each group header is a `<button>` with `aria-expanded="true/false"` controlling the group's content region. `aria-label="menu-agent-env, 12 Tasksets, expanded"`.
+
+**Load more button:**
+- `aria-label="Load more Tasksets"`. After loading, focus does not jump; new rows append below current position.
 
 **Loading state (initial fetch or tab switch):**
 - Skeleton rows/cards replace content during data fetch. Skeletons use `aria-busy="true"` on the tabpanel. Screen readers announce "Loading" via an off-screen `aria-live` region.
 
 **Reduced motion:**
-- Card hover transitions, star fill animations, sort menu open/close — all defer to `prefers-reduced-motion: reduce`. Motion timing is motion-designer's layer; the a11y requirement is that the state change (starred, hovered, menu open) is perceivable instantaneously when preference is set.
+- Card hover transitions, star fill, sort menu open/close, group expand/collapse — all defer to the user's reduced-motion preference. The state change (starred, hovered, menu open, group collapsed) is perceivable instantaneously when the preference is set. Motion timing is the motion-designer's layer.
 
 ---
 
-## 12. Loading state (skeleton)
+## 14. Loading state (skeleton)
 
 ```
 ┌──────────────────────────────────────────────────────────────────────────────────┐
@@ -464,13 +571,12 @@ The star icon appears in the card header (grid) and in the identity block (list)
 │                                                                                  │
 │  ┌──────────────────────────────────────────────────────────────────────────┐   │
 │  │  [░░░░░░░░░░░░░░░]  [░░░░░░░░░░░░░░░░░░░░░░░░░░]  [░░░  ░░░  ░░░░░░]   │   │
-│  │  animate-pulse  bg-muted  rounded                                        │   │
 │  ├──────────────────────────────────────────────────────────────────────────┤   │
 │  │  [░░░░░░░░░░░░░]   [░░░░░░░░░░░░░░░░░░░░░░░░░]   [░░░  ░░░  ░░░░░]    │   │
 │  ├──────────────────────────────────────────────────────────────────────────┤   │
 │  │  [░░░░░░░░░░░░░░░░] [░░░░░░░░░░░░░░░░░░░░░░░░]   [░░░  ░░░  ░░░░░░░]  │   │
 │  └──────────────────────────────────────────────────────────────────────────┘   │
-│  8 rows  animate-pulse  bg-muted                                                 │
+│  8 rows of skeleton                                                              │
 │                                                                                  │
 └──────────────────────────────────────────────────────────────────────────────────┘
 ```
@@ -479,40 +585,70 @@ Skeleton shape mirrors the list row proportions. Grid view shows skeleton cards 
 
 ---
 
+## 15. Star toggle interaction
+
+The star icon appears in the card header (grid) and in the identity block (list). It is an inline interactive control — it does not navigate, just toggles state.
+
+**State machine:**
+1. **Not starred, idle**: outline star `☆` + count. Muted.
+2. **Not starred, hovered**: outline star fills partially (filled star silhouette, reduced opacity). Indicates clickability.
+3. **Not starred, activated (click/Enter)**: immediate optimistic toggle to starred state. Star fills. Count increments by 1 (optimistic). POST to server; on failure, revert + show inline error toast: `"Could not star Taskset — try again."`.
+4. **Starred, idle**: filled star `★` + count. Highlighted.
+5. **Starred, hovered**: filled star lightens slightly. Indicates unstar is available.
+6. **Starred, activated**: toggles to not-starred. Count decrements. Same optimistic + revert pattern.
+
+**Star semantics:**
+- Stars are **personal** (per-user), not org-level. Two users in the same org can star different Tasksets independently.
+- On Public Tasksets: the count is community-wide (total unique users who starred). Clicking increments/decrements the community count.
+- On My Team Tasksets: count is the org members who starred it — small number (typically 0–5). Confirm behavior with platform — see §16.
+
+**Accessibility:**
+- Star button: `role="button"` or `<button>`, `aria-label="Star OSWorld-Verified"` / `"Unstar OSWorld-Verified"`. Label reflects current action (not current state) to follow action-labeling convention.
+- `aria-pressed="true/false"` on the button to communicate toggle state.
+
+---
+
 ## Component summary
 
 | Component | Usage in this screen | Notes |
 |---|---|---|
-| `PageHeader` | Page title + `+ New Taskset` CTA | `h1` with `Button` primary sm. Same pattern as other index pages. |
+| `PageHeader` | Page title + `+ New Taskset` CTA | `h1` with primary button. Same pattern as other index pages. |
 | `TabBar` | Public / My Team tabs with count chips | `role="tablist"`, controlled tab panel. Count chips on each tab label. |
 | `SearchInput` | Filters within active tab | Debounced (300ms). `aria-live` region for result count. Placeholder adapts per tab. |
-| `ViewToggle` | Grid / List segmented control | 2-segment control. Persists to localStorage. Hidden at `sm`. |
-| `SortMenu` | Sort dropdown | `role="menu"`, single-select, URL-persisted. Triggered by outline button. |
+| `ViewToggle` | Grid / List segmented control | 2-segment control. Persists to localStorage. Hidden on mobile. |
+| `SortMenu` | Sort dropdown | `role="menu"`, single-select, URL-persisted. |
+| `GroupByMenu` | Group by dropdown | `role="menu"`, single-select. Options: None / Environment / Owner. |
+| `OwnerFilter` | Multi-select owner filter chip | Visible in My Team tab when org has 10+ distinct owners. |
 | `TasksetCard` | Grid view item | Full card with leaderboard rows. Clickable `<a>`. Star button is nested `<button>`. |
 | `TasksetRow` | List view item | Compact row, inline top-2 leaderboard. Clickable `<a>`. |
+| `GroupHeader` | Collapsible group header in group view | `<button>` with `aria-expanded`. Shows group name + count. |
 | `StarButton` | On card + row | Toggle button. Optimistic update. `aria-pressed`. |
-| `LeaderboardPreview` | Inside card + row | Top-3 (grid) or top-2 (list) ranked model rows. Medal rank badges. Score columns. |
-| `MedalBadge` | Inside leaderboard rows | 1/2/3 rank indicator. Color by rank (token-assigned). |
-| `VisibilityBadge` | Card footer, list row meta | Public = accent pill. Private = lock icon + text. |
+| `LeaderboardPreview` | Inside card + row | Top-3 (grid) or top-2 (list) ranked model rows. Rank indicator badges. Score columns. |
+| `RankBadge` | Inside leaderboard rows | 1/2/3 rank indicator. |
+| `VisibilityBadge` | Card footer, list row meta | Public = highlighted pill. Private = lock icon + text. |
 | `EmptyState` | My Team zero, search no-match | Icon + message + action. CLI command in My Team zero state. |
-| `SkeletonRow` / `SkeletonCard` | Loading state | `animate-pulse bg-muted`. Shape mirrors populated layout. |
+| `ErrorState` | Fetch failure | Icon + "Couldn't load Tasksets — try again." + Retry button. |
+| `LoadMore` | Below last row/card when more exist | "Showing N of M · Load more" count + outline button. |
+| `SkeletonRow` / `SkeletonCard` | Loading state | Animated. Shape mirrors populated layout. |
 
 ---
 
-## 13. Persona notes by surface decision
+## 16. Persona notes by surface decision
 
-| Decision | Alex (PRIMARY) | Sam (SECONDARY) | Riley (TERTIARY) |
-|---|---|---|---|
-| Default tab logic (My Team if ≥1 Tasksets) | Gets `My Team` once he has team Tasksets; otherwise Public is correct default. | Gets `My Team` immediately — that's where his regression Taskset lives. | Gets `My Team` — that's where his delivery Tasksets are. |
-| List view default | Preferred density — scans more Tasksets per scroll. | Equal — scan-by-name works in list. | Equal — batch names are visible. |
-| Leaderboard preview in default List view | Primary: confirms Avg score at a glance to judge difficulty. | Secondary: not needed for find-by-name, but not harmful. | Not relevant for index scan. |
-| Starred first sort | Stars the Tasksets he runs against regularly; "Starred first" keeps them at top. | Stars his primary 2–3 regression Tasksets; same benefit. | Stars delivery Tasksets per client; same benefit. |
-| "Most tasks" sort option | Finds comprehensive benchmarks; large Tasksets tend to be harder to saturate. | Not his primary path. | Not relevant. |
-| No QA-status badges on the index card | N/A (Alex doesn't need QA status). | N/A (Sam doesn't need it here). | QA status is Taskset-detail concern, not index concern. Correct omission — no screenshots show it either. |
+| Decision | Alex (PRIMARY) | Sam SMB | Sam DoorDash-scale | Riley (TERTIARY) |
+|---|---|---|---|---|
+| Default tab logic (My Team if ≥1 Tasksets) | Gets `My Team` once he has team Tasksets; otherwise Public is correct default. | Gets `My Team` immediately — regression Taskset is there. | Gets `My Team` — 120+ Tasksets. | Gets `My Team` — delivery Tasksets are there. |
+| List view default | Preferred density — scans more Tasksets per scroll. | Equal — scan-by-name works in list. | Equal — name scan still works, but grouping layer needed. | Equal. |
+| Leaderboard preview in default List view | Primary: confirms Avg score at a glance to judge difficulty. | Secondary: not needed for find-by-name, but not harmful. | Not primary — finding the right Taskset is the job, not reading scores. | Not relevant for index scan. |
+| Starred first sort | Stars the Tasksets he runs against regularly; keeps them at top. | Stars primary 2–3 regression Tasksets. | Useful for top 5–10 anchor Tasksets; grouping + filter are the main navigation at scale. | Stars delivery Tasksets per client. |
+| Group by | Rarely used — flat list at 3–15 Tasksets. | Rarely used. | Primary navigation mechanism at 50–150 Tasksets. Group by Environment first. | Group by Owner (per-client) useful at 10–50. |
+| Owner filter | Hidden (<10 owners). | Hidden (small team). | Shown (10+ distinct owners). Squad filter: "show me the menu-agent squad's Tasksets." | Shown if 10+ named clients as owners. |
+| Load more | Never triggered — under 50. | Rarely triggered. | Triggered on initial My Team load at 127+ Tasksets. | Rarely triggered. |
+| "Most tasks" sort option | Finds comprehensive benchmarks; large Tasksets tend to be harder to saturate. | Not his primary path. | Not primary. | Not relevant. |
 
 ---
 
-## 14. Open questions (do not block, flag for follow-up)
+## 17. Open questions (do not block, flag for follow-up)
 
 1. **CLI command for empty state**: The exact CLI command for creating a Taskset is not confirmed from the platform docs. `hud taskset new` is a plausible form consistent with `hud eval`, `hud rl run`, `hud deploy` patterns — but must be verified against `docs.hud.ai/reference/cli` before implementation. Label as TBD in the spec.
 
@@ -522,7 +658,15 @@ Skeleton shape mirrors the list row proportions. Grid view shows skeleton cards 
 
 4. **Star count semantics on My Team Tasksets**: On Public Tasksets the star count is community-wide. On My Team Tasksets, it is unclear whether the count reflects: (a) only the current org's members who starred it, (b) a global count if the Taskset was forked from a Public one, or (c) no count at all (just a personal bookmark with no count displayed). Verify with platform.
 
-5. **Leaderboard column header placement in grid view**: Screenshots show `Avg  Best@3  Best@5` headers at the top of each card's leaderboard section. This is correct — each card is self-contained. However, in list view at `lg+`, a sticky column header row above the list makes the `Avg` column scannable across rows. Confirm whether the list view column header should also show `Best@3 / Best@5` (they are collapsed in list view — redundant if so) or should it show only `Avg`.
+5. **Leaderboard column header placement in list view**: Confirm whether the sticky column header row in list view should show `Best@3 / Best@5` (they are collapsed in list view — redundant if so) or only `Avg`.
+
+6. **Owner filter threshold**: The threshold of 10 distinct owners before showing the Owner filter is a design assumption. Validate the number — it may be too high (an org with 8 owners still benefits from filtering) or the threshold logic may need to be different (e.g., based on Taskset count rather than owner count).
+
+7. **"Last activity" sort signal**: "Last activity" sort should sort by the most-recent Job run associated with a Taskset, or by the most-recent edit to the Taskset itself? At DoorDash-scale, "last Job run" is more useful ("what did we actually evaluate recently") than "last edit" ("what did someone touch in the UI recently"). Flagging for product clarification.
+
+8. **Group by persistence**: Should the Group by selection persist to the URL (like sort) or only to the session? URL persistence means sharing a URL lands the recipient in the same group view — useful for Sam sharing a filtered view with a teammate. Session persistence is simpler to implement. Recommendation leans toward URL persistence, but flagging for product decision.
+
+9. **Per-group load-more threshold**: When in group view, what is the per-group display limit before a "Load more" within the group appears? 50 per group may be too large — a group with 50 Tasksets defeats the purpose of grouping. Suggest 20 per group as an alternative starting point.
 
 ---
 
@@ -534,16 +678,19 @@ Skeleton shape mirrors the list row proportions. Grid view shows skeleton cards 
 - **Fork / import from Public to My Team** — the affordance likely lives on the Taskset detail page, not the index card. Not designed here.
 - **Taskset sharing / visibility toggle** — My Team Taskset visibility control (Private → Public publish) lives on the detail page.
 - **Bulk selection + bulk actions** — (e.g., "delete 3 Tasksets", "run Job on selected Tasksets") — not in scope for index view at this phase.
-- **Sort by "Top score" or "Most recent Job"** — not in the state machine sort options. If needed, add to the sort menu in a future iteration.
-- **Tags / filter by Environment type** — see open question §14 item 2.
+- **Tags / filter by Environment type** — see open question §17 item 2.
 
 ---
 
 ## Drift log
 
-- **List view as default (over grid)**: the production screenshots (`02a-tasksets-my.png`, `02c-tasksets-myteam.png`) show grid view as the apparent production default for My Team. This wireframe spec's List as default per the Operator's stated state machine ("Default view = List — Alex's bias"). This is an intentional divergence from the current production state, not an inconsistency.
+- **List view as default (over grid)**: the production screenshots (`02a-tasksets-my.png`, `02c-tasksets-myteam.png`) show grid view as the apparent production default for My Team. This wireframe specs List as default per the Operator's stated state machine ("Default view = List — Alex's bias"). This is an intentional divergence from the current production state, not an inconsistency.
 
 - **Leaderboard collapsed in list view to top-2**: grid shows top-3 as confirmed in screenshots. List view showing top-2 is a new design decision — not observed in screenshots directly, derived from density tradeoff reasoning. Flagged here for Operator review.
+
+- **Group by and Owner filter are new controls not in screenshots**: these are new capabilities designed to handle DoorDash-scale volume. No visual reference exists in the production screenshots. Designed from first principles against the persona scale table.
+
+- **Pagination / load-more not shown in screenshots**: screenshots appear to show a fully-loaded list. The pagination design is derived from scale requirements, not from observed production behavior. Load-more (not infinite scroll) is a design judgment call — flagged for Operator review.
 
 ---
 
