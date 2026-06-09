@@ -414,7 +414,7 @@ Shown when the Tasksets list fails to load due to a network error, server error,
 │                                                                                  │
 │  [Taskset icon]                                                                  │
 │                                                                                  │
-│  No Tasksets yet.                                                                │
+│  Create your first Taskset                                                       │
 │  (prominent)                                                                     │
 │                                                                                  │
 │  ┌────────────────────────────────────────────────────────┐                     │
@@ -425,13 +425,18 @@ Shown when the Tasksets list fails to load due to a network error, server error,
 │  [+ New Taskset]                                                                 │
 │  (primary button)                                                                │
 │                                                                                  │
+│  Read the docs ↗                                                                 │
+│  (tertiary text link, opens in new tab)                                          │
+│                                                                                  │
 └──────────────────────────────────────────────────────────────────────────────────┘
 ```
 
 **Annotations:**
+- Heading is directive ("Create your first Taskset"), not declarative ("No Tasksets yet."). Capitalization follows platform vocabulary: `Taskset` is a proper product noun, not lowercased. The directive shape gives the user an action orientation on arrival.
 - CLI command `hud taskset new` is TBD — exact command not confirmed in platform docs. Mark as TBD in implementation; the pattern (CLI command in empty state) follows the established personality principle: "Empty states show the CLI command." See §15 open questions.
 - The `+ New Taskset` button duplicates the page header CTA — this is intentional; the empty state gives the user a direct path without scrolling back up.
-- No illustration, no marketing copy. Personality: Spare + Earnest.
+- "Read the docs ↗" is a tertiary text link, not a button. Target URL TBD — likely `docs.hud.ai/concepts/tasksets` or similar; flag for implementation. Opens in a new tab. Positioned below both primary actions so the SDK-first reader's flow (CLI snippet → button) is uninterrupted. Inclusion rationale: onboarding-adjacent users (Sam introducing a junior, Riley's contracted assistant) benefit from a docs path — the fix is demotion, not removal.
+- No illustration, no marketing copy, no explanatory body copy. All three personas know what a Taskset is. Personality: Spare + Earnest.
 
 ### 11b. Search — no matches
 
