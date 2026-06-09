@@ -1,28 +1,29 @@
-# {{Project Name}}
+# HUD Dashboard Redesign
 
 ## Goal
 
-**{{Product Name}}** is {{one-paragraph product description: what it is, the technical domain, who the customers are, what makes it differentiated}}.
+**HUD** is enterprise infrastructure for the agent loop — sandboxed environments, eval at scale, RL training, and observable traces — accessed via a Python SDK + CLI (`hud-python`) and a web dashboard at hud.ai. Native Graders (`BashGrader`, `LLMJudgeGrader`, `exact_match`, `contains`, `numeric_match`, `f1_score`) return a numerical float, making the reward loop auditable. Used today by frontier research labs, applied agent teams (DoorDash), RL-environment vendors (Sharpe), and enterprise benchmark-bringers (UiPath).
 
-**Commercial context: {{B2C / B2B SMB / B2B enterprise SaaS / internal tool / OSS}}.** {{One paragraph on how this shapes design + engineering defaults — information density, tone, peer systems to align with (e.g. Atlassian, Linear, MUI), sizing conventions, assumed technical literacy}}.
+**Commercial context: hybrid B2B SaaS.** Self-serve sign-up + public pricing for small teams and individual researchers; enterprise contracts for large accounts. HUD recently transitioned from prototype stage to named enterprise customers. Design impact: developer-first density and tooling polish — peer systems are Linear (information density), Vercel (developer onboarding), Weights & Biases (ML experiment dashboard). Surfaces assume technical literacy: every user reads JSON, writes Python, and prefers a real CLI over a wizard.
 
-**What we're doing:** {{Scope statement: greenfield build / redesign / refactor + current state → target state}}.
+**What we're doing:** Redesigning the UI & UX of the **current HUD dashboard** at hud.ai. Current state: production dashboard with established primitives (Tasksets, Environments, Models, Jobs, Traces, Library, Agents, Credits) — see [`docs/product/platform.md`](docs/product/platform.md). Target state: a redesigned dashboard that serves three customer archetypes (frontier RL researchers, applied agent teams, RL-env vendors) without making any one of them write their own harness.
 
-**{{Product surface}} Users:**
-- **{{Persona 1 name}}** ({{age, role}}) — {{one-sentence description of who they are and what they're trying to do}}.
-- **{{Persona 2 name}}** — {{one-sentence description}}.
+**Dashboard users:**
+- **Alex** (29, Frontier RL Researcher) — trains agents on real environments, lives in the SDK and trace viewer, opens the dashboard for forensics and operations the CLI can't do better.
+- **Sam** (32, Applied Agent Engineer) — ships non-RL production agents (RAG + prompt + eval); uses the dashboard for model comparison, regression eval, and trace audit.
+- **Riley** (RL Environment Vendor) — builds RL environments as a deliverable sold to frontier labs; uses the dashboard for bulk task authoring, QA on every task, and taskset packaging.
 
 Load when more context is needed from product design related agents:
-* [./docs/product/personas.md](./docs/product/personas.md) — Alex (primary) + Sam (secondary) persona profiles and anti-patterns
+* [./docs/product/personas.md](./docs/product/personas.md) — Alex (primary) + Sam (secondary) + Riley (tertiary) persona profiles and anti-patterns
 * [./docs/product/alex-workflow.md](./docs/product/alex-workflow.md) — Alex's phased journey through the product
 * [./docs/product/alex-user-stories.md](./docs/product/alex-user-stories.md) — concrete jobs Alex executes per phase
 * [./docs/product/personality.md](./docs/product/personality.md) — adjectives, voice, anti-personality drift map
 
 ## Hard rules
 
-* **Scope.** All work scoped to the current root folder. Never operate or reference files outside it.
+* **Scope.** All work scoped to **`/Users/kate/phoenix/projects/hudai.fullstackeng/new/`** — the current root folder. Never read, write, search, grep, fetch, or reference files outside it, even when the runtime environment lists "Additional working directories". The runtime env hint does NOT override this rule. Sibling repos (e.g. `../hudevals/`) are out of scope: do not read them, do not cite them, do not derive content from them. External evidence comes from operator-supplied artifacts and the public web (WebFetch on hud.ai or documentation sites) — never from sibling paths on disk. **This rule has been violated before; do not violate it again.**
 * **Communication.** Direct, concise, logical. Every word carries signal or stay silent. No compliments, apologies, or acknowledgments. Open with finding, action, or answer. Skip replying your analysis unless asked "why". When a report is required: logic → data → conclusion, ≤3 points total. If recommending, give exactly one option with its reason. **Narration discipline:** one sentence before the first tool call stating intent; silence during; one to two sentences at the end. Skip the end-summary if the diff makes it obvious.
-* **Product context is the anchor.** Every call — design, product, engineering, pattern — grounds in {{Product Name}} personas (`docs/product/personas.md`), personality (`docs/product/personality.md`), and the concrete surface. The personas are the user-centric north star: maintainable long-run for *these* users, not generic users. External prior art ({{relevant peer systems — e.g. Linear, Vercel, MUI, shadcn defaults}}) is input to the option space — borrow freely — but evaluated *against* the anchor, never the anchor itself. Order: {{Product Name}}-side question → options → choice. **Pattern-matching failure mode:** reaching for external precedent before stating the {{Product Name}}-side question. Reverse the order and the work is wrong even if the answer lands right. Sub-agent output where precedent is load-bearing without a {{Product Name}} terminus gets sent back, not relayed.
+* **Product context is the anchor.** Every call — design, product, engineering, pattern — grounds in HUD personas (`docs/product/personas.md`), personality (`docs/product/personality.md`), and the concrete surface (the current hud.ai dashboard being redesigned). The personas are the user-centric north star: maintainable long-run for *these* users, not generic users. External prior art (Linear for information density, Vercel for developer-tools polish, Weights & Biases for ML experiment dashboards, shadcn defaults) is input to the option space — borrow freely — but evaluated *against* the anchor, never the anchor itself. Order: HUD-side question → options → choice. **Pattern-matching failure mode:** reaching for external precedent before stating the HUD-side question. Reverse the order and the work is wrong even if the answer lands right. Sub-agent output where precedent is load-bearing without a HUD terminus gets sent back, not relayed.
 * **First principles.** Reason from the underlying problem and its constraints (anchored in product context — see above) — not from precedent or pattern-match. Memories, docs, prior decisions are evidence, not truth. Derive intent before acting; literal compliance without analysis is failure.
 * **Artifacts.** Generated docs/specs are for engineers and designers. Keep only relevant info.
 * **Intermediate vs canonical artifacts — workspace discipline.** All exploratory work — discovery notes, draft persona content, working data inputs, conversation summaries, scratch reasoning, WIP versions of any `docs/product/` or `docs/design/` artifact, HTML previews for layout / token / wireframe exploration, **ad-hoc audit screenshots an engineer takes to self-verify** — lives in `.intermediate/` (gitignored). Only finalized artifacts the Operator has explicitly approved cross into `docs/`. `docs/` is the cleaned record; `.intermediate/` is the workspace. Never write half-formed thinking to `docs/`. Conventions:
@@ -56,7 +57,7 @@ Rules governing the interaction protocol between Operator and model — how sign
 
 **Main thread = command interface.** Interpret intent → delegate to sub-agents. No edits, code, or multi-step research in the main thread. Quick lookups (1–2 reads, `git status`) are OK. Parallelize independent agents.
 
-**Interpret before delegating — write the state machine.** For any behavior spec or implementation, write the user-facing state machine in plain language in the main thread response before dispatching anyone. Five lines is enough. If you cannot write it, you do not understand the problem well enough to delegate. For precedent-heavy components (combobox, autocomplete, modal, popover, tabs, drawer, etc.), the canonical state machine IS the spec — do not delegate it to a designer to derive from scratch. Designer's job is {{Product Name}}-specific visual/token decisions, not re-inventing solved UX patterns. Sub-agent output that invents canonical behavior gets sent back, not relayed.
+**Interpret before delegating — write the state machine.** For any behavior spec or implementation, write the user-facing state machine in plain language in the main thread response before dispatching anyone. Five lines is enough. If you cannot write it, you do not understand the problem well enough to delegate. For precedent-heavy components (combobox, autocomplete, modal, popover, tabs, drawer, etc.), the canonical state machine IS the spec — do not delegate it to a designer to derive from scratch. Designer's job is HUD-specific visual/token decisions, not re-inventing solved UX patterns. Sub-agent output that invents canonical behavior gets sent back, not relayed.
 
 **Hard stop: before any `Edit` / `Write` in the main thread, check agent ownership.** If an agent owns the path or scope, invoke that agent via the Task tool instead of editing directly. "Small fix" is not an exemption — ownership is about *where* the change lives, not *how big* it is.
 
@@ -103,7 +104,7 @@ Full rules live in the engineer agent files. The main thread's job is to reject 
 
 ## Operational hints
 
-* **Content discovery:** read a folder's `index.md` before its files. {{Human-only folders, e.g. `manuals/`}} — do not read.
+* **Content discovery:** read a folder's `index.md` before its files. The `manuals/` folder is human-only — do not read.
 * **Task list.** See `Hard rules → Agency → Orchestration backbone` for mandatory triggers and dispatch discipline.
 
 ## Docs & Workflows
@@ -116,5 +117,6 @@ Full rules live in the engineer agent files. The main thread's job is to reject 
 * Phase conventions (owners, entry, exit, gate rules — single source of truth): [`.claude/workflows/design-phases.md`](.claude/workflows/design-phases.md). Implementation phase has no `[operator]:review` task — engineers commit + PR, operator reviews PR.
 * Phase self-review: [`.claude/workflows/phase-self-review.md`](.claude/workflows/phase-self-review.md)
 * Screen spec parity (required for `screens` phase): [`.claude/workflows/screen-spec-parity.md`](.claude/workflows/screen-spec-parity.md)
+* Cross-screen consistency audit (operator-triggered, not a phase): [`.claude/workflows/cross-screen-audit.md`](.claude/workflows/cross-screen-audit.md)
 * Visual QA screenshot capture (entry to `design-qa`): [`.claude/workflows/visual-qa.md`](.claude/workflows/visual-qa.md)
 * Pre-PR consolidation (fold session artifacts into canonical docs before opening a PR): [`.claude/workflows/pre-pr-consolidation.md`](.claude/workflows/pre-pr-consolidation.md)
