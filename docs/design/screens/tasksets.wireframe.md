@@ -73,6 +73,10 @@ The `MAIN` region is the content area to the right of AppShell's persistent side
 - `+ New Taskset` is top-right, primary button. It links to the Taskset create flow (out of scope for this wireframe). The `+` prefix is standard HUD convention for create actions observed across screenshots.
 - No breadcrumb — `/tasksets` is a first-class nav destination, not a nested route.
 
+**Scroll behavior — sticky page header:**
+- The page header (title + docs icon + `+ New Taskset`) stays pinned to the top of the content area as the Taskset list scrolls. Rationale: at DoorDash-scale (100+ Tasksets), the user scrolls far; keeping the create CTA and the page-title docs icon reachable at all times avoids a frustrating scroll-back-to-top. Matches the scroll behavior of peer tools (Linear, W&B).
+- A subtle visual separator (bottom border or shadow) at the lower edge of the sticky region separates the pinned header from the scrolling content so the user perceives the boundary clearly. Exact treatment (border vs. shadow, width, opacity) is a screen-spec / token decision — do not spec here.
+
 **Docs paths — three moments, not redundancy:**
 
 | Path | User state | Job |
@@ -121,6 +125,13 @@ Each path serves a distinct moment. Preserving all three is not redundancy.
 │                                                                                  │
 └──────────────────────────────────────────────────────────────────────────────────┘
 ```
+
+**Annotations:**
+
+**Scroll behavior — sticky tab bar:**
+- The tab bar (`[Public 42] [My Team 3]`) stays pinned just below the sticky page header as the list scrolls. The filter row (search, view toggle, sort, group by, owner filter) is NOT sticky — it scrolls away with the content. Rationale: pinning the full filter row would consume too much vertical space on shorter viewports; users can scroll back up to change filters. The primary need during a long scroll is to know which tab (list) you are in and to have the create CTA reachable — both served by the sticky header + tab bar combination.
+- Tab counts remain visible while the user scrolls, so the "Public 42 / My Team 3" signal is always present regardless of scroll depth.
+- The same subtle separator applied at the bottom of the page header extends to encompass the tab bar — the sticky region as a whole (header + tabs) reads as a single pinned block separated from the scrolling content below.
 
 **Annotations:**
 
@@ -178,14 +189,26 @@ Grid layout: 3-column at desktop, 2-column at tablet, 1-column at mobile. Each c
 │  │                                                                            │ │
 │  └────────────────────────────────────────────────────────────────────────────┘ │
 │                                                                                  │
-│  ── CARD FOOTER ──────────────────────────────────────────────────────────────  │
+│  ── CARD FOOTER — tab-conditional ────────────────────────────────────────────  │
+│                                                                                  │
+│  Public-tab mode:                                                                │
 │  ┌────────────────────────────────────────────────────────────────────────────┐ │
 │  │  [task icon]  367 tasks   [model icon]  5 models                           │ │
 │  │  (muted, small)                                                            │ │
 │  │                                                                            │ │
-│  │  [owner]  HUD              [Public badge]                                  │ │
-│  │  (org name, small, muted)  (visibility pill)                               │ │
-│  │  ← org name, not user name                                                 │ │
+│  │  HUD                                                                       │ │
+│  │  (org name, quiet text, no pill — owner is the credibility cue)            │ │
+│  │  ★ 18  (star + count, prominent — community credibility signal)            │ │
+│  └────────────────────────────────────────────────────────────────────────────┘ │
+│                                                                                  │
+│  My Team tab mode:                                                               │
+│  ┌────────────────────────────────────────────────────────────────────────────┐ │
+│  │  [task icon]  240 tasks   [model icon]  6 models                           │ │
+│  │  (muted, small)                                                            │ │
+│  │                                                                            │ │
+│  │  DoorDash  (owner, higher prominence — navigation key at team scale)       │ │
+│  │  [🔒 Private]  (visibility pill — carries info: team mix of pub/priv)      │ │
+│  │  ★  (bookmark icon + small count, demoted — personal bookmark semantic)    │ │
 │  └────────────────────────────────────────────────────────────────────────────┘ │
 │                                                                                  │
 └──────────────────────────────────────────────────────────────────────────────────┘
@@ -197,12 +220,12 @@ Grid layout: 3-column at desktop, 2-column at tablet, 1-column at mobile. Each c
 |---|---|---|
 | Environment icon | `02b-tasksets-public.png` — small square icon left of Taskset name | Represents the primary Environment type. Icon is decorative; label is the primary affordance. |
 | Taskset name | All screenshots | Prominent, single-line. |
-| Star icon + count | All screenshots — `☆ 3` visible on OSWorld-Verified, `☆ 2` on WikiGames 2 | Interactive: clicking the star toggles starred state for the current user. Filled star = starred; outline = not starred. Count reflects total community stars on Public Tasksets. My Team Tasksets show personal star toggle only (count TBD — see §14). |
-| Leaderboard rows | `02b-tasksets-public.png` — 3 rows per card, rank badges, model name, env-name tag below model, `Avg / Best@3 / Best@5` columns | Top 3 ranked models by `Avg` score. Rank badges: 1st, 2nd, 3rd (rank indicator only — no color named here; token-phase decision). Scores are exact percentage values. `—` when the metric has not been run. |
+| Star icon + count | All screenshots — `☆ 3` visible on OSWorld-Verified, `☆ 2` on WikiGames 2 | Interactive: clicking the star toggles starred state for the current user. Filled star = starred; outline = not starred. Semantics differ by tab — see §4.1. |
+| Leaderboard rows | `02b-tasksets-public.png` — 3 rows per card, rank badges, model name, env-name tag below model, `Avg / Best@3 / Best@5` columns | Top 3 ranked models by `Avg` score. Rank badges: 1st, 2nd, 3rd (rank indicator only — no color named here; token-phase decision). Scores are exact percentage values. `—` when the metric has not been run. Grid card keeps full top-3. |
 | Footer: task count | `02b-tasksets-public.png` — "367 tasks" with task/clipboard icon | Exact integer. |
 | Footer: model count | `02b-tasksets-public.png` — "5 models" with model icon | Total models that have run against this Taskset. |
-| Footer: owner | `02b-tasksets-public.png` — org initials badge + org name | For Public Tasksets, owner is the publishing org (e.g., "HUD", "Princeton NLP", "Adept Research"). Not the individual user. |
-| Visibility badge | `02b-tasksets-public.png` — lock icon for private, HUD badge for public | Public = highlighted pill. Private = lock icon + "Private" text, muted. |
+| Footer: owner | `02b-tasksets-public.png` — org initials badge + org name | Public tab: quiet text, no pill — credibility cue. My Team tab: higher prominence — navigation key at DoorDash-scale. Not the individual user name in either case. |
+| Visibility badge | `02b-tasksets-public.png` — lock icon for private, HUD badge for public | **Public tab**: no pill — every card on this surface is public by definition; the pill is redundant noise. **My Team tab**: pill is present and carries information — the team view contains both Public and Private Tasksets. `🔒 Private` guards against "I thought this was internal." |
 
 **Leaderboard column headers**: each card is self-contained with its own `Avg / Best@3 / Best@5` headers.
 
@@ -216,6 +239,22 @@ Grid layout: 3-column at desktop, 2-column at tablet, 1-column at mobile. Each c
 │  (single line, muted, vertically centered in the leaderboard area)     │
 │                                                                        │
 ```
+
+### 4.1 Tab-conditional footer rationale
+
+The card footer renders differently depending on the active tab because the widgets earn screen weight differently on each surface.
+
+**Public tab — Alex's discovery loop ("is this hard enough? is it trustworthy?"):**
+- `★ 18` star count = community credibility signal. Keep prominent. High counts signal community validation; Alex uses this to distinguish well-run benchmarks from obscure one-offs.
+- `Public` pill = redundant. Every card on this surface is public by definition. Removing it reduces color noise without losing information.
+- Owner org name = credibility cue. Keep as quiet text. "HUD", "Princeton NLP", "Adept Research" all signal legitimacy without competing with the leaderboard data.
+
+**My Team tab — Sam/Riley's find-mine loop ("which is mine? whose squad?"):**
+- `★` becomes a personal bookmark with small counts (typically 0–5 org members). Demote to icon-only or icon + small count. At this scale, a high star count is not a signal.
+- `Public` / `Private` pill now carries information — the My Team view contains both Public and Private Tasksets. Keep the pill. `🔒 Private` is a guard against accidental disclosure: "I thought this was internal."
+- Owner is a navigation key at DoorDash-scale. Higher prominence than on Public. "Show me the menu-agent squad's Tasksets" maps to owner name.
+
+Future designers: do not restore the `Public` pill on Public-tab cards. Its absence is intentional, not an omission. If a new surface contains a mix of visibility states, re-evaluate per that surface's user question.
 
 ---
 
@@ -231,10 +270,10 @@ List layout: a single-column vertical stack of rows. Denser than grid — Alex's
 │  ┌──────────────┐  ┌────────────────────────┐  ┌────────────────────────────┐   │
 │  │ IDENTITY     │  │ LEADERBOARD (inline)   │  │ META                       │   │
 │  │              │  │                        │  │                            │   │
-│  │ [env icon]   │  │ #1 Claude Sonnet 4.5   │  │ [task icon]  367           │   │
-│  │ Name         │  │    54% Avg             │  │ [model icon]  5            │   │
-│  │ ☆  3         │  │ #2 Claude Sonnet 4     │  │ [owner badge]  HUD         │   │
-│  │              │  │    42% Avg             │  │ [visibility badge]         │   │
+│  │ [env icon]   │  │ #1 Claude Sonnet 4.6   │  │ [task icon]  367           │   │
+│  │ Name         │  │    61%                 │  │ [model icon]  5            │   │
+│  │ ☆  3         │  │ (hover → #2 #3 appear) │  │ [owner]  HUD              │   │
+│  │              │  │                        │  │ (tab-conditional — see §5a)│   │
 │  └──────────────┘  └────────────────────────┘  └────────────────────────────┘   │
 │                                                                                  │
 │  proportions:  [identity ~30%]  [leaderboard ~45%]  [meta ~25%]                 │
@@ -247,10 +286,14 @@ List layout: a single-column vertical stack of rows. Denser than grid — Alex's
 | Field | Collapsed from grid? | Notes |
 |---|---|---|
 | Identity block | Same as grid header | Env icon + Taskset name + star toggle + star count. Slightly smaller type than grid title for density. |
-| Leaderboard inline | Grid shows 3 rows; list shows top 2 | Rank number + model name + `Avg` score only in list view. `Best@3` and `Best@5` are collapsed — they are detail data; Avg is the primary scan signal. |
-| Meta block | Same as grid footer | Task count + model count + owner + visibility badge. Condensed to a single line with icon separators. |
+| Leaderboard inline | Grid shows 3 rows; list shows leader only (default) | Rank chip + model name + `Avg` score. Single line. No "Avg" label per cell — the column header already reads "Top models (Avg)". `Best@3` and `Best@5` collapsed — detail data. Row hover or row expand reveals #2 and #3. |
+| Meta block | Same as grid footer, tab-conditional | Task count + model count + owner + visibility badge (tab rules from §4.1 apply). Condensed to a single line with icon separators. |
 
-**Why top-2 leaderboard in list view**: the HUD question is "enough at-a-glance to choose without clicking." For Alex's discovery loop on Public Tasksets, the first-place score is the primary signal ("how hard is this Taskset?"). The second place confirms the pattern. Third adds little at this density. List view trades leaderboard depth for scan throughput — 20 Tasksets in one scroll.
+**Leader-only leaderboard in list view**: the HUD question is "enough at-a-glance to choose without clicking." For Alex's discovery loop on Public Tasksets, the first-place score is the primary signal ("how hard is this Taskset?"). A single `Claude Sonnet 4.6 — 61%` line reads instantly without eye movement. The second and third places are available on hover or row expand — recoverable without a page navigation, but not cluttering the default scan state. This reduces the leaderboard column from two lines of mixed color (rank chip + name + score + "Avg" label × 2 rows) to one accent line.
+
+**Tab-conditional meta block in list view**: the same tab rules from §4.1 apply to the list row meta block.
+- Public tab: owner as quiet text, no visibility pill, star count prominent.
+- My Team tab: owner at higher prominence, visibility pill present, star demoted.
 
 **No-leaderboard-yet state in list row:**
 ```
@@ -491,9 +534,9 @@ Shown when the Tasksets list fails to load due to a network error, server error,
 │                                                                                 │
 │  LIST VIEW (default):                                                           │
 │  ┌─────────────────────┬─────────────────────────┬───────────────────────────┐ │
-│  │  OSWorld-Verified ☆ │  #1 Sonnet 4.5  54% Avg  │  367  5  HUD  Public     │ │
-│  │  WikiGames 2 ☆      │  #1 Sonnet 4.6  25% Avg  │   35  4  HUD  Public     │ │
-│  │  SheeBench-50 ☆     │  #1 Opus 4.6    40% Avg  │   50  6  HUD  Public     │ │
+│  │  OSWorld-Verified ☆ │  #1 Sonnet 4.6  54%      │  367  5  HUD             │ │
+│  │  WikiGames 2 ☆      │  #1 Sonnet 4.6  25%      │   35  4  HUD             │ │
+│  │  SheeBench-50 ☆     │  #1 Opus 4.6    40%      │   50  6  HUD             │ │
 │  │  …                  │  …                        │  …                       │ │
 │  └─────────────────────┴─────────────────────────┴───────────────────────────┘ │
 │                                                                                 │
@@ -507,6 +550,7 @@ Shown when the Tasksets list fails to load due to a network error, server error,
 - Grid view: 2 columns (from 3 at desktop).
 - List view: unchanged — list is naturally responsive.
 - **Leaderboard preview in grid cards collapses to top-2 rows** (from top-3). At tablet card width, three leaderboard rows with three score columns become too cramped to read. Top-2 preserves primary scan signal.
+- **Leaderboard in list rows**: leader-only (same as desktop). The desktop and tablet breakpoints share the same single-line leader spec; no differentiation needed.
 - **Docs icon `[?]`**: visible inline with the title. Same ghost weight as desktop.
 - **Sort button**: label truncates to icon only `[↕]` with a tooltip "Sort". Active sort communicated via `aria-label` on the button.
 - **Group by button**: label truncates to icon only with a tooltip "Group by".
@@ -519,7 +563,7 @@ Shown when the Tasksets list fails to load due to a network error, server error,
 
 - Sidebar hides; top bar appears with hamburger (see app-shell.wireframe.md §5).
 - View toggle hidden — list view is forced on mobile (grid cards are too narrow to show leaderboard meaningfully at single-column width).
-- **Leaderboard preview in list rows collapses to top-1 only** — rank number + model name + Avg score. Rationale: at mobile width, the full leaderboard column cannot share horizontal space with the identity and meta blocks. Showing the top result preserves the "is this hard?" signal.
+- **Leaderboard preview in list rows**: leader-only — rank chip + model name + score. Same spec as desktop and tablet. Rationale: all breakpoints converged on leader-only after the list-view leaderboard reduction; mobile no longer requires a special collapse rule.
 - **Docs icon `[?]`**: visible inline with the title. Icon glyph is small; the tap target extends beyond the visible glyph to meet touch-target adequacy (no px spec — this is a design-tokens-phase decision; call it out for implementation).
 - `+ New Taskset` button collapses to `+` icon-only button with `aria-label="New Taskset"` in the page header to preserve horizontal space.
 - **Filter row on mobile**: the desktop filter row (search + view toggle + sort + group by + owner filter) is too wide for mobile. Pattern:
@@ -545,7 +589,7 @@ Shown when the Tasksets list fails to load due to a network error, server error,
 │  [⚙ Filters ▾]  (badge if active)           │  ← sort + group + owner overflow
 │                                              │
 │  OSWorld-Verified  ☆  3                      │
-│  #1 Sonnet 4.5  54%        367  5            │  ← top-1 leaderboard, no owner
+│  #1 Sonnet 4.6  54%        367  5            │  ← leader-only, no owner on public
 │  ────────────────────────────────────────    │
 │  WikiGames 2  ☆  2                           │
 │  #1 Sonnet 4.6  25%         35  4            │
@@ -555,6 +599,8 @@ Shown when the Tasksets list fails to load due to a network error, server error,
 │  Showing 50 of 127                           │
 └─────────────────────────────────────────────┘
 ```
+
+**Mobile sticky behavior:** Sticky behavior is the same as desktop and tablet — page header and tab bar pinned to top, filter row scrolls. The `[⚙ Filters]` bottom sheet is accessed by tapping the filter trigger in the filter row; because the filter row scrolls away, the user taps it before scrolling or scrolls back to the top. This does not conflict with the bottom sheet pattern — the bottom sheet is still the mechanism for accessing filter controls on mobile; sticky behavior only affects which parts of the page header remain visible during scroll.
 
 #### Mobile bottom sheet — `[⚙ Filters]`
 
@@ -637,17 +683,30 @@ Opens when the user taps `[⚙ Filters]`. Slides up from the bottom of the viewp
 ┌──────────────────────────────────────────────────────────────────────────────────┐
 │  SKELETON — list view  (same layout as populated list)                           │
 │                                                                                  │
+│  Column mapping:  [identity ~30%]         [leaderboard ~45%]   [meta ~25%]      │
+│                                                                                  │
 │  ┌──────────────────────────────────────────────────────────────────────────┐   │
-│  │  [░░░░░░░░░░░░░░░]  [░░░░░░░░░░░░░░░░░░░░░░░░░░]  [░░░  ░░░  ░░░░░░]   │   │
+│  │  [░░░░░░░░░░░░░░░]  [░░░░░░░░░░░░░░░░░░░░░░░░░░]  [░░░] [░░░] [░░░░░]  │   │
+│  │  [░░░░░░░░░]        (1 bar — leader-only row)       ↑ 3 short meta bars  │   │
 │  ├──────────────────────────────────────────────────────────────────────────┤   │
-│  │  [░░░░░░░░░░░░░]   [░░░░░░░░░░░░░░░░░░░░░░░░░]   [░░░  ░░░  ░░░░░]    │   │
+│  │  [░░░░░░░░░░░░░]    [░░░░░░░░░░░░░░░░░░░░░░░]      [░░░] [░░░] [░░░░]   │   │
+│  │  [░░░░░░░░]         (1 bar)                                               │   │
 │  ├──────────────────────────────────────────────────────────────────────────┤   │
-│  │  [░░░░░░░░░░░░░░░░] [░░░░░░░░░░░░░░░░░░░░░░░░]   [░░░  ░░░  ░░░░░░░]  │   │
+│  │  [░░░░░░░░░░░░░░░░] [░░░░░░░░░░░░░░░░░░░░░░░░]     [░░░] [░░░] [░░░░░░] │   │
+│  │  [░░░░░░░░░░]       (1 bar)                                               │   │
 │  └──────────────────────────────────────────────────────────────────────────┘   │
 │  8 rows of skeleton                                                              │
 │                                                                                  │
 └──────────────────────────────────────────────────────────────────────────────────┘
 ```
+
+**Skeleton shape rules (synced with populated layout):**
+
+- **Identity column**: 2 bars (name bar + star/count bar) — same as before.
+- **Leaderboard column**: **1 bar** (was 2). After the leader-only change to list rows, the skeleton must drop to a single bar to match the populated row height. Two bars would cause a visible layout shift when data loads.
+- **Meta column**: **3 short bars** (was 1 wide bar). The populated meta block has three segments (tasks count · models count · owner text). Three bars arranged horizontally hint at the column structure and prevent a jarring segment-pop on load. Bars are short and right-aligned to mirror the populated meta layout.
+
+**Open question — skeleton fill contrast (token-phase note):** The skeleton bar fill color is currently `--border-mid` (`#333340`). On lower-quality displays or in bright ambient light, this value may merge visually with the row-separator hairline (`--border` = `#2a2a30`), making skeleton rows hard to distinguish from dividers. The delta between these two values should be confirmed at the token phase. The wireframe does not prescribe the exact value — this is a token-phase decision. Flag for the token designer.
 
 Skeleton shape mirrors the list row proportions. Grid view shows skeleton cards at the appropriate grid layout. No spinner — skeleton prevents layout shift and communicates content shape.
 
@@ -690,12 +749,12 @@ The star icon appears in the card header (grid) and in the identity block (list)
 | `OwnerFilter` | Multi-select owner filter chip | Visible in My Team tab when org has 10+ distinct owners. Collapses to icon + count badge on tablet. Moves into mobile bottom sheet on mobile. |
 | `MobileFiltersSheet` | Mobile overflow trigger + bottom sheet | `[⚙ Filters ▾]` trigger; bottom sheet contains Sort, Group by, Owner filter. Active badge count. `Done` / background-tap / `Escape` close. |
 | `TasksetCard` | Grid view item | Full card with leaderboard rows. Clickable `<a>`. Star button is nested `<button>`. |
-| `TasksetRow` | List view item | Compact row, inline top-2 leaderboard. Clickable `<a>`. |
+| `TasksetRow` | List view item | Compact row, inline leader-only leaderboard (default); hover/expand reveals #2/#3. Tab-conditional meta block. Clickable `<a>`. |
 | `GroupHeader` | Collapsible group header in group view | `<button>` with `aria-expanded`. Shows group name + count. Single-line on mobile when label fits; wraps count only if label overflows. |
-| `StarButton` | On card + row | Toggle button. Optimistic update. `aria-pressed`. Tap target extends beyond glyph on touch. |
-| `LeaderboardPreview` | Inside card + row | Top-3 (grid) or top-2 (list, desktop/tablet) or top-1 (list, mobile) ranked model rows. Rank indicator badges. Score columns. |
+| `StarButton` | On card + row | Toggle button. Optimistic update. `aria-pressed`. Tap target extends beyond glyph on touch. Semantics differ by tab: community count on Public, personal bookmark on My Team. |
+| `LeaderboardPreview` | Inside card + row | Top-3 (grid) or leader-only with hover/expand for #2/#3 (list, all breakpoints). Rank indicator badges. Score columns. No per-cell "Avg" label in list view — column header carries it. |
 | `RankBadge` | Inside leaderboard rows | 1/2/3 rank indicator. |
-| `VisibilityBadge` | Card footer, list row meta | Public = highlighted pill. Private = lock icon + text. |
+| `VisibilityBadge` | Card footer, list row meta — tab-conditional | **Public tab**: omitted (redundant — every card on this surface is public). **My Team tab**: present. `Public` = highlighted pill; `🔒 Private` = lock icon + text, muted. |
 | `EmptyState` | My Team zero, search no-match | Icon + message + action. CLI command in My Team zero state. CTAs stack vertically on mobile. |
 | `ErrorState` | Fetch failure | Icon + "Couldn't load Tasksets — try again." + Retry button. Retry stacks below message on mobile if horizontal space is tight. |
 | `LoadMore` | Below last row/card when more exist | "Showing N of M · Load more" count + outline button. Full-width button on mobile. Focus moves to first new row after load. |
@@ -709,7 +768,7 @@ The star icon appears in the card header (grid) and in the identity block (list)
 |---|---|---|---|---|
 | Default tab logic (My Team if ≥1 Tasksets) | Gets `My Team` once he has team Tasksets; otherwise Public is correct default. | Gets `My Team` immediately — regression Taskset is there. | Gets `My Team` — 120+ Tasksets. | Gets `My Team` — delivery Tasksets are there. |
 | List view default | Preferred density — scans more Tasksets per scroll. | Equal — scan-by-name works in list. | Equal — name scan still works, but grouping layer needed. | Equal. |
-| Leaderboard preview in default List view | Primary: confirms Avg score at a glance to judge difficulty. | Secondary: not needed for find-by-name, but not harmful. | Not primary — finding the right Taskset is the job, not reading scores. | Not relevant for index scan. |
+| Leaderboard preview in default List view (leader-only) | Primary: single `#1 Model — 61%` line answers "how hard is this Taskset?" with zero eye movement. Hover reveals #2/#3 if he wants confirmation. | Secondary: not needed for find-by-name, but the single line is not harmful. | Not primary — finding the right Taskset is the job, not reading scores. | Not relevant for index scan. |
 | Starred first sort | Stars the Tasksets he runs against regularly; keeps them at top. | Stars primary 2–3 regression Tasksets. | Useful for top 5–10 anchor Tasksets; grouping + filter are the main navigation at scale. | Stars delivery Tasksets per client. |
 | Group by | Rarely used — flat list at 3–15 Tasksets. | Rarely used. | Primary navigation mechanism at 50–150 Tasksets. Group by Environment first. | Group by Owner (per-client) useful at 10–50. |
 | Owner filter | Hidden (<10 owners). | Hidden (small team). | Shown (10+ distinct owners). Squad filter: "show me the menu-agent squad's Tasksets." | Shown if 10+ named clients as owners. |
@@ -726,7 +785,7 @@ The star icon appears in the card header (grid) and in the identity block (list)
 
 3. **"My tasksets" sub-filter**: `02a-tasksets-my.png` shows a `My tasksets` chip active in the filter row on the My Team tab. This appears to be a sub-filter showing only Tasksets owned by the current user (as opposed to all Tasksets in the org). The wireframe acknowledges this from the screenshot but does not fully spec the behavior — two open questions: (a) is this a toggle or a filter chip? (b) is "My tasksets" the default state of the My Team tab, or is "all team Tasksets" the default with "My tasksets" as an optional filter? Needs product clarification.
 
-4. **Star count semantics on My Team Tasksets**: On Public Tasksets the star count is community-wide. On My Team Tasksets, it is unclear whether the count reflects: (a) only the current org's members who starred it, (b) a global count if the Taskset was forked from a Public one, or (c) no count at all (just a personal bookmark with no count displayed). Verify with platform.
+4. **Star count semantics on My Team Tasksets**: The design decision (§4.1) treats `★` on My Team as a personal bookmark with small org-member counts (typically 0–5), demoted in visual weight. The open sub-question is whether the displayed count reflects (a) only the current org's members who starred it, or (b) a global count if the Taskset was forked from a Public one, or (c) no count at all. The wireframe demotes the star regardless of which count is shown — the count display rule itself needs platform verification before implementation.
 
 5. **Leaderboard column header placement in list view**: Confirm whether the sticky column header row in list view should show `Best@3 / Best@5` (they are collapsed in list view — redundant if so) or only `Avg`.
 
@@ -758,12 +817,14 @@ The star icon appears in the card header (grid) and in the identity block (list)
 
 - **Per-primitive docs icon**: this wireframe preserves the production per-page docs icon. The icon sits immediately right of the page title at ghost visual weight and deep-links to `docs.hud.ai/concepts/tasksets`. The URL pattern is specced as a contract with the docs site (every first-class primitive maps to `/concepts/<primitive>`); the contract must be confirmed before implementation. Full spec in §2.
 
-- **Leaderboard collapsed in list view to top-2**: grid shows top-3 as confirmed in screenshots. List view showing top-2 is a new design decision — not observed in screenshots directly, derived from density tradeoff reasoning. Flagged here for Operator review.
+- **Leaderboard collapsed in list view to leader-only**: grid shows top-3 as confirmed in screenshots. List view showing only the leader (#1 model + Avg score, single line) is a new design decision — not observed in screenshots directly. Rationale: operator feedback identified that the former two-rank stack produced visual stress (redundant "Avg" label per cell, two rows of mixed color treatments per ~200px). Leader-only with hover/expand for #2/#3 preserves the density signal without the color noise. Supersedes the earlier "top-2 in list view" entry.
 
 - **Group by and Owner filter are new controls not in screenshots**: these are new capabilities designed to handle DoorDash-scale volume. No visual reference exists in the production screenshots. Designed from first principles against the persona scale table.
+
+- **Tab-conditional card footer and list row meta**: the former spec used one universal footer (owner + visibility pill + star count) regardless of which tab was active. This revision makes the footer conditional on the active tab. Public-tab cards drop the `Public` pill (redundant when every card on that surface is public) and treat `★` count as a prominent community signal. My Team tab cards restore the visibility pill (now information-bearing — the team view mixes Public and Private) and demote `★` to a personal bookmark. This is a new design decision derived from operator feedback; no production screenshot shows the differentiated treatment.
 
 - **Pagination / load-more not shown in screenshots**: screenshots appear to show a fully-loaded list. The pagination design is derived from scale requirements, not from observed production behavior. Load-more (not infinite scroll) is a design judgment call — flagged for Operator review.
 
 ---
 
-*Derived from: [`docs/product/personas.md`](../../product/personas.md), [`docs/product/platform.md`](../../product/platform.md), [`docs/product/personality.md`](../../product/personality.md), [`docs/product/alex-workflow.md`](../../product/alex-workflow.md). Visual references: operator-supplied screenshots `02a-tasksets-my.png`, `02b-tasksets-public.png`, `02c-tasksets-myteam.png` (Jun 2026), plus operator-supplied images #5, #6, #7 showing list view, card detail with leaderboard, and sort menu. Sibling wireframes: [`app-shell.wireframe.md`](./app-shell.wireframe.md), [`manage.wireframe.md`](./manage.wireframe.md).*
+*Derived from: [`docs/product/personas.md`](../../product/personas.md), [`docs/product/platform.md`](../../product/platform.md), [`docs/product/personality.md`](../../product/personality.md), [`docs/product/alex-workflow.md`](../../product/alex-workflow.md). Visual references: operator-supplied screenshots `02a-tasksets-my.png`, `02b-tasksets-public.png`, `02c-tasksets-myteam.png` (Jun 2026), plus operator-supplied images #5, #6, #7 showing list view, card detail with leaderboard, and sort menu. Operator feedback on list-view leaderboard cramping and tab-conditional footer (Jun 2026) informed the leader-only leaderboard spec (§5) and tab-conditional footer spec (§4, §4.1) introduced in this revision. Sibling wireframes: [`app-shell.wireframe.md`](./app-shell.wireframe.md), [`manage.wireframe.md`](./manage.wireframe.md).*
