@@ -1,0 +1,1622 @@
+<!--
+  filename: model-detail.wireframe.html
+  Standalone wireframe mockup for /models/[model-id] — app-shell chrome integrated
+  Canonical wireframes:
+    docs/design/screens/app-shell.wireframe.md
+    docs/design/screens/model-detail.wireframe.md
+
+  Four variant states covered inline as sections:
+    State 1: Trainable base (GPT-5)      — Results tab, evaluated + unevaluated
+    State 2: Non-trainable base           — Claude Sonnet 4.6, Results empty state
+    State 3: Org fine-tuned model         — Checkpoints tab (chart + table)
+    State 4: Proxied deployment           — Claude Sonnet 4.6 (Bedrock)
+
+  Additional states:
+    State 5: Checkpoints tab — base model state
+    State 6: Gateway Logs tab
+    State 7: Loading skeleton
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Model Detail — Wireframe (app-shell integrated)</title>
+  <style>
+    /* ── Reset ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    /* ── App-shell tokens (inherited from models.wireframe.html) ── */
+    :root {
+      --sidebar-bg:    #0f1117;
+      --sidebar-border:#1e2230;
+      --page-bg:       #090c12;
+      --accent:        #10b981;
+      --accent-subtle: rgba(16,185,129,0.10);
+      --muted-fg:      #6b7280;
+      --default-fg:    #e5e7eb;
+      --brand-mark:    #f59e0b;
+
+      /* Detail page content tokens — namespaced md- */
+      --md-bg:         #0f0f10;
+      --md-bg-raised:  #17171a;
+      --md-bg-input:   #1e1e23;
+      --md-border:     #2a2a30;
+      --md-border-mid: #333340;
+      --md-muted:      #6b6b7a;
+      --md-dim:        #8f8fa0;
+      --md-body:       #c4c4d0;
+      --md-heading:    #eeeef2;
+      --md-green:      #3dd68c;
+      --md-amber:      #e8a72e;
+      --md-red:        #e05252;
+      --md-blue:       #4b8ef0;
+      --md-purple:     #9d78f0;
+
+      --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+      --mono: "SF Mono", "Fira Code", "Cascadia Code", Consolas, monospace;
+      --serif: Georgia, "Times New Roman", serif;
+    }
+
+    html, body {
+      height: 100%;
+      font-family: var(--sans);
+      font-size: 13px;
+      background: #06080e;
+      color: var(--default-fg);
+      line-height: 1.5;
+    }
+
+    /* ═════════════════════════
+       OUTER CHROME — app shell
+    ═════════════════════════ */
+    .shell-layout {
+      display: flex;
+      height: 100vh;
+      min-height: 600px;
+    }
+
+    /* ── Sidebar ── */
+    .sidebar {
+      background: var(--sidebar-bg);
+      border-right: 1px solid var(--sidebar-border);
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      width: 220px;
+      height: 100%;
+      overflow-y: auto;
+      overflow-x: hidden;
+    }
+    .brand-slot {
+      display: flex; align-items: center; gap: 8px;
+      padding: 14px 16px 12px;
+      border-bottom: 1px solid var(--sidebar-border);
+      flex-shrink: 0;
+    }
+    .brand-mark {
+      width: 20px; height: 20px;
+      background: var(--brand-mark); border-radius: 4px;
+      flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .brand-wordmark { font-size: 14px; font-weight: 700; color: var(--default-fg); letter-spacing: -0.02em; }
+    .group-label {
+      font-size: 10px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--muted-fg); padding: 0 16px; margin-top: 20px; margin-bottom: 4px;
+    }
+    .nav-item {
+      display: flex; align-items: center; gap: 8px; padding: 5px 12px;
+      font-size: 13px; color: var(--muted-fg); cursor: pointer;
+      position: relative; border-radius: 4px; margin: 1px 4px;
+      text-decoration: none;
+    }
+    .nav-item:hover { background: rgba(255,255,255,0.04); color: var(--default-fg); }
+    .nav-item.selected { color: var(--accent); background: var(--accent-subtle); }
+    .nav-item.selected::before {
+      content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 2px;
+      background: var(--accent); border-radius: 0 2px 2px 0;
+    }
+    .nav-item-icon { width: 16px; height: 16px; flex-shrink: 0; color: inherit; opacity: 0.8; }
+    .nav-item.selected .nav-item-icon { opacity: 1; }
+    .nav-item-label { flex: 1; white-space: nowrap; }
+    .nav-item-count { font-size: 11px; color: var(--muted-fg); margin-left: auto; font-variant-numeric: tabular-nums; }
+    .nav-item-ext { font-size: 10px; color: var(--muted-fg); margin-left: auto; }
+    .spacer { flex: 1; }
+
+    /* Credits widget */
+    .credits-widget {
+      margin: 0 8px 4px; padding: 8px 10px;
+      border-radius: 6px; border: 1px solid var(--sidebar-border); cursor: pointer;
+    }
+    .credits-widget:hover { background: var(--accent-subtle); }
+    .credits-label { font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted-fg); }
+    .credits-numbers { display: flex; justify-content: flex-end; align-items: baseline; gap: 2px; margin: 2px 0; }
+    .credits-current { font-size: 13px; font-variant-numeric: tabular-nums; color: var(--default-fg); font-family: var(--mono); }
+    .credits-cap { font-size: 11px; font-variant-numeric: tabular-nums; color: var(--muted-fg); font-family: var(--mono); }
+    .credits-bar-bg { height: 3px; background: rgba(255,255,255,0.08); border-radius: 2px; overflow: hidden; margin: 4px 0; }
+    .credits-bar-fill { height: 100%; background: var(--accent); border-radius: 2px; }
+    .credits-meta { display: flex; justify-content: space-between; font-size: 10px; color: var(--muted-fg); margin-top: 2px; }
+
+    /* User chip */
+    .user-chip {
+      display: flex; align-items: center; gap: 8px;
+      padding: 8px 10px; margin: 4px 6px 6px;
+      border-radius: 6px; border: 1px solid var(--sidebar-border);
+      cursor: pointer; flex-shrink: 0;
+    }
+    .user-chip:hover { background: rgba(255,255,255,0.04); }
+    .avatar {
+      width: 28px; height: 28px; border-radius: 50%;
+      background: #1e2230; border: 1px solid var(--sidebar-border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 600; color: var(--default-fg); flex-shrink: 0;
+    }
+    .user-info { flex: 1; overflow: hidden; min-width: 0; }
+    .user-name { font-size: 12px; font-weight: 500; color: var(--default-fg); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .user-meta { font-size: 10px; color: var(--muted-fg); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .switcher-icon { color: var(--muted-fg); flex-shrink: 0; }
+
+    /* ── Main scroll region ── */
+    .main-region {
+      flex: 1; overflow-y: auto;
+      background: #06080e; min-width: 0;
+    }
+
+    /* ═══════════════════════════════════
+       MODEL DETAIL — inside main
+    ═══════════════════════════════════ */
+    .md-main {
+      padding: 20px 28px 64px; min-width: 0;
+      background: var(--md-bg);
+      color: var(--md-body);
+      font-family: var(--sans); font-size: 13px;
+      max-width: 1200px;
+    }
+
+    /* ── State section separator ── */
+    .state-gap { height: 56px; border-top: 1px dashed rgba(255,255,255,.06); padding-top: 48px; }
+    .state-label {
+      font-size: 10px; font-weight: 600; text-transform: uppercase;
+      letter-spacing: .08em; color: var(--md-muted);
+      margin-bottom: 20px;
+    }
+
+    /* ── Breadcrumb ── */
+    .md-breadcrumb {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 12px; color: var(--md-muted);
+      margin-bottom: 12px;
+    }
+    .md-breadcrumb-link {
+      color: var(--md-dim); text-decoration: none; cursor: pointer;
+    }
+    .md-breadcrumb-link:hover { color: var(--md-body); text-decoration: underline; }
+    .md-breadcrumb-sep { color: var(--md-muted); }
+    .md-breadcrumb-current { color: var(--md-dim); }
+
+    /* ── Page header ── */
+    .md-page-header { margin-bottom: 16px; }
+    .md-header-row {
+      display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;
+      margin-bottom: 8px;
+    }
+    .md-title-group { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .md-provider-icon {
+      width: 16px; height: 16px; border-radius: 3px;
+      display: inline-flex; align-items: center; justify-content: center;
+      font-size: 9px; font-weight: 700; flex-shrink: 0;
+      color: #fff;
+    }
+    .md-provider-icon.anthropic { background: #cc6640; }
+    .md-provider-icon.openai    { background: #10a37f; }
+    .md-provider-icon.google    { background: #4285f4; }
+    .md-provider-icon.xai       { background: #2d2d2d; border: 1px solid #444; }
+    .md-provider-icon.hud       { background: var(--brand-mark); color: #000; }
+    .md-provider-icon.bedrock   { background: #e07b39; }
+
+    .md-model-name {
+      font-family: var(--serif); font-size: 20px; font-weight: 400;
+      color: var(--md-heading); line-height: 1.2;
+    }
+    .md-private-badge {
+      font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em;
+      color: var(--md-amber); border: 1px solid rgba(232,167,46,.3);
+      padding: 2px 6px; border-radius: 10px; white-space: nowrap;
+    }
+
+    /* Metadata strip */
+    .md-meta-strip {
+      display: flex; align-items: center; gap: 0; flex-wrap: wrap;
+      font-size: 12px; color: var(--md-dim);
+      margin-bottom: 4px;
+    }
+    .md-meta-field { display: flex; align-items: center; gap: 4px; }
+    .md-meta-sep { color: var(--md-muted); margin: 0 8px; }
+    .md-status-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+    .md-status-dot.available { background: var(--md-green); }
+    .md-status-dot.unavailable { background: var(--md-red); }
+    .md-status-text { font-size: 12px; color: var(--md-dim); }
+    .md-status-text.available { color: var(--md-green); }
+    .md-api-name {
+      font-family: var(--mono); font-size: 11.5px; color: var(--md-body);
+    }
+    .md-copy-btn {
+      background: transparent; border: none; cursor: pointer;
+      color: var(--md-muted); font-size: 11px; padding: 1px 4px;
+      border-radius: 2px;
+    }
+    .md-copy-btn:hover { color: var(--md-body); background: rgba(255,255,255,.06); }
+    .md-trainable-yes { color: var(--md-green); }
+    .md-trainable-no  { color: var(--md-muted); }
+    .md-head-id {
+      font-family: var(--mono); font-size: 11px; color: var(--md-dim);
+    }
+    .md-provider-chip {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-size: 11.5px; color: var(--md-dim);
+    }
+    .md-trained-from {
+      font-size: 12px; color: var(--md-muted);
+      margin-top: 4px;
+    }
+    .md-trained-from a { color: var(--md-blue); text-decoration: none; }
+    .md-trained-from a:hover { text-decoration: underline; }
+
+    /* Status pill — title-row altitude (runtime signal) */
+    .md-status-pill {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-size: 11px; font-weight: 500;
+      border-radius: 10px;
+      padding: 2px 8px;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .md-status-pill.available {
+      color: var(--md-green);
+      background: rgba(61,214,140,.10);
+      border: 1px solid rgba(61,214,140,.22);
+    }
+    .md-status-pill.unavailable {
+      color: var(--md-red);
+      background: rgba(224,82,82,.10);
+      border: 1px solid rgba(224,82,82,.22);
+    }
+
+    /* Privacy pill — title-row, before status pill (static access indicator) */
+    .md-privacy-pill {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-size: 11px; font-weight: 500;
+      border-radius: 10px;
+      padding: 2px 8px;
+      white-space: nowrap;
+      flex-shrink: 0;
+      color: var(--md-dim);
+      background: rgba(255,255,255,.07);
+      border: 1px solid rgba(255,255,255,.12);
+    }
+
+    /* ── Buttons ── */
+    .btn-primary {
+      background: var(--md-green); color: #000;
+      border: none; border-radius: 5px;
+      padding: 7px 14px; font-size: 12px; font-weight: 600;
+      cursor: pointer; display: inline-flex; align-items: center; gap: 5px;
+      white-space: nowrap; flex-shrink: 0;
+    }
+    .btn-outline {
+      background: transparent; color: var(--md-dim);
+      border: 1px solid var(--md-border-mid); border-radius: 5px;
+      padding: 5px 10px; font-size: 12px; font-weight: 500;
+      cursor: pointer; display: inline-flex; align-items: center; gap: 4px; white-space: nowrap;
+    }
+    .btn-outline:hover { border-color: var(--md-muted); color: var(--md-body); }
+    .btn-small {
+      background: transparent; color: var(--md-dim);
+      border: 1px solid var(--md-border); border-radius: 4px;
+      padding: 3px 8px; font-size: 11px; font-weight: 500;
+      cursor: pointer; display: inline-flex; align-items: center; gap: 3px; white-space: nowrap;
+    }
+    .btn-small:hover { border-color: var(--md-muted); color: var(--md-body); }
+    .btn-head-badge {
+      background: rgba(61,214,140,.12); color: var(--md-green);
+      border: 1px solid rgba(61,214,140,.3); border-radius: 4px;
+      padding: 3px 8px; font-size: 11px; font-weight: 600;
+      white-space: nowrap;
+    }
+
+    /* ── Tab bar ── */
+    .md-tab-bar {
+      display: flex; align-items: flex-end;
+      border-bottom: 1px solid var(--md-border);
+      margin-bottom: 16px;
+    }
+    .md-tab {
+      padding: 8px 14px; font-size: 12.5px; color: var(--md-muted);
+      cursor: pointer; border-bottom: 2px solid transparent;
+      margin-bottom: -1px; display: flex; align-items: center; gap: 6px;
+    }
+    .md-tab:hover { color: var(--md-body); }
+    .md-tab.active { color: var(--md-heading); border-bottom-color: var(--md-green); }
+    .md-tab-count {
+      font-size: 10.5px; color: var(--md-muted);
+      background: rgba(255,255,255,.06); padding: 1px 5px; border-radius: 10px;
+    }
+    .md-tab.active .md-tab-count { color: var(--md-dim); }
+
+    /* ── Filter row ── */
+    .md-filter-row {
+      display: flex; align-items: center; gap: 8px;
+      margin-bottom: 14px; flex-wrap: wrap;
+    }
+    .md-search-wrap { position: relative; flex: 1; min-width: 160px; max-width: 260px; }
+    .md-search-icon {
+      position: absolute; left: 9px; top: 50%; transform: translateY(-50%);
+      color: var(--md-muted); font-size: 12px; pointer-events: none;
+    }
+    .md-search-input {
+      width: 100%; background: var(--md-bg-input);
+      border: 1px solid var(--md-border); border-radius: 5px;
+      padding: 6px 10px 6px 28px;
+      font-size: 12.5px; color: var(--md-body); outline: none;
+    }
+    .md-chip {
+      display: inline-flex; align-items: center; gap: 4px;
+      border: 1px solid var(--md-border-mid); border-radius: 5px;
+      padding: 4px 9px; font-size: 12px; color: var(--md-dim);
+      cursor: pointer; background: transparent; white-space: nowrap;
+    }
+    .md-chip:hover { border-color: var(--md-muted); color: var(--md-body); }
+    .md-sort-wrap { margin-left: auto; display: flex; align-items: center; gap: 6px; }
+    .md-result-count { font-size: 12px; color: var(--md-muted); white-space: nowrap; }
+
+    /* ═════════════════════════
+       RESULTS TABLE
+    ═════════════════════════ */
+    .md-table-wrap { overflow-x: auto; }
+    .md-table {
+      width: 100%; border-collapse: collapse;
+      font-size: 12.5px; color: var(--md-body);
+    }
+    .md-table thead th {
+      text-align: left;
+      font-size: 10.5px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase;
+      color: var(--md-muted); padding: 6px 10px;
+      border-bottom: 1px solid var(--md-border);
+      white-space: nowrap; background: var(--md-bg);
+      position: sticky; top: 0; z-index: 1;
+    }
+    .md-table thead th.right { text-align: right; }
+    .md-table thead th.center { text-align: center; }
+    .md-table tbody tr {
+      border-bottom: 1px solid var(--md-border);
+      cursor: pointer;
+    }
+    .md-table tbody tr:hover { background: rgba(255,255,255,.025); }
+    .md-table tbody tr:last-child { border-bottom: none; }
+    .md-table td { padding: 10px 10px; vertical-align: middle; }
+    .md-table td.right { text-align: right; }
+    .md-table td.center { text-align: center; }
+
+    /* TASKSET cell */
+    .md-taskset-cell { min-width: 180px; }
+    .md-taskset-name {
+      font-size: 13px; font-weight: 500; color: var(--md-heading);
+      margin-bottom: 2px; white-space: nowrap;
+    }
+    .md-taskset-id-row { display: flex; align-items: center; gap: 4px; }
+    .md-taskset-id {
+      font-family: var(--mono); font-size: 11px; color: var(--md-muted);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 160px;
+    }
+
+    /* AVG SCORE cell */
+    .md-score-value {
+      font-family: var(--mono); font-size: 13px; color: var(--md-heading);
+      font-variant-numeric: tabular-nums;
+    }
+    .md-score-low { color: var(--md-red); }
+    .md-score-mid { color: var(--md-amber); }
+    .md-score-high { color: var(--md-green); }
+
+    /* DISTRIBUTION cell — stacked mini-bar */
+    .md-dist-cell { min-width: 120px; }
+    .md-dist-bar-wrap {
+      display: flex; height: 6px; border-radius: 3px; overflow: hidden;
+      margin-bottom: 4px; gap: 1px;
+    }
+    .md-dist-pass  { background: var(--md-green); height: 100%; border-radius: 1px; }
+    .md-dist-part  { background: var(--md-amber); height: 100%; border-radius: 1px; }
+    .md-dist-fail  { background: var(--md-red);   height: 100%; border-radius: 1px; }
+    .md-dist-labels {
+      display: flex; gap: 6px; font-size: 10px;
+    }
+    .md-dist-label-p  { color: var(--md-green); }
+    .md-dist-label-pa { color: var(--md-amber); }
+    .md-dist-label-f  { color: var(--md-red); }
+
+    /* TASKS cell */
+    .md-tasks-value {
+      font-family: var(--mono); font-size: 12px; color: var(--md-body);
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* Checkpoint cell */
+    .md-ckpt-id {
+      font-family: var(--mono); font-size: 11.5px; color: var(--md-dim);
+      white-space: nowrap;
+    }
+
+    /* View traces inline link */
+    .md-view-traces {
+      font-size: 11px; color: var(--md-blue); text-decoration: none;
+      white-space: nowrap; opacity: 0;
+    }
+    .md-table tbody tr:hover .md-view-traces { opacity: 1; }
+
+    /* ═════════════════════════
+       UNEVALUATED SECTION
+    ═════════════════════════ */
+    .md-section-disclosure {
+      margin-top: 6px;
+      border: 1px solid var(--md-border);
+      border-radius: 6px; overflow: hidden;
+    }
+    .md-disclosure-header {
+      display: flex; align-items: center; gap: 8px;
+      padding: 10px 14px;
+      font-size: 12.5px; color: var(--md-dim);
+      cursor: pointer; background: var(--md-bg-raised);
+    }
+    .md-disclosure-header:hover { background: rgba(255,255,255,.03); }
+    .md-disclosure-chevron { font-size: 10px; color: var(--md-muted); }
+    .md-disclosure-count { font-size: 12px; font-weight: 500; color: var(--md-dim); }
+    .md-disclosure-action { margin-left: auto; }
+    .md-disclosure-body { border-top: 1px solid var(--md-border); }
+    .md-uneval-row {
+      display: flex; align-items: center;
+      padding: 8px 14px; border-bottom: 1px solid var(--md-border);
+      gap: 10px;
+    }
+    .md-uneval-row:last-child { border-bottom: none; }
+    .md-uneval-row:hover { background: rgba(255,255,255,.02); }
+    .md-uneval-name { flex: 1; font-size: 12.5px; color: var(--md-body); }
+    .md-uneval-tasks { font-family: var(--mono); font-size: 11px; color: var(--md-muted); min-width: 48px; }
+
+    /* ═════════════════════════
+       CHECKPOINTS TAB — BASE MODEL
+    ═════════════════════════ */
+    .md-ckpt-base-card {
+      border: 1px solid var(--md-border);
+      border-radius: 6px; padding: 20px 24px;
+      max-width: 540px;
+    }
+    .md-ckpt-base-title {
+      font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .08em;
+      color: var(--md-muted); margin-bottom: 14px;
+    }
+    .md-meta-dl { display: grid; grid-template-columns: 140px 1fr; gap: 6px 12px; }
+    .md-meta-dt { font-size: 12px; color: var(--md-muted); }
+    .md-meta-dd {
+      font-size: 12px; color: var(--md-body);
+      display: flex; align-items: center; gap: 6px;
+    }
+    .md-meta-dd.mono { font-family: var(--mono); font-size: 11.5px; color: var(--md-body); }
+    .md-status-base {
+      font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em;
+      color: var(--md-dim); background: rgba(255,255,255,.06);
+      padding: 2px 7px; border-radius: 10px;
+    }
+    .md-ckpt-note {
+      margin-top: 16px; padding-top: 16px;
+      border-top: 1px solid var(--md-border);
+      font-size: 12px; color: var(--md-muted); line-height: 1.6;
+    }
+    .md-cli-block {
+      background: var(--md-bg-input); border: 1px solid var(--md-border);
+      border-radius: 5px; padding: 8px 12px 8px 14px;
+      font-family: var(--mono); font-size: 12px; color: var(--md-green);
+      display: flex; align-items: center; gap: 10px;
+      margin-top: 8px; max-width: 420px;
+    }
+    .md-cli-copy { font-size: 13px; color: var(--md-muted); cursor: pointer; }
+    .md-cli-copy:hover { color: var(--md-body); }
+    .md-link-tertiary { font-size: 12px; color: var(--md-blue); text-decoration: none; display: inline-block; margin-top: 8px; }
+    .md-link-tertiary:hover { text-decoration: underline; }
+
+    /* ═════════════════════════
+       CHECKPOINTS TAB — FINE-TUNED
+    ═════════════════════════ */
+    /* Score chart (schematic) */
+    .md-chart-area {
+      border: 1px solid var(--md-border); border-radius: 6px;
+      background: var(--md-bg-raised);
+      padding: 16px 20px 12px;
+      margin-bottom: 16px;
+    }
+    .md-chart-title {
+      font-size: 11px; color: var(--md-muted); margin-bottom: 12px;
+      font-weight: 500;
+    }
+    /* SVG-drawn schematic chart */
+    .md-chart-svg { width: 100%; overflow: visible; }
+
+    /* Checkpoints table */
+    .md-ckpt-table {
+      width: 100%; border-collapse: collapse;
+      font-size: 12.5px; color: var(--md-body);
+    }
+    .md-ckpt-table thead th {
+      text-align: left;
+      font-size: 10.5px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase;
+      color: var(--md-muted); padding: 6px 10px;
+      border-bottom: 1px solid var(--md-border);
+      white-space: nowrap; background: var(--md-bg);
+    }
+    .md-ckpt-table thead th.right { text-align: right; }
+    .md-ckpt-table tbody tr { border-bottom: 1px solid var(--md-border); }
+    .md-ckpt-table tbody tr:hover { background: rgba(255,255,255,.025); }
+    .md-ckpt-table tbody tr.is-head { background: rgba(61,214,140,.04); }
+    .md-ckpt-table tbody tr:last-child { border-bottom: none; }
+    .md-ckpt-table td { padding: 9px 10px; vertical-align: middle; }
+    .md-ckpt-table td.right { text-align: right; }
+    .md-ckpt-step {
+      font-family: var(--mono); font-size: 12px; color: var(--md-dim);
+      font-variant-numeric: tabular-nums;
+    }
+    .md-ckpt-name {
+      font-family: var(--mono); font-size: 11.5px; color: var(--md-body);
+      display: flex; align-items: center; gap: 5px;
+    }
+    .md-ckpt-score-val {
+      font-family: var(--mono); font-size: 12px;
+      font-variant-numeric: tabular-nums;
+    }
+    .md-ckpt-date { font-size: 11.5px; color: var(--md-muted); white-space: nowrap; }
+
+    /* ═════════════════════════
+       TRACES TAB
+    ═════════════════════════ */
+    .md-trace-group {
+      border: 1px solid var(--md-border); border-radius: 6px;
+      overflow: hidden; margin-bottom: 12px;
+    }
+    .md-trace-group-header {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 14px;
+      background: var(--md-bg-raised);
+      border-bottom: 1px solid var(--md-border);
+      font-size: 12px;
+    }
+    .md-trace-job-link { color: var(--md-blue); text-decoration: none; font-weight: 500; }
+    .md-trace-job-link:hover { text-decoration: underline; }
+    .md-trace-taskset { color: var(--md-muted); }
+    .md-trace-run-count { color: var(--md-muted); margin-left: auto; font-size: 11px; }
+    .md-trace-grid-body { padding: 12px 14px; }
+    .md-trace-grid {
+      display: flex; flex-wrap: wrap; gap: 3px;
+    }
+    .md-trace-sq {
+      width: 14px; height: 14px; border-radius: 2px;
+      cursor: pointer; flex-shrink: 0;
+    }
+    .md-trace-sq.scored  { background: var(--md-green); opacity: .85; }
+    .md-trace-sq.failed  { background: var(--md-red); opacity: .75; }
+    .md-trace-sq.errored { background: var(--md-amber); opacity: .75; }
+    .md-trace-sq.not-run { background: rgba(255,255,255,.08); }
+    .md-trace-sq:hover { opacity: 1; transform: scale(1.15); }
+    .md-trace-legend {
+      display: flex; gap: 12px; margin-top: 8px;
+      font-size: 11px; color: var(--md-muted);
+    }
+    .md-trace-legend-item { display: flex; align-items: center; gap: 4px; }
+    .md-legend-sq { width: 8px; height: 8px; border-radius: 1px; }
+    .md-legend-sq.scored  { background: var(--md-green); }
+    .md-legend-sq.failed  { background: var(--md-red); }
+    .md-legend-sq.errored { background: var(--md-amber); }
+
+    /* ═════════════════════════
+       GATEWAY LOGS TAB
+    ═════════════════════════ */
+    .md-log-table {
+      width: 100%; border-collapse: collapse;
+      font-size: 12px; color: var(--md-body);
+    }
+    .md-log-table thead th {
+      text-align: left;
+      font-size: 10.5px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase;
+      color: var(--md-muted); padding: 6px 10px;
+      border-bottom: 1px solid var(--md-border);
+      white-space: nowrap; background: var(--md-bg);
+    }
+    .md-log-table thead th.right { text-align: right; }
+    .md-log-table tbody tr { border-bottom: 1px solid var(--md-border); cursor: pointer; }
+    .md-log-table tbody tr:hover { background: rgba(255,255,255,.025); }
+    .md-log-table tbody tr:last-child { border-bottom: none; }
+    .md-log-table td { padding: 9px 10px; vertical-align: middle; }
+    .md-log-table td.right { text-align: right; }
+    .md-log-ts { font-family: var(--mono); font-size: 11.5px; color: var(--md-dim); white-space: nowrap; }
+    .md-log-req-id { font-family: var(--mono); font-size: 11px; color: var(--md-muted); display: flex; align-items: center; gap: 4px; }
+    .md-log-user { font-size: 12px; color: var(--md-body); }
+    .md-log-tokens { font-family: var(--mono); font-size: 11.5px; color: var(--md-dim); font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .md-log-latency { font-family: var(--mono); font-size: 12px; color: var(--md-body); font-variant-numeric: tabular-nums; }
+    .md-log-status-ok  { font-family: var(--mono); font-size: 12px; color: var(--md-green); }
+    .md-log-status-err { font-family: var(--mono); font-size: 12px; color: var(--md-red); }
+    .md-log-sub { font-size: 11px; color: var(--md-muted); margin-top: 1px; }
+
+    /* ═════════════════════════
+       SETTINGS TAB
+    ═════════════════════════ */
+    .md-settings-section { max-width: 560px; }
+    .md-settings-label {
+      font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .08em;
+      color: var(--md-muted); margin-bottom: 10px;
+    }
+    .md-settings-field-row { margin-bottom: 12px; }
+    .md-settings-field-label { font-size: 12px; color: var(--md-muted); margin-bottom: 4px; }
+    .md-settings-input {
+      width: 100%; background: var(--md-bg-input);
+      border: 1px solid var(--md-border); border-radius: 5px;
+      padding: 7px 10px; font-size: 13px; color: var(--md-body); outline: none;
+    }
+    .md-settings-divider {
+      border: none; border-top: 1px solid var(--md-border);
+      margin: 20px 0;
+    }
+    .md-settings-meta-grid {
+      display: grid; grid-template-columns: 140px 1fr; gap: 8px 12px;
+    }
+    .md-smeta-key { font-size: 12px; color: var(--md-muted); }
+    .md-smeta-val {
+      font-size: 12px; color: var(--md-body);
+      display: flex; align-items: center; gap: 6px;
+    }
+    .md-smeta-val.mono { font-family: var(--mono); font-size: 11.5px; }
+
+    /* ═════════════════════════
+       EMPTY STATE
+    ═════════════════════════ */
+    .md-empty-state {
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      padding: 52px 20px; gap: 12px; text-align: center;
+    }
+    .md-empty-title { font-size: 15px; font-weight: 500; color: var(--md-heading); }
+
+    /* ═════════════════════════
+       SKELETON
+    ═════════════════════════ */
+    @keyframes shimmer { 0%,100%{opacity:.4} 50%{opacity:.7} }
+    .skel {
+      background: var(--md-border-mid); border-radius: 3px;
+      animation: shimmer 1.4s ease-in-out infinite;
+      display: inline-block;
+    }
+  </style>
+</head>
+<body>
+
+<div class="shell-layout">
+
+  <!-- APP-SHELL SIDEBAR (Models active) -->
+  <aside class="sidebar">
+    <div class="brand-slot">
+      <div class="brand-mark">
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><rect width="12" height="12" rx="2" fill="#78350f"/><path d="M2 9L6 3L10 9" stroke="#f59e0b" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <span class="brand-wordmark">hud</span>
+    </div>
+
+    <div class="group-label">Workspace</div>
+    <a class="nav-item">
+      <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="5" height="5" rx="1"/><rect x="9" y="2" width="5" height="5" rx="1"/><rect x="2" y="9" width="5" height="5" rx="1"/><rect x="9" y="9" width="5" height="5" rx="1"/></svg>
+      <span class="nav-item-label">Home</span>
+    </a>
+    <a class="nav-item">
+      <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4h12M2 8h8M2 12h10"/><circle cx="13" cy="11" r="2.5"/></svg>
+      <span class="nav-item-label">Tasksets</span>
+      <span class="nav-item-count">127</span>
+    </a>
+    <a class="nav-item">
+      <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="12" height="10" rx="2"/><path d="M5 3V2M11 3V2M2 7h12"/></svg>
+      <span class="nav-item-label">Environments</span>
+      <span class="nav-item-count">42</span>
+    </a>
+    <a class="nav-item selected">
+      <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="3"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2M3.22 3.22l1.42 1.42M11.36 11.36l1.42 1.42M3.22 12.78l1.42-1.42M11.36 4.64l1.42-1.42"/></svg>
+      <span class="nav-item-label">Models</span>
+      <span class="nav-item-count">27</span>
+    </a>
+    <a class="nav-item">
+      <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="5" r="2.5"/><path d="M3 14c0-2.76 2.24-5 5-5s5 2.24 5 5"/></svg>
+      <span class="nav-item-label">Agents</span>
+      <span class="nav-item-count">4</span>
+    </a>
+    <a class="nav-item">
+      <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 2h8a1 1 0 011 1v10a1 1 0 01-1 1H4a1 1 0 01-1-1V3a1 1 0 011-1z"/><path d="M6 6h4M6 9h4M6 12h2"/></svg>
+      <span class="nav-item-label">Library</span>
+    </a>
+
+    <div class="group-label">Observe</div>
+    <a class="nav-item">
+      <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="8" width="3" height="5" rx="0.5"/><rect x="6.5" y="5" width="3" height="8" rx="0.5"/><rect x="11" y="2" width="3" height="11" rx="0.5"/></svg>
+      <span class="nav-item-label">Dashboard</span>
+    </a>
+    <a class="nav-item">
+      <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="6"/><path d="M8 4v4l3 1.5"/></svg>
+      <span class="nav-item-label">Progress</span>
+    </a>
+
+    <div class="spacer"></div>
+
+    <div class="credits-widget">
+      <div class="credits-label">credits</div>
+      <div class="credits-numbers">
+        <span class="credits-current">6,800</span>
+        <span class="credits-cap">&nbsp;/ 10,000</span>
+      </div>
+      <div class="credits-bar-bg"><div class="credits-bar-fill" style="width:68%"></div></div>
+      <div class="credits-meta"><span>~92 cr/hr</span><span>~34h left</span></div>
+    </div>
+
+    <div style="padding:2px 4px;">
+      <a class="nav-item" style="font-size:12px;">
+        <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3H3a1 1 0 00-1 1v9a1 1 0 001 1h9a1 1 0 001-1V9"/><path d="M10 2h4v4M14 2L7 9"/></svg>
+        <span class="nav-item-label">Marketplace</span>
+        <span class="nav-item-ext">↗</span>
+      </a>
+      <a class="nav-item" style="font-size:12px;">
+        <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 2h8a1 1 0 011 1v10a1 1 0 01-1 1H4a1 1 0 01-1-1V3a1 1 0 011-1z"/><path d="M6 6h4M6 9h4"/></svg>
+        <span class="nav-item-label">Documentation</span>
+        <span class="nav-item-ext">↗</span>
+      </a>
+    </div>
+
+    <div class="user-chip">
+      <div class="avatar">A</div>
+      <div class="user-info">
+        <div class="user-name">Alex Kim</div>
+        <div class="user-meta">Princeton NLP · member</div>
+      </div>
+      <svg class="switcher-icon" width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4.5L6 2 9 4.5M3 7.5L6 10 9 7.5"/></svg>
+    </div>
+  </aside>
+
+  <!-- MAIN SCROLL REGION -->
+  <div class="main-region">
+    <div class="md-main">
+
+      <!-- ═══════════════════════════════════════════════════════════
+           STATE 1 — Trainable base model (GPT-5), Results tab
+      ═══════════════════════════════════════════════════════════ -->
+      <div class="state-label">State 1 — Trainable base model · Results tab (evaluated + unevaluated)</div>
+
+      <!-- BREADCRUMB -->
+      <nav class="md-breadcrumb" aria-label="Breadcrumb">
+        <a class="md-breadcrumb-link" href="#">← Models</a>
+        <span class="md-breadcrumb-sep">/</span>
+        <span class="md-breadcrumb-current">GPT-5</span>
+      </nav>
+
+      <!-- PAGE HEADER -->
+      <div class="md-page-header">
+        <!-- Title row: model name + status pill (runtime) + primary CTA -->
+        <div class="md-header-row">
+          <div class="md-title-group">
+            <span class="md-provider-icon openai">O</span>
+            <span class="md-model-name">GPT-5</span>
+            <span class="md-status-pill available"><span class="md-status-dot available"></span>Available</span>
+          </div>
+          <button class="btn-primary">+ Fork &amp; Train</button>
+        </div>
+
+        <!-- Strip — Variant A: static descriptors only (provider · slug · trainable; NO status) -->
+        <div class="md-meta-strip">
+          <div class="md-meta-field">
+            <span class="md-provider-chip">OpenAI</span>
+          </div>
+          <span class="md-meta-sep">·</span>
+          <div class="md-meta-field">
+            <span class="md-api-name">gpt-5-2025-08-07</span>
+            <button class="md-copy-btn" title="Copy API name">⎘</button>
+          </div>
+          <span class="md-meta-sep">·</span>
+          <div class="md-meta-field">
+            <span class="md-trainable-yes" style="font-size:12px;">✦ Trainable</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB BAR -->
+      <div class="md-tab-bar">
+        <div class="md-tab active">Results <span class="md-tab-count">12</span></div>
+        <div class="md-tab">Checkpoints <span class="md-tab-count">1</span></div>
+        <div class="md-tab">Traces</div>
+        <div class="md-tab">Gateway Logs</div>
+        <div class="md-tab">Settings</div>
+      </div>
+
+      <!-- FILTER ROW -->
+      <div class="md-filter-row">
+        <div class="md-search-wrap">
+          <span class="md-search-icon">⌕</span>
+          <input class="md-search-input" type="text" placeholder="Search tasksets…" />
+        </div>
+        <button class="md-chip">Checkpoint ▾</button>
+        <button class="md-chip">Taskset ▾</button>
+        <div class="md-sort-wrap">
+          <span class="md-result-count">12 evaluated</span>
+          <button class="btn-outline">Most recent ▾</button>
+        </div>
+      </div>
+
+      <!-- EVALUATED TABLE -->
+      <div class="md-table-wrap">
+        <table class="md-table">
+          <thead>
+            <tr>
+              <th>Taskset</th>
+              <th>Checkpoint</th>
+              <th class="right">Avg Score</th>
+              <th>Distribution</th>
+              <th class="right">Tasks</th>
+              <th class="right">Runs/Task</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="md-taskset-cell">
+                <div class="md-taskset-name">WebAgent Benchmark</div>
+                <div class="md-taskset-id-row">
+                  <span class="md-taskset-id">webagent-bench-v2</span>
+                  <button class="md-copy-btn">⎘</button>
+                </div>
+              </td>
+              <td><span class="md-ckpt-id">HEAD</span></td>
+              <td class="right"><span class="md-score-value md-score-high">0.8341</span></td>
+              <td class="md-dist-cell">
+                <div class="md-dist-bar-wrap">
+                  <div class="md-dist-pass" style="width:70%"></div>
+                  <div class="md-dist-part" style="width:18%"></div>
+                  <div class="md-dist-fail" style="width:12%"></div>
+                </div>
+                <div class="md-dist-labels">
+                  <span class="md-dist-label-p">P 35</span>
+                  <span class="md-dist-label-pa">Pa 9</span>
+                  <span class="md-dist-label-f">F 6</span>
+                </div>
+              </td>
+              <td class="right"><span class="md-tasks-value">50/50</span></td>
+              <td class="right"><span class="md-tasks-value">3</span></td>
+              <td><a class="md-view-traces" href="#">View Traces →</a></td>
+            </tr>
+            <tr>
+              <td class="md-taskset-cell">
+                <div class="md-taskset-name">Email QA Suite</div>
+                <div class="md-taskset-id-row">
+                  <span class="md-taskset-id">email-qa-v1</span>
+                  <button class="md-copy-btn">⎘</button>
+                </div>
+              </td>
+              <td><span class="md-ckpt-id">HEAD</span></td>
+              <td class="right"><span class="md-score-value md-score-mid">0.6128</span></td>
+              <td class="md-dist-cell">
+                <div class="md-dist-bar-wrap">
+                  <div class="md-dist-pass" style="width:48%"></div>
+                  <div class="md-dist-part" style="width:28%"></div>
+                  <div class="md-dist-fail" style="width:24%"></div>
+                </div>
+                <div class="md-dist-labels">
+                  <span class="md-dist-label-p">P 24</span>
+                  <span class="md-dist-label-pa">Pa 14</span>
+                  <span class="md-dist-label-f">F 12</span>
+                </div>
+              </td>
+              <td class="right"><span class="md-tasks-value">50/50</span></td>
+              <td class="right"><span class="md-tasks-value">1</span></td>
+              <td><a class="md-view-traces" href="#">View Traces →</a></td>
+            </tr>
+            <tr>
+              <td class="md-taskset-cell">
+                <div class="md-taskset-name">OSWorld Subset</div>
+                <div class="md-taskset-id-row">
+                  <span class="md-taskset-id">osworld-subset-2024</span>
+                  <button class="md-copy-btn">⎘</button>
+                </div>
+              </td>
+              <td><span class="md-ckpt-id">HEAD</span></td>
+              <td class="right"><span class="md-score-value md-score-mid">0.5902</span></td>
+              <td class="md-dist-cell">
+                <div class="md-dist-bar-wrap">
+                  <div class="md-dist-pass" style="width:44%"></div>
+                  <div class="md-dist-part" style="width:30%"></div>
+                  <div class="md-dist-fail" style="width:26%"></div>
+                </div>
+                <div class="md-dist-labels">
+                  <span class="md-dist-label-p">P 22</span>
+                  <span class="md-dist-label-pa">Pa 15</span>
+                  <span class="md-dist-label-f">F 13</span>
+                </div>
+              </td>
+              <td class="right"><span class="md-tasks-value">50/50</span></td>
+              <td class="right"><span class="md-tasks-value">2</span></td>
+              <td><a class="md-view-traces" href="#">View Traces →</a></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- UNEVALUATED SECTION (collapsed) -->
+      <div class="md-section-disclosure">
+        <div class="md-disclosure-header">
+          <span class="md-disclosure-chevron">▶</span>
+          <span class="md-disclosure-count">15 tasksets not yet run on this model</span>
+          <button class="btn-small md-disclosure-action">Show</button>
+        </div>
+      </div>
+
+      <!-- UNEVALUATED SECTION (expanded variant) -->
+      <div class="md-section-disclosure" style="margin-top:20px;">
+        <div class="md-disclosure-header">
+          <span class="md-disclosure-chevron">▼</span>
+          <span class="md-disclosure-count">15 tasksets not yet run on this model</span>
+          <button class="btn-small md-disclosure-action">Hide</button>
+        </div>
+        <div class="md-disclosure-body">
+          <div class="md-uneval-row">
+            <span class="md-uneval-name">Code Review Suite</span>
+            <span class="md-uneval-tasks">0 / 100</span>
+            <button class="btn-small">Run ▾</button>
+          </div>
+          <div class="md-uneval-row">
+            <span class="md-uneval-name">Terminal-Bench v2</span>
+            <span class="md-uneval-tasks">0 / 367</span>
+            <button class="btn-small">Run ▾</button>
+          </div>
+          <div class="md-uneval-row">
+            <span class="md-uneval-name">Support Ticket QA</span>
+            <span class="md-uneval-tasks">0 / 50</span>
+            <button class="btn-small">Run ▾</button>
+          </div>
+        </div>
+      </div>
+
+
+      <!-- ═══════════════════════════════════════════════════════════
+           STATE 2 — Non-trainable base (Claude Sonnet 4.6), Results empty
+      ═══════════════════════════════════════════════════════════ -->
+      <div class="state-gap"></div>
+      <div class="state-label">State 2 — Non-trainable base model · Results empty state</div>
+
+      <nav class="md-breadcrumb" aria-label="Breadcrumb">
+        <a class="md-breadcrumb-link" href="#">← Models</a>
+        <span class="md-breadcrumb-sep">/</span>
+        <span class="md-breadcrumb-current">Claude Sonnet 4.6</span>
+      </nav>
+
+      <div class="md-page-header">
+        <!-- Title row: model name + status pill (runtime); no CTA — not trainable -->
+        <div class="md-header-row">
+          <div class="md-title-group">
+            <span class="md-provider-icon anthropic">A</span>
+            <span class="md-model-name">Claude Sonnet 4.6</span>
+            <span class="md-status-pill available"><span class="md-status-dot available"></span>Available</span>
+          </div>
+        </div>
+        <!-- Strip — Variant B: static descriptors only (provider · slug; trainable chip absent; NO status) -->
+        <div class="md-meta-strip">
+          <div class="md-meta-field"><span class="md-provider-chip">Anthropic</span></div>
+          <span class="md-meta-sep">·</span>
+          <div class="md-meta-field">
+            <span class="md-api-name">claude-sonnet-4-6</span>
+            <button class="md-copy-btn" title="Copy API name">⎘</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="md-tab-bar">
+        <div class="md-tab active">Results <span class="md-tab-count">0</span></div>
+        <div class="md-tab">Checkpoints <span class="md-tab-count">1</span></div>
+        <div class="md-tab">Traces</div>
+        <div class="md-tab">Gateway Logs</div>
+        <div class="md-tab">Settings</div>
+      </div>
+
+      <!-- Empty state -->
+      <div class="md-empty-state">
+        <div class="md-empty-title">No results yet.</div>
+        <div class="md-cli-block">
+          <span>hud eval &lt;taskset&gt; -m claude-sonnet-4-6</span>
+          <button class="md-cli-copy">⎘</button>
+        </div>
+        <a class="md-link-tertiary" href="#">Read the docs ↗</a>
+      </div>
+
+
+      <!-- ═══════════════════════════════════════════════════════════
+           STATE 3 — Org fine-tuned model · Checkpoints tab (chart + table)
+      ═══════════════════════════════════════════════════════════ -->
+      <div class="state-gap"></div>
+      <div class="state-label">State 3 — Org fine-tuned model · Checkpoints tab</div>
+
+      <nav class="md-breadcrumb" aria-label="Breadcrumb">
+        <a class="md-breadcrumb-link" href="#">← Models</a>
+        <span class="md-breadcrumb-sep">/</span>
+        <span class="md-breadcrumb-current">rl-webagent-v2</span>
+      </nav>
+
+      <div class="md-page-header">
+        <!-- Title row: model name + privacy pill + status pill (runtime) + primary CTA -->
+        <div class="md-header-row">
+          <div class="md-title-group">
+            <span class="md-provider-icon hud">H</span>
+            <span class="md-model-name">rl-webagent-v2</span>
+            <span class="md-privacy-pill">🔒 Private</span>
+            <span class="md-status-pill available"><span class="md-status-dot available"></span>Available</span>
+          </div>
+          <button class="btn-primary">+ Fork &amp; Train</button>
+        </div>
+        <!-- Strip — Variant C: static descriptors (HUD glyph · slug · trainable · HEAD; NO status) -->
+        <div class="md-meta-strip">
+          <div class="md-meta-field">
+            <!-- HUD icon-only mark: small brand glyph, no text -->
+            <span class="md-provider-chip" title="HUD">
+              <svg width="14" height="14" viewBox="0 0 12 12" fill="none" style="display:inline-block;vertical-align:middle;"><rect width="12" height="12" rx="2" fill="#78350f"/><path d="M2 9L6 3L10 9" stroke="#f59e0b" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </span>
+          </div>
+          <span class="md-meta-sep">·</span>
+          <div class="md-meta-field">
+            <span class="md-api-name">hud-rl-webagent-v2-20260601</span>
+            <button class="md-copy-btn">⎘</button>
+          </div>
+          <span class="md-meta-sep">·</span>
+          <div class="md-meta-field">
+            <span class="md-trainable-yes" style="font-size:12px;">✦ Trainable</span>
+          </div>
+          <span class="md-meta-sep">·</span>
+          <div class="md-meta-field">
+            <span class="md-dim" style="font-size:12px;">HEAD:</span>
+            <span class="md-head-id">step-8192</span>
+            <button class="md-copy-btn" title="Copy HEAD checkpoint ID">⎘</button>
+          </div>
+        </div>
+        <div class="md-trained-from">
+          Forked from: <a href="#">GPT-5 (gpt-5-2025-08-07)</a>
+          <span style="color:var(--md-muted);margin:0 6px;">·</span>
+          Trained via: <a href="#">training-job-20260601-webagent</a>
+        </div>
+      </div>
+
+      <div class="md-tab-bar">
+        <div class="md-tab">Results <span class="md-tab-count">5</span></div>
+        <div class="md-tab active">Checkpoints <span class="md-tab-count">8</span></div>
+        <div class="md-tab">Traces</div>
+        <div class="md-tab">Gateway Logs</div>
+        <div class="md-tab">Settings</div>
+      </div>
+
+      <!-- Checkpoints filter row -->
+      <div class="md-filter-row">
+        <button class="md-chip">Taskset for scores ▾: WebAgent Benchmark</button>
+        <div class="md-sort-wrap">
+          <span class="md-result-count">8 checkpoints</span>
+          <button class="btn-outline">Step ▾</button>
+        </div>
+      </div>
+
+      <!-- Score chart (schematic SVG) -->
+      <div class="md-chart-area">
+        <div class="md-chart-title">Score over training steps — WebAgent Benchmark</div>
+        <svg class="md-chart-svg" viewBox="0 0 700 160" aria-hidden="true">
+          <!-- Y axis labels -->
+          <text x="28" y="18" fill="#6b6b7a" font-size="9" text-anchor="end" font-family="SF Mono, Consolas, monospace">1.0</text>
+          <text x="28" y="50" fill="#6b6b7a" font-size="9" text-anchor="end" font-family="SF Mono, Consolas, monospace">0.8</text>
+          <text x="28" y="82" fill="#6b6b7a" font-size="9" text-anchor="end" font-family="SF Mono, Consolas, monospace">0.6</text>
+          <text x="28" y="114" fill="#6b6b7a" font-size="9" text-anchor="end" font-family="SF Mono, Consolas, monospace">0.4</text>
+          <text x="28" y="146" fill="#6b6b7a" font-size="9" text-anchor="end" font-family="SF Mono, Consolas, monospace">0.2</text>
+
+          <!-- Grid lines -->
+          <line x1="34" y1="15" x2="690" y2="15" stroke="#2a2a30" stroke-width="1"/>
+          <line x1="34" y1="47" x2="690" y2="47" stroke="#2a2a30" stroke-width="1"/>
+          <line x1="34" y1="79" x2="690" y2="79" stroke="#2a2a30" stroke-width="1"/>
+          <line x1="34" y1="111" x2="690" y2="111" stroke="#2a2a30" stroke-width="1"/>
+          <line x1="34" y1="143" x2="690" y2="143" stroke="#2a2a30" stroke-width="1"/>
+
+          <!-- X axis step labels -->
+          <text x="88"  y="158" fill="#6b6b7a" font-size="9" text-anchor="middle" font-family="SF Mono, Consolas, monospace">1024</text>
+          <text x="168" y="158" fill="#6b6b7a" font-size="9" text-anchor="middle" font-family="SF Mono, Consolas, monospace">2048</text>
+          <text x="248" y="158" fill="#6b6b7a" font-size="9" text-anchor="middle" font-family="SF Mono, Consolas, monospace">3072</text>
+          <text x="328" y="158" fill="#6b6b7a" font-size="9" text-anchor="middle" font-family="SF Mono, Consolas, monospace">4096</text>
+          <text x="408" y="158" fill="#6b6b7a" font-size="9" text-anchor="middle" font-family="SF Mono, Consolas, monospace">5120</text>
+          <text x="488" y="158" fill="#6b6b7a" font-size="9" text-anchor="middle" font-family="SF Mono, Consolas, monospace">6144</text>
+          <text x="568" y="158" fill="#6b6b7a" font-size="9" text-anchor="middle" font-family="SF Mono, Consolas, monospace">7168</text>
+          <text x="648" y="158" fill="#6b6b7a" font-size="9" text-anchor="middle" font-family="SF Mono, Consolas, monospace">8192</text>
+
+          <!-- Score line: scores map to y: 0.59→115, 0.72→89, 0.65→101, 0.78→75, 0.76→79, 0.81→67, 0.79→73, 0.83→63 -->
+          <polyline
+            points="88,115 168,89 248,101 328,75 408,79 488,67 568,73 648,63"
+            fill="none" stroke="#3dd68c" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"
+            opacity="0.7"
+          />
+
+          <!-- Data points -->
+          <circle cx="88"  cy="115" r="4" fill="#3dd68c" opacity="0.85" cursor="pointer"/>
+          <circle cx="168" cy="89"  r="4" fill="#3dd68c" opacity="0.85" cursor="pointer"/>
+          <circle cx="248" cy="101" r="4" fill="#3dd68c" opacity="0.85" cursor="pointer"/>
+          <circle cx="328" cy="75"  r="4" fill="#3dd68c" opacity="0.85" cursor="pointer"/>
+          <circle cx="408" cy="79"  r="4" fill="#3dd68c" opacity="0.85" cursor="pointer"/>
+          <circle cx="488" cy="67"  r="4" fill="#3dd68c" opacity="0.85" cursor="pointer"/>
+          <circle cx="568" cy="73"  r="4" fill="#3dd68c" opacity="0.85" cursor="pointer"/>
+          <!-- HEAD point -->
+          <circle cx="648" cy="63"  r="6" fill="none" stroke="#3dd68c" stroke-width="2" cursor="pointer"/>
+          <circle cx="648" cy="63"  r="3" fill="#3dd68c"/>
+          <text x="658" y="58" fill="#3dd68c" font-size="9" font-family="-apple-system, Helvetica, sans-serif">HEAD</text>
+        </svg>
+      </div>
+
+      <!-- Checkpoint table -->
+      <div class="md-table-wrap">
+        <table class="md-ckpt-table">
+          <thead>
+            <tr>
+              <th>Step</th>
+              <th>Checkpoint ID</th>
+              <th class="right">Score</th>
+              <th>Taskset</th>
+              <th>Created</th>
+              <th class="right"></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="is-head">
+              <td><span class="md-ckpt-step">8192</span></td>
+              <td>
+                <div class="md-ckpt-name">
+                  <span>ckpt-8192-a3f7</span>
+                  <button class="md-copy-btn">⎘</button>
+                </div>
+              </td>
+              <td class="right"><span class="md-ckpt-score-val md-score-high">0.8341</span></td>
+              <td><span style="font-size:12px;color:var(--md-muted);">WebAgent Benchmark</span></td>
+              <td><span class="md-ckpt-date">2026-06-07</span></td>
+              <td class="right"><span class="btn-head-badge">HEAD</span></td>
+            </tr>
+            <tr>
+              <td><span class="md-ckpt-step">7168</span></td>
+              <td>
+                <div class="md-ckpt-name">
+                  <span>ckpt-7168-b2e1</span>
+                  <button class="md-copy-btn">⎘</button>
+                </div>
+              </td>
+              <td class="right"><span class="md-ckpt-score-val md-score-mid">0.7912</span></td>
+              <td><span style="font-size:12px;color:var(--md-muted);">WebAgent Benchmark</span></td>
+              <td><span class="md-ckpt-date">2026-06-06</span></td>
+              <td class="right"><button class="btn-small">Set HEAD</button></td>
+            </tr>
+            <tr>
+              <td><span class="md-ckpt-step">6144</span></td>
+              <td>
+                <div class="md-ckpt-name">
+                  <span>ckpt-6144-c1d8</span>
+                  <button class="md-copy-btn">⎘</button>
+                </div>
+              </td>
+              <td class="right"><span class="md-ckpt-score-val md-score-high">0.8102</span></td>
+              <td><span style="font-size:12px;color:var(--md-muted);">WebAgent Benchmark</span></td>
+              <td><span class="md-ckpt-date">2026-06-05</span></td>
+              <td class="right"><button class="btn-small">Set HEAD</button></td>
+            </tr>
+            <tr>
+              <td><span class="md-ckpt-step">4096</span></td>
+              <td>
+                <div class="md-ckpt-name">
+                  <span>ckpt-4096-e9b2</span>
+                  <button class="md-copy-btn">⎘</button>
+                </div>
+              </td>
+              <td class="right"><span class="md-ckpt-score-val md-score-mid">0.7823</span></td>
+              <td><span style="font-size:12px;color:var(--md-muted);">WebAgent Benchmark</span></td>
+              <td><span class="md-ckpt-date">2026-06-03</span></td>
+              <td class="right"><button class="btn-small">Set HEAD</button></td>
+            </tr>
+            <tr>
+              <td><span class="md-ckpt-step">1024</span></td>
+              <td>
+                <div class="md-ckpt-name">
+                  <span>ckpt-1024-h6e9</span>
+                  <button class="md-copy-btn">⎘</button>
+                </div>
+              </td>
+              <td class="right"><span class="md-ckpt-score-val md-score-low">0.5903</span></td>
+              <td><span style="font-size:12px;color:var(--md-muted);">WebAgent Benchmark</span></td>
+              <td><span class="md-ckpt-date">2026-05-31</span></td>
+              <td class="right"><button class="btn-small">Set HEAD</button></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+
+      <!-- ═══════════════════════════════════════════════════════════
+           STATE 4 — Proxied deployment (Claude Sonnet 4.6 via Bedrock)
+      ═══════════════════════════════════════════════════════════ -->
+      <div class="state-gap"></div>
+      <div class="state-label">State 4 — Proxied deployment (Bedrock) · provider disambiguation</div>
+
+      <nav class="md-breadcrumb" aria-label="Breadcrumb">
+        <a class="md-breadcrumb-link" href="#">← Models</a>
+        <span class="md-breadcrumb-sep">/</span>
+        <span class="md-breadcrumb-current">Claude Sonnet 4.6 (Bedrock)</span>
+      </nav>
+
+      <div class="md-page-header">
+        <!-- Title row: model name + status pill (runtime); no CTA — proxied not trainable -->
+        <div class="md-header-row">
+          <div class="md-title-group">
+            <span class="md-provider-icon anthropic">A</span>
+            <span class="md-provider-icon bedrock" style="margin-left:-4px;font-size:7px;">B</span>
+            <span class="md-model-name">Claude Sonnet 4.6 (Bedrock)</span>
+            <span class="md-status-pill available"><span class="md-status-dot available"></span>Available</span>
+          </div>
+          <!-- No Fork & Train — proxied not trainable via HUD -->
+        </div>
+        <!-- Strip — Variant D: static descriptors only (Anthropic · Bedrock chip · slug; NO status) -->
+        <div class="md-meta-strip">
+          <div class="md-meta-field">
+            <span class="md-provider-chip">Anthropic · Bedrock</span>
+          </div>
+          <span class="md-meta-sep">·</span>
+          <div class="md-meta-field">
+            <span class="md-api-name">global.anthropic.claude-sonnet-4-6-bedrock</span>
+            <button class="md-copy-btn">⎘</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="md-tab-bar">
+        <div class="md-tab active">Results <span class="md-tab-count">3</span></div>
+        <div class="md-tab">Checkpoints <span class="md-tab-count">1</span></div>
+        <div class="md-tab">Traces</div>
+        <div class="md-tab">Gateway Logs</div>
+        <div class="md-tab">Settings</div>
+      </div>
+
+      <!-- Results — populated (abbreviated, same structure as State 1) -->
+      <div class="md-filter-row">
+        <div class="md-search-wrap">
+          <span class="md-search-icon">⌕</span>
+          <input class="md-search-input" type="text" placeholder="Search tasksets…" />
+        </div>
+        <button class="md-chip">Checkpoint ▾</button>
+        <div class="md-sort-wrap">
+          <span class="md-result-count">3 evaluated</span>
+          <button class="btn-outline">Most recent ▾</button>
+        </div>
+      </div>
+      <div class="md-table-wrap">
+        <table class="md-table">
+          <thead>
+            <tr>
+              <th>Taskset</th>
+              <th>Checkpoint</th>
+              <th class="right">Avg Score</th>
+              <th>Distribution</th>
+              <th class="right">Tasks</th>
+              <th class="right">Runs/Task</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="md-taskset-cell">
+                <div class="md-taskset-name">Support Ticket QA</div>
+                <div class="md-taskset-id-row">
+                  <span class="md-taskset-id">support-qa-v3</span>
+                  <button class="md-copy-btn">⎘</button>
+                </div>
+              </td>
+              <td><span class="md-ckpt-id">HEAD</span></td>
+              <td class="right"><span class="md-score-value md-score-high">0.7912</span></td>
+              <td class="md-dist-cell">
+                <div class="md-dist-bar-wrap">
+                  <div class="md-dist-pass" style="width:62%"></div>
+                  <div class="md-dist-part" style="width:24%"></div>
+                  <div class="md-dist-fail" style="width:14%"></div>
+                </div>
+                <div class="md-dist-labels">
+                  <span class="md-dist-label-p">P 31</span>
+                  <span class="md-dist-label-pa">Pa 12</span>
+                  <span class="md-dist-label-f">F 7</span>
+                </div>
+              </td>
+              <td class="right"><span class="md-tasks-value">50/50</span></td>
+              <td class="right"><span class="md-tasks-value">1</span></td>
+              <td><a class="md-view-traces" href="#">View Traces →</a></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+
+      <!-- ═══════════════════════════════════════════════════════════
+           STATE 5 — Checkpoints tab: base model state (non-fine-tuned)
+      ═══════════════════════════════════════════════════════════ -->
+      <div class="state-gap"></div>
+      <div class="state-label">State 5 — Checkpoints tab · base model state (non-fine-tuned)</div>
+
+      <div class="md-tab-bar" style="margin-bottom:16px;">
+        <div class="md-tab">Results <span class="md-tab-count">8</span></div>
+        <div class="md-tab active">Checkpoints <span class="md-tab-count">1</span></div>
+        <div class="md-tab">Traces</div>
+        <div class="md-tab">Gateway Logs</div>
+        <div class="md-tab">Settings</div>
+      </div>
+
+      <div class="md-ckpt-base-card">
+        <div class="md-ckpt-base-title">HEAD Checkpoint</div>
+        <dl class="md-meta-dl">
+          <dt class="md-meta-dt">Checkpoint ID</dt>
+          <dd class="md-meta-dd mono">
+            claude-sonnet-4-6-20261015
+            <button class="md-copy-btn">⎘</button>
+          </dd>
+          <dt class="md-meta-dt">Status</dt>
+          <dd class="md-meta-dd">
+            <span class="md-status-base">BASE</span>
+          </dd>
+          <dt class="md-meta-dt">Released</dt>
+          <dd class="md-meta-dd">2026-10-15</dd>
+          <dt class="md-meta-dt">Source</dt>
+          <dd class="md-meta-dd">Anthropic</dd>
+        </dl>
+        <div class="md-ckpt-note">
+          This is the base model. Fine-tuning produces a new private Model with training checkpoints.
+        </div>
+      </div>
+
+
+      <!-- ═══════════════════════════════════════════════════════════
+           STATE 6 — Gateway Logs tab (populated)
+      ═══════════════════════════════════════════════════════════ -->
+      <div class="state-gap"></div>
+      <div class="state-label">State 6 — Gateway Logs tab (populated)</div>
+
+      <div class="md-tab-bar" style="margin-bottom:4px;">
+        <div class="md-tab">Results</div>
+        <div class="md-tab">Checkpoints</div>
+        <div class="md-tab">Traces</div>
+        <div class="md-tab active">Gateway Logs</div>
+        <div class="md-tab">Settings</div>
+      </div>
+
+      <!-- Subtitle -->
+      <div style="font-size:12px;color:var(--md-muted);margin-bottom:14px;padding-top:10px;">
+        Raw inference requests routed through the Model Gateway.
+      </div>
+
+      <div class="md-filter-row">
+        <button class="md-chip">Checkpoint ▾</button>
+        <button class="md-chip">User ▾: All users</button>
+        <button class="md-chip">Time ▾: Last 7 days</button>
+        <div class="md-sort-wrap">
+          <span class="md-result-count">147 requests</span>
+          <button class="btn-outline">Most recent ▾</button>
+        </div>
+      </div>
+
+      <div class="md-table-wrap">
+        <table class="md-log-table">
+          <thead>
+            <tr>
+              <th>Timestamp</th>
+              <th>Request ID</th>
+              <th>User</th>
+              <th class="right">Input tokens</th>
+              <th class="right">Output tokens</th>
+              <th class="right">Latency</th>
+              <th class="right">Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="md-log-ts">2026-06-07 14:23:41</span></td>
+              <td>
+                <div class="md-log-req-id">
+                  req-a3f7b <button class="md-copy-btn">⎘</button>
+                </div>
+              </td>
+              <td><span class="md-log-user">alex@acme.com</span></td>
+              <td class="right"><span class="md-log-tokens">1,243</span></td>
+              <td class="right"><span class="md-log-tokens">842</span></td>
+              <td class="right"><span class="md-log-latency">1.24s</span></td>
+              <td class="right"><span class="md-log-status-ok">200</span></td>
+            </tr>
+            <tr>
+              <td><span class="md-log-ts">2026-06-07 14:21:09</span></td>
+              <td>
+                <div class="md-log-req-id">
+                  req-b2e1c <button class="md-copy-btn">⎘</button>
+                </div>
+              </td>
+              <td><span class="md-log-user">alex@acme.com</span></td>
+              <td class="right"><span class="md-log-tokens">987</span></td>
+              <td class="right"><span class="md-log-tokens">1,102</span></td>
+              <td class="right"><span class="md-log-latency">1.81s</span></td>
+              <td class="right"><span class="md-log-status-ok">200</span></td>
+            </tr>
+            <tr>
+              <td><span class="md-log-ts">2026-06-07 11:04:22</span></td>
+              <td>
+                <div class="md-log-req-id">
+                  req-c0d3e <button class="md-copy-btn">⎘</button>
+                </div>
+              </td>
+              <td><span class="md-log-user">sam@acme.com</span></td>
+              <td class="right"><span class="md-log-tokens">2,441</span></td>
+              <td class="right"><span class="md-log-tokens">312</span></td>
+              <td class="right"><span class="md-log-latency">2.09s</span></td>
+              <td class="right"><span class="md-log-status-err">429</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+
+      <!-- ═══════════════════════════════════════════════════════════
+           STATE 7 — Loading skeleton (Results tab)
+      ═══════════════════════════════════════════════════════════ -->
+      <div class="state-gap"></div>
+      <div class="state-label">State 7 — Loading skeleton</div>
+
+      <!-- Header skeleton -->
+      <div style="margin-bottom:16px;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+          <span class="skel" style="width:16px;height:16px;border-radius:3px;"></span>
+          <span class="skel" style="width:180px;height:20px;"></span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span class="skel" style="width:70px;height:12px;"></span>
+          <span class="skel" style="width:80px;height:12px;"></span>
+          <span class="skel" style="width:140px;height:12px;"></span>
+          <span class="skel" style="width:90px;height:12px;"></span>
+        </div>
+      </div>
+
+      <div class="md-tab-bar" style="opacity:.5;margin-bottom:16px;">
+        <div class="md-tab active">Results</div>
+        <div class="md-tab">Checkpoints</div>
+        <div class="md-tab">Traces</div>
+        <div class="md-tab">Gateway Logs</div>
+        <div class="md-tab">Settings</div>
+      </div>
+
+      <div class="md-table-wrap">
+        <table class="md-table">
+          <thead>
+            <tr>
+              <th>Taskset</th>
+              <th>Checkpoint</th>
+              <th class="right">Avg Score</th>
+              <th>Distribution</th>
+              <th class="right">Tasks</th>
+              <th class="right">Runs/Task</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr style="border-bottom:1px solid var(--md-border);">
+              <td style="padding:12px 10px;">
+                <span class="skel" style="width:150px;height:13px;display:block;margin-bottom:5px;"></span>
+                <span class="skel" style="width:110px;height:11px;display:block;"></span>
+              </td>
+              <td><span class="skel" style="width:70px;height:12px;display:block;"></span></td>
+              <td class="right"><span class="skel" style="width:50px;height:13px;display:inline-block;"></span></td>
+              <td>
+                <span class="skel" style="width:100px;height:6px;display:block;margin-bottom:4px;"></span>
+                <span class="skel" style="width:80px;height:10px;display:block;"></span>
+              </td>
+              <td class="right"><span class="skel" style="width:35px;height:12px;display:inline-block;"></span></td>
+              <td class="right"><span class="skel" style="width:20px;height:12px;display:inline-block;"></span></td>
+              <td></td>
+            </tr>
+            <tr style="border-bottom:1px solid var(--md-border);opacity:.7;">
+              <td style="padding:12px 10px;">
+                <span class="skel" style="width:130px;height:13px;display:block;margin-bottom:5px;"></span>
+                <span class="skel" style="width:100px;height:11px;display:block;"></span>
+              </td>
+              <td><span class="skel" style="width:65px;height:12px;display:block;"></span></td>
+              <td class="right"><span class="skel" style="width:50px;height:13px;display:inline-block;"></span></td>
+              <td><span class="skel" style="width:100px;height:6px;display:block;"></span></td>
+              <td></td><td></td><td></td>
+            </tr>
+            <tr style="border-bottom:1px solid var(--md-border);opacity:.5;">
+              <td style="padding:12px 10px;">
+                <span class="skel" style="width:140px;height:13px;display:block;margin-bottom:5px;"></span>
+                <span class="skel" style="width:105px;height:11px;display:block;"></span>
+              </td>
+              <td><span class="skel" style="width:60px;height:12px;display:block;"></span></td>
+              <td class="right"><span class="skel" style="width:50px;height:13px;display:inline-block;"></span></td>
+              <td><span class="skel" style="width:100px;height:6px;display:block;"></span></td>
+              <td></td><td></td><td></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- ═══════════════════════════════════════════════════════════
+           STATE 8 — Traces tab (populated)
+      ═══════════════════════════════════════════════════════════ -->
+      <div class="state-gap"></div>
+      <div class="state-label">State 8 — Traces tab (populated)</div>
+
+      <div class="md-tab-bar" style="margin-bottom:14px;">
+        <div class="md-tab">Results</div>
+        <div class="md-tab">Checkpoints</div>
+        <div class="md-tab active">Traces</div>
+        <div class="md-tab">Gateway Logs</div>
+        <div class="md-tab">Settings</div>
+      </div>
+
+      <div class="md-filter-row" style="margin-bottom:14px;">
+        <button class="md-chip">Checkpoint ▾</button>
+        <button class="md-chip">Taskset ▾</button>
+        <button class="md-chip">Outcome ▾: All</button>
+        <button class="md-chip">Compact ▾</button>
+        <div class="md-sort-wrap">
+          <span class="md-result-count">150 traces</span>
+          <button class="btn-outline">Most recent ▾</button>
+        </div>
+      </div>
+
+      <!-- Trace group 1 -->
+      <div class="md-trace-group">
+        <div class="md-trace-group-header">
+          <a class="md-trace-job-link" href="#">eval-20260607-webagent</a>
+          <span class="md-trace-taskset">WebAgent Benchmark</span>
+          <span class="md-trace-run-count">50 runs</span>
+        </div>
+        <div class="md-trace-grid-body">
+          <div class="md-trace-grid">
+            <!-- 50 squares, mixed outcomes -->
+            <div class="md-trace-sq scored"></div><div class="md-trace-sq scored"></div><div class="md-trace-sq failed"></div><div class="md-trace-sq scored"></div><div class="md-trace-sq scored"></div><div class="md-trace-sq failed"></div><div class="md-trace-sq scored"></div><div class="md-trace-sq errored"></div><div class="md-trace-sq scored"></div><div class="md-trace-sq failed"></div>
+            <div class="md-trace-sq scored"></div><div class="md-trace-sq scored"></div><div class="md-trace-sq scored"></div><div class="md-trace-sq failed"></div><div class="md-trace-sq scored"></div><div class="md-trace-sq scored"></div><div class="md-trace-sq failed"></div><div class="md-trace-sq scored"></div><div class="md-trace-sq scored"></div><div class="md-trace-sq scored"></div>
+            <div class="md-trace-sq scored"></div><div class="md-trace-sq failed"></div><div class="md-trace-sq scored"></div><div class="md-trace-sq scored"></div><div class="md-trace-sq errored"></div><div class="md-trace-sq scored"></div><div class="md-trace-sq scored"></div><div class="md-trace-sq failed"></div><div class="md-trace-sq scored"></div><div class="md-trace-sq scored"></div>
+            <div class="md-trace-sq failed"></div><div class="md-trace-sq scored"></div><div class="md-trace-sq scored"></div><div class="md-trace-sq scored"></div><div class="md-trace-sq scored"></div><div class="md-trace-sq failed"></div><div class="md-trace-sq scored"></div><div class="md-trace-sq scored"></div><div class="md-trace-sq scored"></div><div class="md-trace-sq failed"></div>
+            <div class="md-trace-sq scored"></div><div class="md-trace-sq scored"></div><div class="md-trace-sq scored"></div><div class="md-trace-sq errored"></div><div class="md-trace-sq scored"></div><div class="md-trace-sq failed"></div><div class="md-trace-sq scored"></div><div class="md-trace-sq scored"></div><div class="md-trace-sq scored"></div><div class="md-trace-sq scored"></div>
+          </div>
+          <div class="md-trace-legend">
+            <div class="md-trace-legend-item"><div class="md-legend-sq scored"></div><span>Scored (35)</span></div>
+            <div class="md-trace-legend-item"><div class="md-legend-sq failed"></div><span>Failed (12)</span></div>
+            <div class="md-trace-legend-item"><div class="md-legend-sq errored"></div><span>Errored (3)</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Trace group 2 (abbreviated) -->
+      <div class="md-trace-group">
+        <div class="md-trace-group-header">
+          <a class="md-trace-job-link" href="#">eval-20260601-email-qa</a>
+          <span class="md-trace-taskset">Email QA Suite</span>
+          <span class="md-trace-run-count">100 runs</span>
+        </div>
+        <div class="md-trace-grid-body">
+          <div class="md-trace-grid">
+            <div class="md-trace-sq scored"></div><div class="md-trace-sq scored"></div><div class="md-trace-sq scored"></div><div class="md-trace-sq failed"></div><div class="md-trace-sq scored"></div><div class="md-trace-sq scored"></div><div class="md-trace-sq failed"></div><div class="md-trace-sq scored"></div><div class="md-trace-sq scored"></div><div class="md-trace-sq scored"></div>
+            <div class="md-trace-sq failed"></div><div class="md-trace-sq scored"></div><div class="md-trace-sq scored"></div><div class="md-trace-sq scored"></div><div class="md-trace-sq errored"></div><div class="md-trace-sq scored"></div><div class="md-trace-sq scored"></div><div class="md-trace-sq failed"></div><div class="md-trace-sq scored"></div><div class="md-trace-sq scored"></div>
+          </div>
+          <div class="md-trace-legend">
+            <div class="md-trace-legend-item"><div class="md-legend-sq scored"></div><span>Scored (81)</span></div>
+            <div class="md-trace-legend-item"><div class="md-legend-sq failed"></div><span>Failed (15)</span></div>
+            <div class="md-trace-legend-item"><div class="md-legend-sq errored"></div><span>Errored (4)</span></div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- .md-main -->
+  </div><!-- .main-region -->
+
+</div><!-- .shell-layout -->
+
+</body>
+</html>
