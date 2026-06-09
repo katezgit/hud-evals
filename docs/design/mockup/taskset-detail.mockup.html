@@ -1,0 +1,1193 @@
+<!--
+  filename: overview.html
+  Taskset Detail · Variant B — Public (non-owner) · Overview tab · Default state (Jobs run)
+  Peer anchor: .intermediate/design/environment-detail/v1.html
+  Canonical spec: docs/design/screens/taskset-detail.wireframe.md §1–§4a, §9 Variant B
+  Taskset used: OSWorld-Verified (public, forked from original HUD taskset)
+
+  Variant B affordances:
+    - Fork + Run Taskset CTAs in header right slot
+    - 4 tabs only (no Settings)
+    - About block rendered below Description
+    - No inline edit affordances on Description
+    - Star count visible, interactive
+    - Lineage line present (this taskset is forked from osworld-core-v1)
+
+  NOT YET BUILT:
+    - Tasks tab, Jobs tab, Performance tab content
+    - Empty state / loading state variants
+    - Mobile responsive layout
+    - Variant A (private owner), Variant C (public owner)
+
+  Image #30 (production Overview tab screenshot) unavailable in this repo;
+  content derived from wireframe spec + realistic HUD taskset data.
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Taskset Detail — OSWorld-Verified · Overview (Variant B, Public non-owner)</title>
+  <style>
+    /* ── Reset ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    /* ─────────────────────────────────────────────────────────
+       TOKEN ROOT
+       Primitives from packages/ui/src/styles/primitive.css :root
+       Semantic roles from packages/ui/src/styles/theme.css @theme
+       Resolved for dark color-scheme (production surface is dark)
+    ───────────────────────────────────────────────────────── */
+    :root {
+      /* ── Primitive color palette ── */
+      --neutral-950:           #1c2024;
+      --neutral-50:            #F8FAFB;
+      --white:                 #FFFFFF;
+      --gold:                  #f7b717;
+
+      /* Ink scale */
+      --ink-900:  #18212E;
+      --ink-50:   #E8EEF5;
+      --ink-800:  #3D5269;
+      --ink-100:  #B3BFCE;
+      --ink-700:  #6C7A8C;
+      --ink-200:  #7A8494;
+      --ink-400:  #A4ADB9;
+      --ink-500:  #475260;
+
+      /* Surfaces — dark values used directly (forced dark mode for this mockup) */
+      --surface-bg-dark:         #0C1016;
+      --surface-panel-dark:      #11161F;
+      --surface-page-dark:       #07090D;
+      --surface-elevated-dark:   #161D28;
+      --surface-muted-dark:      #161D28;
+      --surface-secondary-dark:  #1E2733;
+
+      /* Teal */
+      --teal-800: #055E55;
+      --teal-700: #087A6C;
+      --teal-600: #0E9888;
+      --teal-500: #1A9183;
+      --teal-400: #2BE0C8;
+
+      /* Status */
+      --scored-600: #2E9E43;
+      --scored-400: #35C46B;
+      --running-600: #2462C5;
+      --running-400: #4FA8FF;
+      --errored-600: #D23B2C;
+      --errored-400: #FF5B52;
+      --warning-600: #C47A0A;
+      --warning-400: #E5A52E;
+
+      /* Border seeds */
+      --border-seed-dark-rgb: 255 255 255;
+
+      /* ── Semantic color roles (dark resolved) ── */
+      --color-background:   var(--surface-bg-dark);
+      --color-panel:        var(--surface-panel-dark);
+      --color-page:         var(--surface-page-dark);
+      --color-elevated:     var(--surface-elevated-dark);
+
+      --color-foreground:       var(--ink-50);
+      --color-muted-foreground: var(--ink-100);
+      --color-meta-foreground:  var(--ink-200);
+      --color-text-disabled:    var(--ink-500);
+
+      --color-muted:     var(--surface-muted-dark);
+      --color-secondary: var(--surface-secondary-dark);
+
+      --color-border:        rgba(255 255 255 / .08);
+      --color-border-strong: rgba(255 255 255 / .18);
+
+      --color-primary:            var(--teal-400);
+      --color-primary-foreground: #06201C;
+      --color-primary-hover:      var(--teal-500);
+
+      --color-brand:            var(--gold);
+      --color-brand-foreground: var(--ink-900);
+
+      --color-state-scored:        var(--scored-400);
+      --color-state-scored-subtle: rgba(53 196 107 / .12);
+      --color-state-running:       var(--running-400);
+      --color-state-errored:       var(--errored-400);
+      --color-state-warning:       var(--warning-400);
+      --color-state-warning-subtle: rgba(229 165 46 / .10);
+
+      --color-chart-1: var(--teal-400);
+      --color-chart-2: #FFB454;
+      --color-chart-3: #F46EB0;
+      --color-chart-4: #9D8CFF;
+      --color-chart-5: #8DDB4A;
+
+      /* ── Typography ── */
+      --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+      --mono: "SF Mono", "Fira Code", "Cascadia Code", Consolas, monospace;
+
+      /* ── Sidebar specifics (carried verbatim from env-detail peer) ── */
+      --sidebar-bg:     #0f1117;
+      --sidebar-border: #1e2230;
+      --accent:         var(--teal-400);
+      --accent-subtle:  rgba(43,224,200,0.09);
+      --muted-fg:       var(--ink-200);
+      --default-fg:     var(--ink-50);
+      --brand-mark:     var(--gold);
+    }
+
+    html, body {
+      height: 100%;
+      font-family: var(--sans);
+      font-size: 13px;
+      background: var(--color-page);
+      color: var(--color-foreground);
+      line-height: 1.5;
+    }
+
+    /* ══════════════════════════════════════════════
+       APP SHELL OUTER CHROME
+    ══════════════════════════════════════════════ */
+    .shell-layout {
+      display: flex;
+      height: 100vh;
+      min-height: 600px;
+    }
+
+    /* ── Sidebar ── */
+    .sidebar {
+      background: var(--sidebar-bg);
+      border-right: 1px solid var(--sidebar-border);
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      width: 220px;
+      height: 100%;
+      overflow-y: auto;
+      overflow-x: hidden;
+    }
+
+    .brand-slot {
+      display: flex; align-items: center; gap: 8px;
+      padding: 14px 16px 12px;
+      border-bottom: 1px solid var(--sidebar-border);
+      flex-shrink: 0;
+    }
+    .brand-mark {
+      width: 20px; height: 20px;
+      background: rgba(247,183,23,0.15); border-radius: 4px;
+      flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .brand-wordmark { font-size: 14px; font-weight: 700; color: var(--default-fg); letter-spacing: -0.02em; }
+
+    .group-label {
+      font-size: 10px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--muted-fg); padding: 0 16px; margin-top: 20px; margin-bottom: 4px;
+    }
+    .nav-item {
+      display: flex; align-items: center; gap: 8px; padding: 5px 12px;
+      font-size: 13px; color: var(--muted-fg); cursor: pointer;
+      position: relative; border-radius: 4px; margin: 1px 4px;
+      text-decoration: none;
+    }
+    .nav-item:hover { background: rgba(255,255,255,0.04); color: var(--default-fg); }
+    .nav-item.selected { color: var(--accent); background: var(--accent-subtle); }
+    .nav-item.selected::before {
+      content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 2px;
+      background: var(--accent); border-radius: 0 2px 2px 0;
+    }
+    .nav-item-icon { width: 16px; height: 16px; flex-shrink: 0; color: inherit; opacity: 0.8; }
+    .nav-item.selected .nav-item-icon { opacity: 1; }
+    .nav-item-label { flex: 1; white-space: nowrap; }
+    .nav-item-count { font-size: 11px; color: var(--muted-fg); margin-left: auto; font-variant-numeric: tabular-nums; }
+    .nav-item-ext { font-size: 10px; color: var(--muted-fg); margin-left: auto; }
+    .spacer { flex: 1; }
+
+    /* Credits widget */
+    .credits-widget {
+      margin: 0 8px 4px; padding: 8px 10px;
+      border-radius: 6px; border: 1px solid var(--sidebar-border); cursor: pointer;
+    }
+    .credits-widget:hover { background: var(--accent-subtle); }
+    .credits-label { font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted-fg); }
+    .credits-numbers { display: flex; justify-content: flex-end; align-items: baseline; gap: 2px; margin: 2px 0; }
+    .credits-current { font-size: 13px; font-variant-numeric: tabular-nums; color: var(--default-fg); font-family: var(--mono); }
+    .credits-cap { font-size: 11px; font-variant-numeric: tabular-nums; color: var(--muted-fg); font-family: var(--mono); }
+    .credits-bar-bg { height: 3px; background: rgba(255,255,255,0.08); border-radius: 2px; overflow: hidden; margin: 4px 0; }
+    .credits-bar-fill { height: 100%; background: var(--accent); border-radius: 2px; }
+    .credits-meta { display: flex; justify-content: space-between; font-size: 10px; color: var(--muted-fg); margin-top: 2px; }
+
+    /* User chip */
+    .user-chip {
+      display: flex; align-items: center; gap: 8px;
+      padding: 8px 10px; margin: 4px 6px 6px;
+      border-radius: 6px; border: 1px solid var(--sidebar-border);
+      cursor: pointer; flex-shrink: 0;
+    }
+    .user-chip:hover { background: rgba(255,255,255,0.04); }
+    .avatar {
+      width: 28px; height: 28px; border-radius: 50%;
+      background: var(--color-elevated); border: 1px solid var(--sidebar-border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 600; color: var(--default-fg); flex-shrink: 0;
+    }
+    .user-info { flex: 1; overflow: hidden; min-width: 0; }
+    .user-name { font-size: 12px; font-weight: 500; color: var(--default-fg); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .user-meta { font-size: 10px; color: var(--muted-fg); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .switcher-icon { color: var(--muted-fg); flex-shrink: 0; }
+
+    /* ── Main scroll region ── */
+    .main-region {
+      flex: 1;
+      overflow-y: auto;
+      background: var(--color-background);
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ══════════════════════════════════════════════
+       STICKY HEADER STACK
+    ══════════════════════════════════════════════ */
+    .td-sticky-stack {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: var(--color-background);
+      border-bottom: 1px solid var(--color-border);
+    }
+
+    /* ── Page header ── */
+    .td-page-header {
+      padding: 16px 28px 0;
+    }
+
+    /* Breadcrumb */
+    .td-breadcrumb {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 12px; color: var(--color-meta-foreground);
+      margin-bottom: 10px;
+    }
+    .td-breadcrumb-link {
+      color: var(--color-muted-foreground); text-decoration: none; cursor: pointer;
+      display: flex; align-items: center; gap: 4px;
+    }
+    .td-breadcrumb-link:hover { color: var(--color-foreground); text-decoration: underline; }
+    .td-breadcrumb-sep { color: var(--color-meta-foreground); }
+    .td-breadcrumb-current { color: var(--color-muted-foreground); }
+
+    /* Title row */
+    .td-header-row {
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
+      margin-bottom: 8px;
+    }
+    .td-title-group {
+      display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+      flex: 1; min-width: 0;
+    }
+    .td-taskset-name {
+      font-size: 20px; font-weight: 600; letter-spacing: -0.02em;
+      color: var(--color-foreground); line-height: 1.2;
+    }
+    .td-visibility-pill {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-size: 11px; font-weight: 500;
+      border-radius: 10px; padding: 2px 8px;
+      white-space: nowrap; flex-shrink: 0;
+      color: var(--color-muted-foreground);
+      background: rgba(255,255,255,.07);
+      border: 1px solid var(--color-border-strong);
+    }
+    .td-star-btn {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-size: 12px; color: var(--color-muted-foreground);
+      background: transparent; border: none; cursor: pointer;
+      padding: 2px 6px; border-radius: 4px;
+      flex-shrink: 0;
+    }
+    .td-star-btn:hover { color: var(--color-foreground); background: rgba(255,255,255,.06); }
+    .td-star-count { font-variant-numeric: tabular-nums; }
+
+    /* Right-slot CTAs */
+    .td-header-actions {
+      display: flex; align-items: center; gap: 8px;
+      flex-shrink: 0;
+    }
+    .td-btn-secondary {
+      display: inline-flex; align-items: center; gap: 5px;
+      font-size: 12.5px; font-weight: 500;
+      padding: 6px 13px; border-radius: 5px; cursor: pointer;
+      background: transparent;
+      color: var(--color-muted-foreground);
+      border: 1px solid var(--color-border-strong);
+      white-space: nowrap;
+    }
+    .td-btn-secondary:hover {
+      color: var(--color-foreground);
+      border-color: rgba(255,255,255,.30);
+      background: rgba(255,255,255,.04);
+    }
+    .td-btn-primary {
+      display: inline-flex; align-items: center; gap: 5px;
+      font-size: 12.5px; font-weight: 500;
+      padding: 6px 13px; border-radius: 5px; cursor: pointer;
+      background: var(--color-primary);
+      color: var(--color-primary-foreground);
+      border: 1px solid transparent;
+      white-space: nowrap;
+    }
+    .td-btn-primary:hover { background: var(--color-primary-hover); }
+    .td-overflow-btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 30px; height: 30px;
+      background: transparent; border: 1px solid var(--color-border-strong);
+      border-radius: 5px; cursor: pointer; color: var(--color-muted-foreground);
+    }
+    .td-overflow-btn:hover { color: var(--color-foreground); background: rgba(255,255,255,.04); }
+
+    /* Descriptor strip */
+    .td-descriptor-strip {
+      display: flex; align-items: center; gap: 0; flex-wrap: wrap;
+      font-size: 12px; color: var(--color-meta-foreground);
+      padding-bottom: 10px;
+    }
+    .td-strip-field { display: flex; align-items: center; gap: 4px; }
+    .td-strip-sep { color: var(--color-meta-foreground); margin: 0 8px; opacity: 0.6; }
+.td-strip-slug {
+      font-family: var(--mono); font-size: 11.5px; color: var(--color-muted-foreground);
+    }
+    .td-copy-btn {
+      background: transparent; border: none; cursor: pointer;
+      color: var(--color-meta-foreground); font-size: 11px; padding: 1px 4px;
+      border-radius: 2px; display: inline-flex; align-items: center;
+    }
+    .td-copy-btn:hover { color: var(--color-muted-foreground); background: rgba(255,255,255,.06); }
+
+    /* Lineage line */
+    .td-lineage-line {
+      font-size: 11.5px; color: var(--color-meta-foreground);
+      padding-bottom: 10px;
+      display: flex; align-items: center; gap: 4px; flex-wrap: wrap;
+    }
+    .td-lineage-line a {
+      color: var(--color-primary); text-decoration: none;
+    }
+    .td-lineage-line a:hover { text-decoration: underline; }
+    .td-lineage-label { color: var(--color-meta-foreground); }
+    .td-lineage-sep { color: var(--color-meta-foreground); margin: 0 6px; opacity: 0.5; }
+
+    /* ── Tab bar ── */
+    .td-tab-bar {
+      display: flex; align-items: flex-end;
+      padding: 0 28px;
+    }
+    .td-tab {
+      padding: 8px 14px; font-size: 12.5px; color: var(--color-meta-foreground);
+      cursor: pointer; border-bottom: 2px solid transparent;
+      margin-bottom: -1px; display: flex; align-items: center; gap: 6px;
+      background: none; border-top: none; border-left: none; border-right: none;
+      font-family: var(--sans);
+    }
+    .td-tab:hover { color: var(--color-muted-foreground); }
+    .td-tab.active { color: var(--color-foreground); border-bottom-color: var(--color-primary); }
+    .td-tab-count {
+      font-size: 10.5px; color: var(--color-meta-foreground);
+      background: rgba(255,255,255,.06); padding: 1px 5px; border-radius: 10px;
+      font-variant-numeric: tabular-nums;
+    }
+    .td-tab.active .td-tab-count { color: var(--color-muted-foreground); }
+
+    /* ══════════════════════════════════════════════
+       OVERVIEW TAB CONTENT
+       Single column, full width, max-width capped
+    ══════════════════════════════════════════════ */
+    .td-overview-content {
+      padding: 24px 28px 56px;
+      max-width: 960px;
+    }
+
+    /* ── Section header (h2 + count badge) ── */
+    .td-section-header {
+      display: flex; align-items: center; gap: 8px;
+      margin-bottom: 14px;
+    }
+    .td-section-title {
+      font-size: 13px; font-weight: 600;
+      color: var(--color-foreground);
+    }
+    .td-count-badge {
+      display: inline-flex; align-items: center; justify-content: center;
+      font-size: 10.5px; font-weight: 500; font-variant-numeric: tabular-nums;
+      padding: 1px 7px; border-radius: 10px;
+      background: rgba(255,255,255,.07);
+      color: var(--color-muted-foreground);
+      border: 1px solid var(--color-border);
+    }
+
+    /* ── Section divider ── */
+    .td-section-divider {
+      border: none; border-top: 1px solid var(--color-border);
+      margin: 24px 0;
+    }
+
+    /* ── Leaderboard table ── */
+    .td-table-wrap {
+      overflow-x: auto;
+      margin-bottom: 0;
+    }
+    .td-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12.5px;
+    }
+    .td-table thead th {
+      text-align: left;
+      font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.06em;
+      color: var(--color-meta-foreground);
+      padding: 0 10px 8px;
+      border-bottom: 1px solid var(--color-border);
+      white-space: nowrap;
+    }
+    .td-table thead th:first-child { padding-left: 0; }
+    .td-table thead th.td-th-avg {
+      cursor: pointer;
+    }
+    .td-table thead th.td-th-avg:hover { color: var(--color-muted-foreground); }
+    .td-table thead th.td-th-num {
+      text-align: right;
+    }
+    .td-table tbody tr {
+      border-bottom: 1px solid var(--color-border);
+    }
+    .td-table tbody tr:last-child { border-bottom: none; }
+    .td-table tbody tr:hover { background: rgba(255,255,255,.025); }
+    .td-table tbody td {
+      padding: 10px 10px;
+      vertical-align: middle;
+    }
+    .td-table tbody td:first-child { padding-left: 0; }
+
+    /* Rank chip */
+    .td-rank-chip {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 22px; height: 22px; border-radius: 4px;
+      font-size: 11px; font-weight: 700; font-variant-numeric: tabular-nums;
+      flex-shrink: 0;
+    }
+    .td-rank-chip.gold    { background: rgba(247,183,23,.18); color: var(--gold); border: 1px solid rgba(247,183,23,.35); }
+    .td-rank-chip.silver  { background: rgba(180,190,210,.12); color: #A8B4C4; border: 1px solid rgba(180,190,210,.25); }
+    .td-rank-chip.bronze  { background: rgba(180,120,60,.14); color: #C07840; border: 1px solid rgba(180,120,60,.28); }
+    .td-rank-chip.plain   { background: rgba(255,255,255,.05); color: var(--color-meta-foreground); border: 1px solid var(--color-border); }
+
+    /* Model cell */
+    .td-model-cell { display: flex; flex-direction: column; gap: 3px; }
+    .td-model-name {
+      color: var(--color-foreground); text-decoration: none;
+      font-size: 12.5px; font-weight: 500;
+    }
+    .td-model-name:hover { color: var(--color-primary); text-decoration: underline; }
+    .td-model-env-chip {
+      display: inline-flex; align-items: center; gap: 3px;
+      font-size: 10.5px; color: var(--color-meta-foreground);
+      background: rgba(255,255,255,.05);
+      border: 1px solid var(--color-border);
+      border-radius: 3px; padding: 0px 5px;
+      align-self: flex-start;
+    }
+
+    /* Score cells */
+    .td-score-num {
+      text-align: right;
+      font-variant-numeric: tabular-nums; font-family: var(--mono);
+      font-size: 12px; color: var(--color-foreground);
+    }
+    .td-score-em {
+      color: var(--color-state-scored);
+      font-weight: 600;
+    }
+    .td-score-zero {
+      color: var(--color-meta-foreground);
+    }
+    .td-score-dash {
+      color: var(--color-meta-foreground); opacity: 0.5;
+    }
+
+    /* View Traces action */
+    .td-view-traces-btn {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-size: 11px; color: var(--color-meta-foreground);
+      background: transparent; border: none; cursor: pointer;
+      padding: 3px 7px; border-radius: 4px;
+      text-decoration: none; white-space: nowrap;
+      border: 1px solid transparent;
+    }
+    .td-view-traces-btn:hover {
+      color: var(--color-primary);
+      border-color: rgba(43,224,200,.20);
+      background: rgba(43,224,200,.05);
+    }
+
+    /* ── Top 5 Performers chart ── */
+    .td-chart-section {
+      margin-top: 0;
+    }
+    .td-chart-header {
+      font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.07em;
+      color: var(--color-meta-foreground); margin-bottom: 14px;
+    }
+    .td-chart-wrap {
+      background: var(--color-panel);
+      border: 1px solid var(--color-border);
+      border-radius: 6px;
+      padding: 16px 20px 14px;
+    }
+    .td-chart-bars {
+      display: flex; align-items: flex-end; gap: 16px;
+      height: 80px;
+    }
+    .td-bar-group {
+      display: flex; flex-direction: column; align-items: center; gap: 5px;
+      flex: 1;
+    }
+    .td-bar {
+      width: 100%;
+      border-radius: 3px 3px 0 0;
+      min-height: 3px;
+    }
+    .td-bar-label {
+      font-size: 10px; color: var(--color-meta-foreground);
+      text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      width: 100%;
+    }
+    .td-chart-y-labels {
+      display: flex; flex-direction: column; justify-content: space-between;
+      font-size: 9.5px; font-family: var(--mono);
+      color: var(--color-meta-foreground); opacity: 0.6;
+      height: 80px; margin-right: 8px; text-align: right;
+      flex-shrink: 0; padding-bottom: 0;
+    }
+
+    /* ── Description block ── */
+    .td-description-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 10px;
+    }
+    .td-description-title {
+      font-size: 13px; font-weight: 600; color: var(--color-foreground);
+    }
+    .td-description-actions {
+      display: flex; align-items: center; gap: 6px;
+    }
+    .td-btn-ghost-xs {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-size: 11px; color: var(--color-meta-foreground);
+      background: transparent; border: 1px solid var(--color-border);
+      border-radius: 4px; padding: 3px 8px; cursor: pointer;
+    }
+    .td-btn-ghost-xs:hover {
+      color: var(--color-muted-foreground);
+      border-color: var(--color-border-strong);
+    }
+    .td-description-body {
+      font-size: 13px; color: var(--color-muted-foreground);
+      line-height: 1.65;
+    }
+
+    /* ── About block (Variant B only) ── */
+    .td-about-title {
+      font-size: 13px; font-weight: 600; color: var(--color-foreground);
+      margin-bottom: 12px;
+    }
+    .td-about-dl {
+      display: grid; grid-template-columns: 90px 1fr; gap: 9px 14px;
+    }
+    .td-about-dt {
+      font-size: 12px; color: var(--color-meta-foreground);
+      align-self: center;
+    }
+    .td-about-dd {
+      font-size: 12px; color: var(--color-muted-foreground);
+      display: flex; align-items: center; gap: 5px;
+      margin: 0;
+    }
+    .td-about-dd a {
+      color: var(--color-primary); text-decoration: none;
+    }
+    .td-about-dd a:hover { text-decoration: underline; }
+
+    /* ── Exploration watermark ── */
+    .state-label {
+      font-size: 10px; font-weight: 600; text-transform: uppercase;
+      letter-spacing: .08em; color: var(--color-meta-foreground);
+      padding: 6px 28px;
+      background: rgba(229,165,46,.05);
+      border-bottom: 1px solid rgba(229,165,46,.12);
+    }
+  </style>
+</head>
+<body>
+
+<div class="shell-layout">
+
+  <!-- ══════════════════════════════════════════
+       APP-SHELL SIDEBAR (Tasksets selected)
+  ══════════════════════════════════════════ -->
+  <aside class="sidebar" aria-label="Main navigation">
+    <div class="brand-slot">
+      <div class="brand-mark">
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+          <rect width="12" height="12" rx="2" fill="rgba(120,53,15,0.6)"/>
+          <path d="M2 9L6 3L10 9" stroke="#f7b717" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <span class="brand-wordmark">hud</span>
+    </div>
+
+    <div class="group-label">Workspace</div>
+
+    <a class="nav-item" href="#">
+      <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="2" y="2" width="5" height="5" rx="1"/><rect x="9" y="2" width="5" height="5" rx="1"/>
+        <rect x="2" y="9" width="5" height="5" rx="1"/><rect x="9" y="9" width="5" height="5" rx="1"/>
+      </svg>
+      <span class="nav-item-label">Home</span>
+    </a>
+
+    <!-- Tasksets — selected -->
+    <a class="nav-item selected" aria-current="page" href="#">
+      <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M2 4h12M2 8h8M2 12h10"/><circle cx="13" cy="11" r="2.5"/>
+      </svg>
+      <span class="nav-item-label">Tasksets</span>
+      <span class="nav-item-count">127</span>
+    </a>
+
+    <a class="nav-item" href="#">
+      <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="2" y="2" width="12" height="5" rx="1.5"/>
+        <rect x="2" y="9" width="12" height="5" rx="1.5"/>
+        <circle cx="5" cy="4.5" r="0.8" fill="currentColor" stroke="none"/>
+        <circle cx="5" cy="11.5" r="0.8" fill="currentColor" stroke="none"/>
+        <path d="M8 4.5h4M8 11.5h4"/>
+      </svg>
+      <span class="nav-item-label">Environments</span>
+      <span class="nav-item-count">42</span>
+    </a>
+
+    <a class="nav-item" href="#">
+      <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="8" cy="8" r="3"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2M3.22 3.22l1.42 1.42M11.36 11.36l1.42 1.42M3.22 12.78l1.42-1.42M11.36 4.64l1.42-1.42"/>
+      </svg>
+      <span class="nav-item-label">Models</span>
+      <span class="nav-item-count">27</span>
+    </a>
+
+    <a class="nav-item" href="#">
+      <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="8" cy="5" r="2.5"/><path d="M3 14c0-2.76 2.24-5 5-5s5 2.24 5 5"/>
+      </svg>
+      <span class="nav-item-label">Agents</span>
+      <span class="nav-item-count">4</span>
+    </a>
+
+    <a class="nav-item" href="#">
+      <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4 2h8a1 1 0 011 1v10a1 1 0 01-1 1H4a1 1 0 01-1-1V3a1 1 0 011-1z"/><path d="M6 6h4M6 9h4M6 12h2"/>
+      </svg>
+      <span class="nav-item-label">Library</span>
+    </a>
+
+    <div class="group-label">Observe</div>
+
+    <a class="nav-item" href="#">
+      <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="2" y="8" width="3" height="5" rx="0.5"/><rect x="6.5" y="5" width="3" height="8" rx="0.5"/>
+        <rect x="11" y="2" width="3" height="11" rx="0.5"/>
+      </svg>
+      <span class="nav-item-label">Dashboard</span>
+    </a>
+
+    <a class="nav-item" href="#">
+      <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="8" cy="8" r="6"/><path d="M8 4v4l3 1.5"/>
+      </svg>
+      <span class="nav-item-label">Progress</span>
+    </a>
+
+    <div class="spacer"></div>
+
+    <!-- Credits widget -->
+    <div class="credits-widget" title="View usage details">
+      <div class="credits-label">credits</div>
+      <div class="credits-numbers">
+        <span class="credits-current">4,230</span>
+        <span class="credits-cap">&nbsp;/ 10,000</span>
+      </div>
+      <div class="credits-bar-bg"><div class="credits-bar-fill" style="width:42.3%"></div></div>
+      <div class="credits-meta"><span>~92 cr/hr</span><span>~38h left</span></div>
+    </div>
+
+    <!-- External links -->
+    <div style="padding:2px 4px;">
+      <a class="nav-item" href="#" style="font-size:12px;">
+        <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M7 3H3a1 1 0 00-1 1v9a1 1 0 001 1h9a1 1 0 001-1V9"/><path d="M10 2h4v4M14 2L7 9"/>
+        </svg>
+        <span class="nav-item-label">Marketplace</span>
+        <span class="nav-item-ext">↗</span>
+      </a>
+      <a class="nav-item" href="#" style="font-size:12px;">
+        <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 2h8a1 1 0 011 1v10a1 1 0 01-1 1H4a1 1 0 01-1-1V3a1 1 0 011-1z"/><path d="M6 6h4M6 9h4"/>
+        </svg>
+        <span class="nav-item-label">Documentation</span>
+        <span class="nav-item-ext">↗</span>
+      </a>
+    </div>
+
+    <!-- User chip -->
+    <div class="user-chip">
+      <div class="avatar">A</div>
+      <div class="user-info">
+        <div class="user-name">Alex Kim</div>
+        <div class="user-meta">Princeton NLP · member</div>
+      </div>
+      <svg class="switcher-icon" width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 4.5L6 2 9 4.5M3 7.5L6 10 9 7.5"/>
+      </svg>
+    </div>
+  </aside>
+
+  <!-- ══════════════════════════════════════════
+       MAIN SCROLL REGION
+  ══════════════════════════════════════════ -->
+  <div class="main-region" id="main-content">
+
+    <!-- Exploration watermark -->
+    <div class="state-label">VARIANT B — Public (non-owner) · Overview tab · Default state · Exploration mockup</div>
+
+    <!-- ─────────────────────────────────────
+         STICKY HEADER STACK
+    ───────────────────────────────────── -->
+    <div class="td-sticky-stack">
+
+      <!-- PAGE HEADER -->
+      <div class="td-page-header">
+
+        <!-- Breadcrumb -->
+        <nav class="td-breadcrumb" aria-label="Breadcrumb">
+          <ol style="list-style:none;display:flex;align-items:center;gap:6px;padding:0;">
+            <li>
+              <a class="td-breadcrumb-link" href="#">
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M8 2L4 6l4 4"/>
+                </svg>
+                Tasksets
+              </a>
+            </li>
+            <li class="td-breadcrumb-sep">/</li>
+            <li>
+              <span class="td-breadcrumb-current">OSWorld-Verified</span>
+            </li>
+          </ol>
+        </nav>
+
+        <!-- Title row -->
+        <div class="td-header-row">
+          <div class="td-title-group">
+            <!-- h1: Taskset name -->
+            <h1 class="td-taskset-name">OSWorld-Verified</h1>
+            <!-- Visibility pill: Public -->
+            <span class="td-visibility-pill" aria-label="Visibility: Public">
+              <svg width="10" height="10" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="8" cy="8" r="6"/><path d="M8 2c-2 2-3 4-3 6s1 4 3 6M8 2c2 2 3 4 3 6s-1 4-3 6M2 8h12"/>
+              </svg>
+              Public
+            </span>
+            <!-- Star button: community count, interactive -->
+            <button class="td-star-btn" aria-label="Star OSWorld-Verified" aria-pressed="false" title="Star this Taskset">
+              <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M8 2l1.5 3.5H14l-3.5 2.5 1.5 4L8 10 4 12l1.5-4L2 5.5h4.5L8 2z"/>
+              </svg>
+              <span class="td-star-count">148</span>
+            </button>
+          </div>
+
+          <!-- Right-slot CTAs: Variant B — Fork + Run Taskset + Overflow -->
+          <div class="td-header-actions">
+            <button class="td-btn-secondary" aria-label="Fork OSWorld-Verified">
+              <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="5" cy="4" r="1.5"/>
+                <circle cx="11" cy="4" r="1.5"/>
+                <circle cx="8" cy="12" r="1.5"/>
+                <path d="M5 5.5v2.5c0 1.1.9 2 2 2h2c1.1 0 2-.9 2-2V5.5"/>
+                <path d="M8 8v2"/>
+              </svg>
+              Fork
+            </button>
+            <button class="td-btn-primary" aria-label="Run Taskset">
+              <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M5 3l8 5-8 5V3z" fill="currentColor" stroke="none"/>
+              </svg>
+              Run Taskset
+            </button>
+            <button class="td-overflow-btn" aria-label="More actions" title="More actions">
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="8" cy="3.5" r="1"/><circle cx="8" cy="8" r="1"/><circle cx="8" cy="12.5" r="1"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Descriptor strip: Task count · slug [copy] · Owned by -->
+        <dl class="td-descriptor-strip">
+          <!-- Task count -->
+          <div class="td-strip-field">
+            <dt style="display:none;">Tasks</dt>
+            <dd style="margin:0; color:var(--color-muted-foreground);">369 Tasks</dd>
+          </div>
+          <span class="td-strip-sep" aria-hidden="true">·</span>
+          <!-- Taskset slug + copy -->
+          <div class="td-strip-field">
+            <dt style="display:none;">Slug</dt>
+            <dd style="margin:0; display:flex; align-items:center; gap:3px;">
+              <span class="td-strip-slug">osworld-verified-0023</span>
+              <button class="td-copy-btn" aria-label="Copy Taskset slug osworld-verified-0023" title="Copy slug">
+                <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="5" y="5" width="8" height="9" rx="1.5"/><path d="M3 11V3a1 1 0 011-1h8"/>
+                </svg>
+              </button>
+            </dd>
+          </div>
+          <span class="td-strip-sep" aria-hidden="true">·</span>
+          <!-- Owned by -->
+          <div class="td-strip-field">
+            <dt style="display:none;">Owned by</dt>
+            <dd style="margin:0; display:flex; align-items:center; gap:4px;">
+              <span style="color:var(--color-meta-foreground);">Owned by:</span>
+              <a href="#" style="color:var(--color-primary);text-decoration:none;" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">HUD</a>
+            </dd>
+          </div>
+        </dl>
+
+
+      </div><!-- /td-page-header -->
+
+      <!-- TAB BAR — Variant B: 4 tabs, no Settings -->
+      <div class="td-tab-bar" role="tablist" aria-label="Taskset detail tabs">
+        <button class="td-tab active" role="tab" aria-selected="true" aria-controls="tab-overview" id="tab-overview-btn">
+          Overview
+        </button>
+        <button class="td-tab" role="tab" aria-selected="false" aria-controls="tab-tasks" id="tab-tasks-btn" aria-label="Tasks, 369">
+          Tasks
+          <span class="td-tab-count" aria-hidden="true">369</span>
+        </button>
+        <button class="td-tab" role="tab" aria-selected="false" aria-controls="tab-jobs" id="tab-jobs-btn" aria-label="Jobs, 38">
+          Jobs
+          <span class="td-tab-count" aria-hidden="true">38</span>
+        </button>
+        <button class="td-tab" role="tab" aria-selected="false" aria-controls="tab-performance" id="tab-perf-btn">
+          Performance
+        </button>
+      </div>
+
+    </div><!-- /td-sticky-stack -->
+
+    <!-- ─────────────────────────────────────
+         OVERVIEW TAB CONTENT
+    ───────────────────────────────────── -->
+    <div class="td-overview-content" role="tabpanel" id="tab-overview" aria-labelledby="tab-overview-btn">
+      <span class="sr-only" aria-live="polite" style="position:absolute;width:1px;height:1px;clip:rect(0,0,0,0);overflow:hidden;"></span>
+
+      <!-- LEADERBOARD SECTION -->
+      <div class="td-section-header">
+        <h2 class="td-section-title">Agent</h2>
+        <span class="td-count-badge" aria-label="5 agents">5</span>
+      </div>
+
+      <!-- Table -->
+      <div class="td-table-wrap">
+        <table class="td-table" aria-label="Agent leaderboard sorted by Average score descending">
+          <thead>
+            <tr>
+              <th style="width:36px;" scope="col" aria-label="Rank"></th>
+              <th scope="col">Model</th>
+              <th class="td-th-avg td-th-num" scope="col" aria-sort="descending" style="cursor:pointer;">
+                Avg
+                <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" style="display:inline-block;vertical-align:middle;margin-left:2px;">
+                  <path d="M5 7V3M3 5l2 2 2-2"/>
+                </svg>
+              </th>
+              <th class="td-th-num" scope="col">Best@3</th>
+              <th class="td-th-num" scope="col">Best@5</th>
+              <th class="td-th-num" scope="col">Best@10</th>
+              <th class="td-th-num" scope="col">Pass@1</th>
+              <th class="td-th-num" scope="col">Steps</th>
+              <th scope="col" style="width:90px;" aria-label="Actions"></th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Rank 1: Claude Haiku 4.5 -->
+            <tr>
+              <td>
+                <span class="td-rank-chip gold" aria-label="Rank 1">1</span>
+              </td>
+              <td>
+                <div class="td-model-cell">
+                  <a class="td-model-name" href="#">Claude Haiku 4.5</a>
+                  <span class="td-model-env-chip">
+                    <svg width="9" height="9" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                      <circle cx="8" cy="8" r="6"/><path d="M8 2c-2 2-3 4-3 6s1 4 3 6M2 8h12"/>
+                    </svg>
+                    browser
+                  </span>
+                </div>
+              </td>
+              <td class="td-score-num td-score-em">100.0%</td>
+              <td class="td-score-num">100.0%</td>
+              <td class="td-score-num td-score-dash" aria-label="Not enough data">—</td>
+              <td class="td-score-num td-score-dash" aria-label="Not enough data">—</td>
+              <td class="td-score-num">66.7%</td>
+              <td class="td-score-num">4.4</td>
+              <td>
+                <a class="td-view-traces-btn" href="#" aria-label="View Traces for Claude Haiku 4.5 on this Taskset">
+                  <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M2 8h12M10 4l4 4-4 4"/>
+                  </svg>
+                  View Traces
+                </a>
+              </td>
+            </tr>
+            <!-- Rank 2: Kimi K2.5 -->
+            <tr>
+              <td>
+                <span class="td-rank-chip silver" aria-label="Rank 2">2</span>
+              </td>
+              <td>
+                <div class="td-model-cell">
+                  <a class="td-model-name" href="#">Kimi K2.5</a>
+                  <span class="td-model-env-chip">
+                    <svg width="9" height="9" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                      <circle cx="8" cy="8" r="6"/><path d="M8 2c-2 2-3 4-3 6s1 4 3 6M2 8h12"/>
+                    </svg>
+                    browser
+                  </span>
+                </div>
+              </td>
+              <td class="td-score-num">88.9%</td>
+              <td class="td-score-num td-score-dash" aria-label="Not enough data">—</td>
+              <td class="td-score-num td-score-dash" aria-label="Not enough data">—</td>
+              <td class="td-score-num td-score-dash" aria-label="Not enough data">—</td>
+              <td class="td-score-num">66.7%</td>
+              <td class="td-score-num">5.7</td>
+              <td>
+                <a class="td-view-traces-btn" href="#" aria-label="View Traces for Kimi K2.5 on this Taskset">
+                  <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M2 8h12M10 4l4 4-4 4"/>
+                  </svg>
+                  View Traces
+                </a>
+              </td>
+            </tr>
+            <!-- Rank 3: Claude Opus 4.1 -->
+            <tr>
+              <td>
+                <span class="td-rank-chip bronze" aria-label="Rank 3">3</span>
+              </td>
+              <td>
+                <div class="td-model-cell">
+                  <a class="td-model-name" href="#">Claude Opus 4.1</a>
+                  <span class="td-model-env-chip">
+                    <svg width="9" height="9" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                      <circle cx="8" cy="8" r="6"/><path d="M8 2c-2 2-3 4-3 6s1 4 3 6M2 8h12"/>
+                    </svg>
+                    browser
+                  </span>
+                </div>
+              </td>
+              <td class="td-score-num">66.7%</td>
+              <td class="td-score-num">100.0%</td>
+              <td class="td-score-num td-score-dash" aria-label="Not enough data">—</td>
+              <td class="td-score-num td-score-dash" aria-label="Not enough data">—</td>
+              <td class="td-score-num">66.7%</td>
+              <td class="td-score-num">3.3</td>
+              <td>
+                <a class="td-view-traces-btn" href="#" aria-label="View Traces for Claude Opus 4.1 on this Taskset">
+                  <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M2 8h12M10 4l4 4-4 4"/>
+                  </svg>
+                  View Traces
+                </a>
+              </td>
+            </tr>
+            <!-- Rank 4: DeepSeek V3.2 -->
+            <tr>
+              <td>
+                <span class="td-rank-chip plain" aria-label="Rank 4">4</span>
+              </td>
+              <td>
+                <div class="td-model-cell">
+                  <a class="td-model-name" href="#">DeepSeek V3.2</a>
+                  <span class="td-model-env-chip">
+                    <svg width="9" height="9" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                      <circle cx="8" cy="8" r="6"/><path d="M8 2c-2 2-3 4-3 6s1 4 3 6M2 8h12"/>
+                    </svg>
+                    browser
+                  </span>
+                </div>
+              </td>
+              <td class="td-score-num">22.2%</td>
+              <td class="td-score-num td-score-dash" aria-label="Not enough data">—</td>
+              <td class="td-score-num td-score-dash" aria-label="Not enough data">—</td>
+              <td class="td-score-num td-score-dash" aria-label="Not enough data">—</td>
+              <td class="td-score-num td-score-zero">0.0%</td>
+              <td class="td-score-num">1.0</td>
+              <td>
+                <a class="td-view-traces-btn" href="#" aria-label="View Traces for DeepSeek V3.2 on this Taskset">
+                  <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M2 8h12M10 4l4 4-4 4"/>
+                  </svg>
+                  View Traces
+                </a>
+              </td>
+            </tr>
+            <!-- Rank 5: Operator -->
+            <tr>
+              <td>
+                <span class="td-rank-chip plain" aria-label="Rank 5">5</span>
+              </td>
+              <td>
+                <div class="td-model-cell">
+                  <a class="td-model-name" href="#">Operator</a>
+                  <span class="td-model-env-chip">
+                    <svg width="9" height="9" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                      <circle cx="8" cy="8" r="6"/><path d="M8 2c-2 2-3 4-3 6s1 4 3 6M2 8h12"/>
+                    </svg>
+                    browser
+                  </span>
+                </div>
+              </td>
+              <td class="td-score-num td-score-zero">0.0%</td>
+              <td class="td-score-num td-score-zero">0.0%</td>
+              <td class="td-score-num td-score-dash" aria-label="Not enough data">—</td>
+              <td class="td-score-num td-score-dash" aria-label="Not enough data">—</td>
+              <td class="td-score-num td-score-zero">0.0%</td>
+              <td class="td-score-num">1.2</td>
+              <td>
+                <a class="td-view-traces-btn" href="#" aria-label="View Traces for Operator on this Taskset">
+                  <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M2 8h12M10 4l4 4-4 4"/>
+                  </svg>
+                  View Traces
+                </a>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <hr class="td-section-divider" />
+
+      <!-- TOP 5 PERFORMERS CHART -->
+      <div class="td-chart-section">
+        <div class="td-chart-header">Top 5 Performers</div>
+        <div class="td-chart-wrap">
+          <!-- Accessible: table above is the data source -->
+          <p class="sr-only" style="position:absolute;width:1px;height:1px;clip:rect(0,0,0,0);overflow:hidden;">
+            Bar chart showing Top 5 performers by Average score. Data in the table above.
+          </p>
+          <div style="display:flex;align-items:flex-end;gap:0;">
+            <!-- Y-axis labels -->
+            <div class="td-chart-y-labels">
+              <span>100%</span>
+              <span>75%</span>
+              <span>50%</span>
+              <span>25%</span>
+              <span>0%</span>
+            </div>
+            <!-- Bars -->
+            <div aria-hidden="true" style="flex:1;display:flex;align-items:flex-end;gap:12px;height:80px;border-left:1px solid var(--color-border);padding-left:12px;border-bottom:1px solid var(--color-border);">
+              <!-- Bar 1: Claude Haiku 4.5 — 100% — gold -->
+              <div class="td-bar-group">
+                <div class="td-bar" style="height:80px;background:var(--gold);opacity:0.85;"></div>
+                <span class="td-bar-label">Haiku 4.5</span>
+              </div>
+              <!-- Bar 2: Kimi K2.5 — 88.9% -->
+              <div class="td-bar-group">
+                <div class="td-bar" style="height:71px;background:var(--color-chart-1);opacity:0.80;"></div>
+                <span class="td-bar-label">Kimi K2.5</span>
+              </div>
+              <!-- Bar 3: Claude Opus 4.1 — 66.7% -->
+              <div class="td-bar-group">
+                <div class="td-bar" style="height:53px;background:var(--color-chart-2);opacity:0.80;"></div>
+                <span class="td-bar-label">Opus 4.1</span>
+              </div>
+              <!-- Bar 4: DeepSeek V3.2 — 22.2% -->
+              <div class="td-bar-group">
+                <div class="td-bar" style="height:18px;background:var(--color-chart-4);opacity:0.75;"></div>
+                <span class="td-bar-label">DeepSeek</span>
+              </div>
+              <!-- Bar 5: Operator — 0.0% -->
+              <div class="td-bar-group">
+                <div class="td-bar" style="height:3px;background:var(--color-meta-foreground);opacity:0.4;"></div>
+                <span class="td-bar-label">Operator</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <hr class="td-section-divider" />
+
+      <!-- DESCRIPTION BLOCK (read-only for non-owner; Copy all visible, Edit absent) -->
+      <div>
+        <div class="td-description-header">
+          <h2 class="td-description-title">Description</h2>
+          <div class="td-description-actions">
+            <button class="td-btn-ghost-xs" aria-label="Copy Taskset description to clipboard">
+              <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="5" y="5" width="8" height="9" rx="1.5"/><path d="M3 11V3a1 1 0 011-1h8"/>
+              </svg>
+              Copy all
+            </button>
+            <!-- Edit button absent for non-owner Variant B -->
+          </div>
+        </div>
+        <p class="td-description-body">
+          A browser-based benchmark derived from OSWorld, focused on real-world GUI task completion. 369 Tasks across 7 Scenarios covering web navigation, form submission, multi-step workflows, and file management. Each Task is paired with a deterministic grader; scores reflect the proportion of tasks completed correctly on a single attempt.
+        </p>
+      </div>
+
+      <hr class="td-section-divider" />
+
+      <!-- ABOUT BLOCK (Variant B: Public non-owner only) -->
+      <div>
+        <h2 class="td-about-title">About</h2>
+        <dl class="td-about-dl">
+          <dt class="td-about-dt">Owner</dt>
+          <dd class="td-about-dd"><a href="#">HUD</a></dd>
+
+          <dt class="td-about-dt">License</dt>
+          <dd class="td-about-dd">MIT</dd>
+
+          <dt class="td-about-dt">Created</dt>
+          <dd class="td-about-dd">2025-11-04</dd>
+
+          <dt class="td-about-dt">Forks</dt>
+          <dd class="td-about-dd">3</dd>
+
+          <dt class="td-about-dt">Forked from</dt>
+          <dd class="td-about-dd">
+            <a href="#">OSWorld-Core v1 <span style="font-family:var(--mono);font-size:10.5px;opacity:0.7;">(osworld-core-v1)</span></a>
+            <span aria-hidden="true">↗</span>
+          </dd>
+        </dl>
+      </div>
+
+    </div><!-- /td-overview-content -->
+
+  </div><!-- /main-region -->
+
+</div><!-- /shell-layout -->
+
+</body>
+</html>

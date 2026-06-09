@@ -1,0 +1,1525 @@
+<!--
+  filename: tasks.html
+  Taskset Detail · Variant B — Public (non-owner) · Tasks tab · Default state (tasks loaded)
+  Peer anchor: .intermediate/design/taskset-detail/overview.html (chassis source)
+  Canonical spec: docs/design/screens/taskset-detail-tasks.wireframe.md
+  Anchor spec:    docs/design/screens/taskset-detail.wireframe.md §1–§3, §9 Variant B
+
+  Variant B affordances enforced:
+    - 4 tabs only (no Settings), Tasks active
+    - Fork + Run Taskset CTAs in header right slot
+    - NO bulk-select checkbox column
+    - NO row hover ⋯ menu / edit affordances
+    - NO QA Agent / QA Status column
+    - Read-only row click → Task detail (view mode, not edit)
+    - Star count visible, interactive
+    - Lineage line present (forked from osworld-core-v1)
+
+  Taskset: OSWorld-Verified (public, browsed by Alex — frontier RL researcher)
+  Alex's job: scan which Tasks are weakest, identify Scenarios, decide whether to fork or run
+
+  Production Image #29 (Tasks tab screenshot) is NOT in this repo;
+  content derived from taskset-detail-tasks.wireframe.md spec + realistic HUD task data.
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Taskset Detail — OSWorld-Verified · Tasks (Variant B, Public non-owner)</title>
+  <style>
+    /* ── Reset ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    /* ─────────────────────────────────────────────────────────
+       TOKEN ROOT
+       Primitives from packages/ui/src/styles/primitive.css :root
+       Semantic roles from packages/ui/src/styles/theme.css @theme
+       Resolved for dark color-scheme (production surface is dark)
+    ───────────────────────────────────────────────────────── */
+    :root {
+      /* ── Primitive color palette ── */
+      --neutral-950:           #1c2024;
+      --neutral-50:            #F8FAFB;
+      --white:                 #FFFFFF;
+      --gold:                  #f7b717;
+
+      /* Ink scale */
+      --ink-900:  #18212E;
+      --ink-50:   #E8EEF5;
+      --ink-800:  #3D5269;
+      --ink-100:  #B3BFCE;
+      --ink-700:  #6C7A8C;
+      --ink-200:  #7A8494;
+      --ink-400:  #A4ADB9;
+      --ink-500:  #475260;
+
+      /* Surfaces — dark values used directly (forced dark mode for this mockup) */
+      --surface-bg-dark:         #0C1016;
+      --surface-panel-dark:      #11161F;
+      --surface-page-dark:       #07090D;
+      --surface-elevated-dark:   #161D28;
+      --surface-muted-dark:      #161D28;
+      --surface-secondary-dark:  #1E2733;
+
+      /* Teal */
+      --teal-800: #055E55;
+      --teal-700: #087A6C;
+      --teal-600: #0E9888;
+      --teal-500: #1A9183;
+      --teal-400: #2BE0C8;
+
+      /* Status */
+      --scored-600: #2E9E43;
+      --scored-400: #35C46B;
+      --running-600: #2462C5;
+      --running-400: #4FA8FF;
+      --errored-600: #D23B2C;
+      --errored-400: #FF5B52;
+      --warning-600: #C47A0A;
+      --warning-400: #E5A52E;
+
+      /* ── Semantic color roles (dark resolved) ── */
+      --color-background:   var(--surface-bg-dark);
+      --color-panel:        var(--surface-panel-dark);
+      --color-page:         var(--surface-page-dark);
+      --color-elevated:     var(--surface-elevated-dark);
+
+      --color-foreground:       var(--ink-50);
+      --color-muted-foreground: var(--ink-100);
+      --color-meta-foreground:  var(--ink-200);
+      --color-text-disabled:    var(--ink-500);
+
+      --color-muted:     var(--surface-muted-dark);
+      --color-secondary: var(--surface-secondary-dark);
+
+      --color-border:        rgba(255 255 255 / .08);
+      --color-border-strong: rgba(255 255 255 / .18);
+
+      --color-primary:            var(--teal-400);
+      --color-primary-foreground: #06201C;
+      --color-primary-hover:      var(--teal-500);
+
+      --color-brand:            var(--gold);
+      --color-brand-foreground: var(--ink-900);
+
+      --color-state-scored:        var(--scored-400);
+      --color-state-scored-subtle: rgba(53 196 107 / .12);
+      --color-state-running:       var(--running-400);
+      --color-state-errored:       var(--errored-400);
+      --color-state-warning:       var(--warning-400);
+      --color-state-warning-subtle: rgba(229 165 46 / .10);
+
+      --color-chart-1: var(--teal-400);
+      --color-chart-2: #FFB454;
+      --color-chart-3: #F46EB0;
+      --color-chart-4: #9D8CFF;
+      --color-chart-5: #8DDB4A;
+
+      /* ── Typography ── */
+      --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+      --mono: "SF Mono", "Fira Code", "Cascadia Code", Consolas, monospace;
+
+      /* ── Sidebar specifics (verbatim from overview.html peer) ── */
+      --sidebar-bg:     #0f1117;
+      --sidebar-border: #1e2230;
+      --accent:         var(--teal-400);
+      --accent-subtle:  rgba(43,224,200,0.09);
+      --muted-fg:       var(--ink-200);
+      --default-fg:     var(--ink-50);
+      --brand-mark:     var(--gold);
+    }
+
+    html, body {
+      height: 100%;
+      font-family: var(--sans);
+      font-size: 13px;
+      background: var(--color-page);
+      color: var(--color-foreground);
+      line-height: 1.5;
+    }
+
+    /* ══════════════════════════════════════════════
+       APP SHELL OUTER CHROME — verbatim from overview.html
+    ══════════════════════════════════════════════ */
+    .shell-layout {
+      display: flex;
+      height: 100vh;
+      min-height: 600px;
+    }
+
+    /* ── Sidebar ── */
+    .sidebar {
+      background: var(--sidebar-bg);
+      border-right: 1px solid var(--sidebar-border);
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      width: 220px;
+      height: 100%;
+      overflow-y: auto;
+      overflow-x: hidden;
+    }
+
+    .brand-slot {
+      display: flex; align-items: center; gap: 8px;
+      padding: 14px 16px 12px;
+      border-bottom: 1px solid var(--sidebar-border);
+      flex-shrink: 0;
+    }
+    .brand-mark {
+      width: 20px; height: 20px;
+      background: rgba(247,183,23,0.15); border-radius: 4px;
+      flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .brand-wordmark { font-size: 14px; font-weight: 700; color: var(--default-fg); letter-spacing: -0.02em; }
+
+    .group-label {
+      font-size: 10px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--muted-fg); padding: 0 16px; margin-top: 20px; margin-bottom: 4px;
+    }
+    .nav-item {
+      display: flex; align-items: center; gap: 8px; padding: 5px 12px;
+      font-size: 13px; color: var(--muted-fg); cursor: pointer;
+      position: relative; border-radius: 4px; margin: 1px 4px;
+      text-decoration: none;
+    }
+    .nav-item:hover { background: rgba(255,255,255,0.04); color: var(--default-fg); }
+    .nav-item.selected { color: var(--accent); background: var(--accent-subtle); }
+    .nav-item.selected::before {
+      content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 2px;
+      background: var(--accent); border-radius: 0 2px 2px 0;
+    }
+    .nav-item-icon { width: 16px; height: 16px; flex-shrink: 0; color: inherit; opacity: 0.8; }
+    .nav-item.selected .nav-item-icon { opacity: 1; }
+    .nav-item-label { flex: 1; white-space: nowrap; }
+    .nav-item-count { font-size: 11px; color: var(--muted-fg); margin-left: auto; font-variant-numeric: tabular-nums; }
+    .nav-item-ext { font-size: 10px; color: var(--muted-fg); margin-left: auto; }
+    .spacer { flex: 1; }
+
+    /* Credits widget */
+    .credits-widget {
+      margin: 0 8px 4px; padding: 8px 10px;
+      border-radius: 6px; border: 1px solid var(--sidebar-border); cursor: pointer;
+    }
+    .credits-widget:hover { background: var(--accent-subtle); }
+    .credits-label { font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted-fg); }
+    .credits-numbers { display: flex; justify-content: flex-end; align-items: baseline; gap: 2px; margin: 2px 0; }
+    .credits-current { font-size: 13px; font-variant-numeric: tabular-nums; color: var(--default-fg); font-family: var(--mono); }
+    .credits-cap { font-size: 11px; font-variant-numeric: tabular-nums; color: var(--muted-fg); font-family: var(--mono); }
+    .credits-bar-bg { height: 3px; background: rgba(255,255,255,0.08); border-radius: 2px; overflow: hidden; margin: 4px 0; }
+    .credits-bar-fill { height: 100%; background: var(--accent); border-radius: 2px; }
+    .credits-meta { display: flex; justify-content: space-between; font-size: 10px; color: var(--muted-fg); margin-top: 2px; }
+
+    /* User chip */
+    .user-chip {
+      display: flex; align-items: center; gap: 8px;
+      padding: 8px 10px; margin: 4px 6px 6px;
+      border-radius: 6px; border: 1px solid var(--sidebar-border);
+      cursor: pointer; flex-shrink: 0;
+    }
+    .user-chip:hover { background: rgba(255,255,255,0.04); }
+    .avatar {
+      width: 28px; height: 28px; border-radius: 50%;
+      background: var(--color-elevated); border: 1px solid var(--sidebar-border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 600; color: var(--default-fg); flex-shrink: 0;
+    }
+    .user-info { flex: 1; overflow: hidden; min-width: 0; }
+    .user-name { font-size: 12px; font-weight: 500; color: var(--default-fg); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .user-meta { font-size: 10px; color: var(--muted-fg); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .switcher-icon { color: var(--muted-fg); flex-shrink: 0; }
+
+    /* ── Main scroll region ── */
+    .main-region {
+      flex: 1;
+      overflow-y: auto;
+      background: var(--color-background);
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ══════════════════════════════════════════════
+       STICKY HEADER STACK — verbatim from overview.html
+    ══════════════════════════════════════════════ */
+    .td-sticky-stack {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: var(--color-background);
+      border-bottom: 1px solid var(--color-border);
+    }
+
+    /* ── Page header ── */
+    .td-page-header {
+      padding: 16px 28px 0;
+    }
+
+    /* Breadcrumb */
+    .td-breadcrumb {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 12px; color: var(--color-meta-foreground);
+      margin-bottom: 10px;
+    }
+    .td-breadcrumb-link {
+      color: var(--color-muted-foreground); text-decoration: none; cursor: pointer;
+      display: flex; align-items: center; gap: 4px;
+    }
+    .td-breadcrumb-link:hover { color: var(--color-foreground); text-decoration: underline; }
+    .td-breadcrumb-sep { color: var(--color-meta-foreground); }
+    .td-breadcrumb-current { color: var(--color-muted-foreground); }
+
+    /* Title row */
+    .td-header-row {
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
+      margin-bottom: 8px;
+    }
+    .td-title-group {
+      display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+      flex: 1; min-width: 0;
+    }
+    .td-taskset-name {
+      font-size: 20px; font-weight: 600; letter-spacing: -0.02em;
+      color: var(--color-foreground); line-height: 1.2;
+    }
+    .td-visibility-pill {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-size: 11px; font-weight: 500;
+      border-radius: 10px; padding: 2px 8px;
+      white-space: nowrap; flex-shrink: 0;
+      color: var(--color-muted-foreground);
+      background: rgba(255,255,255,.07);
+      border: 1px solid var(--color-border-strong);
+    }
+    .td-star-btn {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-size: 12px; color: var(--color-muted-foreground);
+      background: transparent; border: none; cursor: pointer;
+      padding: 2px 6px; border-radius: 4px;
+      flex-shrink: 0;
+    }
+    .td-star-btn:hover { color: var(--color-foreground); background: rgba(255,255,255,.06); }
+    .td-star-count { font-variant-numeric: tabular-nums; }
+
+    /* Right-slot CTAs */
+    .td-header-actions {
+      display: flex; align-items: center; gap: 8px;
+      flex-shrink: 0;
+    }
+    .td-btn-secondary {
+      display: inline-flex; align-items: center; gap: 5px;
+      font-size: 12.5px; font-weight: 500;
+      padding: 6px 13px; border-radius: 5px; cursor: pointer;
+      background: transparent;
+      color: var(--color-muted-foreground);
+      border: 1px solid var(--color-border-strong);
+      white-space: nowrap;
+    }
+    .td-btn-secondary:hover {
+      color: var(--color-foreground);
+      border-color: rgba(255,255,255,.30);
+      background: rgba(255,255,255,.04);
+    }
+    .td-btn-primary {
+      display: inline-flex; align-items: center; gap: 5px;
+      font-size: 12.5px; font-weight: 500;
+      padding: 6px 13px; border-radius: 5px; cursor: pointer;
+      background: var(--color-primary);
+      color: var(--color-primary-foreground);
+      border: 1px solid transparent;
+      white-space: nowrap;
+    }
+    .td-btn-primary:hover { background: var(--color-primary-hover); }
+    .td-overflow-btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 30px; height: 30px;
+      background: transparent; border: 1px solid var(--color-border-strong);
+      border-radius: 5px; cursor: pointer; color: var(--color-muted-foreground);
+    }
+    .td-overflow-btn:hover { color: var(--color-foreground); background: rgba(255,255,255,.04); }
+
+    /* Descriptor strip */
+    .td-descriptor-strip {
+      display: flex; align-items: center; gap: 0; flex-wrap: wrap;
+      font-size: 12px; color: var(--color-meta-foreground);
+      padding-bottom: 10px;
+    }
+    .td-strip-field { display: flex; align-items: center; gap: 4px; }
+    .td-strip-sep { color: var(--color-meta-foreground); margin: 0 8px; opacity: 0.6; }
+    .td-strip-slug {
+      font-family: var(--mono); font-size: 11.5px; color: var(--color-muted-foreground);
+    }
+    .td-copy-btn {
+      background: transparent; border: none; cursor: pointer;
+      color: var(--color-meta-foreground); font-size: 11px; padding: 1px 4px;
+      border-radius: 2px; display: inline-flex; align-items: center;
+    }
+    .td-copy-btn:hover { color: var(--color-muted-foreground); background: rgba(255,255,255,.06); }
+
+    /* ── Tab bar — verbatim from overview.html ── */
+    .td-tab-bar {
+      display: flex; align-items: flex-end;
+      padding: 0 28px;
+    }
+    .td-tab {
+      padding: 8px 14px; font-size: 12.5px; color: var(--color-meta-foreground);
+      cursor: pointer; border-bottom: 2px solid transparent;
+      margin-bottom: -1px; display: flex; align-items: center; gap: 6px;
+      background: none; border-top: none; border-left: none; border-right: none;
+      font-family: var(--sans);
+    }
+    .td-tab:hover { color: var(--color-muted-foreground); }
+    .td-tab.active { color: var(--color-foreground); border-bottom-color: var(--color-primary); }
+    .td-tab-count {
+      font-size: 10.5px; color: var(--color-meta-foreground);
+      background: rgba(255,255,255,.06); padding: 1px 5px; border-radius: 10px;
+      font-variant-numeric: tabular-nums;
+    }
+    .td-tab.active .td-tab-count { color: var(--color-muted-foreground); }
+
+    /* ══════════════════════════════════════════════
+       TASKS TAB CONTENT
+    ══════════════════════════════════════════════ */
+
+    /* Sticky filter row — pins just below the sticky header stack */
+    .tasks-filter-row {
+      position: sticky;
+      top: 0; /* will be pushed down by the sticky stack naturally */
+      z-index: 9;
+      background: var(--color-background);
+      border-bottom: 1px solid var(--color-border);
+      padding: 10px 28px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    /* Search input */
+    .tasks-search {
+      display: flex; align-items: center; gap: 6px;
+      background: var(--color-panel);
+      border: 1px solid var(--color-border);
+      border-radius: 5px;
+      padding: 5px 10px;
+      min-width: 220px;
+      flex: 1;
+      max-width: 320px;
+    }
+    .tasks-search input {
+      background: transparent; border: none; outline: none;
+      font-size: 12px; color: var(--color-foreground);
+      font-family: var(--sans);
+      width: 100%;
+    }
+    .tasks-search input::placeholder { color: var(--color-meta-foreground); }
+
+    /* Filter chips */
+    .tasks-filter-chip {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-size: 12px; color: var(--color-muted-foreground);
+      background: var(--color-panel);
+      border: 1px solid var(--color-border);
+      border-radius: 5px;
+      padding: 5px 10px;
+      cursor: pointer; white-space: nowrap;
+    }
+    .tasks-filter-chip:hover {
+      border-color: var(--color-border-strong);
+      color: var(--color-foreground);
+      background: rgba(255,255,255,.04);
+    }
+    .tasks-filter-chip.active {
+      border-color: rgba(43,224,200,.30);
+      background: rgba(43,224,200,.06);
+      color: var(--color-primary);
+    }
+
+    /* Row count + sort — right side */
+    .tasks-filter-right {
+      display: flex; align-items: center; gap: 10px;
+      margin-left: auto;
+    }
+    .tasks-count-anchor {
+      font-size: 12px; color: var(--color-meta-foreground);
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+    .tasks-sort-btn {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-size: 12px; color: var(--color-muted-foreground);
+      background: transparent; border: 1px solid var(--color-border);
+      border-radius: 5px; padding: 5px 10px; cursor: pointer;
+      white-space: nowrap;
+    }
+    .tasks-sort-btn:hover { border-color: var(--color-border-strong); color: var(--color-foreground); }
+
+    /* ── Tasks table ── */
+    .tasks-table-wrap {
+      flex: 1;
+      overflow-x: auto;
+    }
+
+    .tasks-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12.5px;
+      min-width: 820px;
+    }
+
+    /* Table header */
+    .tasks-table thead th {
+      text-align: left;
+      font-size: 10.5px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.06em;
+      color: var(--color-meta-foreground);
+      padding: 0 10px 8px;
+      border-bottom: 1px solid var(--color-border-strong);
+      white-space: nowrap;
+      position: sticky;
+      top: 0;
+      background: var(--color-background);
+    }
+    .tasks-table thead th.col-num { text-align: right; }
+    .tasks-table thead th.col-idx { width: 36px; padding-left: 28px; }
+    .tasks-table thead th.col-task { min-width: 240px; }
+    .tasks-table thead th.col-progress { width: 100px; }
+    .tasks-table thead th.col-reward { width: 110px; text-align: right; }
+    .tasks-table thead th.col-dist { width: 90px; }
+    .tasks-table thead th.col-runs { width: 60px; text-align: right; }
+    .tasks-table thead th.col-updated { width: 100px; }
+
+    /* Sortable header */
+    .tasks-th-sort {
+      display: inline-flex; align-items: center; gap: 3px; cursor: pointer;
+    }
+    .tasks-th-sort:hover { color: var(--color-muted-foreground); }
+
+    /* Table body rows */
+    .tasks-table tbody tr {
+      border-bottom: 1px solid var(--color-border);
+      cursor: pointer;
+    }
+    .tasks-table tbody tr:hover { background: rgba(255,255,255,.025); }
+    .tasks-table tbody td {
+      padding: 9px 10px;
+      vertical-align: middle;
+    }
+    .tasks-table tbody td.col-idx { padding-left: 28px; }
+
+    /* Row index */
+    .task-row-idx {
+      font-size: 11px; color: var(--color-meta-foreground);
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* Two-line Task cell */
+    .task-cell { display: flex; flex-direction: column; gap: 3px; }
+
+    .task-id-pill {
+      display: inline-flex; align-items: center; gap: 0;
+      font-family: var(--mono); font-size: 11.5px; font-weight: 500;
+      background: rgba(155,140,255,.12);
+      border: 1px solid rgba(155,140,255,.25);
+      border-radius: 4px;
+      padding: 1px 0;
+      align-self: flex-start;
+      color: #c4baff;
+      overflow: hidden;
+      max-width: 100%;
+    }
+    .task-id-arg {
+      padding: 0 6px;
+    }
+    .task-id-sep {
+      color: rgba(196,186,255,.4);
+      padding: 0 2px;
+      font-size: 10px;
+    }
+    .task-id-variant {
+      padding: 0 6px;
+      color: rgba(196,186,255,.65);
+      border-left: 1px solid rgba(155,140,255,.20);
+    }
+
+    .task-id-pill-link {
+      text-decoration: none;
+      color: inherit;
+      display: flex; align-items: center; gap: 0;
+    }
+    .task-id-pill-link:hover .task-id-arg { text-decoration: underline; }
+
+    .task-scenario-name {
+      font-size: 11px; color: var(--color-meta-foreground);
+      text-decoration: none;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      max-width: 280px;
+    }
+    .task-scenario-name:hover { color: var(--color-primary); text-decoration: underline; }
+
+    /* Progress dots */
+    .progress-dots {
+      display: flex; align-items: center; gap: 0;
+    }
+    .progress-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .progress-dot.filled {
+      background: var(--color-state-scored);
+    }
+    .progress-dot.empty {
+      background: transparent;
+      border: 1.5px solid var(--color-border-strong);
+    }
+    .progress-connector {
+      width: 12px; height: 1.5px;
+      background: var(--color-border-strong);
+      flex-shrink: 0;
+    }
+    .progress-connector.filled {
+      background: var(--color-state-scored);
+    }
+
+    /* Reward cell */
+    .reward-cell {
+      display: flex; flex-direction: column; align-items: flex-end; gap: 4px;
+    }
+    .reward-value {
+      font-family: var(--mono); font-size: 12px;
+      color: var(--color-foreground);
+      font-variant-numeric: tabular-nums;
+    }
+    .reward-value.high { color: var(--color-state-scored); }
+    .reward-value.mid  { color: var(--color-state-warning); }
+    .reward-value.low  { color: var(--color-state-errored); }
+    .reward-value.none { color: var(--color-meta-foreground); }
+
+    .reward-minibar-bg {
+      width: 64px; height: 3px; border-radius: 2px;
+      background: rgba(255,255,255,.07);
+      overflow: hidden;
+    }
+    .reward-minibar-fill {
+      height: 100%; border-radius: 2px;
+      background: var(--color-state-scored);
+    }
+    .reward-minibar-fill.mid  { background: var(--color-state-warning); }
+    .reward-minibar-fill.low  { background: var(--color-state-errored); }
+
+    /* Dist mini-bar (stacked Pass/Partial/Fail) */
+    .dist-bar {
+      display: flex; height: 6px; border-radius: 3px; overflow: hidden;
+      width: 64px; min-width: 64px; gap: 1px;
+    }
+    .dist-pass    { background: var(--color-state-scored); }
+    .dist-partial { background: var(--color-state-warning); }
+    .dist-fail    { background: var(--color-state-errored); }
+
+    /* Runs cell */
+    .runs-cell {
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--color-muted-foreground);
+    }
+
+    /* Updated cell */
+    .updated-cell {
+      font-size: 11.5px;
+      color: var(--color-meta-foreground);
+      white-space: nowrap;
+    }
+
+    /* Dash cell */
+    .cell-dash {
+      color: var(--color-meta-foreground); opacity: 0.45;
+      font-family: var(--mono);
+    }
+
+    /* ── Exploration watermark ── */
+    .state-label {
+      font-size: 10px; font-weight: 600; text-transform: uppercase;
+      letter-spacing: .08em; color: var(--color-meta-foreground);
+      padding: 6px 28px;
+      background: rgba(229,165,46,.05);
+      border-bottom: 1px solid rgba(229,165,46,.12);
+    }
+  </style>
+</head>
+<body>
+
+<div class="shell-layout">
+
+  <!-- ══════════════════════════════════════════
+       APP-SHELL SIDEBAR (Tasksets selected)
+       Verbatim from overview.html
+  ══════════════════════════════════════════ -->
+  <aside class="sidebar" aria-label="Main navigation">
+    <div class="brand-slot">
+      <div class="brand-mark">
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+          <rect width="12" height="12" rx="2" fill="rgba(120,53,15,0.6)"/>
+          <path d="M2 9L6 3L10 9" stroke="#f7b717" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <span class="brand-wordmark">hud</span>
+    </div>
+
+    <div class="group-label">Workspace</div>
+
+    <a class="nav-item" href="#">
+      <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="2" y="2" width="5" height="5" rx="1"/><rect x="9" y="2" width="5" height="5" rx="1"/>
+        <rect x="2" y="9" width="5" height="5" rx="1"/><rect x="9" y="9" width="5" height="5" rx="1"/>
+      </svg>
+      <span class="nav-item-label">Home</span>
+    </a>
+
+    <a class="nav-item selected" aria-current="page" href="#">
+      <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M2 4h12M2 8h8M2 12h10"/><circle cx="13" cy="11" r="2.5"/>
+      </svg>
+      <span class="nav-item-label">Tasksets</span>
+      <span class="nav-item-count">127</span>
+    </a>
+
+    <a class="nav-item" href="#">
+      <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="2" y="2" width="12" height="5" rx="1.5"/>
+        <rect x="2" y="9" width="12" height="5" rx="1.5"/>
+        <circle cx="5" cy="4.5" r="0.8" fill="currentColor" stroke="none"/>
+        <circle cx="5" cy="11.5" r="0.8" fill="currentColor" stroke="none"/>
+        <path d="M8 4.5h4M8 11.5h4"/>
+      </svg>
+      <span class="nav-item-label">Environments</span>
+      <span class="nav-item-count">42</span>
+    </a>
+
+    <a class="nav-item" href="#">
+      <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="8" cy="8" r="3"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2M3.22 3.22l1.42 1.42M11.36 11.36l1.42 1.42M3.22 12.78l1.42-1.42M11.36 4.64l1.42-1.42"/>
+      </svg>
+      <span class="nav-item-label">Models</span>
+      <span class="nav-item-count">27</span>
+    </a>
+
+    <a class="nav-item" href="#">
+      <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="8" cy="5" r="2.5"/><path d="M3 14c0-2.76 2.24-5 5-5s5 2.24 5 5"/>
+      </svg>
+      <span class="nav-item-label">Agents</span>
+      <span class="nav-item-count">4</span>
+    </a>
+
+    <a class="nav-item" href="#">
+      <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4 2h8a1 1 0 011 1v10a1 1 0 01-1 1H4a1 1 0 01-1-1V3a1 1 0 011-1z"/><path d="M6 6h4M6 9h4M6 12h2"/>
+      </svg>
+      <span class="nav-item-label">Library</span>
+    </a>
+
+    <div class="group-label">Observe</div>
+
+    <a class="nav-item" href="#">
+      <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="2" y="8" width="3" height="5" rx="0.5"/><rect x="6.5" y="5" width="3" height="8" rx="0.5"/>
+        <rect x="11" y="2" width="3" height="11" rx="0.5"/>
+      </svg>
+      <span class="nav-item-label">Dashboard</span>
+    </a>
+
+    <a class="nav-item" href="#">
+      <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="8" cy="8" r="6"/><path d="M8 4v4l3 1.5"/>
+      </svg>
+      <span class="nav-item-label">Progress</span>
+    </a>
+
+    <div class="spacer"></div>
+
+    <!-- Credits widget -->
+    <div class="credits-widget" title="View usage details">
+      <div class="credits-label">credits</div>
+      <div class="credits-numbers">
+        <span class="credits-current">4,230</span>
+        <span class="credits-cap">&nbsp;/ 10,000</span>
+      </div>
+      <div class="credits-bar-bg"><div class="credits-bar-fill" style="width:42.3%"></div></div>
+      <div class="credits-meta"><span>~92 cr/hr</span><span>~38h left</span></div>
+    </div>
+
+    <!-- External links -->
+    <div style="padding:2px 4px;">
+      <a class="nav-item" href="#" style="font-size:12px;">
+        <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M7 3H3a1 1 0 00-1 1v9a1 1 0 001 1h9a1 1 0 001-1V9"/><path d="M10 2h4v4M14 2L7 9"/>
+        </svg>
+        <span class="nav-item-label">Marketplace</span>
+        <span class="nav-item-ext">↗</span>
+      </a>
+      <a class="nav-item" href="#" style="font-size:12px;">
+        <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 2h8a1 1 0 011 1v10a1 1 0 01-1 1H4a1 1 0 01-1-1V3a1 1 0 011-1z"/><path d="M6 6h4M6 9h4"/>
+        </svg>
+        <span class="nav-item-label">Documentation</span>
+        <span class="nav-item-ext">↗</span>
+      </a>
+    </div>
+
+    <!-- User chip -->
+    <div class="user-chip">
+      <div class="avatar">A</div>
+      <div class="user-info">
+        <div class="user-name">Alex Kim</div>
+        <div class="user-meta">Princeton NLP · member</div>
+      </div>
+      <svg class="switcher-icon" width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 4.5L6 2 9 4.5M3 7.5L6 10 9 7.5"/>
+      </svg>
+    </div>
+  </aside>
+
+  <!-- ══════════════════════════════════════════
+       MAIN SCROLL REGION
+  ══════════════════════════════════════════ -->
+  <div class="main-region" id="main-content">
+
+    <!-- Exploration watermark -->
+    <div class="state-label">VARIANT B — Public (non-owner) · Tasks tab · Default state · Exploration mockup</div>
+
+    <!-- ─────────────────────────────────────
+         STICKY HEADER STACK
+         (verbatim chassis from overview.html)
+    ───────────────────────────────────── -->
+    <div class="td-sticky-stack">
+
+      <!-- PAGE HEADER -->
+      <div class="td-page-header">
+
+        <!-- Breadcrumb -->
+        <nav class="td-breadcrumb" aria-label="Breadcrumb">
+          <ol style="list-style:none;display:flex;align-items:center;gap:6px;padding:0;">
+            <li>
+              <a class="td-breadcrumb-link" href="#">
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M8 2L4 6l4 4"/>
+                </svg>
+                Tasksets
+              </a>
+            </li>
+            <li class="td-breadcrumb-sep">/</li>
+            <li>
+              <span class="td-breadcrumb-current">OSWorld-Verified</span>
+            </li>
+          </ol>
+        </nav>
+
+        <!-- Title row -->
+        <div class="td-header-row">
+          <div class="td-title-group">
+            <h1 class="td-taskset-name">OSWorld-Verified</h1>
+            <span class="td-visibility-pill" aria-label="Visibility: Public">
+              <svg width="10" height="10" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="8" cy="8" r="6"/><path d="M8 2c-2 2-3 4-3 6s1 4 3 6M8 2c2 2 3 4 3 6s-1 4-3 6M2 8h12"/>
+              </svg>
+              Public
+            </span>
+            <button class="td-star-btn" aria-label="Star OSWorld-Verified" aria-pressed="false" title="Star this Taskset">
+              <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M8 2l1.5 3.5H14l-3.5 2.5 1.5 4L8 10 4 12l1.5-4L2 5.5h4.5L8 2z"/>
+              </svg>
+              <span class="td-star-count">148</span>
+            </button>
+          </div>
+
+          <!-- Right-slot CTAs: Variant B — Fork + Run Taskset + Overflow -->
+          <div class="td-header-actions">
+            <button class="td-btn-secondary" aria-label="Fork OSWorld-Verified">
+              <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="5" cy="4" r="1.5"/>
+                <circle cx="11" cy="4" r="1.5"/>
+                <circle cx="8" cy="12" r="1.5"/>
+                <path d="M5 5.5v2.5c0 1.1.9 2 2 2h2c1.1 0 2-.9 2-2V5.5"/>
+                <path d="M8 8v2"/>
+              </svg>
+              Fork
+            </button>
+            <button class="td-btn-primary" aria-label="Run Taskset">
+              <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M5 3l8 5-8 5V3z" fill="currentColor" stroke="none"/>
+              </svg>
+              Run Taskset
+            </button>
+            <button class="td-overflow-btn" aria-label="More actions" title="More actions">
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="8" cy="3.5" r="1"/><circle cx="8" cy="8" r="1"/><circle cx="8" cy="12.5" r="1"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Descriptor strip -->
+        <dl class="td-descriptor-strip">
+          <div class="td-strip-field">
+            <dt style="display:none;">Tasks</dt>
+            <dd style="margin:0; color:var(--color-muted-foreground);">369 Tasks</dd>
+          </div>
+          <span class="td-strip-sep" aria-hidden="true">·</span>
+          <div class="td-strip-field">
+            <dt style="display:none;">Slug</dt>
+            <dd style="margin:0; display:flex; align-items:center; gap:3px;">
+              <span class="td-strip-slug">osworld-verified-0023</span>
+              <button class="td-copy-btn" aria-label="Copy Taskset slug osworld-verified-0023" title="Copy slug">
+                <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="5" y="5" width="8" height="9" rx="1.5"/><path d="M3 11V3a1 1 0 011-1h8"/>
+                </svg>
+              </button>
+            </dd>
+          </div>
+          <span class="td-strip-sep" aria-hidden="true">·</span>
+          <div class="td-strip-field">
+            <dt style="display:none;">Owned by</dt>
+            <dd style="margin:0; color:var(--color-meta-foreground);">Owned by: <a href="#" style="color:var(--color-muted-foreground);text-decoration:none;">HUD</a></dd>
+          </div>
+        </dl>
+
+      </div><!-- /td-page-header -->
+
+      <!-- TAB BAR — Variant B: 4 tabs, Tasks active -->
+      <div class="td-tab-bar" role="tablist" aria-label="Taskset detail tabs">
+        <button class="td-tab" role="tab" aria-selected="false" aria-controls="tab-overview" id="tab-overview-btn" tabindex="-1">
+          Overview
+        </button>
+        <button class="td-tab active" role="tab" aria-selected="true" aria-controls="tab-tasks" id="tab-tasks-btn" aria-label="Tasks, 369">
+          Tasks
+          <span class="td-tab-count" aria-hidden="true">369</span>
+        </button>
+        <button class="td-tab" role="tab" aria-selected="false" aria-controls="tab-jobs" id="tab-jobs-btn" aria-label="Jobs, 38" tabindex="-1">
+          Jobs
+          <span class="td-tab-count" aria-hidden="true">38</span>
+        </button>
+        <button class="td-tab" role="tab" aria-selected="false" aria-controls="tab-performance" id="tab-perf-btn" tabindex="-1">
+          Performance
+        </button>
+      </div>
+
+    </div><!-- /td-sticky-stack -->
+
+    <!-- ─────────────────────────────────────
+         TASKS TAB CONTENT
+         role="tabpanel" with accessible label
+    ───────────────────────────────────── -->
+    <div role="tabpanel" id="tab-tasks" aria-labelledby="tab-tasks-btn" style="flex:1;display:flex;flex-direction:column;">
+      <span style="position:absolute;width:1px;height:1px;clip:rect(0,0,0,0);overflow:hidden;" aria-live="polite"></span>
+
+      <!-- FILTER ROW
+           Variant B: no bulk-action bar (non-owner has no bulk select)
+           Chips: Scenario, Progress, Reward (QA Status omitted — owner-only workflow)
+      -->
+      <div class="tasks-filter-row" role="search" aria-label="Filter Tasks">
+
+        <!-- Search -->
+        <div class="tasks-search">
+          <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--color-meta-foreground);flex-shrink:0;">
+            <circle cx="7" cy="7" r="4.5"/><path d="M11 11l3 3"/>
+          </svg>
+          <input type="search" placeholder="Search Task ID or Scenario…" aria-label="Search Task ID or Scenario" />
+        </div>
+
+        <!-- Scenario filter chip -->
+        <button class="tasks-filter-chip" aria-label="Filter by Scenario" aria-haspopup="listbox">
+          Scenario
+          <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" style="color:var(--color-meta-foreground);">
+            <path d="M2 4l3 3 3-3"/>
+          </svg>
+        </button>
+
+        <!-- Progress filter chip -->
+        <button class="tasks-filter-chip" aria-label="Filter by Progress" aria-haspopup="listbox">
+          Progress
+          <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" style="color:var(--color-meta-foreground);">
+            <path d="M2 4l3 3 3-3"/>
+          </svg>
+        </button>
+
+        <!-- Reward range chip -->
+        <button class="tasks-filter-chip" aria-label="Filter by Reward range" aria-haspopup="dialog">
+          Reward
+          <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" style="color:var(--color-meta-foreground);">
+            <path d="M2 4l3 3 3-3"/>
+          </svg>
+        </button>
+
+        <!-- Right: count anchor + sort -->
+        <div class="tasks-filter-right">
+          <span class="tasks-count-anchor" aria-live="polite" aria-atomic="true">369 Tasks</span>
+          <button class="tasks-sort-btn" aria-label="Sort: Reward descending" aria-haspopup="listbox">
+            Sort: Reward
+            <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" style="color:var(--color-meta-foreground);">
+              <path d="M5 7V3M3 5l2 2 2-2"/>
+            </svg>
+          </button>
+        </div>
+
+      </div><!-- /tasks-filter-row -->
+
+      <!-- TASK TABLE
+           Variant B: no checkbox column, no row hover menu
+           Columns: # · Task (two-line) · Progress · Reward · Dist · Runs · Updated
+           Sorted: Reward descending (default)
+      -->
+      <div class="tasks-table-wrap">
+        <table class="tasks-table" role="grid" aria-label="Tasks sorted by Reward descending" aria-rowcount="369">
+          <thead>
+            <tr>
+              <!-- No bulk-select column — Variant B -->
+              <th class="col-idx" scope="col" aria-label="Row index">#</th>
+              <th class="col-task" scope="col">Task</th>
+              <th class="col-progress" scope="col">Progress</th>
+              <th class="col-reward col-num" scope="col" aria-sort="descending">
+                <span class="tasks-th-sort" role="button" tabindex="0" aria-label="Sort by Reward">
+                  Reward
+                  <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+                    <path d="M5 7V3M3 5l2 2 2-2"/>
+                  </svg>
+                </span>
+              </th>
+              <th class="col-dist" scope="col">
+                <span title="Pass ≥0.75 · Partial 0.25–0.74 · Fail &lt;0.25">Dist</span>
+              </th>
+              <th class="col-runs col-num" scope="col">Runs</th>
+              <th class="col-updated" scope="col">Updated</th>
+            </tr>
+          </thead>
+          <tbody>
+
+            <!-- Row 1: nav-2048 | 1 — high reward -->
+            <tr aria-rowindex="1">
+              <td class="col-idx"><span class="task-row-idx">1</span></td>
+              <td>
+                <div class="task-cell">
+                  <a class="task-id-pill-link" href="#" aria-label="Task nav-2048, variant 1 — Scenario browser:2048-near-win">
+                    <span class="task-id-pill">
+                      <span class="task-id-arg">nav-2048</span>
+                      <span class="task-id-sep">|</span>
+                      <span class="task-id-variant">1</span>
+                    </span>
+                  </a>
+                  <a class="task-scenario-name" href="#" aria-label="Scenario: browser:2048-near-win">browser:2048-near-win</a>
+                </div>
+              </td>
+              <td>
+                <div class="progress-dots" aria-label="Progress: 2 of 3 steps complete">
+                  <span class="progress-dot filled" title="Golden sequence"></span>
+                  <span class="progress-connector filled"></span>
+                  <span class="progress-dot filled" title="K runs"></span>
+                  <span class="progress-connector"></span>
+                  <span class="progress-dot empty" title="Verified"></span>
+                </div>
+              </td>
+              <td>
+                <div class="reward-cell">
+                  <span class="reward-value high" aria-label="Reward 0.9412">0.9412</span>
+                  <div class="reward-minibar-bg" aria-hidden="true">
+                    <div class="reward-minibar-fill" style="width:94.12%"></div>
+                  </div>
+                </div>
+              </td>
+              <td aria-label="Distribution: Pass 8, Partial 1, Fail 1">
+                <div class="dist-bar" aria-hidden="true">
+                  <div class="dist-pass" style="flex:8"></div>
+                  <div class="dist-partial" style="flex:1"></div>
+                  <div class="dist-fail" style="flex:1"></div>
+                </div>
+              </td>
+              <td class="runs-cell" aria-label="10 Runs">10</td>
+              <td class="updated-cell" title="2026-05-16">24d ago</td>
+            </tr>
+
+            <!-- Row 2: nav-2048 | 2 -->
+            <tr aria-rowindex="2">
+              <td class="col-idx"><span class="task-row-idx">2</span></td>
+              <td>
+                <div class="task-cell">
+                  <a class="task-id-pill-link" href="#" aria-label="Task nav-2048, variant 2 — Scenario browser:2048-near-win">
+                    <span class="task-id-pill">
+                      <span class="task-id-arg">nav-2048</span>
+                      <span class="task-id-sep">|</span>
+                      <span class="task-id-variant">2</span>
+                    </span>
+                  </a>
+                  <a class="task-scenario-name" href="#" aria-label="Scenario: browser:2048-near-win">browser:2048-near-win</a>
+                </div>
+              </td>
+              <td>
+                <div class="progress-dots" aria-label="Progress: 3 of 3 steps complete">
+                  <span class="progress-dot filled" title="Golden sequence"></span>
+                  <span class="progress-connector filled"></span>
+                  <span class="progress-dot filled" title="K runs"></span>
+                  <span class="progress-connector filled"></span>
+                  <span class="progress-dot filled" title="Verified"></span>
+                </div>
+              </td>
+              <td>
+                <div class="reward-cell">
+                  <span class="reward-value high" aria-label="Reward 0.8667">0.8667</span>
+                  <div class="reward-minibar-bg" aria-hidden="true">
+                    <div class="reward-minibar-fill" style="width:86.67%"></div>
+                  </div>
+                </div>
+              </td>
+              <td aria-label="Distribution: Pass 7, Partial 2, Fail 1">
+                <div class="dist-bar" aria-hidden="true">
+                  <div class="dist-pass" style="flex:7"></div>
+                  <div class="dist-partial" style="flex:2"></div>
+                  <div class="dist-fail" style="flex:1"></div>
+                </div>
+              </td>
+              <td class="runs-cell" aria-label="10 Runs">10</td>
+              <td class="updated-cell" title="2026-05-16">24d ago</td>
+            </tr>
+
+            <!-- Row 3: form-checkout | 1 — mid reward -->
+            <tr aria-rowindex="3">
+              <td class="col-idx"><span class="task-row-idx">3</span></td>
+              <td>
+                <div class="task-cell">
+                  <a class="task-id-pill-link" href="#" aria-label="Task form-checkout, variant 1 — Scenario browser:form-submit-checkout">
+                    <span class="task-id-pill">
+                      <span class="task-id-arg">form-checkout</span>
+                      <span class="task-id-sep">|</span>
+                      <span class="task-id-variant">1</span>
+                    </span>
+                  </a>
+                  <a class="task-scenario-name" href="#" aria-label="Scenario: browser:form-submit-checkout">browser:form-submit-checkout</a>
+                </div>
+              </td>
+              <td>
+                <div class="progress-dots" aria-label="Progress: 3 of 3 steps complete">
+                  <span class="progress-dot filled" title="Golden sequence"></span>
+                  <span class="progress-connector filled"></span>
+                  <span class="progress-dot filled" title="K runs"></span>
+                  <span class="progress-connector filled"></span>
+                  <span class="progress-dot filled" title="Verified"></span>
+                </div>
+              </td>
+              <td>
+                <div class="reward-cell">
+                  <span class="reward-value high" aria-label="Reward 0.8333">0.8333</span>
+                  <div class="reward-minibar-bg" aria-hidden="true">
+                    <div class="reward-minibar-fill" style="width:83.33%"></div>
+                  </div>
+                </div>
+              </td>
+              <td aria-label="Distribution: Pass 6, Partial 3, Fail 1">
+                <div class="dist-bar" aria-hidden="true">
+                  <div class="dist-pass" style="flex:6"></div>
+                  <div class="dist-partial" style="flex:3"></div>
+                  <div class="dist-fail" style="flex:1"></div>
+                </div>
+              </td>
+              <td class="runs-cell" aria-label="10 Runs">10</td>
+              <td class="updated-cell" title="2026-05-30">7d ago</td>
+            </tr>
+
+            <!-- Row 4: nav-search | 1 -->
+            <tr aria-rowindex="4">
+              <td class="col-idx"><span class="task-row-idx">4</span></td>
+              <td>
+                <div class="task-cell">
+                  <a class="task-id-pill-link" href="#" aria-label="Task nav-search, variant 1 — Scenario browser:web-search-navigate">
+                    <span class="task-id-pill">
+                      <span class="task-id-arg">nav-search</span>
+                      <span class="task-id-sep">|</span>
+                      <span class="task-id-variant">1</span>
+                    </span>
+                  </a>
+                  <a class="task-scenario-name" href="#" aria-label="Scenario: browser:web-search-navigate">browser:web-search-navigate</a>
+                </div>
+              </td>
+              <td>
+                <div class="progress-dots" aria-label="Progress: 3 of 3 steps complete">
+                  <span class="progress-dot filled" title="Golden sequence"></span>
+                  <span class="progress-connector filled"></span>
+                  <span class="progress-dot filled" title="K runs"></span>
+                  <span class="progress-connector filled"></span>
+                  <span class="progress-dot filled" title="Verified"></span>
+                </div>
+              </td>
+              <td>
+                <div class="reward-cell">
+                  <span class="reward-value mid" aria-label="Reward 0.7143">0.7143</span>
+                  <div class="reward-minibar-bg" aria-hidden="true">
+                    <div class="reward-minibar-fill mid" style="width:71.43%"></div>
+                  </div>
+                </div>
+              </td>
+              <td aria-label="Distribution: Pass 5, Partial 2, Fail 3">
+                <div class="dist-bar" aria-hidden="true">
+                  <div class="dist-pass" style="flex:5"></div>
+                  <div class="dist-partial" style="flex:2"></div>
+                  <div class="dist-fail" style="flex:3"></div>
+                </div>
+              </td>
+              <td class="runs-cell" aria-label="7 Runs">7</td>
+              <td class="updated-cell" title="2026-05-28">9d ago</td>
+            </tr>
+
+            <!-- Row 5: todo-complete | 1 -->
+            <tr aria-rowindex="5">
+              <td class="col-idx"><span class="task-row-idx">5</span></td>
+              <td>
+                <div class="task-cell">
+                  <a class="task-id-pill-link" href="#" aria-label="Task todo-complete, variant 1 — Scenario browser:todo-list-complete">
+                    <span class="task-id-pill">
+                      <span class="task-id-arg">todo-complete</span>
+                      <span class="task-id-sep">|</span>
+                      <span class="task-id-variant">1</span>
+                    </span>
+                  </a>
+                  <a class="task-scenario-name" href="#" aria-label="Scenario: browser:todo-list-complete">browser:todo-list-complete</a>
+                </div>
+              </td>
+              <td>
+                <div class="progress-dots" aria-label="Progress: 2 of 3 steps complete">
+                  <span class="progress-dot filled" title="Golden sequence"></span>
+                  <span class="progress-connector filled"></span>
+                  <span class="progress-dot filled" title="K runs"></span>
+                  <span class="progress-connector"></span>
+                  <span class="progress-dot empty" title="Verified"></span>
+                </div>
+              </td>
+              <td>
+                <div class="reward-cell">
+                  <span class="reward-value mid" aria-label="Reward 0.6700">0.6700</span>
+                  <div class="reward-minibar-bg" aria-hidden="true">
+                    <div class="reward-minibar-fill mid" style="width:67%"></div>
+                  </div>
+                </div>
+              </td>
+              <td aria-label="Distribution: Pass 4, Partial 2, Fail 4">
+                <div class="dist-bar" aria-hidden="true">
+                  <div class="dist-pass" style="flex:4"></div>
+                  <div class="dist-partial" style="flex:2"></div>
+                  <div class="dist-fail" style="flex:4"></div>
+                </div>
+              </td>
+              <td class="runs-cell" aria-label="2 Runs">2</td>
+              <td class="updated-cell" title="2026-05-30">7d ago</td>
+            </tr>
+
+            <!-- Row 6: file-upload | 1 -->
+            <tr aria-rowindex="6">
+              <td class="col-idx"><span class="task-row-idx">6</span></td>
+              <td>
+                <div class="task-cell">
+                  <a class="task-id-pill-link" href="#" aria-label="Task file-upload, variant 1 — Scenario browser:file-manager-upload">
+                    <span class="task-id-pill">
+                      <span class="task-id-arg">file-upload</span>
+                      <span class="task-id-sep">|</span>
+                      <span class="task-id-variant">1</span>
+                    </span>
+                  </a>
+                  <a class="task-scenario-name" href="#" aria-label="Scenario: browser:file-manager-upload">browser:file-manager-upload</a>
+                </div>
+              </td>
+              <td>
+                <div class="progress-dots" aria-label="Progress: 3 of 3 steps complete">
+                  <span class="progress-dot filled" title="Golden sequence"></span>
+                  <span class="progress-connector filled"></span>
+                  <span class="progress-dot filled" title="K runs"></span>
+                  <span class="progress-connector filled"></span>
+                  <span class="progress-dot filled" title="Verified"></span>
+                </div>
+              </td>
+              <td>
+                <div class="reward-cell">
+                  <span class="reward-value mid" aria-label="Reward 0.5833">0.5833</span>
+                  <div class="reward-minibar-bg" aria-hidden="true">
+                    <div class="reward-minibar-fill mid" style="width:58.33%"></div>
+                  </div>
+                </div>
+              </td>
+              <td aria-label="Distribution: Pass 3, Partial 4, Fail 3">
+                <div class="dist-bar" aria-hidden="true">
+                  <div class="dist-pass" style="flex:3"></div>
+                  <div class="dist-partial" style="flex:4"></div>
+                  <div class="dist-fail" style="flex:3"></div>
+                </div>
+              </td>
+              <td class="runs-cell" aria-label="12 Runs">12</td>
+              <td class="updated-cell" title="2026-05-22">15d ago</td>
+            </tr>
+
+            <!-- Row 7: drag-sort | 1 — low reward -->
+            <tr aria-rowindex="7">
+              <td class="col-idx"><span class="task-row-idx">7</span></td>
+              <td>
+                <div class="task-cell">
+                  <a class="task-id-pill-link" href="#" aria-label="Task drag-sort, variant 1 — Scenario browser:drag-drop-sort">
+                    <span class="task-id-pill">
+                      <span class="task-id-arg">drag-sort</span>
+                      <span class="task-id-sep">|</span>
+                      <span class="task-id-variant">1</span>
+                    </span>
+                  </a>
+                  <a class="task-scenario-name" href="#" aria-label="Scenario: browser:drag-drop-sort">browser:drag-drop-sort</a>
+                </div>
+              </td>
+              <td>
+                <div class="progress-dots" aria-label="Progress: 2 of 3 steps complete">
+                  <span class="progress-dot filled" title="Golden sequence"></span>
+                  <span class="progress-connector filled"></span>
+                  <span class="progress-dot filled" title="K runs"></span>
+                  <span class="progress-connector"></span>
+                  <span class="progress-dot empty" title="Verified"></span>
+                </div>
+              </td>
+              <td>
+                <div class="reward-cell">
+                  <span class="reward-value low" aria-label="Reward 0.3125">0.3125</span>
+                  <div class="reward-minibar-bg" aria-hidden="true">
+                    <div class="reward-minibar-fill low" style="width:31.25%"></div>
+                  </div>
+                </div>
+              </td>
+              <td aria-label="Distribution: Pass 2, Partial 2, Fail 4">
+                <div class="dist-bar" aria-hidden="true">
+                  <div class="dist-pass" style="flex:2"></div>
+                  <div class="dist-partial" style="flex:2"></div>
+                  <div class="dist-fail" style="flex:4"></div>
+                </div>
+              </td>
+              <td class="runs-cell" aria-label="8 Runs">8</td>
+              <td class="updated-cell" title="2026-05-19">18d ago</td>
+            </tr>
+
+            <!-- Row 8: modal-close | 1 -->
+            <tr aria-rowindex="8">
+              <td class="col-idx"><span class="task-row-idx">8</span></td>
+              <td>
+                <div class="task-cell">
+                  <a class="task-id-pill-link" href="#" aria-label="Task modal-close, variant 1 — Scenario browser:modal-dialog-close">
+                    <span class="task-id-pill">
+                      <span class="task-id-arg">modal-close</span>
+                      <span class="task-id-sep">|</span>
+                      <span class="task-id-variant">1</span>
+                    </span>
+                  </a>
+                  <a class="task-scenario-name" href="#" aria-label="Scenario: browser:modal-dialog-close">browser:modal-dialog-close</a>
+                </div>
+              </td>
+              <td>
+                <div class="progress-dots" aria-label="Progress: 3 of 3 steps complete">
+                  <span class="progress-dot filled" title="Golden sequence"></span>
+                  <span class="progress-connector filled"></span>
+                  <span class="progress-dot filled" title="K runs"></span>
+                  <span class="progress-connector filled"></span>
+                  <span class="progress-dot filled" title="Verified"></span>
+                </div>
+              </td>
+              <td>
+                <div class="reward-cell">
+                  <span class="reward-value low" aria-label="Reward 0.2500">0.2500</span>
+                  <div class="reward-minibar-bg" aria-hidden="true">
+                    <div class="reward-minibar-fill low" style="width:25%"></div>
+                  </div>
+                </div>
+              </td>
+              <td aria-label="Distribution: Pass 1, Partial 2, Fail 5">
+                <div class="dist-bar" aria-hidden="true">
+                  <div class="dist-pass" style="flex:1"></div>
+                  <div class="dist-partial" style="flex:2"></div>
+                  <div class="dist-fail" style="flex:5"></div>
+                </div>
+              </td>
+              <td class="runs-cell" aria-label="8 Runs">8</td>
+              <td class="updated-cell" title="2026-05-18">19d ago</td>
+            </tr>
+
+            <!-- Row 9: nav-calendar | 1 — very low reward (Alex would sort to bottom looking for failures) -->
+            <tr aria-rowindex="9">
+              <td class="col-idx"><span class="task-row-idx">9</span></td>
+              <td>
+                <div class="task-cell">
+                  <a class="task-id-pill-link" href="#" aria-label="Task nav-calendar, variant 1 — Scenario browser:calendar-event-create">
+                    <span class="task-id-pill">
+                      <span class="task-id-arg">nav-calendar</span>
+                      <span class="task-id-sep">|</span>
+                      <span class="task-id-variant">1</span>
+                    </span>
+                  </a>
+                  <a class="task-scenario-name" href="#" aria-label="Scenario: browser:calendar-event-create">browser:calendar-event-create</a>
+                </div>
+              </td>
+              <td>
+                <div class="progress-dots" aria-label="Progress: 1 of 3 steps complete">
+                  <span class="progress-dot filled" title="Golden sequence"></span>
+                  <span class="progress-connector"></span>
+                  <span class="progress-dot empty" title="K runs"></span>
+                  <span class="progress-connector"></span>
+                  <span class="progress-dot empty" title="Verified"></span>
+                </div>
+              </td>
+              <td>
+                <div class="reward-cell">
+                  <span class="reward-value low" aria-label="Reward 0.1667">0.1667</span>
+                  <div class="reward-minibar-bg" aria-hidden="true">
+                    <div class="reward-minibar-fill low" style="width:16.67%"></div>
+                  </div>
+                </div>
+              </td>
+              <td aria-label="Distribution: Pass 1, Partial 0, Fail 5">
+                <div class="dist-bar" aria-hidden="true">
+                  <div class="dist-pass" style="flex:1"></div>
+                  <div class="dist-fail" style="flex:5"></div>
+                </div>
+              </td>
+              <td class="runs-cell" aria-label="6 Runs">6</td>
+              <td class="updated-cell" title="2026-05-25">12d ago</td>
+            </tr>
+
+            <!-- Row 10: spreadsheet-sum | 1 — 0 runs yet -->
+            <tr aria-rowindex="10">
+              <td class="col-idx"><span class="task-row-idx">10</span></td>
+              <td>
+                <div class="task-cell">
+                  <a class="task-id-pill-link" href="#" aria-label="Task spreadsheet-sum, variant 1 — Scenario browser:spreadsheet-formula">
+                    <span class="task-id-pill">
+                      <span class="task-id-arg">spreadsheet-sum</span>
+                      <span class="task-id-sep">|</span>
+                      <span class="task-id-variant">1</span>
+                    </span>
+                  </a>
+                  <a class="task-scenario-name" href="#" aria-label="Scenario: browser:spreadsheet-formula">browser:spreadsheet-formula</a>
+                </div>
+              </td>
+              <td>
+                <div class="progress-dots" aria-label="Progress: 1 of 3 steps complete">
+                  <span class="progress-dot filled" title="Golden sequence"></span>
+                  <span class="progress-connector"></span>
+                  <span class="progress-dot empty" title="K runs"></span>
+                  <span class="progress-connector"></span>
+                  <span class="progress-dot empty" title="Verified"></span>
+                </div>
+              </td>
+              <td>
+                <div class="reward-cell">
+                  <span class="reward-value none cell-dash" aria-label="No Runs yet">—</span>
+                </div>
+              </td>
+              <td aria-label="No Runs yet">
+                <span class="cell-dash" style="font-family:var(--mono);">—</span>
+              </td>
+              <td class="runs-cell cell-dash" aria-label="No Runs yet" style="opacity:0.45;">0</td>
+              <td class="updated-cell" title="2026-06-01" style="color:var(--color-muted-foreground);">5d ago</td>
+            </tr>
+
+            <!-- Row 11: pdf-download | 1 -->
+            <tr aria-rowindex="11">
+              <td class="col-idx"><span class="task-row-idx">11</span></td>
+              <td>
+                <div class="task-cell">
+                  <a class="task-id-pill-link" href="#" aria-label="Task pdf-download, variant 1 — Scenario browser:file-download-verify">
+                    <span class="task-id-pill">
+                      <span class="task-id-arg">pdf-download</span>
+                      <span class="task-id-sep">|</span>
+                      <span class="task-id-variant">1</span>
+                    </span>
+                  </a>
+                  <a class="task-scenario-name" href="#" aria-label="Scenario: browser:file-download-verify">browser:file-download-verify</a>
+                </div>
+              </td>
+              <td>
+                <div class="progress-dots" aria-label="Progress: 3 of 3 steps complete">
+                  <span class="progress-dot filled" title="Golden sequence"></span>
+                  <span class="progress-connector filled"></span>
+                  <span class="progress-dot filled" title="K runs"></span>
+                  <span class="progress-connector filled"></span>
+                  <span class="progress-dot filled" title="Verified"></span>
+                </div>
+              </td>
+              <td>
+                <div class="reward-cell">
+                  <span class="reward-value low" aria-label="Reward 0.1250">0.1250</span>
+                  <div class="reward-minibar-bg" aria-hidden="true">
+                    <div class="reward-minibar-fill low" style="width:12.5%"></div>
+                  </div>
+                </div>
+              </td>
+              <td aria-label="Distribution: Pass 0, Partial 1, Fail 7">
+                <div class="dist-bar" aria-hidden="true">
+                  <div class="dist-partial" style="flex:1"></div>
+                  <div class="dist-fail" style="flex:7"></div>
+                </div>
+              </td>
+              <td class="runs-cell" aria-label="8 Runs">8</td>
+              <td class="updated-cell" title="2026-05-14">26d ago</td>
+            </tr>
+
+            <!-- Row 12: nav-2048 | 3 — very low, failing task Alex wants to drill -->
+            <tr aria-rowindex="12">
+              <td class="col-idx"><span class="task-row-idx">12</span></td>
+              <td>
+                <div class="task-cell">
+                  <a class="task-id-pill-link" href="#" aria-label="Task nav-2048, variant 3 — Scenario browser:2048-near-win">
+                    <span class="task-id-pill">
+                      <span class="task-id-arg">nav-2048</span>
+                      <span class="task-id-sep">|</span>
+                      <span class="task-id-variant">3</span>
+                    </span>
+                  </a>
+                  <a class="task-scenario-name" href="#" aria-label="Scenario: browser:2048-near-win">browser:2048-near-win</a>
+                </div>
+              </td>
+              <td>
+                <div class="progress-dots" aria-label="Progress: 2 of 3 steps complete">
+                  <span class="progress-dot filled" title="Golden sequence"></span>
+                  <span class="progress-connector filled"></span>
+                  <span class="progress-dot filled" title="K runs"></span>
+                  <span class="progress-connector"></span>
+                  <span class="progress-dot empty" title="Verified"></span>
+                </div>
+              </td>
+              <td>
+                <div class="reward-cell">
+                  <span class="reward-value low" aria-label="Reward 0.0833">0.0833</span>
+                  <div class="reward-minibar-bg" aria-hidden="true">
+                    <div class="reward-minibar-fill low" style="width:8.33%"></div>
+                  </div>
+                </div>
+              </td>
+              <td aria-label="Distribution: Pass 0, Partial 1, Fail 5">
+                <div class="dist-bar" aria-hidden="true">
+                  <div class="dist-partial" style="flex:1"></div>
+                  <div class="dist-fail" style="flex:5"></div>
+                </div>
+              </td>
+              <td class="runs-cell" aria-label="6 Runs">6</td>
+              <td class="updated-cell" title="2026-05-16">24d ago</td>
+            </tr>
+
+            <!-- Rows 13–369 represented by a subtle "remaining rows" indicator -->
+            <tr style="background: transparent; pointer-events:none;">
+              <td colspan="7" style="padding:10px 28px 8px; border-top:1px dashed var(--color-border);">
+                <span style="font-size:11px; color:var(--color-meta-foreground); opacity:0.5; font-style:italic;">
+                  357 more Tasks · scroll to load (virtualized)
+                </span>
+              </td>
+            </tr>
+
+          </tbody>
+        </table>
+      </div><!-- /tasks-table-wrap -->
+
+    </div><!-- /tabpanel -->
+
+  </div><!-- /main-region -->
+
+</div><!-- /shell-layout -->
+
+</body>
+</html>

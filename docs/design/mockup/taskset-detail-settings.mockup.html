@@ -1,0 +1,1315 @@
+<!--
+  filename: settings.html
+  Taskset Detail · Variant A — Private (owner) · Settings tab
+  Peer anchor: .intermediate/design/taskset-detail/overview.html (chassis, tokens, header anatomy)
+  Canonical spec: docs/design/screens/taskset-detail-settings.wireframe.md
+  Anchor (header/tabs): docs/design/screens/taskset-detail.wireframe.md §2–§3, §9 Variant A
+
+  Variant A affordances:
+    - 5-tab nav: Overview / Tasks / Jobs / Performance / Settings (Settings active)
+    - Private visibility pill (🔒 Private); no star
+    - Right-slot CTA: Run Taskset only (Create Task in overflow)
+    - No Fork CTA, no About block in Overview
+    - Settings tab: full owner content
+
+  Settings tab sections rendered:
+    §2 Purpose  (segmented control + confirm dialog — inline shown)
+    §3 Taskset Name  (single-line input + inline Save)
+    §4 System Prompt  (textarea + Save)
+    §5 Progress Steps  (ordered pipeline with locked/toggleable rows)
+    §6 Visibility — Variant A  (Private + Publish button + Publish confirm dialog inline)
+    §7 Metadata  (read-only <dl> block)
+    §8 Danger Zone  (Delete button + Delete confirm dialog with typed-name field — inline)
+
+  Image #26 (Settings production screenshot): NOT in this repo.
+  Content derived from wireframe spec + realistic HUD taskset data.
+  Taskset used: browser Tasks (tskt-0a1b2c3d · browser-tasks-01a4f, private, owned by Riley Nakamura / RL-Env Co.)
+
+  Dialogs rendered inline (visible) per prior Settings mockup convention — shows styling
+  without requiring JS interaction.
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Taskset Detail — browser Tasks · Settings (Variant A, Private owner)</title>
+  <style>
+    /* ── Reset ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    /* ─────────────────────────────────────────────────────────
+       TOKEN ROOT
+       Primitives from packages/ui/src/styles/primitive.css :root
+       Semantic roles from packages/ui/src/styles/theme.css @theme
+       Resolved for dark color-scheme (production surface is dark)
+       Verbatim from overview.html peer — do not diverge.
+    ───────────────────────────────────────────────────────── */
+    :root {
+      /* ── Primitive color palette ── */
+      --neutral-950:           #1c2024;
+      --neutral-50:            #F8FAFB;
+      --white:                 #FFFFFF;
+      --gold:                  #f7b717;
+
+      /* Ink scale */
+      --ink-900:  #18212E;
+      --ink-50:   #E8EEF5;
+      --ink-800:  #3D5269;
+      --ink-100:  #B3BFCE;
+      --ink-700:  #6C7A8C;
+      --ink-200:  #7A8494;
+      --ink-400:  #A4ADB9;
+      --ink-500:  #475260;
+
+      /* Surfaces — dark values */
+      --surface-bg-dark:         #0C1016;
+      --surface-panel-dark:      #11161F;
+      --surface-page-dark:       #07090D;
+      --surface-elevated-dark:   #161D28;
+      --surface-muted-dark:      #161D28;
+      --surface-secondary-dark:  #1E2733;
+
+      /* Teal */
+      --teal-800: #055E55;
+      --teal-700: #087A6C;
+      --teal-600: #0E9888;
+      --teal-500: #1A9183;
+      --teal-400: #2BE0C8;
+
+      /* Status */
+      --scored-600:  #2E9E43;
+      --scored-400:  #35C46B;
+      --running-600: #2462C5;
+      --running-400: #4FA8FF;
+      --errored-600: #D23B2C;
+      --errored-400: #FF5B52;
+      --warning-600: #C47A0A;
+      --warning-400: #E5A52E;
+
+      /* Border seeds */
+      --border-seed-dark-rgb: 255 255 255;
+
+      /* ── Semantic color roles (dark resolved) ── */
+      --color-background:   var(--surface-bg-dark);
+      --color-panel:        var(--surface-panel-dark);
+      --color-page:         var(--surface-page-dark);
+      --color-elevated:     var(--surface-elevated-dark);
+
+      --color-foreground:       var(--ink-50);
+      --color-muted-foreground: var(--ink-100);
+      --color-meta-foreground:  var(--ink-200);
+      --color-text-disabled:    var(--ink-500);
+
+      --color-muted:     var(--surface-muted-dark);
+      --color-secondary: var(--surface-secondary-dark);
+
+      --color-border:        rgba(255 255 255 / .08);
+      --color-border-strong: rgba(255 255 255 / .18);
+
+      --color-primary:            var(--teal-400);
+      --color-primary-foreground: #06201C;
+      --color-primary-hover:      var(--teal-500);
+      --color-primary-soft:       rgba(43 224 200 / .10);
+      --color-primary-border:     rgba(43 224 200 / .25);
+
+      --color-brand:            var(--gold);
+      --color-brand-foreground: var(--ink-900);
+
+      /* Destructive semantic tokens — from theme.css */
+      --color-destructive:            var(--errored-400);
+      --color-destructive-foreground: #FFFFFF;
+      --color-destructive-hover:      #E04540;
+      --color-destructive-active:     #C53A36;
+
+      --color-state-scored:         var(--scored-400);
+      --color-state-scored-subtle:  rgba(53 196 107 / .12);
+      --color-state-running:        var(--running-400);
+      --color-state-errored:        var(--errored-400);
+      --color-state-errored-subtle: rgba(255 91 82 / .10);
+      --color-state-warning:        var(--warning-400);
+      --color-state-warning-subtle: rgba(229 165 46 / .10);
+
+      /* ── Typography ── */
+      --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+      --mono: "SF Mono", "Fira Code", "Cascadia Code", Consolas, monospace;
+
+      /* ── Sidebar specifics (verbatim from overview.html peer) ── */
+      --sidebar-bg:     #0f1117;
+      --sidebar-border: #1e2230;
+      --accent:         var(--teal-400);
+      --accent-subtle:  rgba(43,224,200,0.09);
+      --muted-fg:       var(--ink-200);
+      --default-fg:     var(--ink-50);
+      --brand-mark:     var(--gold);
+    }
+
+    html, body {
+      height: 100%;
+      font-family: var(--sans);
+      font-size: 13px;
+      background: var(--color-page);
+      color: var(--color-foreground);
+      line-height: 1.5;
+    }
+
+    /* ══════════════════════════════════════════════
+       APP SHELL OUTER CHROME — verbatim from overview.html
+    ══════════════════════════════════════════════ */
+    .shell-layout {
+      display: flex;
+      height: 100vh;
+      min-height: 600px;
+    }
+
+    /* ── Sidebar ── */
+    .sidebar {
+      background: var(--sidebar-bg);
+      border-right: 1px solid var(--sidebar-border);
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      width: 220px;
+      height: 100%;
+      overflow-y: auto;
+      overflow-x: hidden;
+    }
+
+    .brand-slot {
+      display: flex; align-items: center; gap: 8px;
+      padding: 14px 16px 12px;
+      border-bottom: 1px solid var(--sidebar-border);
+      flex-shrink: 0;
+    }
+    .brand-mark {
+      width: 20px; height: 20px;
+      background: rgba(247,183,23,0.15); border-radius: 4px;
+      flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .brand-wordmark { font-size: 14px; font-weight: 700; color: var(--default-fg); letter-spacing: -0.02em; }
+
+    .group-label {
+      font-size: 10px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--muted-fg); padding: 0 16px; margin-top: 20px; margin-bottom: 4px;
+    }
+    .nav-item {
+      display: flex; align-items: center; gap: 8px; padding: 5px 12px;
+      font-size: 13px; color: var(--muted-fg); cursor: pointer;
+      position: relative; border-radius: 4px; margin: 1px 4px;
+      text-decoration: none;
+    }
+    .nav-item:hover { background: rgba(255,255,255,0.04); color: var(--default-fg); }
+    .nav-item.selected { color: var(--accent); background: var(--accent-subtle); }
+    .nav-item.selected::before {
+      content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 2px;
+      background: var(--accent); border-radius: 0 2px 2px 0;
+    }
+    .nav-item-icon { width: 16px; height: 16px; flex-shrink: 0; color: inherit; opacity: 0.8; }
+    .nav-item.selected .nav-item-icon { opacity: 1; }
+    .nav-item-label { flex: 1; white-space: nowrap; }
+    .nav-item-count { font-size: 11px; color: var(--muted-fg); margin-left: auto; font-variant-numeric: tabular-nums; }
+    .nav-item-ext { font-size: 10px; color: var(--muted-fg); margin-left: auto; }
+    .spacer { flex: 1; }
+
+    /* Credits widget */
+    .credits-widget {
+      margin: 0 8px 4px; padding: 8px 10px;
+      border-radius: 6px; border: 1px solid var(--sidebar-border); cursor: pointer;
+    }
+    .credits-widget:hover { background: var(--accent-subtle); }
+    .credits-label { font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted-fg); }
+    .credits-numbers { display: flex; justify-content: flex-end; align-items: baseline; gap: 2px; margin: 2px 0; }
+    .credits-current { font-size: 13px; font-variant-numeric: tabular-nums; color: var(--default-fg); font-family: var(--mono); }
+    .credits-cap { font-size: 11px; font-variant-numeric: tabular-nums; color: var(--muted-fg); font-family: var(--mono); }
+    .credits-bar-bg { height: 3px; background: rgba(255,255,255,0.08); border-radius: 2px; overflow: hidden; margin: 4px 0; }
+    .credits-bar-fill { height: 100%; background: var(--accent); border-radius: 2px; }
+    .credits-meta { display: flex; justify-content: space-between; font-size: 10px; color: var(--muted-fg); margin-top: 2px; }
+
+    /* User chip */
+    .user-chip {
+      display: flex; align-items: center; gap: 8px;
+      padding: 8px 10px; margin: 4px 6px 6px;
+      border-radius: 6px; border: 1px solid var(--sidebar-border);
+      cursor: pointer; flex-shrink: 0;
+    }
+    .user-chip:hover { background: rgba(255,255,255,0.04); }
+    .avatar {
+      width: 28px; height: 28px; border-radius: 50%;
+      background: var(--color-elevated); border: 1px solid var(--sidebar-border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 600; color: var(--default-fg); flex-shrink: 0;
+    }
+    .user-info { flex: 1; overflow: hidden; min-width: 0; }
+    .user-name { font-size: 12px; font-weight: 500; color: var(--default-fg); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .user-meta { font-size: 10px; color: var(--muted-fg); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .switcher-icon { color: var(--muted-fg); flex-shrink: 0; }
+
+    /* ── Main scroll region ── */
+    .main-region {
+      flex: 1;
+      overflow-y: auto;
+      background: var(--color-background);
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ══════════════════════════════════════════════
+       STICKY HEADER STACK — verbatim chassis from overview.html
+    ══════════════════════════════════════════════ */
+    .td-sticky-stack {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: var(--color-background);
+      border-bottom: 1px solid var(--color-border);
+    }
+
+    /* ── Page header ── */
+    .td-page-header {
+      padding: 16px 28px 0;
+    }
+
+    /* Breadcrumb */
+    .td-breadcrumb {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 12px; color: var(--color-meta-foreground);
+      margin-bottom: 10px;
+    }
+    .td-breadcrumb-link {
+      color: var(--color-muted-foreground); text-decoration: none; cursor: pointer;
+      display: flex; align-items: center; gap: 4px;
+    }
+    .td-breadcrumb-link:hover { color: var(--color-foreground); text-decoration: underline; }
+    .td-breadcrumb-sep { color: var(--color-meta-foreground); }
+    .td-breadcrumb-current { color: var(--color-muted-foreground); }
+
+    /* Title row */
+    .td-header-row {
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
+      margin-bottom: 8px;
+    }
+    .td-title-group {
+      display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+      flex: 1; min-width: 0;
+    }
+    .td-taskset-name {
+      font-size: 20px; font-weight: 600; letter-spacing: -0.02em;
+      color: var(--color-foreground); line-height: 1.2;
+    }
+    .td-visibility-pill {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-size: 11px; font-weight: 500;
+      border-radius: 10px; padding: 2px 8px;
+      white-space: nowrap; flex-shrink: 0;
+      color: var(--color-muted-foreground);
+      background: rgba(255,255,255,.07);
+      border: 1px solid var(--color-border-strong);
+    }
+
+    /* Right-slot CTAs — Variant A: Run Taskset + Overflow only */
+    .td-header-actions {
+      display: flex; align-items: center; gap: 8px;
+      flex-shrink: 0;
+    }
+    .td-btn-primary {
+      display: inline-flex; align-items: center; gap: 5px;
+      font-size: 12.5px; font-weight: 500;
+      padding: 6px 13px; border-radius: 5px; cursor: pointer;
+      background: var(--color-primary);
+      color: var(--color-primary-foreground);
+      border: 1px solid transparent;
+      white-space: nowrap;
+    }
+    .td-btn-primary:hover { background: var(--color-primary-hover); }
+    .td-overflow-btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 30px; height: 30px;
+      background: transparent; border: 1px solid var(--color-border-strong);
+      border-radius: 5px; cursor: pointer; color: var(--color-muted-foreground);
+    }
+    .td-overflow-btn:hover { color: var(--color-foreground); background: rgba(255,255,255,.04); }
+
+    /* Descriptor strip */
+    .td-descriptor-strip {
+      display: flex; align-items: center; gap: 0; flex-wrap: wrap;
+      font-size: 12px; color: var(--color-meta-foreground);
+      padding-bottom: 10px;
+    }
+    .td-strip-field { display: flex; align-items: center; gap: 4px; }
+    .td-strip-sep { color: var(--color-meta-foreground); margin: 0 8px; opacity: 0.6; }
+    .td-strip-slug {
+      font-family: var(--mono); font-size: 11.5px; color: var(--color-muted-foreground);
+    }
+    .td-copy-btn {
+      background: transparent; border: none; cursor: pointer;
+      color: var(--color-meta-foreground); font-size: 11px; padding: 1px 4px;
+      border-radius: 2px; display: inline-flex; align-items: center;
+    }
+    .td-copy-btn:hover { color: var(--color-muted-foreground); background: rgba(255,255,255,.06); }
+
+    /* ── Tab bar — 5 tabs, Settings active ── */
+    .td-tab-bar {
+      display: flex; align-items: flex-end;
+      padding: 0 28px;
+    }
+    .td-tab {
+      padding: 8px 14px; font-size: 12.5px; color: var(--color-meta-foreground);
+      cursor: pointer; border-bottom: 2px solid transparent;
+      margin-bottom: -1px; display: flex; align-items: center; gap: 6px;
+      background: none; border-top: none; border-left: none; border-right: none;
+      font-family: var(--sans);
+    }
+    .td-tab:hover { color: var(--color-muted-foreground); }
+    .td-tab.active { color: var(--color-foreground); border-bottom-color: var(--color-primary); }
+    .td-tab-count {
+      font-size: 10.5px; color: var(--color-meta-foreground);
+      background: rgba(255,255,255,.06); padding: 1px 5px; border-radius: 10px;
+      font-variant-numeric: tabular-nums;
+    }
+    .td-tab.active .td-tab-count { color: var(--color-muted-foreground); }
+
+    /* Exploration watermark */
+    .state-label {
+      font-size: 10px; font-weight: 600; text-transform: uppercase;
+      letter-spacing: .08em; color: var(--color-meta-foreground);
+      padding: 6px 28px;
+      background: rgba(229,165,46,.05);
+      border-bottom: 1px solid rgba(229,165,46,.12);
+    }
+
+    /* ══════════════════════════════════════════════
+       SETTINGS TAB CONTENT
+    ══════════════════════════════════════════════ */
+
+    .settings-content {
+      padding: 28px 28px 80px;
+      max-width: 680px;  /* narrow: settings form legibility */
+    }
+
+    /* ── Section shell ── */
+    .settings-section {
+      padding-bottom: 28px;
+    }
+    .settings-section + .settings-section {
+      border-top: 1px solid var(--color-border);
+      padding-top: 28px;
+    }
+    .settings-section-title {
+      font-size: 13px; font-weight: 600;
+      color: var(--color-foreground);
+      margin-bottom: 14px;
+    }
+    .settings-help-text {
+      font-size: 12px; color: var(--color-meta-foreground);
+      line-height: 1.55;
+      margin-top: 7px;
+    }
+
+    /* ── Save button (shared across sections) ── */
+    .settings-save-btn {
+      display: inline-flex; align-items: center; gap: 5px;
+      font-size: 12px; font-weight: 500;
+      padding: 5px 14px; border-radius: 5px; cursor: pointer;
+      background: var(--color-primary);
+      color: var(--color-primary-foreground);
+      border: 1px solid transparent;
+      white-space: nowrap;
+    }
+    .settings-save-btn:hover { background: var(--color-primary-hover); }
+    .settings-save-btn:disabled,
+    .settings-save-btn.disabled {
+      background: rgba(43,224,200,.18);
+      color: rgba(6,32,28,.55);
+      cursor: not-allowed;
+    }
+    .settings-save-row {
+      display: flex; justify-content: flex-end; margin-top: 10px;
+    }
+
+    /* ─── §2 PURPOSE ─── */
+    .segmented-control {
+      display: inline-flex;
+      background: var(--color-elevated);
+      border: 1px solid var(--color-border-strong);
+      border-radius: 6px;
+      padding: 2px;
+      gap: 2px;
+    }
+    .seg-option {
+      padding: 5px 16px; border-radius: 4px;
+      font-size: 12.5px; font-weight: 500;
+      cursor: pointer; border: none;
+      font-family: var(--sans);
+      color: var(--color-meta-foreground);
+      background: transparent;
+      transition: background 120ms, color 120ms;
+    }
+    .seg-option.active {
+      background: var(--color-secondary);
+      color: var(--color-foreground);
+      box-shadow: 0 1px 2px rgba(0,0,0,.25);
+    }
+    .seg-option:hover:not(.active) {
+      background: rgba(255,255,255,.05);
+      color: var(--color-muted-foreground);
+    }
+
+    /* ─── §3 TASKSET NAME ─── */
+    .name-row {
+      display: flex; align-items: center; gap: 10px;
+    }
+    .settings-input {
+      flex: 1;
+      background: var(--color-elevated);
+      border: 1px solid var(--color-border-strong);
+      border-radius: 5px;
+      padding: 7px 11px;
+      font-size: 13px; color: var(--color-foreground);
+      font-family: var(--sans);
+      outline: none;
+    }
+    .settings-input::placeholder { color: var(--color-meta-foreground); }
+    .settings-input:focus {
+      border-color: var(--color-primary);
+      box-shadow: 0 0 0 2px rgba(43,224,200,.14);
+    }
+
+    /* ─── §4 SYSTEM PROMPT ─── */
+    .settings-textarea {
+      width: 100%;
+      background: var(--color-elevated);
+      border: 1px solid var(--color-border-strong);
+      border-radius: 5px;
+      padding: 9px 11px;
+      font-size: 12.5px; color: var(--color-muted-foreground);
+      font-family: var(--mono);
+      line-height: 1.6;
+      resize: vertical;
+      min-height: 108px;
+      outline: none;
+    }
+    .settings-textarea::placeholder { color: var(--color-meta-foreground); font-family: var(--sans); font-style: italic; }
+    .settings-textarea:focus {
+      border-color: var(--color-primary);
+      box-shadow: 0 0 0 2px rgba(43,224,200,.14);
+    }
+
+    /* ─── §5 PROGRESS STEPS ─── */
+    .steps-list {
+      list-style: none;
+      border: 1px solid var(--color-border);
+      border-radius: 6px;
+      overflow: hidden;
+    }
+    .step-row {
+      display: flex; align-items: center; gap: 10px;
+      padding: 9px 14px;
+      border-bottom: 1px solid var(--color-border);
+    }
+    .step-row:last-child { border-bottom: none; }
+    .step-row.locked { opacity: 0.65; }
+    .step-indicator {
+      flex-shrink: 0; width: 18px; height: 18px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .step-toggle-btn {
+      width: 18px; height: 18px;
+      background: transparent; border: 1.5px solid var(--color-border-strong);
+      border-radius: 3px; cursor: pointer; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--color-primary);
+    }
+    .step-toggle-btn:hover { border-color: var(--color-primary); background: var(--color-primary-soft); }
+    .step-name {
+      flex: 1; font-size: 12.5px; color: var(--color-muted-foreground);
+    }
+    .step-mode-label {
+      font-size: 11px; color: var(--color-meta-foreground);
+      font-family: var(--mono);
+    }
+    .step-lock-icon {
+      flex-shrink: 0; color: var(--color-meta-foreground); opacity: 0.55;
+    }
+    .step-always-on {
+      font-size: 10.5px; color: var(--color-meta-foreground);
+      padding: 1px 6px; border-radius: 10px;
+      background: rgba(255,255,255,.05);
+      border: 1px solid var(--color-border);
+      white-space: nowrap;
+    }
+    /* Add step affordance row */
+    .step-add-row {
+      display: flex; align-items: center; gap: 8px;
+      padding: 7px 14px;
+      border-bottom: 1px dashed rgba(255,255,255,.06);
+      cursor: pointer; color: var(--color-meta-foreground);
+      font-size: 12px;
+    }
+    .step-add-row:hover { color: var(--color-primary); background: rgba(43,224,200,.03); }
+
+    /* ─── §6 VISIBILITY ─── */
+    .visibility-state-row {
+      display: flex; align-items: center; gap: 8px;
+      margin-bottom: 6px;
+    }
+    .visibility-state-text {
+      font-size: 14px; font-weight: 600; color: var(--color-foreground);
+      display: flex; align-items: center; gap: 6px;
+    }
+    .td-btn-publish {
+      display: inline-flex; align-items: center; gap: 5px;
+      font-size: 12.5px; font-weight: 500;
+      padding: 6px 16px; border-radius: 5px; cursor: pointer;
+      background: var(--color-primary);
+      color: var(--color-primary-foreground);
+      border: 1px solid transparent;
+      margin-top: 12px;
+    }
+    .td-btn-publish:hover { background: var(--color-primary-hover); }
+
+    /* ─── §7 METADATA ─── */
+    .metadata-dl {
+      display: grid;
+      grid-template-columns: 116px 1fr;
+      gap: 9px 14px;
+    }
+    .metadata-dt {
+      font-size: 12px; color: var(--color-meta-foreground);
+      align-self: center;
+    }
+    .metadata-dd {
+      font-size: 12px; color: var(--color-muted-foreground);
+      display: flex; align-items: center; gap: 6px;
+      margin: 0;
+      font-family: var(--mono);
+    }
+    .metadata-dd.normal { font-family: var(--sans); }
+    .metadata-dd a {
+      color: var(--color-primary); text-decoration: none;
+      font-family: var(--sans);
+    }
+    .metadata-dd a:hover { text-decoration: underline; }
+
+    /* ─── §8 DANGER ZONE ─── */
+    .danger-zone-section {
+      border-top: 1px solid var(--color-destructive);
+      padding-top: 24px;
+      margin-top: 8px;
+    }
+    .danger-zone-title {
+      font-size: 13px; font-weight: 600;
+      color: var(--color-destructive);
+      margin-bottom: 10px;
+      display: flex; align-items: center; gap: 7px;
+    }
+    .danger-zone-body {
+      font-size: 12.5px; color: var(--color-muted-foreground);
+      line-height: 1.6;
+      margin-bottom: 16px;
+    }
+    .td-btn-destructive {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: 12.5px; font-weight: 500;
+      padding: 6px 14px; border-radius: 5px; cursor: pointer;
+      background: transparent;
+      color: var(--color-destructive);
+      border: 1px solid rgba(255,91,82,.35);
+    }
+    .td-btn-destructive:hover {
+      background: rgba(255,91,82,.08);
+      border-color: var(--color-destructive);
+    }
+
+    /* ══════════════════════════════════════════════
+       INLINE CONFIRMATION DIALOGS
+       Visible in mockup per Settings mockup convention —
+       shows dialog styling without JS interaction.
+    ══════════════════════════════════════════════ */
+    .dialog-overlay-label {
+      font-size: 10px; font-weight: 600; letter-spacing: .07em; text-transform: uppercase;
+      color: var(--color-state-warning);
+      margin-top: 24px; margin-bottom: 8px;
+      padding-left: 2px;
+      opacity: 0.75;
+    }
+
+    .dialog-card {
+      background: var(--color-panel);
+      border: 1px solid var(--color-border-strong);
+      border-radius: 8px;
+      padding: 20px 22px 18px;
+      max-width: 420px;
+      box-shadow: 0 8px 28px rgba(0,0,0,.55), 0 2px 6px rgba(0,0,0,.30);
+    }
+    .dialog-title {
+      font-size: 14px; font-weight: 600; color: var(--color-foreground);
+      display: flex; align-items: center; gap: 8px;
+      margin-bottom: 8px;
+    }
+    .dialog-title-icon {
+      color: var(--color-state-errored); flex-shrink: 0;
+    }
+    .dialog-desc {
+      font-size: 12.5px; color: var(--color-muted-foreground);
+      line-height: 1.6; margin-bottom: 18px;
+    }
+    .dialog-footer {
+      display: flex; justify-content: flex-end; gap: 8px;
+      align-items: center;
+    }
+    .dialog-cancel-btn {
+      display: inline-flex; align-items: center;
+      font-size: 12.5px; font-weight: 500;
+      padding: 6px 14px; border-radius: 5px; cursor: pointer;
+      background: transparent;
+      color: var(--color-muted-foreground);
+      border: 1px solid var(--color-border-strong);
+    }
+    .dialog-cancel-btn:hover { color: var(--color-foreground); border-color: rgba(255,255,255,.30); }
+    .dialog-confirm-btn {
+      display: inline-flex; align-items: center; gap: 5px;
+      font-size: 12.5px; font-weight: 500;
+      padding: 6px 16px; border-radius: 5px; cursor: pointer;
+      background: var(--color-primary);
+      color: var(--color-primary-foreground);
+      border: 1px solid transparent;
+    }
+    .dialog-confirm-btn:hover { background: var(--color-primary-hover); }
+    .dialog-destructive-btn {
+      display: inline-flex; align-items: center; gap: 5px;
+      font-size: 12.5px; font-weight: 500;
+      padding: 6px 16px; border-radius: 5px; cursor: pointer;
+      background: var(--color-destructive);
+      color: var(--color-destructive-foreground);
+      border: 1px solid transparent;
+    }
+    .dialog-destructive-btn:hover { background: var(--color-destructive-hover); }
+    .dialog-destructive-btn:disabled,
+    .dialog-destructive-btn.disabled {
+      background: rgba(255,91,82,.25);
+      color: rgba(255,255,255,.35);
+      cursor: not-allowed;
+    }
+    /* Typed-name confirmation input (Delete dialog) */
+    .dialog-typed-label {
+      font-size: 12px; color: var(--color-meta-foreground);
+      margin-bottom: 6px; display: block;
+    }
+    .dialog-typed-input {
+      width: 100%;
+      background: var(--color-elevated);
+      border: 1px solid var(--color-border-strong);
+      border-radius: 5px;
+      padding: 7px 10px;
+      font-size: 12.5px; color: var(--color-foreground);
+      font-family: var(--mono);
+      outline: none;
+      margin-bottom: 16px;
+    }
+    .dialog-typed-input::placeholder { color: var(--color-meta-foreground); font-family: var(--sans); }
+    .dialog-typed-input:focus {
+      border-color: var(--color-primary);
+      box-shadow: 0 0 0 2px rgba(43,224,200,.12);
+    }
+  </style>
+</head>
+<body>
+
+<div class="shell-layout">
+
+  <!-- ══════════════════════════════════════════
+       APP-SHELL SIDEBAR (Tasksets selected)
+  ══════════════════════════════════════════ -->
+  <aside class="sidebar" aria-label="Main navigation">
+    <div class="brand-slot">
+      <div class="brand-mark">
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+          <rect width="12" height="12" rx="2" fill="rgba(120,53,15,0.6)"/>
+          <path d="M2 9L6 3L10 9" stroke="#f7b717" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <span class="brand-wordmark">hud</span>
+    </div>
+
+    <div class="group-label">Workspace</div>
+
+    <a class="nav-item" href="#">
+      <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="2" y="2" width="5" height="5" rx="1"/><rect x="9" y="2" width="5" height="5" rx="1"/>
+        <rect x="2" y="9" width="5" height="5" rx="1"/><rect x="9" y="9" width="5" height="5" rx="1"/>
+      </svg>
+      <span class="nav-item-label">Home</span>
+    </a>
+
+    <!-- Tasksets — selected -->
+    <a class="nav-item selected" aria-current="page" href="#">
+      <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M2 4h12M2 8h8M2 12h10"/><circle cx="13" cy="11" r="2.5"/>
+      </svg>
+      <span class="nav-item-label">Tasksets</span>
+      <span class="nav-item-count">127</span>
+    </a>
+
+    <a class="nav-item" href="#">
+      <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="2" y="2" width="12" height="5" rx="1.5"/>
+        <rect x="2" y="9" width="12" height="5" rx="1.5"/>
+        <circle cx="5" cy="4.5" r="0.8" fill="currentColor" stroke="none"/>
+        <circle cx="5" cy="11.5" r="0.8" fill="currentColor" stroke="none"/>
+        <path d="M8 4.5h4M8 11.5h4"/>
+      </svg>
+      <span class="nav-item-label">Environments</span>
+      <span class="nav-item-count">42</span>
+    </a>
+
+    <a class="nav-item" href="#">
+      <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="8" cy="8" r="3"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2M3.22 3.22l1.42 1.42M11.36 11.36l1.42 1.42M3.22 12.78l1.42-1.42M11.36 4.64l1.42-1.42"/>
+      </svg>
+      <span class="nav-item-label">Models</span>
+      <span class="nav-item-count">27</span>
+    </a>
+
+    <a class="nav-item" href="#">
+      <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="8" cy="5" r="2.5"/><path d="M3 14c0-2.76 2.24-5 5-5s5 2.24 5 5"/>
+      </svg>
+      <span class="nav-item-label">Agents</span>
+      <span class="nav-item-count">4</span>
+    </a>
+
+    <a class="nav-item" href="#">
+      <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4 2h8a1 1 0 011 1v10a1 1 0 01-1 1H4a1 1 0 01-1-1V3a1 1 0 011-1z"/><path d="M6 6h4M6 9h4M6 12h2"/>
+      </svg>
+      <span class="nav-item-label">Library</span>
+    </a>
+
+    <div class="group-label">Observe</div>
+
+    <a class="nav-item" href="#">
+      <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="2" y="8" width="3" height="5" rx="0.5"/><rect x="6.5" y="5" width="3" height="8" rx="0.5"/>
+        <rect x="11" y="2" width="3" height="11" rx="0.5"/>
+      </svg>
+      <span class="nav-item-label">Dashboard</span>
+    </a>
+
+    <a class="nav-item" href="#">
+      <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="8" cy="8" r="6"/><path d="M8 4v4l3 1.5"/>
+      </svg>
+      <span class="nav-item-label">Progress</span>
+    </a>
+
+    <div class="spacer"></div>
+
+    <!-- Credits widget -->
+    <div class="credits-widget" title="View usage details">
+      <div class="credits-label">credits</div>
+      <div class="credits-numbers">
+        <span class="credits-current">4,230</span>
+        <span class="credits-cap">&nbsp;/ 10,000</span>
+      </div>
+      <div class="credits-bar-bg"><div class="credits-bar-fill" style="width:42.3%"></div></div>
+      <div class="credits-meta"><span>~92 cr/hr</span><span>~38h left</span></div>
+    </div>
+
+    <!-- External links -->
+    <div style="padding:2px 4px;">
+      <a class="nav-item" href="#" style="font-size:12px;">
+        <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M7 3H3a1 1 0 00-1 1v9a1 1 0 001 1h9a1 1 0 001-1V9"/><path d="M10 2h4v4M14 2L7 9"/>
+        </svg>
+        <span class="nav-item-label">Marketplace</span>
+        <span class="nav-item-ext">↗</span>
+      </a>
+      <a class="nav-item" href="#" style="font-size:12px;">
+        <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 2h8a1 1 0 011 1v10a1 1 0 01-1 1H4a1 1 0 01-1-1V3a1 1 0 011-1z"/><path d="M6 6h4M6 9h4"/>
+        </svg>
+        <span class="nav-item-label">Documentation</span>
+        <span class="nav-item-ext">↗</span>
+      </a>
+    </div>
+
+    <!-- User chip — Riley (Private Taskset owner) -->
+    <div class="user-chip">
+      <div class="avatar">R</div>
+      <div class="user-info">
+        <div class="user-name">Riley Nakamura</div>
+        <div class="user-meta">RL-Env Co. · owner</div>
+      </div>
+      <svg class="switcher-icon" width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 4.5L6 2 9 4.5M3 7.5L6 10 9 7.5"/>
+      </svg>
+    </div>
+  </aside>
+
+  <!-- ══════════════════════════════════════════
+       MAIN SCROLL REGION
+  ══════════════════════════════════════════ -->
+  <div class="main-region" id="main-content">
+
+    <!-- Exploration watermark -->
+    <div class="state-label">VARIANT A — Private (owner) · Settings tab · Exploration mockup · Image #26 unavailable — derived from wireframe spec</div>
+
+    <!-- ─────────────────────────────────────
+         STICKY HEADER STACK
+    ───────────────────────────────────── -->
+    <div class="td-sticky-stack">
+
+      <!-- PAGE HEADER -->
+      <div class="td-page-header">
+
+        <!-- Breadcrumb -->
+        <nav class="td-breadcrumb" aria-label="Breadcrumb">
+          <ol style="list-style:none;display:flex;align-items:center;gap:6px;padding:0;">
+            <li>
+              <a class="td-breadcrumb-link" href="#">
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M8 2L4 6l4 4"/>
+                </svg>
+                Tasksets
+              </a>
+            </li>
+            <li class="td-breadcrumb-sep">/</li>
+            <li>
+              <span class="td-breadcrumb-current">browser Tasks</span>
+            </li>
+          </ol>
+        </nav>
+
+        <!-- Title row — Variant A: Private pill, no star, Run Taskset only -->
+        <div class="td-header-row">
+          <div class="td-title-group">
+            <h1 class="td-taskset-name">browser Tasks</h1>
+            <!-- Visibility pill: Private -->
+            <span class="td-visibility-pill" aria-label="Visibility: Private">
+              <svg width="10" height="10" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="4" y="7" width="8" height="7" rx="1.5"/>
+                <path d="M5.5 7V5a2.5 2.5 0 015 0v2"/>
+              </svg>
+              Private
+            </span>
+          </div>
+
+          <!-- Right-slot: Variant A — Run Taskset + Overflow -->
+          <div class="td-header-actions">
+            <button class="td-btn-primary" aria-label="Run Taskset">
+              <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M5 3l8 5-8 5V3z" fill="currentColor" stroke="none"/>
+              </svg>
+              Run Taskset
+            </button>
+            <button class="td-overflow-btn" aria-label="More actions" title="More actions">
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="8" cy="3.5" r="1"/><circle cx="8" cy="8" r="1"/><circle cx="8" cy="12.5" r="1"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Descriptor strip: Task count · slug [copy] · Owned by -->
+        <dl class="td-descriptor-strip">
+          <div class="td-strip-field">
+            <dt style="display:none;">Tasks</dt>
+            <dd style="margin:0; color:var(--color-muted-foreground);">367 Tasks</dd>
+          </div>
+          <span class="td-strip-sep" aria-hidden="true">·</span>
+          <div class="td-strip-field">
+            <dt style="display:none;">Slug</dt>
+            <dd style="margin:0; display:flex; align-items:center; gap:3px;">
+              <span class="td-strip-slug">browser-tasks-01a4f</span>
+              <button class="td-copy-btn" aria-label="Copy Taskset slug browser-tasks-01a4f" title="Copy slug">
+                <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="5" y="5" width="8" height="9" rx="1.5"/><path d="M3 11V3a1 1 0 011-1h8"/>
+                </svg>
+              </button>
+            </dd>
+          </div>
+          <span class="td-strip-sep" aria-hidden="true">·</span>
+          <div class="td-strip-field">
+            <dt style="display:none;">Owner</dt>
+            <dd style="margin:0; color:var(--color-muted-foreground);">Owned by: HUD</dd>
+          </div>
+        </dl>
+
+      </div><!-- /td-page-header -->
+
+      <!-- TAB BAR — Variant A: 5 tabs, Settings active -->
+      <div class="td-tab-bar" role="tablist" aria-label="Taskset detail tabs">
+        <button class="td-tab" role="tab" aria-selected="false" aria-controls="tab-overview" id="tab-overview-btn" href="#">
+          Overview
+        </button>
+        <button class="td-tab" role="tab" aria-selected="false" aria-controls="tab-tasks" id="tab-tasks-btn" aria-label="Tasks, 367">
+          Tasks
+          <span class="td-tab-count" aria-hidden="true">367</span>
+        </button>
+        <button class="td-tab" role="tab" aria-selected="false" aria-controls="tab-jobs" id="tab-jobs-btn" aria-label="Jobs, 12">
+          Jobs
+          <span class="td-tab-count" aria-hidden="true">12</span>
+        </button>
+        <button class="td-tab" role="tab" aria-selected="false" aria-controls="tab-perf" id="tab-perf-btn">
+          Performance
+        </button>
+        <!-- Settings: active -->
+        <button class="td-tab active" role="tab" aria-selected="true" aria-controls="tab-settings" id="tab-settings-btn">
+          Settings
+        </button>
+      </div>
+
+    </div><!-- /td-sticky-stack -->
+
+    <!-- ─────────────────────────────────────
+         SETTINGS TAB CONTENT
+    ───────────────────────────────────── -->
+    <main>
+      <div class="settings-content" role="tabpanel" id="tab-settings" aria-labelledby="tab-settings-btn">
+
+        <!-- ══════════════════════════════════════
+             §2 PURPOSE
+        ══════════════════════════════════════ -->
+        <section class="settings-section" aria-labelledby="purpose-heading">
+          <h3 class="settings-section-title" id="purpose-heading">Purpose</h3>
+
+          <div role="radiogroup" aria-label="Taskset purpose" style="display:inline-block;">
+            <div class="segmented-control">
+              <button class="seg-option active" role="radio" aria-checked="true">Benchmark</button>
+              <button class="seg-option" role="radio" aria-checked="false">Training</button>
+            </div>
+          </div>
+
+          <p class="settings-help-text">
+            Benchmarks appear in model leaderboards and public listings.<br>
+            Training Tasksets are surfaced when filtering for training data.
+          </p>
+
+          <div class="settings-save-row">
+            <button class="settings-save-btn disabled" disabled aria-label="Save Purpose" aria-disabled="true">Save</button>
+          </div>
+
+          <!-- ── Purpose confirm dialog (inline — shown as styling demo) ── -->
+          <p class="dialog-overlay-label">Dialog: Purpose change confirmation (on Save)</p>
+          <div class="dialog-card" role="alertdialog" aria-modal="true" aria-labelledby="purpose-dialog-title">
+            <div class="dialog-title" id="purpose-dialog-title">
+              <svg class="dialog-title-icon" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M8 2L1 14h14L8 2z"/><path d="M8 6v4M8 12h.01"/>
+              </svg>
+              Change Taskset purpose?
+            </div>
+            <p class="dialog-desc">
+              Changing to Training may change where this Taskset appears in filters and listings.
+            </p>
+            <div class="dialog-footer">
+              <button class="dialog-cancel-btn">Cancel</button>
+              <button class="dialog-confirm-btn">Change Purpose</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- ══════════════════════════════════════
+             §3 TASKSET NAME
+        ══════════════════════════════════════ -->
+        <section class="settings-section" aria-labelledby="name-heading">
+          <h3 class="settings-section-title" id="name-heading">Taskset Name</h3>
+
+          <div class="name-row">
+            <input
+              class="settings-input"
+              type="text"
+              aria-label="Taskset Name"
+              value="browser Tasks"
+            />
+            <button class="settings-save-btn disabled" disabled aria-label="Save Taskset Name" aria-disabled="true">Save</button>
+          </div>
+
+          <p class="settings-help-text">This name is displayed throughout the platform.</p>
+        </section>
+
+        <!-- ══════════════════════════════════════
+             §4 SYSTEM PROMPT
+        ══════════════════════════════════════ -->
+        <section class="settings-section" aria-labelledby="sysprompt-heading">
+          <h3 class="settings-section-title" id="sysprompt-heading">System Prompt</h3>
+
+          <textarea
+            class="settings-textarea"
+            aria-label="System Prompt"
+            aria-describedby="sysprompt-help"
+            rows="5"
+            placeholder="Enter a system prompt to apply to all Tasks in this Taskset…"
+          >You are a browser automation agent completing real-world web tasks. Navigate pages, fill forms, and complete multi-step workflows using only the provided browser tools. Do not request human assistance. Produce your final answer exactly as instructed in each task.</textarea>
+
+          <div class="settings-save-row">
+            <button class="settings-save-btn disabled" disabled aria-label="Save System Prompt" aria-disabled="true">Save</button>
+          </div>
+
+          <p class="settings-help-text" id="sysprompt-help">
+            This prompt is prepended to every Task's system prompt when running Jobs.<br>
+            Changing this prompt affects future Job runs only. Existing leaderboard scores stay as recorded.
+          </p>
+        </section>
+
+        <!-- ══════════════════════════════════════
+             §5 PROGRESS STEPS
+        ══════════════════════════════════════ -->
+        <section class="settings-section" aria-labelledby="steps-heading">
+          <h3 class="settings-section-title" id="steps-heading">Progress Steps</h3>
+
+          <ol class="steps-list" aria-label="Progress pipeline steps">
+            <!-- Golden sequence — toggleable, currently off -->
+            <li class="step-row">
+              <div class="step-indicator">
+                <button
+                  class="step-toggle-btn"
+                  role="switch"
+                  aria-checked="false"
+                  aria-label="Golden sequence step"
+                  title="Toggle Golden sequence"
+                >
+                  <!-- empty checkbox state -->
+                </button>
+              </div>
+              <span class="step-name">Golden sequence</span>
+              <span class="step-mode-label">auto</span>
+            </li>
+
+            <!-- K runs — locked -->
+            <li class="step-row locked" aria-disabled="true">
+              <div class="step-indicator">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="var(--color-primary)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <circle cx="7" cy="7" r="5" fill="rgba(43,224,200,.15)" stroke="var(--color-primary)"/>
+                  <path d="M4.5 7l2 2 3-3"/>
+                </svg>
+              </div>
+              <span class="step-name">K runs</span>
+              <span class="step-mode-label">auto</span>
+              <span class="step-always-on">always on</span>
+              <span
+                class="step-lock-icon"
+                aria-label="Locked — required step"
+                title="Required step in the Taskset progress pipeline. Cannot be disabled."
+              >
+                <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="4" y="7" width="8" height="7" rx="1.5"/>
+                  <path d="M5.5 7V5a2.5 2.5 0 015 0v2"/>
+                </svg>
+              </span>
+            </li>
+
+            <!-- Add step affordance -->
+            <li class="step-add-row" role="button" tabindex="0" aria-label="Add step between Runs and Ready">
+              <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M8 3v10M3 8h10"/>
+              </svg>
+              Add step between Runs and Ready
+            </li>
+
+            <!-- Ready — locked -->
+            <li class="step-row locked" aria-disabled="true">
+              <div class="step-indicator">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="var(--color-meta-foreground)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <circle cx="7" cy="7" r="5"/>
+                </svg>
+              </div>
+              <span class="step-name">Ready</span>
+              <span class="step-mode-label">manual</span>
+              <span class="step-always-on">always on</span>
+              <span
+                class="step-lock-icon"
+                aria-label="Locked — required step"
+                title="Required step in the Taskset progress pipeline. Cannot be disabled."
+              >
+                <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="4" y="7" width="8" height="7" rx="1.5"/>
+                  <path d="M5.5 7V5a2.5 2.5 0 015 0v2"/>
+                </svg>
+              </span>
+            </li>
+
+            <!-- Verified — locked -->
+            <li class="step-row locked" aria-disabled="true">
+              <div class="step-indicator">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="var(--color-meta-foreground)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <circle cx="7" cy="7" r="5"/>
+                </svg>
+              </div>
+              <span class="step-name">Verified</span>
+              <span class="step-mode-label">manual</span>
+              <span class="step-always-on">always on</span>
+              <span
+                class="step-lock-icon"
+                aria-label="Locked — required step"
+                title="Required step in the Taskset progress pipeline. Cannot be disabled."
+              >
+                <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="4" y="7" width="8" height="7" rx="1.5"/>
+                  <path d="M5.5 7V5a2.5 2.5 0 015 0v2"/>
+                </svg>
+              </span>
+            </li>
+          </ol>
+
+          <div class="settings-save-row">
+            <button class="settings-save-btn disabled" disabled aria-label="Save Progress Steps" aria-disabled="true">Save</button>
+          </div>
+        </section>
+
+        <!-- ══════════════════════════════════════
+             §6 VISIBILITY — Variant A (Private owner)
+        ══════════════════════════════════════ -->
+        <section class="settings-section" aria-labelledby="visibility-heading">
+          <h3 class="settings-section-title" id="visibility-heading">Visibility</h3>
+
+          <div class="visibility-state-row">
+            <p class="visibility-state-text">
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <rect x="4" y="7" width="8" height="7" rx="1.5"/>
+                <path d="M5.5 7V5a2.5 2.5 0 015 0v2"/>
+              </svg>
+              <span>
+                <span aria-hidden="true">🔒</span>
+                <span class="sr-only" style="position:absolute;width:1px;height:1px;clip:rect(0,0,0,0);overflow:hidden;">Private</span>
+                Private
+              </span>
+            </p>
+          </div>
+          <p class="settings-help-text">This Taskset is only visible to your org.</p>
+
+          <button class="td-btn-publish" aria-label="Publish Taskset">
+            <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="8" cy="8" r="6"/><path d="M8 2c-2 2-3 4-3 6s1 4 3 6M8 2c2 2 3 4 3 6s-1 4-3 6M2 8h12"/>
+            </svg>
+            Publish
+          </button>
+          <p class="settings-help-text" style="margin-top:8px;">Make this Taskset visible in the public Marketplace.</p>
+
+          <!-- ── Publish confirm dialog (inline) ── -->
+          <p class="dialog-overlay-label">Dialog: Publish confirmation</p>
+          <div class="dialog-card" role="alertdialog" aria-modal="true" aria-labelledby="publish-dialog-title">
+            <div class="dialog-title" id="publish-dialog-title">
+              <svg class="dialog-title-icon" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M8 2L1 14h14L8 2z"/><path d="M8 6v4M8 12h.01"/>
+              </svg>
+              Publish 'browser Tasks' to the Marketplace?
+            </div>
+            <p class="dialog-desc">
+              This Taskset and its leaderboard entries will be visible to other orgs.<br>
+              Future Job runs on this Taskset will appear in the public leaderboard.
+            </p>
+            <div class="dialog-footer">
+              <button class="dialog-cancel-btn">Cancel</button>
+              <button class="dialog-confirm-btn">Publish</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- ══════════════════════════════════════
+             §7 METADATA (read-only)
+        ══════════════════════════════════════ -->
+        <section class="settings-section" aria-labelledby="metadata-heading">
+          <h3 class="settings-section-title" id="metadata-heading">Metadata</h3>
+
+          <dl class="metadata-dl">
+            <dt class="metadata-dt">Taskset ID</dt>
+            <dd class="metadata-dd">
+              tskt-0a1b2c3d4e5f
+              <button class="td-copy-btn" aria-label="Copy Taskset ID tskt-0a1b2c3d4e5f" title="Copy ID" style="margin-left:2px;">
+                <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="5" y="5" width="8" height="9" rx="1.5"/><path d="M3 11V3a1 1 0 011-1h8"/>
+                </svg>
+              </button>
+            </dd>
+
+            <dt class="metadata-dt">Created</dt>
+            <dd class="metadata-dd normal">2025-11-04</dd>
+
+            <dt class="metadata-dt">Created by</dt>
+            <dd class="metadata-dd normal">
+              <a href="#">@riley-nakamura</a>
+            </dd>
+
+            <dt class="metadata-dt">Last modified</dt>
+            <dd class="metadata-dd normal">
+              2026-05-12
+              <span style="color:var(--color-meta-foreground);">by</span>
+              <a href="#">@riley-nakamura</a>
+            </dd>
+          </dl>
+        </section>
+
+        <!-- ══════════════════════════════════════
+             §8 DANGER ZONE
+        ══════════════════════════════════════ -->
+        <div class="danger-zone-section" aria-labelledby="danger-heading">
+          <h3 class="danger-zone-title" id="danger-heading">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="color:var(--color-destructive);">
+              <path d="M8 2L1 14h14L8 2z"/><path d="M8 6v4M8 12h.01"/>
+            </svg>
+            Danger Zone
+          </h3>
+
+          <p class="danger-zone-body">
+            Permanently delete this Taskset and all Tasks within it.<br>
+            Existing Jobs that used this Taskset remain in Job history; the Taskset link becomes broken. This action cannot be undone.
+          </p>
+
+          <button class="td-btn-destructive" aria-label="Delete Taskset">
+            <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M3 4h10M5 4V3a1 1 0 011-1h4a1 1 0 011 1v1M6 7v5M8 7v5M10 7v5"/>
+              <rect x="3" y="4" width="10" height="10" rx="1.5"/>
+            </svg>
+            Delete Taskset
+          </button>
+
+          <!-- ── Delete confirm dialog (inline, with typed-name field) ── -->
+          <p class="dialog-overlay-label">Dialog: Delete confirmation (TriangleAlertIcon + typed-name field — per destructive-actions.md + typed-name extension)</p>
+          <div class="dialog-card" role="alertdialog" aria-modal="true" aria-labelledby="delete-dialog-title" aria-describedby="delete-dialog-desc">
+            <div class="dialog-title" id="delete-dialog-title">
+              <!-- TriangleAlertIcon from lucide-react, aria-hidden -->
+              <svg class="dialog-title-icon" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M8 2L1 14h14L8 2z"/><path d="M8 6v4M8 12h.01"/>
+              </svg>
+              Permanently delete 'browser Tasks'?
+            </div>
+            <p class="dialog-desc" id="delete-dialog-desc">
+              Deleting browser Tasks will permanently remove this Taskset, all Tasks within it, and unlink it from existing Jobs. Job history stays; the Taskset link becomes broken. This action cannot be undone.
+            </p>
+            <label class="dialog-typed-label" for="delete-confirm-input">
+              Type the Taskset name to confirm:
+            </label>
+            <input
+              class="dialog-typed-input"
+              id="delete-confirm-input"
+              type="text"
+              placeholder="browser Tasks"
+              aria-label="Type the Taskset name to confirm deletion"
+              aria-describedby="delete-dialog-desc"
+            />
+            <div class="dialog-footer">
+              <button class="dialog-cancel-btn">Cancel</button>
+              <!-- Disabled until input matches — shown in disabled state in mockup -->
+              <button
+                class="dialog-destructive-btn disabled"
+                disabled
+                aria-label="Delete Taskset — type the name above to enable"
+                aria-disabled="true"
+              >
+                Delete Taskset
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /settings-content -->
+    </main>
+
+  </div><!-- /main-region -->
+
+</div><!-- /shell-layout -->
+
+</body>
+</html>

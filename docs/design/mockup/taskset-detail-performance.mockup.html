@@ -1,0 +1,1986 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Taskset Detail — OSWorld-Verified · Performance (Variant B, Public non-owner)</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --neutral-950: #1c2024;
+      --neutral-50:  #F8FAFB;
+      --white:       #FFFFFF;
+      --gold:        #f7b717;
+
+      --ink-900: #18212E;
+      --ink-50:  #E8EEF5;
+      --ink-800: #3D5269;
+      --ink-100: #B3BFCE;
+      --ink-700: #6C7A8C;
+      --ink-200: #7A8494;
+      --ink-400: #A4ADB9;
+      --ink-500: #475260;
+
+      --surface-bg-dark:        #0C1016;
+      --surface-panel-dark:     #11161F;
+      --surface-page-dark:      #07090D;
+      --surface-elevated-dark:  #161D28;
+      --surface-muted-dark:     #161D28;
+      --surface-secondary-dark: #1E2733;
+
+      --teal-400: #2BE0C8;
+      --teal-500: #1A9183;
+      --teal-600: #0E9888;
+      --teal-700: #087A6C;
+      --teal-800: #055E55;
+
+      --scored-400:  #35C46B;
+      --running-400: #4FA8FF;
+      --errored-400: #FF5B52;
+      --warning-400: #E5A52E;
+
+      --color-background:      var(--surface-bg-dark);
+      --color-panel:           var(--surface-panel-dark);
+      --color-page:            var(--surface-page-dark);
+      --color-elevated:        var(--surface-elevated-dark);
+
+      --color-foreground:        var(--ink-50);
+      --color-muted-foreground:  var(--ink-100);
+      --color-meta-foreground:   var(--ink-200);
+      --color-text-disabled:     var(--ink-500);
+
+      --color-muted:     var(--surface-muted-dark);
+      --color-secondary: var(--surface-secondary-dark);
+
+      --color-border:        rgba(255 255 255 / .08);
+      --color-border-strong: rgba(255 255 255 / .18);
+
+      --color-primary:            var(--teal-400);
+      --color-primary-foreground: #06201C;
+      --color-primary-hover:      var(--teal-500);
+
+      --color-brand:            var(--gold);
+      --color-brand-foreground: var(--ink-900);
+
+      --color-state-scored:         var(--scored-400);
+      --color-state-scored-subtle:  rgba(53 196 107 / .12);
+      --color-state-running:        var(--running-400);
+      --color-state-errored:        var(--errored-400);
+      --color-state-errored-subtle: rgba(255 91 82 / .12);
+      --color-state-warning:        var(--warning-400);
+      --color-state-warning-subtle: rgba(229 165 46 / .10);
+
+      /* Chart series — config identity slots */
+      --color-chart-1: var(--teal-400);    /* Config A — blue/teal */
+      --color-chart-2: #FFB454;            /* Config B — orange */
+      --color-chart-3: #F46EB0;
+      --color-chart-4: #9D8CFF;
+      --color-chart-5: #8DDB4A;
+
+      --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+      --mono: "SF Mono", "Fira Code", "Cascadia Code", Consolas, monospace;
+
+      --sidebar-bg:    #0f1117;
+      --sidebar-border:#1e2230;
+      --accent:        var(--teal-400);
+      --accent-subtle: rgba(43,224,200,0.09);
+      --muted-fg:      var(--ink-200);
+      --default-fg:    var(--ink-50);
+    }
+
+    html, body {
+      height: 100%;
+      font-family: var(--sans);
+      font-size: 13px;
+      background: var(--color-page);
+      color: var(--color-foreground);
+      line-height: 1.5;
+    }
+
+    /* ══ SHELL ══ */
+    .shell-layout { display: flex; height: 100vh; min-height: 600px; }
+
+    .sidebar {
+      background: var(--sidebar-bg);
+      border-right: 1px solid var(--sidebar-border);
+      display: flex; flex-direction: column; flex-shrink: 0;
+      width: 220px; height: 100%; overflow-y: auto; overflow-x: hidden;
+    }
+    .brand-slot {
+      display: flex; align-items: center; gap: 8px;
+      padding: 14px 16px 12px;
+      border-bottom: 1px solid var(--sidebar-border); flex-shrink: 0;
+    }
+    .brand-mark {
+      width: 20px; height: 20px;
+      background: rgba(247,183,23,0.15); border-radius: 4px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .brand-wordmark { font-size: 14px; font-weight: 700; color: var(--default-fg); letter-spacing: -0.02em; }
+    .group-label {
+      font-size: 10px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--muted-fg); padding: 0 16px; margin-top: 20px; margin-bottom: 4px;
+    }
+    .nav-item {
+      display: flex; align-items: center; gap: 8px; padding: 5px 12px;
+      font-size: 13px; color: var(--muted-fg); cursor: pointer;
+      position: relative; border-radius: 4px; margin: 1px 4px;
+      text-decoration: none;
+    }
+    .nav-item:hover { background: rgba(255,255,255,0.04); color: var(--default-fg); }
+    .nav-item.selected { color: var(--accent); background: var(--accent-subtle); }
+    .nav-item.selected::before {
+      content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 2px;
+      background: var(--accent); border-radius: 0 2px 2px 0;
+    }
+    .nav-item-icon { width: 16px; height: 16px; flex-shrink: 0; color: inherit; opacity: 0.8; }
+    .nav-item.selected .nav-item-icon { opacity: 1; }
+    .nav-item-label { flex: 1; white-space: nowrap; }
+    .nav-item-count { font-size: 11px; color: var(--muted-fg); margin-left: auto; font-variant-numeric: tabular-nums; }
+    .nav-item-ext { font-size: 10px; color: var(--muted-fg); margin-left: auto; }
+    .spacer { flex: 1; }
+
+    .credits-widget {
+      margin: 0 8px 4px; padding: 8px 10px;
+      border-radius: 6px; border: 1px solid var(--sidebar-border); cursor: pointer;
+    }
+    .credits-widget:hover { background: var(--accent-subtle); }
+    .credits-label { font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted-fg); }
+    .credits-numbers { display: flex; justify-content: flex-end; align-items: baseline; gap: 2px; margin: 2px 0; }
+    .credits-current { font-size: 13px; font-variant-numeric: tabular-nums; color: var(--default-fg); font-family: var(--mono); }
+    .credits-cap { font-size: 11px; font-variant-numeric: tabular-nums; color: var(--muted-fg); font-family: var(--mono); }
+    .credits-bar-bg { height: 3px; background: rgba(255,255,255,0.08); border-radius: 2px; overflow: hidden; margin: 4px 0; }
+    .credits-bar-fill { height: 100%; background: var(--accent); border-radius: 2px; }
+    .credits-meta { display: flex; justify-content: space-between; font-size: 10px; color: var(--muted-fg); margin-top: 2px; }
+
+    .user-chip {
+      display: flex; align-items: center; gap: 8px;
+      padding: 8px 10px; margin: 4px 6px 6px;
+      border-radius: 6px; border: 1px solid var(--sidebar-border);
+      cursor: pointer; flex-shrink: 0;
+    }
+    .user-chip:hover { background: rgba(255,255,255,0.04); }
+    .avatar {
+      width: 28px; height: 28px; border-radius: 50%;
+      background: var(--color-elevated); border: 1px solid var(--sidebar-border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 600; color: var(--default-fg); flex-shrink: 0;
+    }
+    .user-info { flex: 1; overflow: hidden; min-width: 0; }
+    .user-name { font-size: 12px; font-weight: 500; color: var(--default-fg); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .user-meta { font-size: 10px; color: var(--muted-fg); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .switcher-icon { color: var(--muted-fg); flex-shrink: 0; }
+
+    .main-region {
+      flex: 1; overflow-y: auto;
+      background: var(--color-background);
+      min-width: 0; display: flex; flex-direction: column;
+    }
+
+    /* ══ STICKY HEADER STACK ══ */
+    .td-sticky-stack {
+      position: sticky; top: 0; z-index: 10;
+      background: var(--color-background);
+      border-bottom: 1px solid var(--color-border);
+    }
+    .td-page-header { padding: 16px 28px 0; }
+
+    .td-breadcrumb {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 12px; color: var(--color-meta-foreground);
+      margin-bottom: 10px;
+    }
+    .td-breadcrumb-link {
+      color: var(--color-muted-foreground); text-decoration: none; cursor: pointer;
+      display: flex; align-items: center; gap: 4px;
+    }
+    .td-breadcrumb-link:hover { color: var(--color-foreground); text-decoration: underline; }
+    .td-breadcrumb-sep { color: var(--color-meta-foreground); }
+    .td-breadcrumb-current { color: var(--color-muted-foreground); }
+
+    .td-header-row {
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
+      margin-bottom: 8px;
+    }
+    .td-title-group {
+      display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+      flex: 1; min-width: 0;
+    }
+    .td-taskset-name {
+      font-size: 20px; font-weight: 600; letter-spacing: -0.02em;
+      color: var(--color-foreground); line-height: 1.2;
+    }
+    .td-visibility-pill {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-size: 11px; font-weight: 500;
+      border-radius: 10px; padding: 2px 8px;
+      white-space: nowrap; flex-shrink: 0;
+      color: var(--color-muted-foreground);
+      background: rgba(255,255,255,.07);
+      border: 1px solid var(--color-border-strong);
+    }
+    .td-star-btn {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-size: 12px; color: var(--color-muted-foreground);
+      background: transparent; border: none; cursor: pointer;
+      padding: 2px 6px; border-radius: 4px; flex-shrink: 0;
+    }
+    .td-star-btn:hover { color: var(--color-foreground); background: rgba(255,255,255,.06); }
+    .td-star-count { font-variant-numeric: tabular-nums; }
+
+    .td-header-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+    .td-btn-secondary {
+      display: inline-flex; align-items: center; gap: 5px;
+      font-size: 12.5px; font-weight: 500;
+      padding: 6px 13px; border-radius: 5px; cursor: pointer;
+      background: transparent; color: var(--color-muted-foreground);
+      border: 1px solid var(--color-border-strong); white-space: nowrap;
+    }
+    .td-btn-secondary:hover { color: var(--color-foreground); border-color: rgba(255,255,255,.30); background: rgba(255,255,255,.04); }
+    .td-btn-primary {
+      display: inline-flex; align-items: center; gap: 5px;
+      font-size: 12.5px; font-weight: 500;
+      padding: 6px 13px; border-radius: 5px; cursor: pointer;
+      background: var(--color-primary); color: var(--color-primary-foreground);
+      border: 1px solid transparent; white-space: nowrap;
+    }
+    .td-btn-primary:hover { background: var(--color-primary-hover); }
+    .td-overflow-btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 30px; height: 30px;
+      background: transparent; border: 1px solid var(--color-border-strong);
+      border-radius: 5px; cursor: pointer; color: var(--color-muted-foreground);
+    }
+    .td-overflow-btn:hover { color: var(--color-foreground); background: rgba(255,255,255,.04); }
+
+    .td-descriptor-strip {
+      display: flex; align-items: center; gap: 0; flex-wrap: wrap;
+      font-size: 12px; color: var(--color-meta-foreground); padding-bottom: 10px;
+    }
+    .td-strip-field { display: flex; align-items: center; gap: 4px; }
+    .td-strip-sep { color: var(--color-meta-foreground); margin: 0 8px; opacity: 0.6; }
+    .td-strip-slug { font-family: var(--mono); font-size: 11.5px; color: var(--color-muted-foreground); }
+    .td-copy-btn {
+      background: transparent; border: none; cursor: pointer;
+      color: var(--color-meta-foreground); font-size: 11px; padding: 1px 4px;
+      border-radius: 2px; display: inline-flex; align-items: center;
+    }
+    .td-copy-btn:hover { color: var(--color-muted-foreground); background: rgba(255,255,255,.06); }
+
+    .td-tab-bar { display: flex; align-items: flex-end; padding: 0 28px; }
+    .td-tab {
+      padding: 8px 14px; font-size: 12.5px; color: var(--color-meta-foreground);
+      cursor: pointer; border-bottom: 2px solid transparent;
+      margin-bottom: -1px; display: flex; align-items: center; gap: 6px;
+      background: none; border-top: none; border-left: none; border-right: none;
+      font-family: var(--sans);
+    }
+    .td-tab:hover { color: var(--color-muted-foreground); }
+    .td-tab.active { color: var(--color-foreground); border-bottom-color: var(--color-primary); }
+    .td-tab-count {
+      font-size: 10.5px; color: var(--color-meta-foreground);
+      background: rgba(255,255,255,.06); padding: 1px 5px; border-radius: 10px;
+      font-variant-numeric: tabular-nums;
+    }
+    .td-tab.active .td-tab-count { color: var(--color-muted-foreground); }
+
+    /* ══ EXPLORATION WATERMARK ══ */
+    .state-label {
+      font-size: 10px; font-weight: 600; text-transform: uppercase;
+      letter-spacing: .08em; color: var(--color-meta-foreground);
+      padding: 6px 28px;
+      background: rgba(229,165,46,.05);
+      border-bottom: 1px solid rgba(229,165,46,.12);
+    }
+
+    /* ══ PERFORMANCE TAB — TWO-COLUMN LAYOUT ══ */
+    .perf-layout {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+      min-height: 0;
+    }
+
+    /* ── Configure Rail (sticky left) ── */
+    .perf-rail {
+      width: 240px;
+      flex-shrink: 0;
+      background: var(--color-panel);
+      border-right: 1px solid var(--color-border);
+      overflow-y: auto;
+      padding: 20px 16px 32px;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    .rail-section-label {
+      font-size: 10px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--color-meta-foreground); margin-bottom: 10px;
+    }
+    .rail-divider {
+      border: none; border-top: 1px solid var(--color-border);
+      margin: 16px 0;
+    }
+
+    /* Config card */
+    .config-card {
+      background: var(--color-elevated);
+      border: 1px solid var(--color-border);
+      border-radius: 6px;
+      padding: 10px 11px;
+      margin-bottom: 8px;
+    }
+    .config-card-head {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 10px;
+    }
+    .config-dot-label {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 12px; font-weight: 600; color: var(--color-foreground);
+    }
+    .config-dot {
+      width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+    }
+    .config-dot.a { background: var(--color-chart-1); }
+    .config-dot.b { background: var(--color-chart-2); }
+
+    .config-dismiss {
+      background: transparent; border: none; cursor: pointer;
+      color: var(--color-meta-foreground); font-size: 14px; line-height: 1;
+      padding: 0 2px; border-radius: 2px;
+    }
+    .config-dismiss:hover { color: var(--color-muted-foreground); background: rgba(255,255,255,.06); }
+
+    .config-field { margin-bottom: 8px; }
+    .config-field:last-child { margin-bottom: 0; }
+    .config-field-label {
+      font-size: 9.5px; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase;
+      color: var(--color-meta-foreground); margin-bottom: 3px;
+    }
+    .config-select {
+      width: 100%;
+      background: var(--color-background);
+      border: 1px solid var(--color-border-strong);
+      border-radius: 4px;
+      color: var(--color-muted-foreground);
+      font-size: 11.5px; font-family: var(--sans);
+      padding: 4px 8px;
+      appearance: none;
+      -webkit-appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%237A8494' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 8px center;
+      padding-right: 24px;
+      cursor: pointer;
+    }
+    .config-select:hover { border-color: rgba(255,255,255,.28); }
+    .config-select:focus { outline: none; border-color: var(--color-primary); }
+
+    .config-invalidated {
+      display: flex; align-items: center; gap: 6px;
+      margin-top: 8px; padding-top: 8px;
+      border-top: 1px solid var(--color-border);
+    }
+    .config-invalidated input[type="checkbox"] { accent-color: var(--color-primary); }
+    .config-invalidated label {
+      font-size: 11px; color: var(--color-meta-foreground); cursor: pointer;
+    }
+
+    .add-comparison-btn {
+      background: transparent; border: none; cursor: pointer;
+      font-size: 12px; color: var(--color-primary);
+      padding: 4px 2px; text-align: left;
+      display: flex; align-items: center; gap: 4px;
+    }
+    .add-comparison-btn:hover { color: var(--color-primary-hover); }
+
+    .rerun-btn {
+      width: 100%;
+      display: flex; align-items: center; justify-content: center; gap: 6px;
+      font-size: 12.5px; font-weight: 600;
+      padding: 8px 14px; border-radius: 5px; cursor: pointer;
+      background: var(--color-primary);
+      color: var(--color-primary-foreground);
+      border: 1px solid transparent;
+    }
+    .rerun-btn:hover { background: var(--color-primary-hover); }
+
+    /* ── Right scrollable content ── */
+    .perf-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 24px 28px 56px;
+      min-width: 0;
+    }
+
+    /* Section headers */
+    .perf-section-title {
+      font-size: 13px; font-weight: 600; color: var(--color-foreground);
+      margin-bottom: 4px;
+    }
+    .perf-section-caption {
+      font-size: 11.5px; color: var(--color-meta-foreground); margin-bottom: 14px;
+    }
+    .perf-divider {
+      border: none; border-top: 1px solid var(--color-border);
+      margin: 28px 0;
+    }
+
+    /* ── Overview metrics table ── */
+    .perf-overview-table-wrap {
+      overflow-x: auto;
+      margin-bottom: 0;
+    }
+    .perf-overview-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+    .perf-overview-table thead th {
+      font-size: 10px; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase;
+      color: var(--color-meta-foreground);
+      padding: 0 10px 8px;
+      border-bottom: 1px solid var(--color-border);
+      text-align: right;
+    }
+    .perf-overview-table thead th:first-child { text-align: left; padding-left: 0; position: sticky; left: 0; background: var(--color-background); z-index: 2; }
+    .perf-overview-table tbody td {
+      padding: 9px 10px;
+      border-bottom: 1px solid var(--color-border);
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--color-muted-foreground);
+    }
+    .perf-overview-table tbody td:first-child {
+      text-align: left; padding-left: 0;
+      position: sticky; left: 0;
+      background: var(--color-background); z-index: 1;
+      font-family: var(--sans);
+    }
+    .perf-overview-table tbody tr:last-child td { border-bottom: none; }
+    .perf-overview-table tbody tr:hover td { background: rgba(255,255,255,.025); }
+    .perf-overview-table tbody tr:hover td:first-child { background: rgba(12,16,22,0.9); }
+
+    .ov-config-cell {
+      display: flex; align-items: center; gap: 7px;
+      font-size: 12px; font-weight: 500; color: var(--color-foreground);
+    }
+    .ov-reward-red {
+      color: var(--color-state-errored);
+      background: var(--color-state-errored-subtle);
+      padding: 1px 5px; border-radius: 3px;
+    }
+    .ov-reward-ok { color: var(--color-state-scored); }
+    .ov-think-warn {
+      color: var(--color-state-warning);
+    }
+    .ov-errors-red { color: var(--color-state-errored); }
+    .ov-tool-chip {
+      font-family: var(--mono); font-size: 10.5px;
+      background: rgba(255,255,255,.06); border: 1px solid var(--color-border);
+      border-radius: 3px; padding: 1px 5px;
+      color: var(--color-muted-foreground);
+    }
+
+    /* ── Top workflows ── */
+    .top-workflows-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    .wf-col-head {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 11px; font-weight: 600; color: var(--color-muted-foreground);
+      margin-bottom: 8px;
+    }
+    .wf-row {
+      display: flex; align-items: center; gap: 8px;
+      padding: 5px 0;
+      border-bottom: 1px solid var(--color-border);
+    }
+    .wf-row:last-child { border-bottom: none; }
+    .wf-pct {
+      font-size: 11.5px; font-variant-numeric: tabular-nums; font-family: var(--mono);
+      color: var(--color-meta-foreground); min-width: 32px; text-align: right;
+    }
+    .wf-seq {
+      display: flex; align-items: center; gap: 3px; flex-wrap: wrap; flex: 1;
+    }
+    .wf-tool {
+      font-family: var(--mono); font-size: 10.5px;
+      background: rgba(255,255,255,.06); border: 1px solid var(--color-border);
+      border-radius: 3px; padding: 1px 5px; color: var(--color-muted-foreground);
+    }
+    .wf-arrow { color: var(--color-meta-foreground); font-size: 10px; }
+    .wf-loop {
+      font-size: 10px; color: var(--color-state-warning);
+      background: var(--color-state-warning-subtle);
+      border-radius: 3px; padding: 1px 4px;
+    }
+
+    /* ── Tool Usage Distribution table ── */
+    .perf-dist-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+    .perf-dist-table thead th {
+      font-size: 10px; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase;
+      color: var(--color-meta-foreground);
+      padding: 0 10px 8px;
+      border-bottom: 1px solid var(--color-border);
+      text-align: right;
+    }
+    .perf-dist-table thead th:first-child { text-align: left; padding-left: 0; }
+    .perf-dist-table tbody td {
+      padding: 7px 10px;
+      font-variant-numeric: tabular-nums;
+      font-family: var(--mono);
+      font-size: 11.5px;
+      color: var(--color-muted-foreground);
+      text-align: right;
+    }
+    .perf-dist-table tbody td:first-child { text-align: left; padding-left: 0; font-family: var(--sans); }
+    .perf-dist-table tbody tr.tool-group-end td { border-bottom: 1px solid var(--color-border); }
+    .perf-dist-table tbody tr:hover td { background: rgba(255,255,255,.02); }
+
+    .tool-name-cell {
+      display: flex; align-items: center; gap: 6px;
+    }
+    .tool-name-mono {
+      font-family: var(--mono); font-size: 11.5px; color: var(--color-foreground);
+    }
+    .tool-config-dot {
+      width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0;
+    }
+    .tool-config-dot.a { background: var(--color-chart-1); opacity: 0.8; }
+    .tool-config-dot.b { background: var(--color-chart-2); opacity: 0.8; }
+
+    /* Inline bar viz */
+    .bar-cell {
+      min-width: 80px;
+      padding: 7px 10px;
+    }
+    .bar-track {
+      height: 4px; background: rgba(255,255,255,.06); border-radius: 2px;
+      overflow: hidden; margin-top: 2px;
+    }
+    .bar-fill { height: 100%; border-radius: 2px; }
+
+    .pass-good { color: var(--color-state-scored); }
+    .pass-mid  { color: var(--color-state-warning); }
+    .pass-bad  { color: var(--color-state-errored); }
+    .r2-pos { color: var(--color-state-scored); }
+    .r2-neg { color: var(--color-state-errored); }
+
+    /* ── Common Patterns table ── */
+    .patterns-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+    .patterns-table thead th {
+      font-size: 10px; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase;
+      color: var(--color-meta-foreground);
+      padding: 0 10px 8px;
+      border-bottom: 1px solid var(--color-border);
+    }
+    .patterns-table thead th:last-child { text-align: right; }
+    .patterns-table tbody td {
+      padding: 8px 10px;
+      border-bottom: 1px solid var(--color-border);
+      vertical-align: top;
+    }
+    .patterns-table tbody tr:last-child td { border-bottom: none; }
+    .patterns-table tbody tr:hover td { background: rgba(255,255,255,.02); }
+
+    .pat-id {
+      font-family: var(--mono); font-size: 10.5px; font-weight: 600;
+      color: var(--color-meta-foreground);
+      white-space: nowrap;
+    }
+    .pat-n {
+      display: flex; align-items: center; gap: 6px;
+      font-variant-numeric: tabular-nums; font-family: var(--mono); font-size: 11.5px;
+      color: var(--color-muted-foreground);
+      white-space: nowrap;
+    }
+    .pat-score {
+      font-variant-numeric: tabular-nums; font-family: var(--mono); font-size: 11.5px;
+      color: var(--color-muted-foreground); text-align: right; white-space: nowrap;
+    }
+
+    /* ── Dist + Patterns side by side ── */
+    .tool-usage-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      align-items: start;
+    }
+
+    /* ── Pattern / Reward heatmap ── */
+    .heatmap-tabs {
+      display: flex; align-items: center; gap: 0;
+      margin-bottom: 16px;
+    }
+    .heatmap-tab {
+      padding: 5px 12px; font-size: 12px;
+      border: 1px solid var(--color-border);
+      cursor: pointer; background: transparent; color: var(--color-meta-foreground);
+      font-family: var(--sans);
+    }
+    .heatmap-tab:first-child { border-radius: 4px 0 0 4px; }
+    .heatmap-tab:last-child  { border-radius: 0 4px 4px 0; border-left: none; }
+    .heatmap-tab.active {
+      background: var(--color-elevated);
+      color: var(--color-foreground);
+      border-color: var(--color-border-strong);
+    }
+
+    .heatmap-container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    .heatmap-half h4 {
+      font-size: 11px; font-weight: 600; color: var(--color-muted-foreground);
+      margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.06em;
+    }
+    .heatmap-grid {
+      display: grid;
+      gap: 0;
+    }
+    .hm-row {
+      display: flex; align-items: center; gap: 2px;
+    }
+    .hm-pat-label {
+      font-family: var(--mono); font-size: 10px; color: var(--color-meta-foreground);
+      width: 24px; flex-shrink: 0; text-align: right; padding-right: 4px;
+    }
+    .hm-cell {
+      width: 28px; height: 22px; border-radius: 2px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 9px; font-family: var(--mono);
+      flex-shrink: 0;
+    }
+    .hm-cell.empty {
+      background: rgba(255,255,255,.03);
+      color: transparent;
+    }
+    .hm-trace-labels {
+      display: flex; gap: 2px; padding-left: 28px; margin-bottom: 4px;
+    }
+    .hm-trace-label {
+      width: 28px; text-align: center;
+      font-size: 9px; font-family: var(--mono); color: var(--color-meta-foreground);
+      flex-shrink: 0;
+    }
+
+    /* High-reward cells: teal scale */
+    .hm-high-1  { background: rgba(43,224,200,.18); color: var(--color-chart-1); }
+    .hm-high-08 { background: rgba(43,224,200,.32); color: var(--color-chart-1); }
+    .hm-high-1f { background: rgba(43,224,200,.55); color: #06201C; }
+
+    /* Low-reward cells: orange/red scale */
+    .hm-low-03  { background: rgba(255,180,84,.15); color: var(--color-chart-2); }
+    .hm-low-06  { background: rgba(255,180,84,.30); color: var(--color-chart-2); }
+    .hm-low-1f  { background: rgba(255,91,82,.40);  color: #fff; }
+
+    /* ── Trace Dynamics charts (inline SVG) ── */
+    .dynamics-charts-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin-bottom: 20px;
+    }
+    .chart-box {
+      background: var(--color-panel);
+      border: 1px solid var(--color-border);
+      border-radius: 6px;
+      padding: 14px 16px 10px;
+    }
+    .chart-box-title {
+      font-size: 12px; font-weight: 600; color: var(--color-foreground);
+      margin-bottom: 3px;
+    }
+    .chart-box-caption {
+      font-size: 10.5px; color: var(--color-meta-foreground); margin-bottom: 12px;
+    }
+
+    .chart-legend {
+      display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+      font-size: 10.5px; color: var(--color-meta-foreground);
+      margin-top: 10px; padding-top: 8px;
+      border-top: 1px solid var(--color-border);
+    }
+    .legend-item { display: flex; align-items: center; gap: 5px; }
+    .legend-line {
+      width: 20px; height: 2px; border-radius: 1px;
+    }
+    .legend-line.dashed {
+      background: none;
+      border-bottom: 2px dashed currentColor;
+      height: 0;
+    }
+
+    /* ── Phase distribution ── */
+    .phase-dist-section {}
+    .phase-config-label {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 11.5px; font-weight: 600; color: var(--color-muted-foreground);
+      margin-bottom: 10px;
+    }
+    .phase-bars-row {
+      display: flex; align-items: flex-end; gap: 12px;
+      margin-bottom: 6px;
+    }
+    .phase-bar-group {
+      flex: 1; display: flex; flex-direction: column; align-items: center; gap: 5px;
+    }
+    .phase-stacked-bar {
+      width: 100%;
+      border-radius: 3px 3px 0 0;
+      overflow: hidden;
+      background: var(--color-elevated);
+    }
+    .phase-segment { width: 100%; }
+    .phase-bar-label {
+      font-size: 10px; color: var(--color-meta-foreground); text-align: center;
+    }
+    .phase-legend {
+      display: flex; gap: 12px; flex-wrap: wrap;
+      margin-top: 12px; font-size: 10.5px; color: var(--color-meta-foreground);
+    }
+    .phase-legend-item { display: flex; align-items: center; gap: 4px; }
+    .phase-legend-swatch { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
+
+    .config-block { margin-bottom: 20px; }
+    .config-block:last-child { margin-bottom: 0; }
+
+    .sr-only {
+      position: absolute; width: 1px; height: 1px;
+      clip: rect(0,0,0,0); overflow: hidden;
+    }
+  </style>
+</head>
+<body>
+
+<div class="shell-layout">
+
+  <!-- ══ SIDEBAR ══ -->
+  <aside class="sidebar" aria-label="Main navigation">
+    <div class="brand-slot">
+      <div class="brand-mark">
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+          <rect width="12" height="12" rx="2" fill="rgba(120,53,15,0.6)"/>
+          <path d="M2 9L6 3L10 9" stroke="#f7b717" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <span class="brand-wordmark">hud</span>
+    </div>
+
+    <div class="group-label">Workspace</div>
+
+    <a class="nav-item" href="#">
+      <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="2" y="2" width="5" height="5" rx="1"/><rect x="9" y="2" width="5" height="5" rx="1"/>
+        <rect x="2" y="9" width="5" height="5" rx="1"/><rect x="9" y="9" width="5" height="5" rx="1"/>
+      </svg>
+      <span class="nav-item-label">Home</span>
+    </a>
+    <a class="nav-item selected" aria-current="page" href="#">
+      <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M2 4h12M2 8h8M2 12h10"/><circle cx="13" cy="11" r="2.5"/>
+      </svg>
+      <span class="nav-item-label">Tasksets</span>
+      <span class="nav-item-count">127</span>
+    </a>
+    <a class="nav-item" href="#">
+      <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="2" y="2" width="12" height="5" rx="1.5"/><rect x="2" y="9" width="12" height="5" rx="1.5"/>
+        <circle cx="5" cy="4.5" r="0.8" fill="currentColor" stroke="none"/>
+        <circle cx="5" cy="11.5" r="0.8" fill="currentColor" stroke="none"/>
+        <path d="M8 4.5h4M8 11.5h4"/>
+      </svg>
+      <span class="nav-item-label">Environments</span>
+      <span class="nav-item-count">42</span>
+    </a>
+    <a class="nav-item" href="#">
+      <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="8" cy="8" r="3"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2M3.22 3.22l1.42 1.42M11.36 11.36l1.42 1.42M3.22 12.78l1.42-1.42M11.36 4.64l1.42-1.42"/>
+      </svg>
+      <span class="nav-item-label">Models</span>
+      <span class="nav-item-count">27</span>
+    </a>
+    <a class="nav-item" href="#">
+      <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="8" cy="5" r="2.5"/><path d="M3 14c0-2.76 2.24-5 5-5s5 2.24 5 5"/>
+      </svg>
+      <span class="nav-item-label">Agents</span>
+      <span class="nav-item-count">4</span>
+    </a>
+    <a class="nav-item" href="#">
+      <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4 2h8a1 1 0 011 1v10a1 1 0 01-1 1H4a1 1 0 01-1-1V3a1 1 0 011-1z"/><path d="M6 6h4M6 9h4M6 12h2"/>
+      </svg>
+      <span class="nav-item-label">Library</span>
+    </a>
+
+    <div class="group-label">Observe</div>
+    <a class="nav-item" href="#">
+      <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="2" y="8" width="3" height="5" rx="0.5"/><rect x="6.5" y="5" width="3" height="8" rx="0.5"/>
+        <rect x="11" y="2" width="3" height="11" rx="0.5"/>
+      </svg>
+      <span class="nav-item-label">Dashboard</span>
+    </a>
+    <a class="nav-item" href="#">
+      <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="8" cy="8" r="6"/><path d="M8 4v4l3 1.5"/>
+      </svg>
+      <span class="nav-item-label">Progress</span>
+    </a>
+
+    <div class="spacer"></div>
+
+    <div class="credits-widget" title="View usage details">
+      <div class="credits-label">credits</div>
+      <div class="credits-numbers">
+        <span class="credits-current">4,230</span>
+        <span class="credits-cap">&nbsp;/ 10,000</span>
+      </div>
+      <div class="credits-bar-bg"><div class="credits-bar-fill" style="width:42.3%"></div></div>
+      <div class="credits-meta"><span>~92 cr/hr</span><span>~38h left</span></div>
+    </div>
+
+    <div style="padding:2px 4px;">
+      <a class="nav-item" href="#" style="font-size:12px;">
+        <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M7 3H3a1 1 0 00-1 1v9a1 1 0 001 1h9a1 1 0 001-1V9"/><path d="M10 2h4v4M14 2L7 9"/>
+        </svg>
+        <span class="nav-item-label">Marketplace</span>
+        <span class="nav-item-ext">↗</span>
+      </a>
+      <a class="nav-item" href="#" style="font-size:12px;">
+        <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 2h8a1 1 0 011 1v10a1 1 0 01-1 1H4a1 1 0 01-1-1V3a1 1 0 011-1z"/><path d="M6 6h4M6 9h4"/>
+        </svg>
+        <span class="nav-item-label">Documentation</span>
+        <span class="nav-item-ext">↗</span>
+      </a>
+    </div>
+
+    <div class="user-chip">
+      <div class="avatar">A</div>
+      <div class="user-info">
+        <div class="user-name">Alex Kim</div>
+        <div class="user-meta">Princeton NLP · member</div>
+      </div>
+      <svg class="switcher-icon" width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 4.5L6 2 9 4.5M3 7.5L6 10 9 7.5"/>
+      </svg>
+    </div>
+  </aside>
+
+  <!-- ══ MAIN ══ -->
+  <div class="main-region" id="main-content">
+
+    <div class="state-label">VARIANT B — Public (non-owner) · Performance tab · Default state (2 configs) · Exploration mockup</div>
+
+    <!-- STICKY HEADER STACK -->
+    <div class="td-sticky-stack">
+      <div class="td-page-header">
+
+        <nav class="td-breadcrumb" aria-label="Breadcrumb">
+          <ol style="list-style:none;display:flex;align-items:center;gap:6px;padding:0;">
+            <li>
+              <a class="td-breadcrumb-link" href="#">
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M8 2L4 6l4 4"/>
+                </svg>
+                Tasksets
+              </a>
+            </li>
+            <li class="td-breadcrumb-sep">/</li>
+            <li><span class="td-breadcrumb-current">OSWorld-Verified</span></li>
+          </ol>
+        </nav>
+
+        <div class="td-header-row">
+          <div class="td-title-group">
+            <h1 class="td-taskset-name">OSWorld-Verified</h1>
+            <span class="td-visibility-pill" aria-label="Visibility: Public">
+              <svg width="10" height="10" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="8" cy="8" r="6"/><path d="M8 2c-2 2-3 4-3 6s1 4 3 6M8 2c2 2 3 4 3 6s-1 4-3 6M2 8h12"/>
+              </svg>
+              Public
+            </span>
+            <button class="td-star-btn" aria-label="Star OSWorld-Verified" aria-pressed="false">
+              <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M8 2l1.5 3.5H14l-3.5 2.5 1.5 4L8 10 4 12l1.5-4L2 5.5h4.5L8 2z"/>
+              </svg>
+              <span class="td-star-count">148</span>
+            </button>
+          </div>
+          <div class="td-header-actions">
+            <button class="td-btn-secondary" aria-label="Fork OSWorld-Verified">
+              <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="5" cy="4" r="1.5"/><circle cx="11" cy="4" r="1.5"/><circle cx="8" cy="12" r="1.5"/>
+                <path d="M5 5.5v2.5c0 1.1.9 2 2 2h2c1.1 0 2-.9 2-2V5.5"/><path d="M8 8v2"/>
+              </svg>
+              Fork
+            </button>
+            <button class="td-btn-primary" aria-label="Run Taskset">
+              <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M5 3l8 5-8 5V3z" fill="currentColor" stroke="none"/>
+              </svg>
+              Run Taskset
+            </button>
+            <button class="td-overflow-btn" aria-label="More actions">
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="8" cy="3.5" r="1"/><circle cx="8" cy="8" r="1"/><circle cx="8" cy="12.5" r="1"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <dl class="td-descriptor-strip">
+          <div class="td-strip-field">
+            <dt style="display:none;">Tasks</dt>
+            <dd style="margin:0; color:var(--color-muted-foreground);">369 Tasks</dd>
+          </div>
+          <span class="td-strip-sep" aria-hidden="true">·</span>
+          <div class="td-strip-field">
+            <dt style="display:none;">Slug</dt>
+            <dd style="margin:0; display:flex; align-items:center; gap:3px;">
+              <span class="td-strip-slug">osworld-verified-0023</span>
+              <button class="td-copy-btn" aria-label="Copy Taskset slug osworld-verified-0023">
+                <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="5" y="5" width="8" height="9" rx="1.5"/><path d="M3 11V3a1 1 0 011-1h8"/>
+                </svg>
+              </button>
+            </dd>
+          </div>
+          <span class="td-strip-sep" aria-hidden="true">·</span>
+          <div class="td-strip-field">
+            <dt style="display:none;">Owner</dt>
+            <dd style="margin:0; color:var(--color-muted-foreground);">Owned by: <a href="#" style="color:var(--color-muted-foreground); text-decoration:none;">HUD</a></dd>
+          </div>
+        </dl>
+
+      </div>
+
+      <!-- TAB BAR — Variant B: 4 tabs, Performance active -->
+      <div class="td-tab-bar" role="tablist" aria-label="Taskset detail tabs">
+        <button class="td-tab" role="tab" aria-selected="false" href="#">Overview</button>
+        <button class="td-tab" role="tab" aria-selected="false" aria-label="Tasks, 369">
+          Tasks <span class="td-tab-count" aria-hidden="true">369</span>
+        </button>
+        <button class="td-tab" role="tab" aria-selected="false" aria-label="Jobs, 38">
+          Jobs <span class="td-tab-count" aria-hidden="true">38</span>
+        </button>
+        <button class="td-tab active" role="tab" aria-selected="true" aria-controls="tab-performance">
+          Performance
+        </button>
+      </div>
+    </div><!-- /sticky-stack -->
+
+    <!-- ══ PERFORMANCE TAB — two-column layout ══ -->
+    <div class="perf-layout" role="tabpanel" id="tab-performance">
+      <span class="sr-only" aria-live="polite"></span>
+
+      <!-- ── Configure Rail ── -->
+      <aside class="perf-rail" aria-label="Analysis configuration">
+
+        <div class="rail-section-label">Configure</div>
+
+        <!-- Config A -->
+        <div class="config-card">
+          <div class="config-card-head">
+            <div class="config-dot-label">
+              <span class="config-dot a"></span>
+              Config A
+            </div>
+            <button class="config-dismiss" aria-label="Remove Config A" disabled title="Cannot remove the only config">×</button>
+          </div>
+
+          <div class="config-field">
+            <div class="config-field-label">Task</div>
+            <select class="config-select" aria-label="Task filter for Config A">
+              <option>All tasks</option>
+              <option>web_navigation</option>
+              <option>form_submission</option>
+              <option>file_management</option>
+              <option>multi_step_workflow</option>
+            </select>
+          </div>
+          <div class="config-field">
+            <div class="config-field-label">Model</div>
+            <select class="config-select" aria-label="Model filter for Config A">
+              <option>Claude Haiku 4.5</option>
+              <option>Kimi K2.5</option>
+              <option>Claude Opus 4.1</option>
+              <option>DeepSeek V3.2</option>
+              <option>All models</option>
+            </select>
+          </div>
+          <div class="config-field">
+            <div class="config-field-label">Checkpoint</div>
+            <select class="config-select" aria-label="Checkpoint filter for Config A">
+              <option>All checkpoints</option>
+              <option>step-4096</option>
+              <option>step-8192</option>
+              <option>step-16384</option>
+            </select>
+          </div>
+
+          <div class="config-invalidated">
+            <input type="checkbox" id="cfg-a-invalidated" />
+            <label for="cfg-a-invalidated">Include Invalidated Jobs</label>
+          </div>
+        </div>
+
+        <!-- Config B -->
+        <div class="config-card">
+          <div class="config-card-head">
+            <div class="config-dot-label">
+              <span class="config-dot b"></span>
+              Config B
+            </div>
+            <button class="config-dismiss" aria-label="Remove Config B">×</button>
+          </div>
+
+          <div class="config-field">
+            <div class="config-field-label">Task</div>
+            <select class="config-select" aria-label="Task filter for Config B">
+              <option>All tasks</option>
+              <option>web_navigation</option>
+              <option>form_submission</option>
+              <option>file_management</option>
+              <option>multi_step_workflow</option>
+            </select>
+          </div>
+          <div class="config-field">
+            <div class="config-field-label">Model</div>
+            <select class="config-select" aria-label="Model filter for Config B">
+              <option>Kimi K2.5</option>
+              <option>Claude Haiku 4.5</option>
+              <option>Claude Opus 4.1</option>
+              <option>DeepSeek V3.2</option>
+              <option>All models</option>
+            </select>
+          </div>
+          <div class="config-field">
+            <div class="config-field-label">Checkpoint</div>
+            <select class="config-select" aria-label="Checkpoint filter for Config B">
+              <option>All checkpoints</option>
+              <option>step-4096</option>
+              <option>step-8192</option>
+            </select>
+          </div>
+
+          <div class="config-invalidated">
+            <input type="checkbox" id="cfg-b-invalidated" />
+            <label for="cfg-b-invalidated">Include Invalidated Jobs</label>
+          </div>
+        </div>
+
+        <button class="add-comparison-btn" aria-label="Add comparison config">
+          <svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M6 2v8M2 6h8"/>
+          </svg>
+          Add comparison
+        </button>
+
+        <hr class="rail-divider" />
+
+        <div class="rail-section-label" style="margin-bottom:12px;">Run</div>
+        <button class="rerun-btn" aria-label="Re-run Analysis">
+          <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M5 3l8 5-8 5V3z" fill="currentColor" stroke="none"/>
+          </svg>
+          Re-run Analysis
+        </button>
+
+      </aside>
+
+      <!-- ── Right scrollable content ── -->
+      <div class="perf-content">
+
+        <!-- §3 OVERVIEW METRICS TABLE -->
+        <h2 class="perf-section-title">Overview</h2>
+        <p class="perf-section-caption">Aggregate metrics across all Runs in each config slice. Valid Jobs only.</p>
+
+        <div class="perf-overview-table-wrap">
+          <table class="perf-overview-table" aria-label="Config comparison overview metrics">
+            <thead>
+              <tr>
+                <th scope="col" style="text-align:left;">Config</th>
+                <th scope="col">Reward</th>
+                <th scope="col">Steps</th>
+                <th scope="col">Traces</th>
+                <th scope="col">Tasks</th>
+                <th scope="col">Duration</th>
+                <th scope="col">Cost</th>
+                <th scope="col">LLM Calls</th>
+                <th scope="col">Think/Act</th>
+                <th scope="col">Errors</th>
+                <th scope="col">Entropy</th>
+                <th scope="col">Top Tool</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- Config A: Claude Haiku 4.5 — high performer -->
+              <tr>
+                <td>
+                  <div class="ov-config-cell">
+                    <span class="config-dot a"></span>
+                    Config A
+                  </div>
+                </td>
+                <td><span class="ov-reward-ok">82.4%</span></td>
+                <td>4.1</td>
+                <td>312</td>
+                <td>369/369</td>
+                <td>1.8m</td>
+                <td>$0.041</td>
+                <td>4.1</td>
+                <td>1.6×</td>
+                <td>8%</td>
+                <td>2.87 / 4.00</td>
+                <td><span class="ov-tool-chip">hud_submit</span></td>
+              </tr>
+              <!-- Config B: Kimi K2.5 — lower, more errors -->
+              <tr>
+                <td>
+                  <div class="ov-config-cell">
+                    <span class="config-dot b"></span>
+                    Config B
+                  </div>
+                </td>
+                <td><span class="ov-reward-red">58.7%</span></td>
+                <td>5.9</td>
+                <td>294</td>
+                <td>369/369</td>
+                <td>3.1m</td>
+                <td>$0.087</td>
+                <td>6.2</td>
+                <td class="ov-think-warn">3.4×</td>
+                <td class="ov-errors-red">31%</td>
+                <td>1.43 / 4.00</td>
+                <td><span class="ov-tool-chip">screenshot</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <hr class="perf-divider" />
+
+        <!-- §4 TOP WORKFLOWS -->
+        <h2 class="perf-section-title">Top workflows</h2>
+        <p class="perf-section-caption">Most frequent tool sequences across Traces, by config.</p>
+
+        <div class="top-workflows-grid">
+          <!-- Config A -->
+          <div>
+            <div class="wf-col-head">
+              <span class="config-dot a"></span>
+              Config A — Claude Haiku 4.5
+            </div>
+            <div class="wf-row">
+              <span class="wf-pct">31%</span>
+              <div class="wf-seq">
+                <span class="wf-tool">screenshot</span>
+                <span class="wf-arrow">→</span>
+                <span class="wf-tool">hud_submit</span>
+              </div>
+            </div>
+            <div class="wf-row">
+              <span class="wf-pct">18%</span>
+              <div class="wf-seq">
+                <span class="wf-tool">screenshot</span>
+                <span class="wf-arrow">→</span>
+                <span class="wf-tool">click</span>
+                <span class="wf-arrow">→</span>
+                <span class="wf-tool">hud_submit</span>
+              </div>
+            </div>
+            <div class="wf-row">
+              <span class="wf-pct">12%</span>
+              <div class="wf-seq">
+                <span class="wf-tool">screenshot</span>
+                <span class="wf-arrow">→</span>
+                <span class="wf-tool">type</span>
+                <span class="wf-arrow">→</span>
+                <span class="wf-tool">hud_submit</span>
+              </div>
+            </div>
+            <div class="wf-row">
+              <span class="wf-pct">9%</span>
+              <div class="wf-seq">
+                <span class="wf-tool">screenshot</span>
+                <span class="wf-arrow">→</span>
+                <span class="wf-tool">scroll</span>
+                <span class="wf-arrow">→</span>
+                <span class="wf-tool">click</span>
+                <span class="wf-arrow">→</span>
+                <span class="wf-tool">hud_submit</span>
+              </div>
+            </div>
+            <div class="wf-row">
+              <span class="wf-pct">5%</span>
+              <div class="wf-seq">
+                <span class="wf-tool">screenshot</span>
+                <span class="wf-arrow">→</span>
+                <span class="wf-tool">click</span>
+                <span class="wf-arrow">→</span>
+                <span class="wf-tool">screenshot</span>
+                <span class="wf-arrow">→</span>
+                <span class="wf-tool">click</span>
+                <span class="wf-loop">loop</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Config B -->
+          <div>
+            <div class="wf-col-head">
+              <span class="config-dot b"></span>
+              Config B — Kimi K2.5
+            </div>
+            <div class="wf-row">
+              <span class="wf-pct">22%</span>
+              <div class="wf-seq">
+                <span class="wf-tool">screenshot</span>
+                <span class="wf-arrow">→</span>
+                <span class="wf-tool">screenshot</span>
+                <span class="wf-arrow">→</span>
+                <span class="wf-tool">hud_submit</span>
+              </div>
+            </div>
+            <div class="wf-row">
+              <span class="wf-pct">17%</span>
+              <div class="wf-seq">
+                <span class="wf-tool">screenshot</span>
+                <span class="wf-arrow">→</span>
+                <span class="wf-tool">click</span>
+                <span class="wf-arrow">→</span>
+                <span class="wf-tool">screenshot</span>
+                <span class="wf-loop">loop ×3</span>
+              </div>
+            </div>
+            <div class="wf-row">
+              <span class="wf-pct">11%</span>
+              <div class="wf-seq">
+                <span class="wf-tool">screenshot</span>
+                <span class="wf-arrow">→</span>
+                <span class="wf-tool">type</span>
+                <span class="wf-arrow">→</span>
+                <span class="wf-tool">screenshot</span>
+                <span class="wf-arrow">→</span>
+                <span class="wf-tool">hud_submit</span>
+              </div>
+            </div>
+            <div class="wf-row">
+              <span class="wf-pct">8%</span>
+              <div class="wf-seq">
+                <span class="wf-tool">get_url</span>
+                <span class="wf-arrow">→</span>
+                <span class="wf-tool">screenshot</span>
+                <span class="wf-arrow">→</span>
+                <span class="wf-tool">screenshot</span>
+                <span class="wf-loop">loop</span>
+              </div>
+            </div>
+            <div class="wf-row">
+              <span class="wf-pct">6%</span>
+              <div class="wf-seq">
+                <span class="wf-tool">screenshot</span>
+                <span class="wf-arrow">→</span>
+                <span class="wf-tool">scroll</span>
+                <span class="wf-arrow">→</span>
+                <span class="wf-tool">screenshot</span>
+                <span class="wf-arrow">→</span>
+                <span class="wf-tool">hud_submit</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <hr class="perf-divider" />
+
+        <!-- §5 TOOL USAGE -->
+        <h2 class="perf-section-title">Tool Usage</h2>
+        <p class="perf-section-caption">How the agent uses available tools across Traces.</p>
+
+        <div class="tool-usage-grid">
+
+          <!-- Distribution table -->
+          <div>
+            <div style="font-size:12px;font-weight:600;color:var(--color-muted-foreground);margin-bottom:10px;">Distribution</div>
+            <table class="perf-dist-table" aria-label="Tool usage distribution by config">
+              <thead>
+                <tr>
+                  <th scope="col" style="text-align:left;">Tool</th>
+                  <th scope="col"></th>
+                  <th scope="col">Avg/Tr</th>
+                  <th scope="col">Pass Rate</th>
+                  <th scope="col">R²</th>
+                  <th scope="col">Empty%</th>
+                </tr>
+              </thead>
+              <tbody>
+                <!-- screenshot -->
+                <tr>
+                  <td rowspan="2">
+                    <div class="tool-name-cell">
+                      <span class="tool-name-mono">screenshot</span>
+                    </div>
+                  </td>
+                  <td class="bar-cell">
+                    <div style="display:flex;align-items:center;gap:5px;">
+                      <span class="tool-config-dot a"></span>
+                      <div class="bar-track" style="flex:1;">
+                        <div class="bar-fill" style="width:100%;background:var(--color-chart-1);opacity:0.7;"></div>
+                      </div>
+                    </div>
+                  </td>
+                  <td>1.82</td>
+                  <td class="pass-good">78.2%</td>
+                  <td class="r2-pos">+0.31</td>
+                  <td>2%</td>
+                </tr>
+                <tr class="tool-group-end">
+                  <td class="bar-cell">
+                    <div style="display:flex;align-items:center;gap:5px;">
+                      <span class="tool-config-dot b"></span>
+                      <div class="bar-track" style="flex:1;">
+                        <div class="bar-fill" style="width:100%;background:var(--color-chart-2);opacity:0.7;"></div>
+                      </div>
+                    </div>
+                  </td>
+                  <td>3.41</td>
+                  <td class="pass-mid">52.1%</td>
+                  <td class="r2-neg">−0.18</td>
+                  <td>1%</td>
+                </tr>
+                <!-- hud_submit -->
+                <tr>
+                  <td rowspan="2"><span class="tool-name-mono">hud_submit</span></td>
+                  <td class="bar-cell">
+                    <div style="display:flex;align-items:center;gap:5px;">
+                      <span class="tool-config-dot a"></span>
+                      <div class="bar-track" style="flex:1;">
+                        <div class="bar-fill" style="width:72%;background:var(--color-chart-1);opacity:0.7;"></div>
+                      </div>
+                    </div>
+                  </td>
+                  <td>1.31</td>
+                  <td class="pass-good">86.4%</td>
+                  <td class="r2-pos">+0.52</td>
+                  <td>0%</td>
+                </tr>
+                <tr class="tool-group-end">
+                  <td class="bar-cell">
+                    <div style="display:flex;align-items:center;gap:5px;">
+                      <span class="tool-config-dot b"></span>
+                      <div class="bar-track" style="flex:1;">
+                        <div class="bar-fill" style="width:40%;background:var(--color-chart-2);opacity:0.7;"></div>
+                      </div>
+                    </div>
+                  </td>
+                  <td>0.73</td>
+                  <td class="pass-mid">61.2%</td>
+                  <td class="r2-pos">+0.41</td>
+                  <td>0%</td>
+                </tr>
+                <!-- click -->
+                <tr>
+                  <td rowspan="2"><span class="tool-name-mono">click</span></td>
+                  <td class="bar-cell">
+                    <div style="display:flex;align-items:center;gap:5px;">
+                      <span class="tool-config-dot a"></span>
+                      <div class="bar-track" style="flex:1;">
+                        <div class="bar-fill" style="width:54%;background:var(--color-chart-1);opacity:0.7;"></div>
+                      </div>
+                    </div>
+                  </td>
+                  <td>0.98</td>
+                  <td class="pass-good">80.1%</td>
+                  <td class="r2-pos">+0.22</td>
+                  <td>5%</td>
+                </tr>
+                <tr class="tool-group-end">
+                  <td class="bar-cell">
+                    <div style="display:flex;align-items:center;gap:5px;">
+                      <span class="tool-config-dot b"></span>
+                      <div class="bar-track" style="flex:1;">
+                        <div class="bar-fill" style="width:60%;background:var(--color-chart-2);opacity:0.7;"></div>
+                      </div>
+                    </div>
+                  </td>
+                  <td>1.09</td>
+                  <td class="pass-mid">58.7%</td>
+                  <td class="r2-pos">+0.14</td>
+                  <td>7%</td>
+                </tr>
+                <!-- type -->
+                <tr>
+                  <td rowspan="2"><span class="tool-name-mono">type</span></td>
+                  <td class="bar-cell">
+                    <div style="display:flex;align-items:center;gap:5px;">
+                      <span class="tool-config-dot a"></span>
+                      <div class="bar-track" style="flex:1;">
+                        <div class="bar-fill" style="width:31%;background:var(--color-chart-1);opacity:0.7;"></div>
+                      </div>
+                    </div>
+                  </td>
+                  <td>0.57</td>
+                  <td class="pass-good">82.3%</td>
+                  <td class="r2-pos">+0.19</td>
+                  <td>3%</td>
+                </tr>
+                <tr class="tool-group-end">
+                  <td class="bar-cell">
+                    <div style="display:flex;align-items:center;gap:5px;">
+                      <span class="tool-config-dot b"></span>
+                      <div class="bar-track" style="flex:1;">
+                        <div class="bar-fill" style="width:28%;background:var(--color-chart-2);opacity:0.7;"></div>
+                      </div>
+                    </div>
+                  </td>
+                  <td>0.51</td>
+                  <td class="pass-mid">54.9%</td>
+                  <td class="r2-pos">+0.08</td>
+                  <td>4%</td>
+                </tr>
+                <!-- get_url -->
+                <tr>
+                  <td rowspan="2"><span class="tool-name-mono">get_url</span></td>
+                  <td class="bar-cell">
+                    <div style="display:flex;align-items:center;gap:5px;">
+                      <span class="tool-config-dot a"></span>
+                      <div class="bar-track" style="flex:1;">
+                        <div class="bar-fill" style="width:18%;background:var(--color-chart-1);opacity:0.7;"></div>
+                      </div>
+                    </div>
+                  </td>
+                  <td>0.33</td>
+                  <td class="pass-good">74.6%</td>
+                  <td class="r2-pos">+0.07</td>
+                  <td>0%</td>
+                </tr>
+                <tr class="tool-group-end">
+                  <td class="bar-cell">
+                    <div style="display:flex;align-items:center;gap:5px;">
+                      <span class="tool-config-dot b"></span>
+                      <div class="bar-track" style="flex:1;">
+                        <div class="bar-fill" style="width:35%;background:var(--color-chart-2);opacity:0.7;"></div>
+                      </div>
+                    </div>
+                  </td>
+                  <td>0.64</td>
+                  <td class="pass-bad">41.2%</td>
+                  <td class="r2-neg">−0.24</td>
+                  <td>0%</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Common Patterns table -->
+          <div>
+            <div style="font-size:12px;font-weight:600;color:var(--color-muted-foreground);margin-bottom:10px;">Common Patterns</div>
+            <table class="patterns-table" aria-label="Common tool-call patterns by config">
+              <thead>
+                <tr>
+                  <th scope="col">Pattern</th>
+                  <th scope="col">N (A · B)</th>
+                  <th scope="col" style="text-align:right;">Score A / B</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>
+                    <div class="pat-id" style="margin-bottom:4px;">P1</div>
+                    <div class="wf-seq" style="flex-wrap:wrap;">
+                      <span class="wf-tool">screenshot</span>
+                      <span class="wf-arrow">→</span>
+                      <span class="wf-tool">hud_submit</span>
+                    </div>
+                  </td>
+                  <td>
+                    <div class="pat-n">
+                      <span class="config-dot a" style="width:6px;height:6px;border-radius:50%;background:var(--color-chart-1);flex-shrink:0;"></span>
+                      97/312
+                      <span style="color:var(--color-border-strong);">·</span>
+                      <span class="config-dot b" style="width:6px;height:6px;border-radius:50%;background:var(--color-chart-2);flex-shrink:0;"></span>
+                      65/294
+                    </div>
+                  </td>
+                  <td class="pat-score"><span class="pass-good">91.8%</span> / <span class="pass-mid">66.2%</span></td>
+                </tr>
+                <tr>
+                  <td>
+                    <div class="pat-id" style="margin-bottom:4px;">P2</div>
+                    <div class="wf-seq">
+                      <span class="wf-tool">screenshot</span>
+                      <span class="wf-arrow">→</span>
+                      <span class="wf-tool">click</span>
+                      <span class="wf-arrow">→</span>
+                      <span class="wf-tool">hud_submit</span>
+                    </div>
+                  </td>
+                  <td>
+                    <div class="pat-n">
+                      <span class="config-dot a" style="width:6px;height:6px;border-radius:50%;background:var(--color-chart-1);flex-shrink:0;"></span>
+                      56/312
+                      <span style="color:var(--color-border-strong);">·</span>
+                      <span class="config-dot b" style="width:6px;height:6px;border-radius:50%;background:var(--color-chart-2);flex-shrink:0;"></span>
+                      43/294
+                    </div>
+                  </td>
+                  <td class="pat-score"><span class="pass-good">84.3%</span> / <span class="pass-mid">57.0%</span></td>
+                </tr>
+                <tr>
+                  <td>
+                    <div class="pat-id" style="margin-bottom:4px;">P3</div>
+                    <div class="wf-seq">
+                      <span class="wf-tool">screenshot</span>
+                      <span class="wf-arrow">→</span>
+                      <span class="wf-tool">click</span>
+                      <span class="wf-arrow">→</span>
+                      <span class="wf-tool">screenshot</span>
+                      <span class="wf-loop">loop</span>
+                    </div>
+                  </td>
+                  <td>
+                    <div class="pat-n">
+                      <span class="config-dot a" style="width:6px;height:6px;border-radius:50%;background:var(--color-chart-1);flex-shrink:0;"></span>
+                      14/312
+                      <span style="color:var(--color-border-strong);">·</span>
+                      <span class="config-dot b" style="width:6px;height:6px;border-radius:50%;background:var(--color-chart-2);flex-shrink:0;"></span>
+                      51/294
+                    </div>
+                  </td>
+                  <td class="pat-score"><span class="pass-mid">48.6%</span> / <span class="pass-bad">29.4%</span></td>
+                </tr>
+                <tr>
+                  <td>
+                    <div class="pat-id" style="margin-bottom:4px;">P4</div>
+                    <div class="wf-seq">
+                      <span class="wf-tool">get_url</span>
+                      <span class="wf-arrow">→</span>
+                      <span class="wf-tool">screenshot</span>
+                      <span class="wf-arrow">→</span>
+                      <span class="wf-tool">screenshot</span>
+                      <span class="wf-loop">loop</span>
+                    </div>
+                  </td>
+                  <td>
+                    <div class="pat-n">
+                      <span class="config-dot a" style="width:6px;height:6px;border-radius:50%;background:var(--color-chart-1);flex-shrink:0;"></span>
+                      4/312
+                      <span style="color:var(--color-border-strong);">·</span>
+                      <span class="config-dot b" style="width:6px;height:6px;border-radius:50%;background:var(--color-chart-2);flex-shrink:0;"></span>
+                      24/294
+                    </div>
+                  </td>
+                  <td class="pat-score"><span class="pass-mid">50.0%</span> / <span class="pass-bad">20.8%</span></td>
+                </tr>
+                <tr>
+                  <td>
+                    <div class="pat-id" style="margin-bottom:4px;">P5</div>
+                    <div class="wf-seq">
+                      <span class="wf-tool">scroll</span>
+                      <span class="wf-arrow">→</span>
+                      <span class="wf-tool">screenshot</span>
+                      <span class="wf-arrow">→</span>
+                      <span class="wf-tool">scroll</span>
+                      <span class="wf-loop">loop</span>
+                    </div>
+                  </td>
+                  <td>
+                    <div class="pat-n">
+                      <span class="config-dot a" style="width:6px;height:6px;border-radius:50%;background:var(--color-chart-1);flex-shrink:0;"></span>
+                      2/312
+                      <span style="color:var(--color-border-strong);">·</span>
+                      <span class="config-dot b" style="width:6px;height:6px;border-radius:50%;background:var(--color-chart-2);flex-shrink:0;"></span>
+                      31/294
+                    </div>
+                  </td>
+                  <td class="pat-score"><span class="pass-mid">50.0%</span> / <span class="pass-bad">12.9%</span></td>
+                </tr>
+              </tbody>
+            </table>
+            <div style="padding-top:10px;">
+              <button style="background:none;border:none;cursor:pointer;font-size:11.5px;color:var(--color-primary);padding:0;">Show more</button>
+            </div>
+          </div>
+        </div>
+
+        <hr class="perf-divider" />
+
+        <!-- §5c PATTERN / REWARD MATRIX -->
+        <h2 class="perf-section-title">Pattern / Reward matrix</h2>
+        <p class="perf-section-caption">Patterns P1–P5 across Top Traces (highest reward) and Bottom Traces (lowest reward). Empty cell = pattern did not fire.</p>
+
+        <!-- Config tab strip -->
+        <div class="heatmap-tabs" role="tablist" aria-label="Heatmap config">
+          <button class="heatmap-tab active" role="tab" aria-selected="true">
+            <span class="config-dot a" style="display:inline-block;margin-right:5px;"></span>Config A
+          </button>
+          <button class="heatmap-tab" role="tab" aria-selected="false">
+            <span class="config-dot b" style="display:inline-block;margin-right:5px;"></span>Config B
+          </button>
+        </div>
+
+        <div class="heatmap-container">
+          <!-- Top Traces — high reward -->
+          <div class="heatmap-half">
+            <h4>Top Traces (highest reward)</h4>
+            <!-- Trace column headers -->
+            <div class="hm-trace-labels">
+              <span class="hm-trace-label">T01</span>
+              <span class="hm-trace-label">T02</span>
+              <span class="hm-trace-label">T03</span>
+              <span class="hm-trace-label">T04</span>
+              <span class="hm-trace-label">T05</span>
+              <span class="hm-trace-label">T06</span>
+            </div>
+            <div class="heatmap-grid" aria-hidden="true">
+              <div class="hm-row">
+                <span class="hm-pat-label">P1</span>
+                <div class="hm-cell hm-high-1f">1.0</div>
+                <div class="hm-cell hm-high-1f">1.0</div>
+                <div class="hm-cell hm-high-08">0.9</div>
+                <div class="hm-cell hm-high-1f">1.0</div>
+                <div class="hm-cell hm-high-1f">1.0</div>
+                <div class="hm-cell hm-high-08">0.9</div>
+              </div>
+              <div class="hm-row">
+                <span class="hm-pat-label">P2</span>
+                <div class="hm-cell hm-high-08">0.9</div>
+                <div class="hm-cell empty"></div>
+                <div class="hm-cell hm-high-1f">1.0</div>
+                <div class="hm-cell hm-high-08">0.8</div>
+                <div class="hm-cell empty"></div>
+                <div class="hm-cell hm-high-1f">1.0</div>
+              </div>
+              <div class="hm-row">
+                <span class="hm-pat-label">P3</span>
+                <div class="hm-cell empty"></div>
+                <div class="hm-cell hm-high-1">0.7</div>
+                <div class="hm-cell empty"></div>
+                <div class="hm-cell empty"></div>
+                <div class="hm-cell hm-high-1">0.7</div>
+                <div class="hm-cell empty"></div>
+              </div>
+              <div class="hm-row">
+                <span class="hm-pat-label">P4</span>
+                <div class="hm-cell empty"></div>
+                <div class="hm-cell empty"></div>
+                <div class="hm-cell empty"></div>
+                <div class="hm-cell empty"></div>
+                <div class="hm-cell empty"></div>
+                <div class="hm-cell empty"></div>
+              </div>
+              <div class="hm-row">
+                <span class="hm-pat-label">P5</span>
+                <div class="hm-cell empty"></div>
+                <div class="hm-cell empty"></div>
+                <div class="hm-cell empty"></div>
+                <div class="hm-cell empty"></div>
+                <div class="hm-cell empty"></div>
+                <div class="hm-cell empty"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Bottom Traces — low reward -->
+          <div class="heatmap-half">
+            <h4>Bottom Traces (lowest reward)</h4>
+            <div class="hm-trace-labels">
+              <span class="hm-trace-label">T01</span>
+              <span class="hm-trace-label">T02</span>
+              <span class="hm-trace-label">T03</span>
+              <span class="hm-trace-label">T04</span>
+              <span class="hm-trace-label">T05</span>
+              <span class="hm-trace-label">T06</span>
+            </div>
+            <div class="heatmap-grid" aria-hidden="true">
+              <div class="hm-row">
+                <span class="hm-pat-label">P1</span>
+                <div class="hm-cell empty"></div>
+                <div class="hm-cell hm-low-03">0.2</div>
+                <div class="hm-cell empty"></div>
+                <div class="hm-cell empty"></div>
+                <div class="hm-cell hm-low-03">0.1</div>
+                <div class="hm-cell empty"></div>
+              </div>
+              <div class="hm-row">
+                <span class="hm-pat-label">P2</span>
+                <div class="hm-cell empty"></div>
+                <div class="hm-cell empty"></div>
+                <div class="hm-cell hm-low-06">0.3</div>
+                <div class="hm-cell empty"></div>
+                <div class="hm-cell empty"></div>
+                <div class="hm-cell hm-low-06">0.4</div>
+              </div>
+              <div class="hm-row">
+                <span class="hm-pat-label">P3</span>
+                <div class="hm-cell hm-low-06">0.3</div>
+                <div class="hm-cell hm-low-06">0.4</div>
+                <div class="hm-cell hm-low-1f">0.0</div>
+                <div class="hm-cell hm-low-06">0.3</div>
+                <div class="hm-cell hm-low-06">0.3</div>
+                <div class="hm-cell hm-low-1f">0.1</div>
+              </div>
+              <div class="hm-row">
+                <span class="hm-pat-label">P4</span>
+                <div class="hm-cell hm-low-06">0.2</div>
+                <div class="hm-cell hm-low-1f">0.0</div>
+                <div class="hm-cell hm-low-06">0.3</div>
+                <div class="hm-cell hm-low-06">0.2</div>
+                <div class="hm-cell hm-low-1f">0.1</div>
+                <div class="hm-cell hm-low-06">0.2</div>
+              </div>
+              <div class="hm-row">
+                <span class="hm-pat-label">P5</span>
+                <div class="hm-cell hm-low-1f">0.0</div>
+                <div class="hm-cell hm-low-1f">0.1</div>
+                <div class="hm-cell hm-low-1f">0.0</div>
+                <div class="hm-cell hm-low-1f">0.0</div>
+                <div class="hm-cell hm-low-1f">0.1</div>
+                <div class="hm-cell hm-low-06">0.2</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Accessible hidden table for heatmap data -->
+        <table class="sr-only" aria-label="Pattern/reward matrix accessible data for Config A">
+          <caption>Top vs Bottom Traces, Config A. P3, P4, P5 fire almost exclusively in Bottom Traces.</caption>
+          <thead><tr><th>Pattern</th><th>Top T01</th><th>Top T02</th><th>Top T03</th><th>Bot T01</th><th>Bot T02</th><th>Bot T03</th></tr></thead>
+          <tbody>
+            <tr><td>P1</td><td>1.0</td><td>1.0</td><td>0.9</td><td>—</td><td>0.2</td><td>—</td></tr>
+            <tr><td>P3</td><td>—</td><td>0.7</td><td>—</td><td>0.3</td><td>0.4</td><td>0.0</td></tr>
+            <tr><td>P4</td><td>—</td><td>—</td><td>—</td><td>0.2</td><td>0.0</td><td>0.3</td></tr>
+            <tr><td>P5</td><td>—</td><td>—</td><td>—</td><td>0.0</td><td>0.1</td><td>0.0</td></tr>
+          </tbody>
+        </table>
+
+        <hr class="perf-divider" />
+
+        <!-- §6 TRACE DYNAMICS -->
+        <h2 class="perf-section-title">Trace Dynamics</h2>
+        <p class="perf-section-caption">How agent behavior evolves over the course of a Trace.</p>
+
+        <div class="dynamics-charts-grid">
+
+          <!-- Pacing chart (SVG) -->
+          <div class="chart-box">
+            <div class="chart-box-title">Pacing</div>
+            <div class="chart-box-caption">Avg action duration over trace progress. Dashed = LLM inference.</div>
+            <svg width="100%" height="100" viewBox="0 0 260 100" aria-hidden="true" preserveAspectRatio="none">
+              <!-- Grid lines -->
+              <line x1="30" y1="10" x2="255" y2="10" stroke="rgba(255,255,255,.05)" stroke-width="1"/>
+              <line x1="30" y1="35" x2="255" y2="35" stroke="rgba(255,255,255,.05)" stroke-width="1"/>
+              <line x1="30" y1="60" x2="255" y2="60" stroke="rgba(255,255,255,.05)" stroke-width="1"/>
+              <line x1="30" y1="85" x2="255" y2="85" stroke="rgba(255,255,255,.05)" stroke-width="1"/>
+              <!-- Y labels -->
+              <text x="26" y="13" text-anchor="end" font-size="8" fill="rgba(122,132,148,0.8)" font-family="monospace">9s</text>
+              <text x="26" y="38" text-anchor="end" font-size="8" fill="rgba(122,132,148,0.8)" font-family="monospace">6s</text>
+              <text x="26" y="63" text-anchor="end" font-size="8" fill="rgba(122,132,148,0.8)" font-family="monospace">3s</text>
+              <text x="26" y="88" text-anchor="end" font-size="8" fill="rgba(122,132,148,0.8)" font-family="monospace">0s</text>
+              <!-- X axis -->
+              <line x1="30" y1="85" x2="255" y2="85" stroke="rgba(255,255,255,.1)" stroke-width="1"/>
+              <!-- X labels -->
+              <text x="30"  y="96" text-anchor="middle" font-size="8" fill="rgba(122,132,148,0.8)" font-family="monospace">0%</text>
+              <text x="105" y="96" text-anchor="middle" font-size="8" fill="rgba(122,132,148,0.8)" font-family="monospace">33%</text>
+              <text x="180" y="96" text-anchor="middle" font-size="8" fill="rgba(122,132,148,0.8)" font-family="monospace">66%</text>
+              <text x="255" y="96" text-anchor="middle" font-size="8" fill="rgba(122,132,148,0.8)" font-family="monospace">100%</text>
+              <!-- Config A tool calls (solid teal) — rises early, stabilizes -->
+              <polyline points="30,65 75,38 120,52 165,55 210,53 255,56"
+                stroke="#2BE0C8" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+              <!-- Config A LLM inference (dashed teal) — higher, then drops -->
+              <polyline points="30,48 75,20 120,32 165,40 210,42 255,44"
+                stroke="#2BE0C8" stroke-width="1.4" fill="none" stroke-dasharray="4 3" stroke-linecap="round"/>
+              <!-- Config B tool calls (solid orange) — more volatile, higher at end -->
+              <polyline points="30,62 75,44 120,35 165,50 210,62 255,48"
+                stroke="#FFB454" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+              <!-- Config B LLM inference (dashed orange) — spikes late -->
+              <polyline points="30,50 75,28 120,22 165,35 210,20 255,30"
+                stroke="#FFB454" stroke-width="1.4" fill="none" stroke-dasharray="4 3" stroke-linecap="round"/>
+            </svg>
+            <div class="chart-legend">
+              <div class="legend-item" style="color:var(--color-chart-1);">
+                <div class="legend-line" style="background:var(--color-chart-1);"></div>
+                Config A
+              </div>
+              <div class="legend-item" style="color:var(--color-chart-2);">
+                <div class="legend-line" style="background:var(--color-chart-2);"></div>
+                Config B
+              </div>
+              <div class="legend-item" style="color:var(--color-meta-foreground);">
+                <div class="legend-line dashed" style="width:18px;border-color:var(--color-meta-foreground);"></div>
+                LLM inference
+              </div>
+            </div>
+          </div>
+
+          <!-- Usage chart (SVG) -->
+          <div class="chart-box">
+            <div class="chart-box-title">Usage</div>
+            <div class="chart-box-caption">Avg tool response size (chars) over trace progress.</div>
+            <svg width="100%" height="100" viewBox="0 0 260 100" aria-hidden="true" preserveAspectRatio="none">
+              <!-- Grid lines -->
+              <line x1="30" y1="10" x2="255" y2="10" stroke="rgba(255,255,255,.05)" stroke-width="1"/>
+              <line x1="30" y1="35" x2="255" y2="35" stroke="rgba(255,255,255,.05)" stroke-width="1"/>
+              <line x1="30" y1="60" x2="255" y2="60" stroke="rgba(255,255,255,.05)" stroke-width="1"/>
+              <line x1="30" y1="85" x2="255" y2="85" stroke="rgba(255,255,255,.05)" stroke-width="1"/>
+              <!-- Y labels -->
+              <text x="26" y="13" text-anchor="end" font-size="8" fill="rgba(122,132,148,0.8)" font-family="monospace">80</text>
+              <text x="26" y="38" text-anchor="end" font-size="8" fill="rgba(122,132,148,0.8)" font-family="monospace">55</text>
+              <text x="26" y="63" text-anchor="end" font-size="8" fill="rgba(122,132,148,0.8)" font-family="monospace">30</text>
+              <text x="26" y="88" text-anchor="end" font-size="8" fill="rgba(122,132,148,0.8)" font-family="monospace">0</text>
+              <!-- X axis -->
+              <line x1="30" y1="85" x2="255" y2="85" stroke="rgba(255,255,255,.1)" stroke-width="1"/>
+              <text x="30"  y="96" text-anchor="middle" font-size="8" fill="rgba(122,132,148,0.8)" font-family="monospace">0%</text>
+              <text x="105" y="96" text-anchor="middle" font-size="8" fill="rgba(122,132,148,0.8)" font-family="monospace">33%</text>
+              <text x="180" y="96" text-anchor="middle" font-size="8" fill="rgba(122,132,148,0.8)" font-family="monospace">66%</text>
+              <text x="255" y="96" text-anchor="middle" font-size="8" fill="rgba(122,132,148,0.8)" font-family="monospace">100%</text>
+              <!-- Config A (teal) — steady, drops at end (committing) -->
+              <polyline points="30,55 75,52 120,48 165,44 210,50 255,65"
+                stroke="#2BE0C8" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+              <!-- Config B (orange) — rises into end phase (still gathering context) -->
+              <polyline points="30,58 75,55 120,50 165,40 210,28 255,18"
+                stroke="#FFB454" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <div class="chart-legend">
+              <div class="legend-item" style="color:var(--color-chart-1);">
+                <div class="legend-line" style="background:var(--color-chart-1);"></div>
+                Config A
+              </div>
+              <div class="legend-item" style="color:var(--color-chart-2);">
+                <div class="legend-line" style="background:var(--color-chart-2);"></div>
+                Config B
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- §6b Phase distribution -->
+        <div class="phase-dist-section">
+          <div style="font-size:12px;font-weight:600;color:var(--color-muted-foreground);margin-bottom:12px;">Phase distribution</div>
+          <p class="perf-section-caption" style="margin-bottom:16px;">Tool calls split by trace position: Start (first ⅓), Middle (middle ⅓), End (last ⅓). Bar height = relative call volume; segments = tool mix.</p>
+
+          <!-- Config A -->
+          <div class="config-block">
+            <div class="phase-config-label">
+              <span class="config-dot a"></span>
+              Config A — Claude Haiku 4.5
+            </div>
+            <div class="phase-bars-row">
+              <div class="phase-bar-group">
+                <div class="phase-stacked-bar" style="height:70px;">
+                  <div class="phase-segment" style="height:38%;background:rgba(43,224,200,0.65);"></div>
+                  <div class="phase-segment" style="height:28%;background:rgba(255,180,84,0.55);"></div>
+                  <div class="phase-segment" style="height:20%;background:rgba(157,140,255,0.50);"></div>
+                  <div class="phase-segment" style="height:14%;background:rgba(141,219,74,0.45);"></div>
+                </div>
+                <div class="phase-bar-label">Start</div>
+              </div>
+              <div class="phase-bar-group">
+                <div class="phase-stacked-bar" style="height:90px;">
+                  <div class="phase-segment" style="height:42%;background:rgba(43,224,200,0.65);"></div>
+                  <div class="phase-segment" style="height:30%;background:rgba(255,180,84,0.55);"></div>
+                  <div class="phase-segment" style="height:17%;background:rgba(157,140,255,0.50);"></div>
+                  <div class="phase-segment" style="height:11%;background:rgba(141,219,74,0.45);"></div>
+                </div>
+                <div class="phase-bar-label">Middle</div>
+              </div>
+              <div class="phase-bar-group">
+                <div class="phase-stacked-bar" style="height:40px;">
+                  <div class="phase-segment" style="height:20%;background:rgba(43,224,200,0.65);"></div>
+                  <div class="phase-segment" style="height:55%;background:rgba(255,180,84,0.55);"></div>
+                  <div class="phase-segment" style="height:15%;background:rgba(157,140,255,0.50);"></div>
+                  <div class="phase-segment" style="height:10%;background:rgba(141,219,74,0.45);"></div>
+                </div>
+                <div class="phase-bar-label">End</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Config B -->
+          <div class="config-block">
+            <div class="phase-config-label">
+              <span class="config-dot b"></span>
+              Config B — Kimi K2.5
+            </div>
+            <div class="phase-bars-row">
+              <div class="phase-bar-group">
+                <div class="phase-stacked-bar" style="height:65px;">
+                  <div class="phase-segment" style="height:62%;background:rgba(43,224,200,0.55);"></div>
+                  <div class="phase-segment" style="height:22%;background:rgba(255,180,84,0.55);"></div>
+                  <div class="phase-segment" style="height:10%;background:rgba(157,140,255,0.50);"></div>
+                  <div class="phase-segment" style="height:6%;background:rgba(141,219,74,0.45);"></div>
+                </div>
+                <div class="phase-bar-label">Start</div>
+              </div>
+              <div class="phase-bar-group">
+                <div class="phase-stacked-bar" style="height:95px;">
+                  <div class="phase-segment" style="height:65%;background:rgba(43,224,200,0.55);"></div>
+                  <div class="phase-segment" style="height:18%;background:rgba(255,180,84,0.55);"></div>
+                  <div class="phase-segment" style="height:10%;background:rgba(157,140,255,0.50);"></div>
+                  <div class="phase-segment" style="height:7%;background:rgba(141,219,74,0.45);"></div>
+                </div>
+                <div class="phase-bar-label">Middle</div>
+              </div>
+              <div class="phase-bar-group">
+                <!-- Config B: high screenshot in End phase — behavioral signal -->
+                <div class="phase-stacked-bar" style="height:75px;">
+                  <div class="phase-segment" style="height:70%;background:rgba(43,224,200,0.55);"></div>
+                  <div class="phase-segment" style="height:14%;background:rgba(255,180,84,0.55);"></div>
+                  <div class="phase-segment" style="height:10%;background:rgba(157,140,255,0.50);"></div>
+                  <div class="phase-segment" style="height:6%;background:rgba(141,219,74,0.45);"></div>
+                </div>
+                <div class="phase-bar-label">End</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Shared legend -->
+          <div class="phase-legend">
+            <div class="phase-legend-item">
+              <div class="phase-legend-swatch" style="background:rgba(43,224,200,0.65);"></div>
+              screenshot
+            </div>
+            <div class="phase-legend-item">
+              <div class="phase-legend-swatch" style="background:rgba(255,180,84,0.60);"></div>
+              hud_submit
+            </div>
+            <div class="phase-legend-item">
+              <div class="phase-legend-swatch" style="background:rgba(157,140,255,0.55);"></div>
+              click
+            </div>
+            <div class="phase-legend-item">
+              <div class="phase-legend-swatch" style="background:rgba(141,219,74,0.50);"></div>
+              type / other
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /perf-content -->
+    </div><!-- /perf-layout -->
+
+  </div><!-- /main-region -->
+
+</div><!-- /shell-layout -->
+
+</body>
+</html>

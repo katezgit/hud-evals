@@ -1,0 +1,1518 @@
+<!--
+  filename: jobs.html
+  Taskset Detail · Variant B — Public (non-owner) · Jobs tab · Default state
+  Peer anchor: .intermediate/design/taskset-detail/overview.html
+  Canonical spec: docs/design/screens/taskset-detail.wireframe.md §9 Variant B
+                  docs/design/screens/taskset-detail-jobs.wireframe.md §1–§8
+
+  Variant B affordances:
+    - Fork + Run Taskset CTAs in header right slot
+    - 4 tabs only (no Settings)
+    - No bulk Invalidate/Re-validate action bar (non-owner)
+    - No row checkboxes (non-owner cannot select for bulk ops)
+    - Scope toggle: My team's Jobs / All teams' Jobs — present
+    - Star count visible, interactive
+    - Lineage line present (same forked taskset as Overview sibling)
+    - Public jobs visible: mix of statuses (running, completed, failed, queued, errored)
+
+  IMAGE #28 (Jobs tab production screenshot) not available in this repo.
+  Content derived from wireframe spec + realistic job IDs, model names, statuses.
+
+  Chassis (sticky header, sidebar, app-shell) identical to overview.html.
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Taskset Detail — OSWorld-Verified · Jobs (Variant B, Public non-owner)</title>
+  <style>
+    /* ── Reset ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    /* ─────────────────────────────────────────────────────────
+       TOKEN ROOT  (verbatim from overview.html)
+       Primitives from packages/ui/src/styles/primitive.css :root
+       Semantic roles from packages/ui/src/styles/theme.css @theme
+       Resolved for dark color-scheme (production surface is dark)
+    ───────────────────────────────────────────────────────── */
+    :root {
+      /* ── Primitive color palette ── */
+      --neutral-950:           #1c2024;
+      --neutral-50:            #F8FAFB;
+      --white:                 #FFFFFF;
+      --gold:                  #f7b717;
+
+      /* Ink scale */
+      --ink-900:  #18212E;
+      --ink-50:   #E8EEF5;
+      --ink-800:  #3D5269;
+      --ink-100:  #B3BFCE;
+      --ink-700:  #6C7A8C;
+      --ink-200:  #7A8494;
+      --ink-400:  #A4ADB9;
+      --ink-500:  #475260;
+
+      /* Surfaces — dark values used directly (forced dark for mockup) */
+      --surface-bg-dark:         #0C1016;
+      --surface-panel-dark:      #11161F;
+      --surface-page-dark:       #07090D;
+      --surface-elevated-dark:   #161D28;
+      --surface-muted-dark:      #161D28;
+      --surface-secondary-dark:  #1E2733;
+
+      /* Teal */
+      --teal-800: #055E55;
+      --teal-700: #087A6C;
+      --teal-600: #0E9888;
+      --teal-500: #1A9183;
+      --teal-400: #2BE0C8;
+
+      /* Status */
+      --scored-600: #2E9E43;
+      --scored-400: #35C46B;
+      --running-600: #2462C5;
+      --running-400: #4FA8FF;
+      --errored-600: #D23B2C;
+      --errored-400: #FF5B52;
+      --warning-600: #C47A0A;
+      --warning-400: #E5A52E;
+
+      /* Border seeds */
+      --border-seed-dark-rgb: 255 255 255;
+
+      /* ── Semantic color roles (dark resolved) ── */
+      --color-background:   var(--surface-bg-dark);
+      --color-panel:        var(--surface-panel-dark);
+      --color-page:         var(--surface-page-dark);
+      --color-elevated:     var(--surface-elevated-dark);
+
+      --color-foreground:       var(--ink-50);
+      --color-muted-foreground: var(--ink-100);
+      --color-meta-foreground:  var(--ink-200);
+      --color-text-disabled:    var(--ink-500);
+
+      --color-muted:     var(--surface-muted-dark);
+      --color-secondary: var(--surface-secondary-dark);
+
+      --color-border:        rgba(255 255 255 / .08);
+      --color-border-strong: rgba(255 255 255 / .18);
+
+      --color-primary:            var(--teal-400);
+      --color-primary-foreground: #06201C;
+      --color-primary-hover:      var(--teal-500);
+
+      --color-brand:            var(--gold);
+      --color-brand-foreground: var(--ink-900);
+
+      --color-state-scored:        var(--scored-400);
+      --color-state-scored-subtle: rgba(53 196 107 / .12);
+      --color-state-running:       var(--running-400);
+      --color-state-running-subtle: rgba(79 168 255 / .12);
+      --color-state-errored:       var(--errored-400);
+      --color-state-errored-subtle: rgba(255 91 82 / .12);
+      --color-state-warning:       var(--warning-400);
+      --color-state-warning-subtle: rgba(229 165 46 / .10);
+
+      --color-chart-1: var(--teal-400);
+      --color-chart-2: #FFB454;
+      --color-chart-3: #F46EB0;
+      --color-chart-4: #9D8CFF;
+      --color-chart-5: #8DDB4A;
+
+      /* ── Typography ── */
+      --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+      --mono: "SF Mono", "Fira Code", "Cascadia Code", Consolas, monospace;
+
+      /* ── Sidebar (verbatim from overview.html) ── */
+      --sidebar-bg:     #0f1117;
+      --sidebar-border: #1e2230;
+      --accent:         var(--teal-400);
+      --accent-subtle:  rgba(43,224,200,0.09);
+      --muted-fg:       var(--ink-200);
+      --default-fg:     var(--ink-50);
+      --brand-mark:     var(--gold);
+    }
+
+    html, body {
+      height: 100%;
+      font-family: var(--sans);
+      font-size: 13px;
+      background: var(--color-page);
+      color: var(--color-foreground);
+      line-height: 1.5;
+    }
+
+    /* ══════════════════════════════════════════════
+       APP SHELL OUTER CHROME  (verbatim from overview.html)
+    ══════════════════════════════════════════════ */
+    .shell-layout {
+      display: flex;
+      height: 100vh;
+      min-height: 600px;
+    }
+
+    /* ── Sidebar ── */
+    .sidebar {
+      background: var(--sidebar-bg);
+      border-right: 1px solid var(--sidebar-border);
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      width: 220px;
+      height: 100%;
+      overflow-y: auto;
+      overflow-x: hidden;
+    }
+
+    .brand-slot {
+      display: flex; align-items: center; gap: 8px;
+      padding: 14px 16px 12px;
+      border-bottom: 1px solid var(--sidebar-border);
+      flex-shrink: 0;
+    }
+    .brand-mark {
+      width: 20px; height: 20px;
+      background: rgba(247,183,23,0.15); border-radius: 4px;
+      flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .brand-wordmark { font-size: 14px; font-weight: 700; color: var(--default-fg); letter-spacing: -0.02em; }
+
+    .group-label {
+      font-size: 10px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--muted-fg); padding: 0 16px; margin-top: 20px; margin-bottom: 4px;
+    }
+    .nav-item {
+      display: flex; align-items: center; gap: 8px; padding: 5px 12px;
+      font-size: 13px; color: var(--muted-fg); cursor: pointer;
+      position: relative; border-radius: 4px; margin: 1px 4px;
+      text-decoration: none;
+    }
+    .nav-item:hover { background: rgba(255,255,255,0.04); color: var(--default-fg); }
+    .nav-item.selected { color: var(--accent); background: var(--accent-subtle); }
+    .nav-item.selected::before {
+      content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 2px;
+      background: var(--accent); border-radius: 0 2px 2px 0;
+    }
+    .nav-item-icon { width: 16px; height: 16px; flex-shrink: 0; color: inherit; opacity: 0.8; }
+    .nav-item.selected .nav-item-icon { opacity: 1; }
+    .nav-item-label { flex: 1; white-space: nowrap; }
+    .nav-item-count { font-size: 11px; color: var(--muted-fg); margin-left: auto; font-variant-numeric: tabular-nums; }
+    .nav-item-ext { font-size: 10px; color: var(--muted-fg); margin-left: auto; }
+    .spacer { flex: 1; }
+
+    /* Credits widget */
+    .credits-widget {
+      margin: 0 8px 4px; padding: 8px 10px;
+      border-radius: 6px; border: 1px solid var(--sidebar-border); cursor: pointer;
+    }
+    .credits-widget:hover { background: var(--accent-subtle); }
+    .credits-label { font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted-fg); }
+    .credits-numbers { display: flex; justify-content: flex-end; align-items: baseline; gap: 2px; margin: 2px 0; }
+    .credits-current { font-size: 13px; font-variant-numeric: tabular-nums; color: var(--default-fg); font-family: var(--mono); }
+    .credits-cap { font-size: 11px; font-variant-numeric: tabular-nums; color: var(--muted-fg); font-family: var(--mono); }
+    .credits-bar-bg { height: 3px; background: rgba(255,255,255,0.08); border-radius: 2px; overflow: hidden; margin: 4px 0; }
+    .credits-bar-fill { height: 100%; background: var(--accent); border-radius: 2px; }
+    .credits-meta { display: flex; justify-content: space-between; font-size: 10px; color: var(--muted-fg); margin-top: 2px; }
+
+    /* User chip */
+    .user-chip {
+      display: flex; align-items: center; gap: 8px;
+      padding: 8px 10px; margin: 4px 6px 6px;
+      border-radius: 6px; border: 1px solid var(--sidebar-border);
+      cursor: pointer; flex-shrink: 0;
+    }
+    .user-chip:hover { background: rgba(255,255,255,0.04); }
+    .avatar {
+      width: 28px; height: 28px; border-radius: 50%;
+      background: var(--color-elevated); border: 1px solid var(--sidebar-border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 600; color: var(--default-fg); flex-shrink: 0;
+    }
+    .user-info { flex: 1; overflow: hidden; min-width: 0; }
+    .user-name { font-size: 12px; font-weight: 500; color: var(--default-fg); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .user-meta { font-size: 10px; color: var(--muted-fg); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .switcher-icon { color: var(--muted-fg); flex-shrink: 0; }
+
+    /* ── Main scroll region ── */
+    .main-region {
+      flex: 1;
+      overflow-y: auto;
+      background: var(--color-background);
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ══════════════════════════════════════════════
+       STICKY HEADER STACK  (verbatim chassis from overview.html)
+    ══════════════════════════════════════════════ */
+    .td-sticky-stack {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: var(--color-background);
+      border-bottom: 1px solid var(--color-border);
+    }
+
+    /* ── Page header ── */
+    .td-page-header {
+      padding: 16px 28px 0;
+    }
+
+    /* Breadcrumb */
+    .td-breadcrumb {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 12px; color: var(--color-meta-foreground);
+      margin-bottom: 10px;
+    }
+    .td-breadcrumb-link {
+      color: var(--color-muted-foreground); text-decoration: none; cursor: pointer;
+      display: flex; align-items: center; gap: 4px;
+    }
+    .td-breadcrumb-link:hover { color: var(--color-foreground); text-decoration: underline; }
+    .td-breadcrumb-sep { color: var(--color-meta-foreground); }
+    .td-breadcrumb-current { color: var(--color-muted-foreground); }
+
+    /* Title row */
+    .td-header-row {
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
+      margin-bottom: 8px;
+    }
+    .td-title-group {
+      display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+      flex: 1; min-width: 0;
+    }
+    .td-taskset-name {
+      font-size: 20px; font-weight: 600; letter-spacing: -0.02em;
+      color: var(--color-foreground); line-height: 1.2;
+    }
+    .td-visibility-pill {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-size: 11px; font-weight: 500;
+      border-radius: 10px; padding: 2px 8px;
+      white-space: nowrap; flex-shrink: 0;
+      color: var(--color-muted-foreground);
+      background: rgba(255,255,255,.07);
+      border: 1px solid var(--color-border-strong);
+    }
+    .td-star-btn {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-size: 12px; color: var(--color-muted-foreground);
+      background: transparent; border: none; cursor: pointer;
+      padding: 2px 6px; border-radius: 4px;
+      flex-shrink: 0;
+    }
+    .td-star-btn:hover { color: var(--color-foreground); background: rgba(255,255,255,.06); }
+    .td-star-count { font-variant-numeric: tabular-nums; }
+
+    /* Right-slot CTAs */
+    .td-header-actions {
+      display: flex; align-items: center; gap: 8px;
+      flex-shrink: 0;
+    }
+    .td-btn-secondary {
+      display: inline-flex; align-items: center; gap: 5px;
+      font-size: 12.5px; font-weight: 500;
+      padding: 6px 13px; border-radius: 5px; cursor: pointer;
+      background: transparent;
+      color: var(--color-muted-foreground);
+      border: 1px solid var(--color-border-strong);
+      white-space: nowrap;
+    }
+    .td-btn-secondary:hover {
+      color: var(--color-foreground);
+      border-color: rgba(255,255,255,.30);
+      background: rgba(255,255,255,.04);
+    }
+    .td-btn-primary {
+      display: inline-flex; align-items: center; gap: 5px;
+      font-size: 12.5px; font-weight: 500;
+      padding: 6px 13px; border-radius: 5px; cursor: pointer;
+      background: var(--color-primary);
+      color: var(--color-primary-foreground);
+      border: 1px solid transparent;
+      white-space: nowrap;
+    }
+    .td-btn-primary:hover { background: var(--color-primary-hover); }
+    .td-overflow-btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 30px; height: 30px;
+      background: transparent; border: 1px solid var(--color-border-strong);
+      border-radius: 5px; cursor: pointer; color: var(--color-muted-foreground);
+    }
+    .td-overflow-btn:hover { color: var(--color-foreground); background: rgba(255,255,255,.04); }
+
+    /* Descriptor strip */
+    .td-descriptor-strip {
+      display: flex; align-items: center; gap: 0; flex-wrap: wrap;
+      font-size: 12px; color: var(--color-meta-foreground);
+      padding-bottom: 10px;
+    }
+    .td-strip-field { display: flex; align-items: center; gap: 4px; }
+    .td-strip-sep { color: var(--color-meta-foreground); margin: 0 8px; opacity: 0.6; }
+    .td-strip-slug {
+      font-family: var(--mono); font-size: 11.5px; color: var(--color-muted-foreground);
+    }
+    .td-copy-btn {
+      background: transparent; border: none; cursor: pointer;
+      color: var(--color-meta-foreground); font-size: 11px; padding: 1px 4px;
+      border-radius: 2px; display: inline-flex; align-items: center;
+    }
+    .td-copy-btn:hover { color: var(--color-muted-foreground); background: rgba(255,255,255,.06); }
+
+    /* ── Tab bar (verbatim from overview.html) ── */
+    .td-tab-bar {
+      display: flex; align-items: flex-end;
+      padding: 0 28px;
+    }
+    .td-tab {
+      padding: 8px 14px; font-size: 12.5px; color: var(--color-meta-foreground);
+      cursor: pointer; border-bottom: 2px solid transparent;
+      margin-bottom: -1px; display: flex; align-items: center; gap: 6px;
+      background: none; border-top: none; border-left: none; border-right: none;
+      font-family: var(--sans);
+    }
+    .td-tab:hover { color: var(--color-muted-foreground); }
+    .td-tab.active { color: var(--color-foreground); border-bottom-color: var(--color-primary); }
+    .td-tab-count {
+      font-size: 10.5px; color: var(--color-meta-foreground);
+      background: rgba(255,255,255,.06); padding: 1px 5px; border-radius: 10px;
+      font-variant-numeric: tabular-nums;
+    }
+    .td-tab.active .td-tab-count { color: var(--color-muted-foreground); }
+
+    /* ── Exploration watermark ── */
+    .state-label {
+      font-size: 10px; font-weight: 600; text-transform: uppercase;
+      letter-spacing: .08em; color: var(--color-meta-foreground);
+      padding: 6px 28px;
+      background: rgba(229,165,46,.05);
+      border-bottom: 1px solid rgba(229,165,46,.12);
+    }
+
+    /* ══════════════════════════════════════════════
+       JOBS TAB CONTENT
+    ══════════════════════════════════════════════ */
+    .jobs-content {
+      padding: 20px 28px 56px;
+      max-width: 1080px;
+    }
+
+    /* ── Filter row ── */
+    .jobs-filter-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+
+    /* Search input */
+    .jobs-search {
+      display: flex; align-items: center; gap: 6px;
+      background: var(--color-panel);
+      border: 1px solid var(--color-border-strong);
+      border-radius: 5px;
+      padding: 5px 10px;
+      font-size: 12px;
+      color: var(--color-muted-foreground);
+      cursor: text;
+      min-width: 160px;
+    }
+    .jobs-search-placeholder { color: var(--color-meta-foreground); }
+
+    /* Chip group */
+    .jobs-chip-group {
+      display: inline-flex; align-items: center;
+      background: var(--color-panel);
+      border: 1px solid var(--color-border);
+      border-radius: 5px;
+      overflow: hidden;
+    }
+    .jobs-chip {
+      display: inline-flex; align-items: center;
+      padding: 4px 10px;
+      font-size: 11.5px;
+      color: var(--color-meta-foreground);
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      border-right: 1px solid var(--color-border);
+      font-family: var(--sans);
+      white-space: nowrap;
+    }
+    .jobs-chip:last-child { border-right: none; }
+    .jobs-chip:hover { color: var(--color-muted-foreground); background: rgba(255,255,255,.04); }
+    .jobs-chip.active {
+      color: var(--color-foreground);
+      background: rgba(255,255,255,.06);
+    }
+
+    /* Scope + sort selects (right side) */
+    .jobs-filter-right {
+      margin-left: auto;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .jobs-select-btn {
+      display: inline-flex; align-items: center; gap: 5px;
+      font-size: 12px;
+      color: var(--color-muted-foreground);
+      background: var(--color-panel);
+      border: 1px solid var(--color-border-strong);
+      border-radius: 5px;
+      padding: 4px 10px;
+      cursor: pointer;
+      font-family: var(--sans);
+      white-space: nowrap;
+    }
+    .jobs-select-btn:hover {
+      color: var(--color-foreground);
+      border-color: rgba(255,255,255,.30);
+    }
+    .jobs-total-count {
+      font-size: 11.5px;
+      color: var(--color-meta-foreground);
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+
+    /* Batch-grid legend */
+    .jobs-legend {
+      display: flex; align-items: center; gap: 14px;
+      font-size: 10.5px; color: var(--color-meta-foreground);
+      margin-bottom: 10px;
+    }
+    .jobs-legend-item { display: flex; align-items: center; gap: 4px; }
+    .legend-square {
+      width: 8px; height: 8px; border-radius: 1.5px;
+      flex-shrink: 0;
+    }
+
+    /* ── Job list ── */
+    .jobs-list {
+      list-style: none;
+    }
+
+    /* Individual job row */
+    .job-row {
+      position: relative;
+      border-bottom: 1px solid var(--color-border);
+      cursor: pointer;
+      transition: background 80ms ease;
+    }
+    .job-row:last-child { border-bottom: none; }
+    .job-row:hover { background: rgba(255,255,255,.022); }
+    .job-row:hover .job-row-newtab { opacity: 1; }
+
+    /* Invalidated: diagonal hatch overlay */
+    .job-row.invalidated::before {
+      content: '';
+      position: absolute; inset: 0;
+      pointer-events: none;
+      background-image: repeating-linear-gradient(
+        -45deg,
+        rgba(255,255,255,.03) 0px,
+        rgba(255,255,255,.03) 2px,
+        transparent 2px,
+        transparent 8px
+      );
+      border-radius: inherit;
+      z-index: 1;
+    }
+
+    .job-row-inner {
+      padding: 10px 0 10px 0;
+      display: flex; gap: 12px; align-items: flex-start;
+    }
+
+    /* Status icon col */
+    .job-status-icon {
+      width: 18px;
+      flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      margin-top: 1px;
+    }
+
+    /* Main content col */
+    .job-main {
+      flex: 1; min-width: 0;
+    }
+
+    /* Line 1 */
+    .job-line1 {
+      display: flex; align-items: center; gap: 8px; flex-wrap: nowrap;
+      margin-bottom: 5px;
+    }
+    .job-name {
+      font-size: 12.5px; font-weight: 500;
+      color: var(--color-foreground);
+      text-decoration: none;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      flex-shrink: 1; min-width: 0;
+    }
+    .job-name:hover { color: var(--color-primary); text-decoration: underline; }
+
+    /* Status badge */
+    .job-badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-size: 10.5px; font-weight: 600; letter-spacing: 0.04em;
+      padding: 1px 7px; border-radius: 4px;
+      white-space: nowrap; flex-shrink: 0;
+    }
+    .job-badge.completed {
+      color: var(--color-state-scored);
+      background: var(--color-state-scored-subtle);
+      border: 1px solid rgba(53,196,107,.20);
+    }
+    .job-badge.running {
+      color: var(--color-state-running);
+      background: var(--color-state-running-subtle);
+      border: 1px solid rgba(79,168,255,.20);
+    }
+    .job-badge.errored {
+      color: var(--color-state-errored);
+      background: var(--color-state-errored-subtle);
+      border: 1px solid rgba(255,91,82,.20);
+    }
+    .job-badge.queued {
+      color: var(--color-meta-foreground);
+      background: rgba(255,255,255,.05);
+      border: 1px solid var(--color-border);
+    }
+    .job-badge.invalidated {
+      color: var(--color-state-warning);
+      background: var(--color-state-warning-subtle);
+      border: 1px solid rgba(229,165,46,.22);
+    }
+
+    /* Model chip(s) */
+    .job-model-chips {
+      display: flex; align-items: center; gap: 5px;
+      flex-shrink: 0;
+    }
+    .job-model-chip {
+      display: inline-flex; align-items: center; gap: 3px;
+      font-size: 11px;
+      color: var(--color-muted-foreground);
+      background: rgba(255,255,255,.06);
+      border: 1px solid var(--color-border);
+      border-radius: 4px; padding: 1px 7px;
+      white-space: nowrap;
+    }
+    .job-model-chip-overflow {
+      font-size: 10.5px;
+      color: var(--color-meta-foreground);
+      background: rgba(255,255,255,.04);
+      border: 1px solid var(--color-border);
+      border-radius: 4px; padding: 1px 6px;
+      cursor: default;
+    }
+
+    /* Lock icon */
+    .job-lock {
+      color: var(--color-meta-foreground);
+      opacity: 0.6;
+      flex-shrink: 0;
+    }
+
+    /* Batch grid */
+    .job-batch-grid {
+      display: flex; align-items: center; flex-wrap: nowrap;
+      gap: 2px;
+      overflow-x: auto;
+      scrollbar-width: none;
+      max-width: 340px;
+      flex-shrink: 0;
+    }
+    .job-batch-grid::-webkit-scrollbar { display: none; }
+    .run-square {
+      width: 9px; height: 9px;
+      border-radius: 1.5px;
+      flex-shrink: 0;
+      cursor: pointer;
+      display: inline-block;
+    }
+    .run-square.scored   { background: var(--color-state-scored); opacity: 0.82; }
+    .run-square.noscore  { background: var(--color-muted-foreground); opacity: 0.25; }
+    .run-square.notrun   { background: rgba(255,255,255,.10); }
+    .run-square.errored  { background: var(--color-state-errored); opacity: 0.75; }
+    .run-square:hover { opacity: 1 !important; outline: 1px solid rgba(255,255,255,.40); }
+
+    /* Open in new tab icon (hover reveal) */
+    .job-row-newtab {
+      position: absolute; right: 0; top: 50%; transform: translateY(-50%);
+      opacity: 0;
+      color: var(--color-meta-foreground);
+      font-size: 11px; padding: 4px 6px;
+      text-decoration: none; display: flex; align-items: center;
+      transition: opacity 80ms ease;
+    }
+    .job-row-newtab:hover { color: var(--color-primary); }
+
+    /* Line 2 */
+    .job-line2 {
+      display: flex; align-items: center; gap: 0;
+      flex-wrap: nowrap;
+    }
+    .job-meta-owner {
+      font-size: 11.5px; color: var(--color-meta-foreground);
+      white-space: nowrap;
+    }
+    .job-meta-sep {
+      font-size: 11.5px; color: var(--color-meta-foreground);
+      margin: 0 6px; opacity: 0.5;
+    }
+    .job-meta-date {
+      font-size: 11.5px; color: var(--color-meta-foreground);
+      white-space: nowrap;
+    }
+
+    /* Progress bar */
+    .job-progress-wrap {
+      margin-left: auto;
+      display: flex; align-items: center; gap: 7px;
+      flex-shrink: 0;
+    }
+    .job-progress-bar-bg {
+      width: 100px; height: 4px;
+      background: rgba(255,255,255,.08);
+      border-radius: 2px; overflow: hidden;
+    }
+    .job-progress-bar-fill {
+      height: 100%; border-radius: 2px;
+    }
+    .job-progress-pct {
+      font-size: 11px; font-variant-numeric: tabular-nums;
+      color: var(--color-meta-foreground);
+      font-family: var(--mono);
+      min-width: 30px; text-align: right;
+    }
+
+    /* Invalidated audit strip (visible on expand — simplified: always visible for invalidated rows) */
+    .job-audit-strip {
+      font-size: 11.5px; color: var(--color-meta-foreground);
+      padding: 4px 0 8px 30px;
+      border-top: 1px solid var(--color-border);
+      line-height: 1.5;
+    }
+    .job-audit-strip a {
+      color: var(--color-meta-foreground); text-decoration: underline; cursor: pointer;
+    }
+
+    /* ── No-more-items divider ── */
+    .jobs-no-more {
+      display: flex; align-items: center; gap: 12px;
+      padding: 18px 0 8px;
+      color: var(--color-meta-foreground);
+      font-size: 11.5px;
+    }
+    .jobs-no-more::before,
+    .jobs-no-more::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--color-border);
+    }
+
+    /* ── Section divider ── */
+    .td-section-divider {
+      border: none; border-top: 1px solid var(--color-border);
+      margin: 20px 0;
+    }
+  </style>
+</head>
+<body>
+
+<div class="shell-layout">
+
+  <!-- ══════════════════════════════════════════
+       APP-SHELL SIDEBAR  (verbatim from overview.html — Tasksets selected)
+  ══════════════════════════════════════════ -->
+  <aside class="sidebar" aria-label="Main navigation">
+    <div class="brand-slot">
+      <div class="brand-mark">
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+          <rect width="12" height="12" rx="2" fill="rgba(120,53,15,0.6)"/>
+          <path d="M2 9L6 3L10 9" stroke="#f7b717" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <span class="brand-wordmark">hud</span>
+    </div>
+
+    <div class="group-label">Workspace</div>
+
+    <a class="nav-item" href="#">
+      <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="2" y="2" width="5" height="5" rx="1"/><rect x="9" y="2" width="5" height="5" rx="1"/>
+        <rect x="2" y="9" width="5" height="5" rx="1"/><rect x="9" y="9" width="5" height="5" rx="1"/>
+      </svg>
+      <span class="nav-item-label">Home</span>
+    </a>
+
+    <a class="nav-item selected" aria-current="page" href="#">
+      <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M2 4h12M2 8h8M2 12h10"/><circle cx="13" cy="11" r="2.5"/>
+      </svg>
+      <span class="nav-item-label">Tasksets</span>
+      <span class="nav-item-count">127</span>
+    </a>
+
+    <a class="nav-item" href="#">
+      <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="2" y="2" width="12" height="5" rx="1.5"/>
+        <rect x="2" y="9" width="12" height="5" rx="1.5"/>
+        <circle cx="5" cy="4.5" r="0.8" fill="currentColor" stroke="none"/>
+        <circle cx="5" cy="11.5" r="0.8" fill="currentColor" stroke="none"/>
+        <path d="M8 4.5h4M8 11.5h4"/>
+      </svg>
+      <span class="nav-item-label">Environments</span>
+      <span class="nav-item-count">42</span>
+    </a>
+
+    <a class="nav-item" href="#">
+      <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="8" cy="8" r="3"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2M3.22 3.22l1.42 1.42M11.36 11.36l1.42 1.42M3.22 12.78l1.42-1.42M11.36 4.64l1.42-1.42"/>
+      </svg>
+      <span class="nav-item-label">Models</span>
+      <span class="nav-item-count">27</span>
+    </a>
+
+    <a class="nav-item" href="#">
+      <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="8" cy="5" r="2.5"/><path d="M3 14c0-2.76 2.24-5 5-5s5 2.24 5 5"/>
+      </svg>
+      <span class="nav-item-label">Agents</span>
+      <span class="nav-item-count">4</span>
+    </a>
+
+    <a class="nav-item" href="#">
+      <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4 2h8a1 1 0 011 1v10a1 1 0 01-1 1H4a1 1 0 01-1-1V3a1 1 0 011-1z"/><path d="M6 6h4M6 9h4M6 12h2"/>
+      </svg>
+      <span class="nav-item-label">Library</span>
+    </a>
+
+    <div class="group-label">Observe</div>
+
+    <a class="nav-item" href="#">
+      <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="2" y="8" width="3" height="5" rx="0.5"/><rect x="6.5" y="5" width="3" height="8" rx="0.5"/>
+        <rect x="11" y="2" width="3" height="11" rx="0.5"/>
+      </svg>
+      <span class="nav-item-label">Dashboard</span>
+    </a>
+
+    <a class="nav-item" href="#">
+      <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="8" cy="8" r="6"/><path d="M8 4v4l3 1.5"/>
+      </svg>
+      <span class="nav-item-label">Progress</span>
+    </a>
+
+    <div class="spacer"></div>
+
+    <!-- Credits widget -->
+    <div class="credits-widget" title="View usage details">
+      <div class="credits-label">credits</div>
+      <div class="credits-numbers">
+        <span class="credits-current">4,230</span>
+        <span class="credits-cap">&nbsp;/ 10,000</span>
+      </div>
+      <div class="credits-bar-bg"><div class="credits-bar-fill" style="width:42.3%"></div></div>
+      <div class="credits-meta"><span>~92 cr/hr</span><span>~38h left</span></div>
+    </div>
+
+    <!-- External links -->
+    <div style="padding:2px 4px;">
+      <a class="nav-item" href="#" style="font-size:12px;">
+        <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M7 3H3a1 1 0 00-1 1v9a1 1 0 001 1h9a1 1 0 001-1V9"/><path d="M10 2h4v4M14 2L7 9"/>
+        </svg>
+        <span class="nav-item-label">Marketplace</span>
+        <span class="nav-item-ext">↗</span>
+      </a>
+      <a class="nav-item" href="#" style="font-size:12px;">
+        <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 2h8a1 1 0 011 1v10a1 1 0 01-1 1H4a1 1 0 01-1-1V3a1 1 0 011-1z"/><path d="M6 6h4M6 9h4"/>
+        </svg>
+        <span class="nav-item-label">Documentation</span>
+        <span class="nav-item-ext">↗</span>
+      </a>
+    </div>
+
+    <!-- User chip -->
+    <div class="user-chip">
+      <div class="avatar">A</div>
+      <div class="user-info">
+        <div class="user-name">Alex Kim</div>
+        <div class="user-meta">Princeton NLP · member</div>
+      </div>
+      <svg class="switcher-icon" width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 4.5L6 2 9 4.5M3 7.5L6 10 9 7.5"/>
+      </svg>
+    </div>
+  </aside>
+
+  <!-- ══════════════════════════════════════════
+       MAIN SCROLL REGION
+  ══════════════════════════════════════════ -->
+  <div class="main-region" id="main-content">
+
+    <!-- Exploration watermark -->
+    <div class="state-label">VARIANT B — Public (non-owner) · Jobs tab · Default state · Exploration mockup</div>
+
+    <!-- ─────────────────────────────────────
+         STICKY HEADER STACK  (identical chassis to overview.html)
+    ───────────────────────────────────── -->
+    <div class="td-sticky-stack">
+
+      <!-- PAGE HEADER -->
+      <div class="td-page-header">
+
+        <!-- Breadcrumb -->
+        <nav class="td-breadcrumb" aria-label="Breadcrumb">
+          <ol style="list-style:none;display:flex;align-items:center;gap:6px;padding:0;">
+            <li>
+              <a class="td-breadcrumb-link" href="#">
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M8 2L4 6l4 4"/>
+                </svg>
+                Tasksets
+              </a>
+            </li>
+            <li class="td-breadcrumb-sep">/</li>
+            <li>
+              <span class="td-breadcrumb-current">OSWorld-Verified</span>
+            </li>
+          </ol>
+        </nav>
+
+        <!-- Title row -->
+        <div class="td-header-row">
+          <div class="td-title-group">
+            <h1 class="td-taskset-name">OSWorld-Verified</h1>
+            <span class="td-visibility-pill" aria-label="Visibility: Public">
+              <svg width="10" height="10" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="8" cy="8" r="6"/><path d="M8 2c-2 2-3 4-3 6s1 4 3 6M8 2c2 2 3 4 3 6s-1 4-3 6M2 8h12"/>
+              </svg>
+              Public
+            </span>
+            <button class="td-star-btn" aria-label="Star OSWorld-Verified" aria-pressed="false" title="Star this Taskset">
+              <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M8 2l1.5 3.5H14l-3.5 2.5 1.5 4L8 10 4 12l1.5-4L2 5.5h4.5L8 2z"/>
+              </svg>
+              <span class="td-star-count">148</span>
+            </button>
+          </div>
+
+          <!-- Right-slot CTAs: Variant B — Fork + Run Taskset + Overflow -->
+          <div class="td-header-actions">
+            <button class="td-btn-secondary" aria-label="Fork OSWorld-Verified">
+              <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="5" cy="4" r="1.5"/>
+                <circle cx="11" cy="4" r="1.5"/>
+                <circle cx="8" cy="12" r="1.5"/>
+                <path d="M5 5.5v2.5c0 1.1.9 2 2 2h2c1.1 0 2-.9 2-2V5.5"/>
+                <path d="M8 8v2"/>
+              </svg>
+              Fork
+            </button>
+            <button class="td-btn-primary" aria-label="Run Taskset">
+              <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M5 3l8 5-8 5V3z" fill="currentColor" stroke="none"/>
+              </svg>
+              Run Taskset
+            </button>
+            <button class="td-overflow-btn" aria-label="More actions" title="More actions">
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="8" cy="3.5" r="1"/><circle cx="8" cy="8" r="1"/><circle cx="8" cy="12.5" r="1"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Descriptor strip: Task count · slug [⎘] · Owned by: HUD -->
+        <dl class="td-descriptor-strip">
+          <div class="td-strip-field">
+            <dt style="display:none;">Tasks</dt>
+            <dd style="margin:0; color:var(--color-muted-foreground);">369 Tasks</dd>
+          </div>
+          <span class="td-strip-sep" aria-hidden="true">·</span>
+          <div class="td-strip-field">
+            <dt style="display:none;">Slug</dt>
+            <dd style="margin:0; display:flex; align-items:center; gap:3px;">
+              <span class="td-strip-slug">osworld-verified-0023</span>
+              <button class="td-copy-btn" aria-label="Copy Taskset slug osworld-verified-0023" title="Copy slug">
+                <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="5" y="5" width="8" height="9" rx="1.5"/><path d="M3 11V3a1 1 0 011-1h8"/>
+                </svg>
+              </button>
+            </dd>
+          </div>
+          <span class="td-strip-sep" aria-hidden="true">·</span>
+          <div class="td-strip-field">
+            <dt style="display:none;">Owner</dt>
+            <dd style="margin:0;">Owned by: <a href="#" style="color:var(--color-muted-foreground); text-decoration:none;">HUD</a></dd>
+          </div>
+        </dl>
+
+      </div><!-- /td-page-header -->
+
+      <!-- TAB BAR — Variant B: 4 tabs, Jobs active -->
+      <div class="td-tab-bar" role="tablist" aria-label="Taskset detail tabs">
+        <button class="td-tab" role="tab" aria-selected="false" aria-controls="tab-overview" id="tab-overview-btn" tabindex="-1">
+          Overview
+        </button>
+        <button class="td-tab" role="tab" aria-selected="false" aria-controls="tab-tasks" id="tab-tasks-btn" aria-label="Tasks, 369" tabindex="-1">
+          Tasks
+          <span class="td-tab-count" aria-hidden="true">369</span>
+        </button>
+        <button class="td-tab active" role="tab" aria-selected="true" aria-controls="tab-jobs" id="tab-jobs-btn" aria-label="Jobs, 38">
+          Jobs
+          <span class="td-tab-count" aria-hidden="true">38</span>
+        </button>
+        <button class="td-tab" role="tab" aria-selected="false" aria-controls="tab-performance" id="tab-perf-btn" tabindex="-1">
+          Performance
+        </button>
+      </div>
+
+    </div><!-- /td-sticky-stack -->
+
+    <!-- ─────────────────────────────────────
+         JOBS TAB CONTENT
+    ───────────────────────────────────── -->
+    <div class="jobs-content" role="tabpanel" id="tab-jobs" aria-labelledby="tab-jobs-btn">
+      <span style="position:absolute;width:1px;height:1px;clip:rect(0,0,0,0);overflow:hidden;" aria-live="polite"></span>
+
+      <!-- FILTER ROW -->
+      <div class="jobs-filter-row" role="group" aria-label="Job filters">
+
+        <!-- Search -->
+        <div class="jobs-search" role="search" aria-label="Search Jobs">
+          <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="6.5" cy="6.5" r="4.5"/><path d="M10.5 10.5L14 14"/>
+          </svg>
+          <span class="jobs-search-placeholder">Search Jobs…</span>
+        </div>
+
+        <!-- Type chips -->
+        <div class="jobs-chip-group" role="group" aria-label="Filter by type">
+          <button class="jobs-chip active" aria-pressed="true">All</button>
+          <button class="jobs-chip" aria-pressed="false">Eval</button>
+          <button class="jobs-chip" aria-pressed="false">Training</button>
+        </div>
+
+        <!-- Validity chips -->
+        <div class="jobs-chip-group" role="group" aria-label="Filter by validity">
+          <button class="jobs-chip active" aria-pressed="true">Valid</button>
+          <button class="jobs-chip" aria-pressed="false">Invalidated</button>
+        </div>
+
+        <!-- Outcome chips -->
+        <div class="jobs-chip-group" role="group" aria-label="Filter by outcome">
+          <button class="jobs-chip active" aria-pressed="true">All</button>
+          <button class="jobs-chip" aria-pressed="false">Completed</button>
+          <button class="jobs-chip" aria-pressed="false">Running</button>
+          <button class="jobs-chip" aria-pressed="false">Errored</button>
+        </div>
+
+        <!-- Right side: scope toggle, sort, total count -->
+        <div class="jobs-filter-right">
+          <button class="jobs-select-btn" aria-haspopup="listbox" aria-label="Scope: My team's Jobs">
+            My team's Jobs
+            <svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 4.5L6 7.5 9 4.5"/>
+            </svg>
+          </button>
+          <button class="jobs-select-btn" aria-haspopup="listbox" aria-label="Sort: Most recent">
+            Most recent
+            <svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 4.5L6 7.5 9 4.5"/>
+            </svg>
+          </button>
+          <span class="jobs-total-count">38 Jobs total</span>
+        </div>
+      </div>
+
+      <!-- Batch-grid legend (once, above list) -->
+      <div class="jobs-legend" aria-label="Batch grid legend">
+        <div class="jobs-legend-item">
+          <span class="legend-square" style="background:var(--color-state-scored);opacity:0.82;"></span>
+          <span>Scored</span>
+        </div>
+        <div class="jobs-legend-item">
+          <span class="legend-square" style="background:var(--color-muted-foreground);opacity:0.25;"></span>
+          <span>No score</span>
+        </div>
+        <div class="jobs-legend-item">
+          <span class="legend-square" style="background:rgba(255,255,255,.10);"></span>
+          <span>Not run</span>
+        </div>
+        <div class="jobs-legend-item">
+          <span class="legend-square" style="background:var(--color-state-errored);opacity:0.75;"></span>
+          <span>Errored</span>
+        </div>
+      </div>
+
+      <!-- JOB LIST -->
+      <ul class="jobs-list" aria-label="Jobs">
+
+        <!-- ──────────────────────────────────────
+             ROW 1 · Completed · claude-opus-4-7
+        ────────────────────────────────────── -->
+        <li class="job-row">
+          <div class="job-row-inner">
+            <!-- Status icon -->
+            <div class="job-status-icon" aria-hidden="true">
+              <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="color:var(--color-state-scored);">
+                <path d="M3 8l4 4 6-7"/>
+              </svg>
+            </div>
+            <!-- Main -->
+            <div class="job-main">
+              <div class="job-line1">
+                <a class="job-name" href="#" aria-label="Eval: claude-opus-4-7, Completed">Eval: claude-opus-4-7</a>
+                <span class="job-badge completed" role="status">&#10003; COMPLETED</span>
+                <div class="job-model-chips">
+                  <span class="job-model-chip">claude-opus-4-7</span>
+                </div>
+                <div class="job-batch-grid" role="grid" aria-label="Run outcomes" aria-rowcount="1">
+                  <!-- 20 runs: 17 scored, 2 no-score, 1 errored -->
+                  <span role="gridcell" class="run-square scored"  aria-label="Run 1: Scored" title="Run 1: Scored"></span>
+                  <span role="gridcell" class="run-square scored"  aria-label="Run 2: Scored" title="Run 2: Scored"></span>
+                  <span role="gridcell" class="run-square scored"  aria-label="Run 3: Scored" title="Run 3: Scored"></span>
+                  <span role="gridcell" class="run-square scored"  aria-label="Run 4: Scored" title="Run 4: Scored"></span>
+                  <span role="gridcell" class="run-square scored"  aria-label="Run 5: Scored" title="Run 5: Scored"></span>
+                  <span role="gridcell" class="run-square scored"  aria-label="Run 6: Scored" title="Run 6: Scored"></span>
+                  <span role="gridcell" class="run-square scored"  aria-label="Run 7: Scored" title="Run 7: Scored"></span>
+                  <span role="gridcell" class="run-square scored"  aria-label="Run 8: Scored" title="Run 8: Scored"></span>
+                  <span role="gridcell" class="run-square noscore" aria-label="Run 9: No score" title="Run 9: No score"></span>
+                  <span role="gridcell" class="run-square scored"  aria-label="Run 10: Scored" title="Run 10: Scored"></span>
+                  <span role="gridcell" class="run-square scored"  aria-label="Run 11: Scored" title="Run 11: Scored"></span>
+                  <span role="gridcell" class="run-square scored"  aria-label="Run 12: Scored" title="Run 12: Scored"></span>
+                  <span role="gridcell" class="run-square scored"  aria-label="Run 13: Scored" title="Run 13: Scored"></span>
+                  <span role="gridcell" class="run-square errored" aria-label="Run 14: Errored" title="Run 14: Errored"></span>
+                  <span role="gridcell" class="run-square scored"  aria-label="Run 15: Scored" title="Run 15: Scored"></span>
+                  <span role="gridcell" class="run-square scored"  aria-label="Run 16: Scored" title="Run 16: Scored"></span>
+                  <span role="gridcell" class="run-square scored"  aria-label="Run 17: Scored" title="Run 17: Scored"></span>
+                  <span role="gridcell" class="run-square noscore" aria-label="Run 18: No score" title="Run 18: No score"></span>
+                  <span role="gridcell" class="run-square scored"  aria-label="Run 19: Scored" title="Run 19: Scored"></span>
+                  <span role="gridcell" class="run-square scored"  aria-label="Run 20: Scored" title="Run 20: Scored"></span>
+                </div>
+              </div>
+              <div class="job-line2">
+                <span class="job-meta-owner">Princeton NLP</span>
+                <span class="job-meta-sep">·</span>
+                <span class="job-meta-date" title="2026-06-08T14:32:00Z">1 day ago</span>
+                <div class="job-progress-wrap">
+                  <div class="job-progress-bar-bg">
+                    <div class="job-progress-bar-fill" style="width:90%;background:var(--color-state-scored);" role="progressbar" aria-valuenow="90" aria-valuemin="0" aria-valuemax="100" aria-label="90% of Runs scored"></div>
+                  </div>
+                  <span class="job-progress-pct">90%</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <a class="job-row-newtab" href="#" aria-label="Open Job Eval: claude-opus-4-7 in new tab" rel="noopener" title="Open in new tab">
+            <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M7 3H3a1 1 0 00-1 1v9a1 1 0 001 1h9a1 1 0 001-1V9"/><path d="M10 2h4v4M14 2L7 9"/>
+            </svg>
+          </a>
+        </li>
+
+        <!-- ──────────────────────────────────────
+             ROW 2 · Running · gpt-4o
+        ────────────────────────────────────── -->
+        <li class="job-row">
+          <div class="job-row-inner">
+            <div class="job-status-icon" aria-hidden="true">
+              <!-- Pulsing circle for running -->
+              <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor" style="color:var(--color-state-running);">
+                <circle cx="8" cy="8" r="5"/>
+              </svg>
+            </div>
+            <div class="job-main">
+              <div class="job-line1">
+                <a class="job-name" href="#" aria-label="Eval: gpt-4o, Running">Eval: gpt-4o</a>
+                <span class="job-badge running" role="status">&#9679; RUNNING</span>
+                <div class="job-model-chips">
+                  <span class="job-model-chip">gpt-4o</span>
+                </div>
+                <div class="job-batch-grid" role="grid" aria-label="Run outcomes">
+                  <!-- 15 runs so far: 9 scored, 2 no-score, 4 not run yet -->
+                  <span role="gridcell" class="run-square scored"  aria-label="Run 1: Scored"></span>
+                  <span role="gridcell" class="run-square scored"  aria-label="Run 2: Scored"></span>
+                  <span role="gridcell" class="run-square scored"  aria-label="Run 3: Scored"></span>
+                  <span role="gridcell" class="run-square noscore" aria-label="Run 4: No score"></span>
+                  <span role="gridcell" class="run-square scored"  aria-label="Run 5: Scored"></span>
+                  <span role="gridcell" class="run-square scored"  aria-label="Run 6: Scored"></span>
+                  <span role="gridcell" class="run-square noscore" aria-label="Run 7: No score"></span>
+                  <span role="gridcell" class="run-square scored"  aria-label="Run 8: Scored"></span>
+                  <span role="gridcell" class="run-square scored"  aria-label="Run 9: Scored"></span>
+                  <span role="gridcell" class="run-square notrun"  aria-label="Run 10: Not run"></span>
+                  <span role="gridcell" class="run-square notrun"  aria-label="Run 11: Not run"></span>
+                  <span role="gridcell" class="run-square notrun"  aria-label="Run 12: Not run"></span>
+                  <span role="gridcell" class="run-square notrun"  aria-label="Run 13: Not run"></span>
+                  <span role="gridcell" class="run-square notrun"  aria-label="Run 14: Not run"></span>
+                  <span role="gridcell" class="run-square notrun"  aria-label="Run 15: Not run"></span>
+                </div>
+              </div>
+              <div class="job-line2">
+                <span class="job-meta-owner">DoorDash AI</span>
+                <span class="job-meta-sep">·</span>
+                <span class="job-meta-date" title="2026-06-09T07:45:00Z">3 hours ago</span>
+                <div class="job-progress-wrap">
+                  <div class="job-progress-bar-bg">
+                    <div class="job-progress-bar-fill" style="width:60%;background:var(--color-state-running);" role="progressbar" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100" aria-label="60% of Runs scored"></div>
+                  </div>
+                  <span class="job-progress-pct">60%</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <a class="job-row-newtab" href="#" aria-label="Open Job Eval: gpt-4o in new tab" rel="noopener" title="Open in new tab">
+            <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M7 3H3a1 1 0 00-1 1v9a1 1 0 001 1h9a1 1 0 001-1V9"/><path d="M10 2h4v4M14 2L7 9"/>
+            </svg>
+          </a>
+        </li>
+
+        <!-- ──────────────────────────────────────
+             ROW 3 · Completed · gemini-2.5-pro
+        ────────────────────────────────────── -->
+        <li class="job-row">
+          <div class="job-row-inner">
+            <div class="job-status-icon" aria-hidden="true">
+              <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="color:var(--color-state-scored);">
+                <path d="M3 8l4 4 6-7"/>
+              </svg>
+            </div>
+            <div class="job-main">
+              <div class="job-line1">
+                <a class="job-name" href="#" aria-label="Eval: gemini-2.5-pro, Completed">Eval: gemini-2.5-pro</a>
+                <span class="job-badge completed" role="status">&#10003; COMPLETED</span>
+                <div class="job-model-chips">
+                  <span class="job-model-chip">gemini-2.5-pro</span>
+                </div>
+                <div class="job-batch-grid" role="grid" aria-label="Run outcomes">
+                  <span role="gridcell" class="run-square scored"  aria-label="Run 1: Scored"></span>
+                  <span role="gridcell" class="run-square scored"  aria-label="Run 2: Scored"></span>
+                  <span role="gridcell" class="run-square scored"  aria-label="Run 3: Scored"></span>
+                  <span role="gridcell" class="run-square scored"  aria-label="Run 4: Scored"></span>
+                  <span role="gridcell" class="run-square scored"  aria-label="Run 5: Scored"></span>
+                  <span role="gridcell" class="run-square noscore" aria-label="Run 6: No score"></span>
+                  <span role="gridcell" class="run-square scored"  aria-label="Run 7: Scored"></span>
+                  <span role="gridcell" class="run-square scored"  aria-label="Run 8: Scored"></span>
+                  <span role="gridcell" class="run-square scored"  aria-label="Run 9: Scored"></span>
+                  <span role="gridcell" class="run-square scored"  aria-label="Run 10: Scored"></span>
+                  <span role="gridcell" class="run-square scored"  aria-label="Run 11: Scored"></span>
+                  <span role="gridcell" class="run-square noscore" aria-label="Run 12: No score"></span>
+                </div>
+              </div>
+              <div class="job-line2">
+                <span class="job-meta-owner">Google DeepMind</span>
+                <span class="job-meta-sep">·</span>
+                <span class="job-meta-date" title="2026-06-08T09:12:00Z">2 days ago</span>
+                <div class="job-progress-wrap">
+                  <div class="job-progress-bar-bg">
+                    <div class="job-progress-bar-fill" style="width:83%;background:var(--color-state-scored);" role="progressbar" aria-valuenow="83" aria-valuemin="0" aria-valuemax="100" aria-label="83% of Runs scored"></div>
+                  </div>
+                  <span class="job-progress-pct">83%</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <a class="job-row-newtab" href="#" aria-label="Open Job Eval: gemini-2.5-pro in new tab" rel="noopener" title="Open in new tab">
+            <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M7 3H3a1 1 0 00-1 1v9a1 1 0 001 1h9a1 1 0 001-1V9"/><path d="M10 2h4v4M14 2L7 9"/>
+            </svg>
+          </a>
+        </li>
+
+        <!-- ──────────────────────────────────────
+             ROW 4 · Errored · claude-opus-4-7  (different run config)
+        ────────────────────────────────────── -->
+        <li class="job-row">
+          <div class="job-row-inner">
+            <div class="job-status-icon" aria-hidden="true">
+              <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="color:var(--color-state-errored);">
+                <path d="M4 4l8 8M12 4l-8 8"/>
+              </svg>
+            </div>
+            <div class="job-main">
+              <div class="job-line1">
+                <a class="job-name" href="#" aria-label="Eval: claude-opus-4-7 (batch-3), Errored">Eval: claude-opus-4-7 (batch-3)</a>
+                <span class="job-badge errored" role="status">&#10005; ERROR</span>
+                <div class="job-model-chips">
+                  <span class="job-model-chip">claude-opus-4-7</span>
+                </div>
+                <div class="job-batch-grid" role="grid" aria-label="Run outcomes">
+                  <span role="gridcell" class="run-square scored"  aria-label="Run 1: Scored"></span>
+                  <span role="gridcell" class="run-square scored"  aria-label="Run 2: Scored"></span>
+                  <span role="gridcell" class="run-square errored" aria-label="Run 3: Errored"></span>
+                  <span role="gridcell" class="run-square errored" aria-label="Run 4: Errored"></span>
+                  <span role="gridcell" class="run-square errored" aria-label="Run 5: Errored"></span>
+                  <span role="gridcell" class="run-square notrun"  aria-label="Run 6: Not run"></span>
+                  <span role="gridcell" class="run-square notrun"  aria-label="Run 7: Not run"></span>
+                  <span role="gridcell" class="run-square notrun"  aria-label="Run 8: Not run"></span>
+                </div>
+              </div>
+              <div class="job-line2">
+                <span class="job-meta-owner">Princeton NLP</span>
+                <span class="job-meta-sep">·</span>
+                <span class="job-meta-date" title="2026-06-07T22:04:00Z">3 days ago</span>
+                <div class="job-progress-wrap">
+                  <div class="job-progress-bar-bg">
+                    <div class="job-progress-bar-fill" style="width:25%;background:var(--color-state-errored);" role="progressbar" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100" aria-label="25% of Runs scored"></div>
+                  </div>
+                  <span class="job-progress-pct">25%</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <a class="job-row-newtab" href="#" aria-label="Open Job Eval: claude-opus-4-7 (batch-3) in new tab" rel="noopener" title="Open in new tab">
+            <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M7 3H3a1 1 0 00-1 1v9a1 1 0 001 1h9a1 1 0 001-1V9"/><path d="M10 2h4v4M14 2L7 9"/>
+            </svg>
+          </a>
+        </li>
+
+        <!-- ──────────────────────────────────────
+             ROW 5 · Invalidated · claude-opus-4-6 (diagonal hatch)
+        ────────────────────────────────────── -->
+        <li class="job-row invalidated" aria-label="Eval: claude-opus-4-6 (Invalidated)">
+          <div class="job-row-inner">
+            <div class="job-status-icon" aria-hidden="true">
+              <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--color-state-warning);">
+                <rect x="2" y="2" width="12" height="12" rx="2"/>
+                <path d="M8 5v3M8 10.5h.01"/>
+              </svg>
+            </div>
+            <div class="job-main">
+              <div class="job-line1">
+                <a class="job-name" href="#" style="color:var(--color-meta-foreground);" aria-label="Eval: claude-opus-4-6 (Invalidated), select">Eval: claude-opus-4-6</a>
+                <span class="job-badge invalidated" role="status">Invalidated</span>
+                <div class="job-model-chips">
+                  <span class="job-model-chip" style="opacity:0.6;">claude-opus-4-6</span>
+                </div>
+                <div class="job-batch-grid" role="grid" aria-label="Run outcomes" style="opacity:0.5;">
+                  <span role="gridcell" class="run-square scored"  aria-label="Run 1: Scored"></span>
+                  <span role="gridcell" class="run-square scored"  aria-label="Run 2: Scored"></span>
+                  <span role="gridcell" class="run-square noscore" aria-label="Run 3: No score"></span>
+                  <span role="gridcell" class="run-square scored"  aria-label="Run 4: Scored"></span>
+                  <span role="gridcell" class="run-square scored"  aria-label="Run 5: Scored"></span>
+                  <span role="gridcell" class="run-square notrun"  aria-label="Run 6: Not run"></span>
+                </div>
+              </div>
+              <div class="job-line2">
+                <span class="job-meta-owner" style="opacity:0.6;">Sharpe Envs</span>
+                <span class="job-meta-sep">·</span>
+                <span class="job-meta-date" title="2026-05-22T11:00:00Z" style="opacity:0.6;">18 days ago</span>
+                <div class="job-progress-wrap">
+                  <div class="job-progress-bar-bg">
+                    <div class="job-progress-bar-fill" style="width:67%;background:var(--color-state-warning);opacity:0.5;" role="progressbar" aria-valuenow="67" aria-valuemin="0" aria-valuemax="100" aria-label="67% of Runs scored"></div>
+                  </div>
+                  <span class="job-progress-pct" style="opacity:0.5;">67%</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- Audit strip: who/when/why — visible on invalidated rows -->
+          <div class="job-audit-strip">
+            Invalidated 2026-05-24 by HUD Admin · Reason: <em>Wrong config — system prompt mismatch during migration.</em>
+          </div>
+          <a class="job-row-newtab" href="#" aria-label="Open Job Eval: claude-opus-4-6 in new tab" rel="noopener" title="Open in new tab">
+            <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M7 3H3a1 1 0 00-1 1v9a1 1 0 001 1h9a1 1 0 001-1V9"/><path d="M10 2h4v4M14 2L7 9"/>
+            </svg>
+          </a>
+        </li>
+
+        <!-- ──────────────────────────────────────
+             ROW 6 · Queued · gpt-4o-mini
+        ────────────────────────────────────── -->
+        <li class="job-row">
+          <div class="job-row-inner">
+            <div class="job-status-icon" aria-hidden="true">
+              <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--color-meta-foreground);">
+                <circle cx="8" cy="8" r="6" stroke-dasharray="2 2"/>
+              </svg>
+            </div>
+            <div class="job-main">
+              <div class="job-line1">
+                <a class="job-name" href="#" aria-label="Eval: gpt-4o-mini, Queued">Eval: gpt-4o-mini</a>
+                <span class="job-badge queued" role="status">&#9675; QUEUED</span>
+                <div class="job-model-chips">
+                  <span class="job-model-chip">gpt-4o-mini</span>
+                </div>
+                <div class="job-batch-grid" role="grid" aria-label="Run outcomes">
+                  <!-- All not-run — queued -->
+                  <span role="gridcell" class="run-square notrun" aria-label="Run 1: Not run"></span>
+                  <span role="gridcell" class="run-square notrun" aria-label="Run 2: Not run"></span>
+                  <span role="gridcell" class="run-square notrun" aria-label="Run 3: Not run"></span>
+                  <span role="gridcell" class="run-square notrun" aria-label="Run 4: Not run"></span>
+                  <span role="gridcell" class="run-square notrun" aria-label="Run 5: Not run"></span>
+                  <span role="gridcell" class="run-square notrun" aria-label="Run 6: Not run"></span>
+                  <span role="gridcell" class="run-square notrun" aria-label="Run 7: Not run"></span>
+                  <span role="gridcell" class="run-square notrun" aria-label="Run 8: Not run"></span>
+                  <span role="gridcell" class="run-square notrun" aria-label="Run 9: Not run"></span>
+                  <span role="gridcell" class="run-square notrun" aria-label="Run 10: Not run"></span>
+                </div>
+              </div>
+              <div class="job-line2">
+                <span class="job-meta-owner">DoorDash AI</span>
+                <span class="job-meta-sep">·</span>
+                <span class="job-meta-date" title="2026-06-09T08:55:00Z">2 hours ago</span>
+                <div class="job-progress-wrap">
+                  <div class="job-progress-bar-bg">
+                    <div class="job-progress-bar-fill" style="width:0%;background:var(--color-meta-foreground);" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" aria-label="0% of Runs scored"></div>
+                  </div>
+                  <span class="job-progress-pct">0%</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <a class="job-row-newtab" href="#" aria-label="Open Job Eval: gpt-4o-mini in new tab" rel="noopener" title="Open in new tab">
+            <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M7 3H3a1 1 0 00-1 1v9a1 1 0 001 1h9a1 1 0 001-1V9"/><path d="M10 2h4v4M14 2L7 9"/>
+            </svg>
+          </a>
+        </li>
+
+        <!-- ──────────────────────────────────────
+             ROW 7 · Completed · claude-haiku-4-5 · multi-model +1
+        ────────────────────────────────────── -->
+        <li class="job-row">
+          <div class="job-row-inner">
+            <div class="job-status-icon" aria-hidden="true">
+              <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="color:var(--color-state-scored);">
+                <path d="M3 8l4 4 6-7"/>
+              </svg>
+            </div>
+            <div class="job-main">
+              <div class="job-line1">
+                <a class="job-name" href="#" aria-label="Eval: claude-haiku-4-5 + 1 more, Completed">Eval: claude-haiku-4-5</a>
+                <span class="job-badge completed" role="status">&#10003; COMPLETED</span>
+                <div class="job-model-chips">
+                  <span class="job-model-chip">claude-haiku-4-5</span>
+                  <span class="job-model-chip-overflow" title="Also: kimi-k2.5">+1</span>
+                </div>
+                <div class="job-batch-grid" role="grid" aria-label="Run outcomes">
+                  <span role="gridcell" class="run-square scored"  aria-label="Run 1: Scored"></span>
+                  <span role="gridcell" class="run-square scored"  aria-label="Run 2: Scored"></span>
+                  <span role="gridcell" class="run-square scored"  aria-label="Run 3: Scored"></span>
+                  <span role="gridcell" class="run-square scored"  aria-label="Run 4: Scored"></span>
+                  <span role="gridcell" class="run-square scored"  aria-label="Run 5: Scored"></span>
+                  <span role="gridcell" class="run-square scored"  aria-label="Run 6: Scored"></span>
+                  <span role="gridcell" class="run-square noscore" aria-label="Run 7: No score"></span>
+                  <span role="gridcell" class="run-square scored"  aria-label="Run 8: Scored"></span>
+                  <span role="gridcell" class="run-square scored"  aria-label="Run 9: Scored"></span>
+                  <span role="gridcell" class="run-square scored"  aria-label="Run 10: Scored"></span>
+                  <span role="gridcell" class="run-square scored"  aria-label="Run 11: Scored"></span>
+                  <span role="gridcell" class="run-square scored"  aria-label="Run 12: Scored"></span>
+                </div>
+              </div>
+              <div class="job-line2">
+                <span class="job-meta-owner">UiPath Labs</span>
+                <span class="job-meta-sep">·</span>
+                <span class="job-meta-date" title="2026-06-04T16:20:00Z">5 days ago</span>
+                <div class="job-progress-wrap">
+                  <div class="job-progress-bar-bg">
+                    <div class="job-progress-bar-fill" style="width:92%;background:var(--color-state-scored);" role="progressbar" aria-valuenow="92" aria-valuemin="0" aria-valuemax="100" aria-label="92% of Runs scored"></div>
+                  </div>
+                  <span class="job-progress-pct">92%</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <a class="job-row-newtab" href="#" aria-label="Open Job Eval: claude-haiku-4-5 in new tab" rel="noopener" title="Open in new tab">
+            <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M7 3H3a1 1 0 00-1 1v9a1 1 0 001 1h9a1 1 0 001-1V9"/><path d="M10 2h4v4M14 2L7 9"/>
+            </svg>
+          </a>
+        </li>
+
+        <!-- ──────────────────────────────────────
+             ROW 8 · Completed · deepseek-v3 🔒 (private job)
+        ────────────────────────────────────── -->
+        <li class="job-row">
+          <div class="job-row-inner">
+            <div class="job-status-icon" aria-hidden="true">
+              <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="color:var(--color-state-scored);">
+                <path d="M3 8l4 4 6-7"/>
+              </svg>
+            </div>
+            <div class="job-main">
+              <div class="job-line1">
+                <a class="job-name" href="#" aria-label="Eval: deepseek-v3.2, Completed">Eval: deepseek-v3.2</a>
+                <!-- Lock icon for private job -->
+                <svg class="job-lock" width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-label="Private job" title="Private job">
+                  <rect x="3" y="7" width="10" height="7" rx="1.5"/>
+                  <path d="M5 7V5a3 3 0 016 0v2"/>
+                </svg>
+                <span class="job-badge completed" role="status">&#10003; COMPLETED</span>
+                <div class="job-model-chips">
+                  <span class="job-model-chip">deepseek-v3.2</span>
+                </div>
+                <div class="job-batch-grid" role="grid" aria-label="Run outcomes">
+                  <span role="gridcell" class="run-square noscore" aria-label="Run 1: No score"></span>
+                  <span role="gridcell" class="run-square noscore" aria-label="Run 2: No score"></span>
+                  <span role="gridcell" class="run-square scored"  aria-label="Run 3: Scored"></span>
+                  <span role="gridcell" class="run-square noscore" aria-label="Run 4: No score"></span>
+                  <span role="gridcell" class="run-square scored"  aria-label="Run 5: Scored"></span>
+                  <span role="gridcell" class="run-square noscore" aria-label="Run 6: No score"></span>
+                  <span role="gridcell" class="run-square scored"  aria-label="Run 7: Scored"></span>
+                  <span role="gridcell" class="run-square noscore" aria-label="Run 8: No score"></span>
+                </div>
+              </div>
+              <div class="job-line2">
+                <span class="job-meta-owner">Sharpe Envs</span>
+                <span class="job-meta-sep">·</span>
+                <span class="job-meta-date" title="2026-05-30T10:00:00Z">10 days ago</span>
+                <div class="job-progress-wrap">
+                  <div class="job-progress-bar-bg">
+                    <div class="job-progress-bar-fill" style="width:38%;background:var(--color-state-scored);" role="progressbar" aria-valuenow="38" aria-valuemin="0" aria-valuemax="100" aria-label="38% of Runs scored"></div>
+                  </div>
+                  <span class="job-progress-pct">38%</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <a class="job-row-newtab" href="#" aria-label="Open Job Eval: deepseek-v3.2 in new tab" rel="noopener" title="Open in new tab">
+            <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M7 3H3a1 1 0 00-1 1v9a1 1 0 001 1h9a1 1 0 001-1V9"/><path d="M10 2h4v4M14 2L7 9"/>
+            </svg>
+          </a>
+        </li>
+
+      </ul><!-- /jobs-list -->
+
+      <!-- No-more-items divider (remainder truncated at 8 of 38) -->
+      <div class="jobs-no-more">Showing 8 of 38 Jobs</div>
+
+      <!-- Load more -->
+      <div style="text-align:center; padding: 6px 0 20px;">
+        <button style="
+          background: transparent;
+          border: 1px solid var(--color-border-strong);
+          border-radius: 5px;
+          padding: 6px 20px;
+          font-size: 12px;
+          color: var(--color-muted-foreground);
+          cursor: pointer;
+          font-family: var(--sans);
+        " aria-label="Load 50 more Jobs, 30 remaining">
+          Load 50 more · 30 remaining
+        </button>
+      </div>
+
+    </div><!-- /jobs-content -->
+
+  </div><!-- /main-region -->
+
+</div><!-- /shell-layout -->
+
+</body>
+</html>
