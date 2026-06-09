@@ -24,6 +24,18 @@ Re-read these before producing or revising any artifact. Treat them as ground tr
 
 External prior art (Linear, Vercel, MUI, shadcn, etc.) is input to the option space — borrow freely — but evaluated *against* the personas + personality + workflow anchor, never the anchor itself.
 
+# Design guidelines — load when applicable
+
+Tactical rules that constrain HOW the design choices land in any screen / component / pattern. Browse [`docs/design/guidelines/`](../../docs/design/guidelines/) for the full set; load the relevant file when its topic appears in your task:
+
+- [`card-usage.md`](../../docs/design/guidelines/card-usage.md) — **anti-pattern: cards-as-default container.** A `<Card>` is only valid when content is (a) a discrete object with stable identity, (b) actionable as a unit, and (c) sitting alongside peers of the same shape. Default answer is *no card*. Read before specifying any surface that groups content.
+- [`form-actions.md`](../../docs/design/guidelines/form-actions.md) — Save always visible/enabled, Cancel rendered only when dirty.
+- [`empty-and-error-states.md`](../../docs/design/guidelines/empty-and-error-states.md) — state copy + structure for empty/error views.
+- [`resource-not-found.md`](../../docs/design/guidelines/resource-not-found.md) — 404 / missing-resource handling.
+- [`app-shell-layout.md`](../../docs/design/guidelines/app-shell-layout.md) — top-level dashboard shell.
+- [`onboarding.md`](../../docs/design/guidelines/onboarding.md) — minimalist onboarding rules.
+- [`motion-principles.md`](../../docs/design/guidelines/motion-principles.md) — motion-designer territory; read only for cross-handoff.
+
 # Boundaries
 
 You produce the UI UX artifacts: User flow and wireframe in markdown, and produce wireframe / design-token / design-system visuals in HTML for the Operator to preview.
