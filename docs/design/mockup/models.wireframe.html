@@ -1,0 +1,1211 @@
+<!--
+  filename: models.wireframe.html
+  Standalone wireframe mockup for /models — app-shell chrome integrated
+  Canonical wireframes:
+    docs/design/screens/app-shell.wireframe.md
+    docs/design/screens/models.wireframe.md
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Models — Wireframe (app-shell integrated)</title>
+  <style>
+    /* ── Reset ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    /* ── App-shell tokens (lifted from environments.wireframe.html) ── */
+    :root {
+      --sidebar-bg:    #0f1117;
+      --sidebar-border:#1e2230;
+      --page-bg:       #090c12;
+      --accent:        #10b981;
+      --accent-subtle: rgba(16,185,129,0.10);
+      --muted-fg:      #6b7280;
+      --default-fg:    #e5e7eb;
+      --brand-mark:    #f59e0b;
+
+      /* Models content tokens — namespaced mo- */
+      --mo-bg:         #0f0f10;
+      --mo-bg-raised:  #17171a;
+      --mo-bg-input:   #1e1e23;
+      --mo-border:     #2a2a30;
+      --mo-border-mid: #333340;
+      --mo-muted:      #6b6b7a;
+      --mo-dim:        #8f8fa0;
+      --mo-body:       #c4c4d0;
+      --mo-heading:    #eeeef2;
+      --mo-green:      #3dd68c;
+      --mo-amber:      #e8a72e;
+      --mo-red:        #e05252;
+      --mo-blue:       #4b8ef0;
+
+      --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+      --mono: "SF Mono", "Fira Code", "Cascadia Code", Consolas, monospace;
+      --serif: Georgia, "Times New Roman", serif;
+    }
+
+    html, body {
+      height: 100%;
+      font-family: var(--sans);
+      font-size: 13px;
+      background: #06080e;
+      color: var(--default-fg);
+      line-height: 1.5;
+    }
+
+    /* ═══════════════════════
+       OUTER CHROME — shell
+    ═══════════════════════ */
+    .shell-layout {
+      display: flex;
+      height: 100vh;
+      min-height: 600px;
+    }
+
+    /* ── Sidebar (lifted from environments.wireframe.html) ── */
+    .sidebar {
+      background: var(--sidebar-bg);
+      border-right: 1px solid var(--sidebar-border);
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      width: 220px;
+      height: 100%;
+      overflow-y: auto;
+      overflow-x: hidden;
+    }
+    .brand-slot {
+      display: flex; align-items: center; gap: 8px;
+      padding: 14px 16px 12px;
+      border-bottom: 1px solid var(--sidebar-border);
+      flex-shrink: 0;
+    }
+    .brand-mark {
+      width: 20px; height: 20px;
+      background: var(--brand-mark); border-radius: 4px;
+      flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .brand-wordmark { font-size: 14px; font-weight: 700; color: var(--default-fg); letter-spacing: -0.02em; }
+    .group-label {
+      font-size: 10px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--muted-fg); padding: 0 16px; margin-top: 20px; margin-bottom: 4px;
+    }
+    .nav-item {
+      display: flex; align-items: center; gap: 8px; padding: 5px 12px;
+      font-size: 13px; color: var(--muted-fg); cursor: pointer;
+      position: relative; border-radius: 4px; margin: 1px 4px;
+      text-decoration: none;
+    }
+    .nav-item:hover { background: rgba(255,255,255,0.04); color: var(--default-fg); }
+    .nav-item.selected { color: var(--accent); background: var(--accent-subtle); }
+    .nav-item.selected::before {
+      content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 2px;
+      background: var(--accent); border-radius: 0 2px 2px 0;
+    }
+    .nav-item-icon { width: 16px; height: 16px; flex-shrink: 0; color: inherit; opacity: 0.8; }
+    .nav-item.selected .nav-item-icon { opacity: 1; }
+    .nav-item-label { flex: 1; white-space: nowrap; }
+    .nav-item-count { font-size: 11px; color: var(--muted-fg); margin-left: auto; font-variant-numeric: tabular-nums; }
+    .nav-item-ext { font-size: 10px; color: var(--muted-fg); margin-left: auto; }
+    .spacer { flex: 1; }
+
+    /* Credits widget */
+    .credits-widget {
+      margin: 0 8px 4px; padding: 8px 10px;
+      border-radius: 6px; border: 1px solid var(--sidebar-border); cursor: pointer;
+    }
+    .credits-widget:hover { background: var(--accent-subtle); }
+    .credits-label { font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted-fg); }
+    .credits-numbers { display: flex; justify-content: flex-end; align-items: baseline; gap: 2px; margin: 2px 0; }
+    .credits-current { font-size: 13px; font-variant-numeric: tabular-nums; color: var(--default-fg); font-family: var(--mono); }
+    .credits-cap { font-size: 11px; font-variant-numeric: tabular-nums; color: var(--muted-fg); font-family: var(--mono); }
+    .credits-bar-bg { height: 3px; background: rgba(255,255,255,0.08); border-radius: 2px; overflow: hidden; margin: 4px 0; }
+    .credits-bar-fill { height: 100%; background: var(--accent); border-radius: 2px; }
+    .credits-meta { display: flex; justify-content: space-between; font-size: 10px; color: var(--muted-fg); margin-top: 2px; }
+
+    /* User chip */
+    .user-chip {
+      display: flex; align-items: center; gap: 8px;
+      padding: 8px 10px; margin: 4px 6px 6px;
+      border-radius: 6px; border: 1px solid var(--sidebar-border);
+      cursor: pointer; flex-shrink: 0;
+    }
+    .user-chip:hover { background: rgba(255,255,255,0.04); }
+    .avatar {
+      width: 28px; height: 28px; border-radius: 50%;
+      background: #1e2230; border: 1px solid var(--sidebar-border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 600; color: var(--default-fg); flex-shrink: 0;
+    }
+    .user-info { flex: 1; overflow: hidden; min-width: 0; }
+    .user-name { font-size: 12px; font-weight: 500; color: var(--default-fg); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .user-meta { font-size: 10px; color: var(--muted-fg); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .switcher-icon { color: var(--muted-fg); flex-shrink: 0; }
+
+    /* ── Main scroll region ── */
+    .main-region {
+      flex: 1; overflow-y: auto;
+      background: #06080e; min-width: 0;
+    }
+
+    /* ═══════════════════════════════════
+       MODELS CONTENT — inside main
+    ═══════════════════════════════════ */
+    .mo-main {
+      padding: 24px 28px 64px; min-width: 0;
+      background: var(--mo-bg);
+      color: var(--mo-body);
+      font-family: var(--sans); font-size: 13px;
+      max-width: 1280px;
+    }
+
+    /* ── Page header ── */
+    .mo-page-header { margin-bottom: 4px; }
+    .mo-page-header-row {
+      display: flex; align-items: center; justify-content: space-between; gap: 8px;
+      margin-bottom: 4px;
+    }
+    .page-title-group { display: flex; align-items: center; gap: 6px; }
+    .page-title {
+      font-family: var(--serif); font-size: 22px; font-weight: 400;
+      color: var(--mo-heading); line-height: 1.2;
+    }
+    .docs-icon {
+      width: 16px; height: 16px; color: var(--mo-muted); cursor: pointer;
+      display: inline-flex; align-items: center; justify-content: center;
+      font-size: 11px; border-radius: 3px; border: 1px solid transparent;
+    }
+    .docs-icon:hover { color: var(--mo-dim); border-color: var(--mo-border); }
+
+    /* Subtitle + gateway status row */
+    .mo-subtitle-row {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 12px; color: var(--mo-muted);
+      margin-bottom: 8px;
+    }
+    .mo-subtitle-text { color: var(--mo-dim); }
+    .gateway-status {
+      display: flex; align-items: center; gap: 5px;
+      font-size: 11.5px; color: var(--mo-muted);
+    }
+    .gateway-dot {
+      width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0;
+    }
+    .gateway-dot-running { background: var(--mo-green); }
+    .gateway-dot-degraded { background: var(--mo-amber); }
+    .gateway-status-link {
+      color: var(--mo-muted); text-decoration: none; font-size: 10px;
+    }
+    .gateway-status-link:hover { color: var(--mo-dim); text-decoration: underline; }
+
+    /* ── Buttons ── */
+    .btn-outline {
+      background: transparent; color: var(--mo-dim);
+      border: 1px solid var(--mo-border-mid); border-radius: 5px;
+      padding: 5px 10px; font-size: 12px; font-weight: 500;
+      cursor: pointer; display: inline-flex; align-items: center; gap: 4px; white-space: nowrap;
+    }
+    .btn-outline:hover { border-color: var(--mo-muted); color: var(--mo-body); }
+    .btn-primary {
+      background: var(--mo-green); color: #000;
+      border: none; border-radius: 5px;
+      padding: 6px 12px; font-size: 12px; font-weight: 600;
+      cursor: pointer; display: inline-flex; align-items: center; gap: 4px;
+    }
+
+    /* ── Tab bar ── */
+    .mo-tab-bar {
+      display: flex; align-items: flex-end;
+      border-bottom: 1px solid var(--mo-border);
+      margin-bottom: 12px;
+    }
+    .mo-tab {
+      padding: 8px 14px; font-size: 12.5px; color: var(--mo-muted);
+      cursor: pointer; border-bottom: 2px solid transparent;
+      margin-bottom: -1px; display: flex; align-items: center; gap: 6px;
+    }
+    .mo-tab:hover { color: var(--mo-body); }
+    .mo-tab.active { color: var(--mo-heading); border-bottom-color: var(--mo-green); }
+    .mo-tab-count {
+      font-size: 10.5px; color: var(--mo-muted);
+      background: rgba(255,255,255,.06); padding: 1px 5px; border-radius: 10px;
+    }
+    .mo-tab.active .mo-tab-count { color: var(--mo-dim); }
+
+    /* ── Filter row ── */
+    .mo-filter-row {
+      display: flex; align-items: center; gap: 8px;
+      margin-bottom: 14px; flex-wrap: wrap;
+    }
+    .mo-search-wrap { position: relative; flex: 1; min-width: 180px; max-width: 300px; }
+    .mo-search-icon {
+      position: absolute; left: 9px; top: 50%; transform: translateY(-50%);
+      color: var(--mo-muted); font-size: 12px; pointer-events: none;
+    }
+    .mo-search-input {
+      width: 100%; background: var(--mo-bg-input);
+      border: 1px solid var(--mo-border); border-radius: 5px;
+      padding: 6px 10px 6px 28px;
+      font-size: 12.5px; color: var(--mo-body); outline: none;
+    }
+
+    /* Filter chips */
+    .mo-chip {
+      display: inline-flex; align-items: center; gap: 4px;
+      border: 1px solid var(--mo-border-mid); border-radius: 5px;
+      padding: 4px 9px; font-size: 12px; color: var(--mo-dim);
+      cursor: pointer; background: transparent; white-space: nowrap;
+    }
+    .mo-chip:hover { border-color: var(--mo-muted); color: var(--mo-body); }
+    .mo-chip.active {
+      border-color: var(--mo-green);
+      color: var(--mo-green);
+      background: rgba(61,214,140,.08);
+    }
+    .mo-chip-count {
+      font-size: 10.5px;
+      background: rgba(255,255,255,.08); padding: 1px 5px; border-radius: 10px;
+    }
+    .mo-chip.active .mo-chip-count {
+      background: rgba(61,214,140,.15); color: var(--mo-green);
+    }
+
+    /* Result count + sort — right justified */
+    .mo-sort-wrap { margin-left: auto; display: flex; align-items: center; gap: 6px; }
+    .mo-result-count { font-size: 12px; color: var(--mo-muted); white-space: nowrap; }
+
+    /* ═══════════════════════
+       TABLE
+    ═══════════════════════ */
+    .mo-table-wrap { overflow-x: auto; }
+    .mo-table {
+      width: 100%; border-collapse: collapse;
+      font-size: 12.5px; color: var(--mo-body);
+    }
+    .mo-table thead th {
+      text-align: left;
+      font-size: 10.5px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase;
+      color: var(--mo-muted); padding: 6px 10px;
+      border-bottom: 1px solid var(--mo-border);
+      white-space: nowrap; background: var(--mo-bg);
+      position: sticky; top: 0; z-index: 1;
+    }
+    .mo-table thead th.right { text-align: right; }
+    .mo-table thead th.center { text-align: center; }
+
+    .mo-table tbody tr {
+      border-bottom: 1px solid var(--mo-border);
+      cursor: pointer;
+    }
+    .mo-table tbody tr:hover { background: rgba(255,255,255,.025); }
+    .mo-table tbody tr:last-child { border-bottom: none; }
+
+    .mo-table td { padding: 10px 10px; vertical-align: middle; }
+    .mo-table td.right { text-align: right; }
+    .mo-table td.center { text-align: center; }
+
+    /* MODEL cell */
+    .mo-model-cell { min-width: 200px; }
+    .mo-model-name-row {
+      display: flex; align-items: center; gap: 5px;
+      margin-bottom: 3px;
+    }
+    .mo-provider-icon {
+      width: 14px; height: 14px; border-radius: 2px;
+      display: inline-flex; align-items: center; justify-content: center;
+      font-size: 9px; font-weight: 700; flex-shrink: 0;
+      color: #fff;
+    }
+    .mo-provider-icon.anthropic { background: #cc6640; }
+    .mo-provider-icon.openai    { background: #10a37f; }
+    .mo-provider-icon.google    { background: #4285f4; }
+    .mo-provider-icon.xai       { background: #2d2d2d; border: 1px solid #444; }
+    .mo-provider-icon.hud       { background: var(--brand-mark); color: #000; }
+
+    .mo-model-name {
+      font-size: 13px; font-weight: 500; color: var(--mo-heading);
+      white-space: nowrap;
+    }
+    .mo-lock {
+      font-size: 11px; color: var(--mo-muted); flex-shrink: 0;
+    }
+    .mo-model-id-row {
+      display: flex; align-items: center; gap: 5px;
+    }
+    .mo-model-id {
+      font-family: var(--mono); font-size: 11px; color: var(--mo-muted);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      max-width: 180px;
+    }
+    .mo-copy-btn {
+      background: transparent; border: none; cursor: pointer;
+      color: var(--mo-muted); font-size: 11px; padding: 1px 3px;
+      border-radius: 2px; flex-shrink: 0;
+    }
+    .mo-copy-btn:hover { color: var(--mo-body); background: rgba(255,255,255,.06); }
+
+    /* PROVIDER cell */
+    .mo-provider-text { font-size: 12px; color: var(--mo-dim); white-space: nowrap; }
+
+    /* PRICE/M cell */
+    .mo-price {
+      font-variant-numeric: tabular-nums; font-size: 12px; color: var(--mo-body);
+      white-space: nowrap;
+    }
+    .mo-price-free { color: var(--mo-green); font-size: 12px; }
+    .mo-price-private { color: var(--mo-muted); font-size: 12px; }
+
+    /* SPEED cell */
+    .mo-speed-cell { min-width: 80px; }
+    .mo-speed-value {
+      font-variant-numeric: tabular-nums; font-size: 12px; color: var(--mo-body);
+      white-space: nowrap; text-align: right; display: block; margin-bottom: 3px;
+    }
+    .mo-speed-bar-bg {
+      height: 3px; background: rgba(255,255,255,.06);
+      border-radius: 2px; overflow: hidden; width: 100%;
+    }
+    .mo-speed-bar-fill { height: 100%; background: var(--mo-blue); border-radius: 2px; }
+
+    /* REASONING / TRAINABLE cells */
+    .mo-cap-yes { color: var(--mo-green); font-size: 12px; font-weight: 500; }
+    .mo-cap-no  { color: var(--mo-muted); font-size: 14px; font-weight: 300; }
+
+    /* USAGE cell */
+    .mo-usage-cell { min-width: 90px; }
+    .mo-sparkline {
+      display: flex; align-items: flex-end; gap: 2px;
+      height: 14px; margin-bottom: 3px; justify-content: flex-end;
+    }
+    .mo-spark-bar {
+      width: 5px; background: var(--mo-dim); border-radius: 1px 1px 0 0;
+      opacity: 0.6;
+    }
+    .mo-usage-total {
+      font-variant-numeric: tabular-nums; font-size: 11px;
+      color: var(--mo-dim); text-align: right; display: block;
+    }
+
+    /* STAR cell */
+    .mo-star-cell { min-width: 48px; }
+    .mo-star-wrap {
+      display: flex; align-items: center; gap: 3px;
+      font-size: 11.5px; color: var(--mo-muted);
+      justify-content: flex-end;
+    }
+    .mo-star-btn {
+      background: transparent; border: none; cursor: pointer;
+      color: var(--mo-muted); font-size: 13px; padding: 0; line-height: 1;
+    }
+    .mo-star-btn.starred { color: var(--mo-amber); }
+    .mo-star-btn:hover { color: var(--mo-amber); }
+
+    /* ── Empty / error states ── */
+    .mo-empty-state {
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      padding: 60px 20px; gap: 14px; text-align: center;
+    }
+    .mo-empty-icon { font-size: 28px; color: var(--mo-muted); }
+    .mo-empty-title { font-size: 16px; font-weight: 600; color: var(--mo-heading); }
+    .mo-cli-block {
+      background: var(--mo-bg-input); border: 1px solid var(--mo-border);
+      border-radius: 5px; padding: 8px 12px 8px 14px;
+      font-family: var(--mono); font-size: 12px; color: var(--mo-green);
+      display: flex; align-items: center; gap: 10px; min-width: 300px;
+    }
+    .mo-cli-copy { font-size: 13px; color: var(--mo-muted); cursor: pointer; }
+    .mo-cli-copy:hover { color: var(--mo-body); }
+    .mo-link-tertiary { font-size: 12px; color: var(--mo-blue); text-decoration: none; }
+    .mo-link-tertiary:hover { text-decoration: underline; }
+
+    .mo-error-state {
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      padding: 60px 20px; gap: 14px; text-align: center;
+    }
+    .mo-error-icon { font-size: 28px; color: var(--mo-red); }
+    .mo-error-title { font-size: 15px; font-weight: 600; color: var(--mo-heading); }
+
+    /* Skeleton shimmer */
+    @keyframes shimmer { 0%,100%{opacity:.4} 50%{opacity:.7} }
+    .skel {
+      background: var(--mo-border-mid); border-radius: 3px;
+      animation: shimmer 1.4s ease-in-out infinite;
+      display: inline-block;
+    }
+
+    /* State sections gap */
+    .mo-state-gap { height: 56px; border-top: 1px dashed rgba(255,255,255,.06); padding-top: 48px; }
+    .mo-state-label {
+      font-size: 10px; font-weight: 600; text-transform: uppercase;
+      letter-spacing: .08em; color: var(--mo-muted);
+      margin-bottom: 20px;
+    }
+
+    /* Degraded status variant */
+    .gateway-dot-degraded-pulse {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--mo-amber); flex-shrink: 0;
+    }
+    .gateway-status-degraded { color: var(--mo-amber); }
+  </style>
+</head>
+<body>
+
+<div class="shell-layout">
+
+  <!-- APP-SHELL SIDEBAR (Models active) -->
+  <aside class="sidebar">
+    <div class="brand-slot">
+      <div class="brand-mark">
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><rect width="12" height="12" rx="2" fill="#78350f"/><path d="M2 9L6 3L10 9" stroke="#f59e0b" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <span class="brand-wordmark">hud</span>
+    </div>
+
+    <div class="group-label">Workspace</div>
+    <a class="nav-item">
+      <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="5" height="5" rx="1"/><rect x="9" y="2" width="5" height="5" rx="1"/><rect x="2" y="9" width="5" height="5" rx="1"/><rect x="9" y="9" width="5" height="5" rx="1"/></svg>
+      <span class="nav-item-label">Home</span>
+    </a>
+    <a class="nav-item">
+      <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4h12M2 8h8M2 12h10"/><circle cx="13" cy="11" r="2.5"/></svg>
+      <span class="nav-item-label">Tasksets</span>
+      <span class="nav-item-count">127</span>
+    </a>
+    <a class="nav-item">
+      <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="12" height="10" rx="2"/><path d="M5 3V2M11 3V2M2 7h12"/></svg>
+      <span class="nav-item-label">Environments</span>
+      <span class="nav-item-count">42</span>
+    </a>
+    <a class="nav-item selected">
+      <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="3"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2M3.22 3.22l1.42 1.42M11.36 11.36l1.42 1.42M3.22 12.78l1.42-1.42M11.36 4.64l1.42-1.42"/></svg>
+      <span class="nav-item-label">Models</span>
+      <span class="nav-item-count">27</span>
+    </a>
+    <a class="nav-item">
+      <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="5" r="2.5"/><path d="M3 14c0-2.76 2.24-5 5-5s5 2.24 5 5"/></svg>
+      <span class="nav-item-label">Agents</span>
+      <span class="nav-item-count">4</span>
+    </a>
+    <a class="nav-item">
+      <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 2h8a1 1 0 011 1v10a1 1 0 01-1 1H4a1 1 0 01-1-1V3a1 1 0 011-1z"/><path d="M6 6h4M6 9h4M6 12h2"/></svg>
+      <span class="nav-item-label">Library</span>
+    </a>
+
+    <div class="group-label">Observe</div>
+    <a class="nav-item">
+      <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="8" width="3" height="5" rx="0.5"/><rect x="6.5" y="5" width="3" height="8" rx="0.5"/><rect x="11" y="2" width="3" height="11" rx="0.5"/></svg>
+      <span class="nav-item-label">Dashboard</span>
+    </a>
+    <a class="nav-item">
+      <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="6"/><path d="M8 4v4l3 1.5"/></svg>
+      <span class="nav-item-label">Progress</span>
+    </a>
+
+    <div class="spacer"></div>
+
+    <div class="credits-widget">
+      <div class="credits-label">credits</div>
+      <div class="credits-numbers">
+        <span class="credits-current">6,800</span>
+        <span class="credits-cap">&nbsp;/ 10,000</span>
+      </div>
+      <div class="credits-bar-bg"><div class="credits-bar-fill" style="width:68%"></div></div>
+      <div class="credits-meta"><span>~92 cr/hr</span><span>~34h left</span></div>
+    </div>
+
+    <div style="padding:2px 4px;">
+      <a class="nav-item" style="font-size:12px;">
+        <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3H3a1 1 0 00-1 1v9a1 1 0 001 1h9a1 1 0 001-1V9"/><path d="M10 2h4v4M14 2L7 9"/></svg>
+        <span class="nav-item-label">Marketplace</span>
+        <span class="nav-item-ext">↗</span>
+      </a>
+      <a class="nav-item" style="font-size:12px;">
+        <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 2h8a1 1 0 011 1v10a1 1 0 01-1 1H4a1 1 0 01-1-1V3a1 1 0 011-1z"/><path d="M6 6h4M6 9h4"/></svg>
+        <span class="nav-item-label">Documentation</span>
+        <span class="nav-item-ext">↗</span>
+      </a>
+    </div>
+
+    <div class="user-chip">
+      <div class="avatar">A</div>
+      <div class="user-info">
+        <div class="user-name">Alex Kim</div>
+        <div class="user-meta">Princeton NLP · member</div>
+      </div>
+      <svg class="switcher-icon" width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4.5L6 2 9 4.5M3 7.5L6 10 9 7.5"/></svg>
+    </div>
+  </aside>
+
+  <!-- MAIN SCROLL REGION -->
+  <div class="main-region">
+    <div class="mo-main">
+
+      <!-- ═══════════════════════════════════════════════════════
+           State 1: All models tab — populated (default)
+      ═══════════════════════════════════════════════════════ -->
+      <div class="mo-state-label">All models — default view</div>
+
+      <!-- PAGE HEADER -->
+      <div class="mo-page-header">
+        <div class="mo-page-header-row">
+          <div class="page-title-group">
+            <span class="page-title">Models</span>
+            <span class="docs-icon" title="Models documentation">?</span>
+          </div>
+        </div>
+
+        <!-- Subtitle + gateway status -->
+        <div class="mo-subtitle-row">
+          <span class="mo-subtitle-text">Models served via the <a class="gateway-status-link" href="#" title="Model Gateway documentation" style="font-size:inherit;color:inherit;">Model Gateway ↗</a>.</span>
+          <div class="gateway-status">
+            <div class="gateway-dot gateway-dot-running"></div>
+            <span>Running v2.0.0</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB BAR -->
+      <div class="mo-tab-bar">
+        <div class="mo-tab active">All models <span class="mo-tab-count">27</span></div>
+        <div class="mo-tab">My models <span class="mo-tab-count">4</span></div>
+      </div>
+
+      <!-- FILTER ROW -->
+      <div class="mo-filter-row">
+        <div class="mo-search-wrap">
+          <span class="mo-search-icon">⌕</span>
+          <input class="mo-search-input" type="text" placeholder="Search models…" />
+        </div>
+        <button class="mo-chip">Provider ▾</button>
+        <button class="mo-chip active">Trainable <span class="mo-chip-count">16</span></button>
+        <button class="mo-chip">Reasoning</button>
+        <button class="mo-chip">Favorites</button>
+        <div class="mo-sort-wrap">
+          <span class="mo-result-count">27 models</span>
+          <button class="btn-outline">Most used ▾</button>
+        </div>
+      </div>
+
+      <!-- TABLE -->
+      <div class="mo-table-wrap">
+        <table class="mo-table">
+          <thead>
+            <tr>
+              <th>Model</th>
+              <th>Provider</th>
+              <th class="right">Price/M</th>
+              <th class="right">Speed</th>
+              <th class="center">Reasoning</th>
+              <th class="center">Trainable</th>
+              <th class="right">Usage</th>
+              <th class="right">☆</th>
+            </tr>
+          </thead>
+          <tbody>
+
+            <!-- Row 1: Claude Opus 4.5 -->
+            <tr>
+              <td class="mo-model-cell">
+                <div class="mo-model-name-row">
+                  <span class="mo-provider-icon anthropic">A</span>
+                  <span class="mo-model-name">Claude Opus 4.5</span>
+                </div>
+                <div class="mo-model-id-row">
+                  <span class="mo-model-id">claude-opus-4-5</span>
+                  <button class="mo-copy-btn" title="Copy model ID">⎘</button>
+                </div>
+              </td>
+              <td><span class="mo-provider-text">Anthropic</span></td>
+              <td class="right"><span class="mo-price">$15 / $75</span></td>
+              <td class="right mo-speed-cell">
+                <span class="mo-speed-value">32 t/s</span>
+                <div class="mo-speed-bar-bg"><div class="mo-speed-bar-fill" style="width:27%"></div></div>
+              </td>
+              <td class="center"><span class="mo-cap-yes">✓</span></td>
+              <td class="center"><span class="mo-cap-yes">✓</span></td>
+              <td class="right mo-usage-cell">
+                <div class="mo-sparkline">
+                  <div class="mo-spark-bar" style="height:60%"></div>
+                  <div class="mo-spark-bar" style="height:80%"></div>
+                  <div class="mo-spark-bar" style="height:50%"></div>
+                  <div class="mo-spark-bar" style="height:90%"></div>
+                  <div class="mo-spark-bar" style="height:70%"></div>
+                  <div class="mo-spark-bar" style="height:60%"></div>
+                  <div class="mo-spark-bar" style="height:100%"></div>
+                </div>
+                <span class="mo-usage-total">9.2M</span>
+              </td>
+              <td class="right mo-star-cell">
+                <div class="mo-star-wrap">
+                  <button class="mo-star-btn starred" title="Star">★</button>
+                  <span>142</span>
+                </div>
+              </td>
+            </tr>
+
+            <!-- Row 2: Claude Sonnet 4.6 -->
+            <tr>
+              <td class="mo-model-cell">
+                <div class="mo-model-name-row">
+                  <span class="mo-provider-icon anthropic">A</span>
+                  <span class="mo-model-name">Claude Sonnet 4.6</span>
+                </div>
+                <div class="mo-model-id-row">
+                  <span class="mo-model-id">claude-sonnet-4-6</span>
+                  <button class="mo-copy-btn" title="Copy model ID">⎘</button>
+                </div>
+              </td>
+              <td><span class="mo-provider-text">Anthropic</span></td>
+              <td class="right"><span class="mo-price">$3 / $15</span></td>
+              <td class="right mo-speed-cell">
+                <span class="mo-speed-value">78 t/s</span>
+                <div class="mo-speed-bar-bg"><div class="mo-speed-bar-fill" style="width:65%"></div></div>
+              </td>
+              <td class="center"><span class="mo-cap-no">—</span></td>
+              <td class="center"><span class="mo-cap-yes">✓</span></td>
+              <td class="right mo-usage-cell">
+                <div class="mo-sparkline">
+                  <div class="mo-spark-bar" style="height:90%"></div>
+                  <div class="mo-spark-bar" style="height:70%"></div>
+                  <div class="mo-spark-bar" style="height:100%"></div>
+                  <div class="mo-spark-bar" style="height:80%"></div>
+                  <div class="mo-spark-bar" style="height:90%"></div>
+                  <div class="mo-spark-bar" style="height:75%"></div>
+                  <div class="mo-spark-bar" style="height:85%"></div>
+                </div>
+                <span class="mo-usage-total">31.4M</span>
+              </td>
+              <td class="right mo-star-cell">
+                <div class="mo-star-wrap">
+                  <button class="mo-star-btn starred" title="Star">★</button>
+                  <span>89</span>
+                </div>
+              </td>
+            </tr>
+
+            <!-- Row 3: GPT 5.4 (locked) -->
+            <tr>
+              <td class="mo-model-cell">
+                <div class="mo-model-name-row">
+                  <span class="mo-provider-icon openai">O</span>
+                  <span class="mo-model-name">GPT 5.4</span>
+                  <span class="mo-lock" title="Restricted access — requires access grant">🔒</span>
+                </div>
+                <div class="mo-model-id-row">
+                  <span class="mo-model-id">gpt-5.4-0614</span>
+                  <button class="mo-copy-btn" title="Copy model ID">⎘</button>
+                </div>
+              </td>
+              <td><span class="mo-provider-text">OpenAI</span></td>
+              <td class="right"><span class="mo-price">$3 / $15</span></td>
+              <td class="right mo-speed-cell">
+                <span class="mo-speed-value">45 t/s</span>
+                <div class="mo-speed-bar-bg"><div class="mo-speed-bar-fill" style="width:38%"></div></div>
+              </td>
+              <td class="center"><span class="mo-cap-yes">✓</span></td>
+              <td class="center"><span class="mo-cap-no">—</span></td>
+              <td class="right mo-usage-cell">
+                <div class="mo-sparkline">
+                  <div class="mo-spark-bar" style="height:100%"></div>
+                  <div class="mo-spark-bar" style="height:85%"></div>
+                  <div class="mo-spark-bar" style="height:100%"></div>
+                  <div class="mo-spark-bar" style="height:90%"></div>
+                  <div class="mo-spark-bar" style="height:75%"></div>
+                  <div class="mo-spark-bar" style="height:80%"></div>
+                  <div class="mo-spark-bar" style="height:95%"></div>
+                </div>
+                <span class="mo-usage-total">3.7M</span>
+              </td>
+              <td class="right mo-star-cell">
+                <div class="mo-star-wrap">
+                  <button class="mo-star-btn" title="Star">☆</button>
+                  <span>74</span>
+                </div>
+              </td>
+            </tr>
+
+            <!-- Row 4: Gemini 2.5 Flash -->
+            <tr>
+              <td class="mo-model-cell">
+                <div class="mo-model-name-row">
+                  <span class="mo-provider-icon google">G</span>
+                  <span class="mo-model-name">Gemini 2.5 Flash</span>
+                </div>
+                <div class="mo-model-id-row">
+                  <span class="mo-model-id">gemini-2.5-flash</span>
+                  <button class="mo-copy-btn" title="Copy model ID">⎘</button>
+                </div>
+              </td>
+              <td><span class="mo-provider-text">Google</span></td>
+              <td class="right"><span class="mo-price">$0.075 / $0.30</span></td>
+              <td class="right mo-speed-cell">
+                <span class="mo-speed-value">120 t/s</span>
+                <div class="mo-speed-bar-bg"><div class="mo-speed-bar-fill" style="width:100%"></div></div>
+              </td>
+              <td class="center"><span class="mo-cap-no">—</span></td>
+              <td class="center"><span class="mo-cap-no">—</span></td>
+              <td class="right mo-usage-cell">
+                <div class="mo-sparkline">
+                  <div class="mo-spark-bar" style="height:50%"></div>
+                  <div class="mo-spark-bar" style="height:60%"></div>
+                  <div class="mo-spark-bar" style="height:55%"></div>
+                  <div class="mo-spark-bar" style="height:70%"></div>
+                  <div class="mo-spark-bar" style="height:60%"></div>
+                  <div class="mo-spark-bar" style="height:50%"></div>
+                  <div class="mo-spark-bar" style="height:65%"></div>
+                </div>
+                <span class="mo-usage-total">22.1M</span>
+              </td>
+              <td class="right mo-star-cell">
+                <div class="mo-star-wrap">
+                  <button class="mo-star-btn" title="Star">☆</button>
+                  <span>31</span>
+                </div>
+              </td>
+            </tr>
+
+            <!-- Row 5: Grok 2 (xAI) -->
+            <tr>
+              <td class="mo-model-cell">
+                <div class="mo-model-name-row">
+                  <span class="mo-provider-icon xai">X</span>
+                  <span class="mo-model-name">Grok 2</span>
+                </div>
+                <div class="mo-model-id-row">
+                  <span class="mo-model-id">grok-2-1212</span>
+                  <button class="mo-copy-btn" title="Copy model ID">⎘</button>
+                </div>
+              </td>
+              <td><span class="mo-provider-text">xAI</span></td>
+              <td class="right"><span class="mo-price">$2 / $10</span></td>
+              <td class="right mo-speed-cell">
+                <span class="mo-speed-value">62 t/s</span>
+                <div class="mo-speed-bar-bg"><div class="mo-speed-bar-fill" style="width:52%"></div></div>
+              </td>
+              <td class="center"><span class="mo-cap-no">—</span></td>
+              <td class="center"><span class="mo-cap-yes">✓</span></td>
+              <td class="right mo-usage-cell">
+                <div class="mo-sparkline">
+                  <div class="mo-spark-bar" style="height:30%"></div>
+                  <div class="mo-spark-bar" style="height:40%"></div>
+                  <div class="mo-spark-bar" style="height:35%"></div>
+                  <div class="mo-spark-bar" style="height:45%"></div>
+                  <div class="mo-spark-bar" style="height:38%"></div>
+                  <div class="mo-spark-bar" style="height:42%"></div>
+                  <div class="mo-spark-bar" style="height:50%"></div>
+                </div>
+                <span class="mo-usage-total">1.1M</span>
+              </td>
+              <td class="right mo-star-cell">
+                <div class="mo-star-wrap">
+                  <button class="mo-star-btn" title="Star">☆</button>
+                  <span>18</span>
+                </div>
+              </td>
+            </tr>
+
+            <!-- Row 6: Claude Haiku 3.7 -->
+            <tr>
+              <td class="mo-model-cell">
+                <div class="mo-model-name-row">
+                  <span class="mo-provider-icon anthropic">A</span>
+                  <span class="mo-model-name">Claude Haiku 3.7</span>
+                </div>
+                <div class="mo-model-id-row">
+                  <span class="mo-model-id">claude-haiku-3-7</span>
+                  <button class="mo-copy-btn" title="Copy model ID">⎘</button>
+                </div>
+              </td>
+              <td><span class="mo-provider-text">Anthropic</span></td>
+              <td class="right"><span class="mo-price">$0.25 / $1.25</span></td>
+              <td class="right mo-speed-cell">
+                <span class="mo-speed-value">104 t/s</span>
+                <div class="mo-speed-bar-bg"><div class="mo-speed-bar-fill" style="width:87%"></div></div>
+              </td>
+              <td class="center"><span class="mo-cap-no">—</span></td>
+              <td class="center"><span class="mo-cap-yes">✓</span></td>
+              <td class="right mo-usage-cell">
+                <div class="mo-sparkline">
+                  <div class="mo-spark-bar" style="height:75%"></div>
+                  <div class="mo-spark-bar" style="height:80%"></div>
+                  <div class="mo-spark-bar" style="height:90%"></div>
+                  <div class="mo-spark-bar" style="height:70%"></div>
+                  <div class="mo-spark-bar" style="height:85%"></div>
+                  <div class="mo-spark-bar" style="height:80%"></div>
+                  <div class="mo-spark-bar" style="height:95%"></div>
+                </div>
+                <span class="mo-usage-total">18.3M</span>
+              </td>
+              <td class="right mo-star-cell">
+                <div class="mo-star-wrap">
+                  <button class="mo-star-btn" title="Star">☆</button>
+                  <span>57</span>
+                </div>
+              </td>
+            </tr>
+
+            <!-- Row 7: GPT-4o mini -->
+            <tr>
+              <td class="mo-model-cell">
+                <div class="mo-model-name-row">
+                  <span class="mo-provider-icon openai">O</span>
+                  <span class="mo-model-name">GPT-4o mini</span>
+                </div>
+                <div class="mo-model-id-row">
+                  <span class="mo-model-id">gpt-4o-mini</span>
+                  <button class="mo-copy-btn" title="Copy model ID">⎘</button>
+                </div>
+              </td>
+              <td><span class="mo-provider-text">OpenAI</span></td>
+              <td class="right"><span class="mo-price">$0.15 / $0.60</span></td>
+              <td class="right mo-speed-cell">
+                <span class="mo-speed-value">95 t/s</span>
+                <div class="mo-speed-bar-bg"><div class="mo-speed-bar-fill" style="width:79%"></div></div>
+              </td>
+              <td class="center"><span class="mo-cap-no">—</span></td>
+              <td class="center"><span class="mo-cap-yes">✓</span></td>
+              <td class="right mo-usage-cell">
+                <div class="mo-sparkline">
+                  <div class="mo-spark-bar" style="height:55%"></div>
+                  <div class="mo-spark-bar" style="height:60%"></div>
+                  <div class="mo-spark-bar" style="height:65%"></div>
+                  <div class="mo-spark-bar" style="height:58%"></div>
+                  <div class="mo-spark-bar" style="height:62%"></div>
+                  <div class="mo-spark-bar" style="height:68%"></div>
+                  <div class="mo-spark-bar" style="height:72%"></div>
+                </div>
+                <span class="mo-usage-total">7.4M</span>
+              </td>
+              <td class="right mo-star-cell">
+                <div class="mo-star-wrap">
+                  <button class="mo-star-btn" title="Star">☆</button>
+                  <span>44</span>
+                </div>
+              </td>
+            </tr>
+
+            <!-- Row 8: Gemini 2.0 Pro (locked) -->
+            <tr>
+              <td class="mo-model-cell">
+                <div class="mo-model-name-row">
+                  <span class="mo-provider-icon google">G</span>
+                  <span class="mo-model-name">Gemini 2.0 Pro</span>
+                  <span class="mo-lock" title="Restricted access — requires access grant">🔒</span>
+                </div>
+                <div class="mo-model-id-row">
+                  <span class="mo-model-id">gemini-2.0-pro-exp</span>
+                  <button class="mo-copy-btn" title="Copy model ID">⎘</button>
+                </div>
+              </td>
+              <td><span class="mo-provider-text">Google</span></td>
+              <td class="right"><span class="mo-price">$1.25 / $5.00</span></td>
+              <td class="right mo-speed-cell">
+                <span class="mo-speed-value">88 t/s</span>
+                <div class="mo-speed-bar-bg"><div class="mo-speed-bar-fill" style="width:73%"></div></div>
+              </td>
+              <td class="center"><span class="mo-cap-yes">✓</span></td>
+              <td class="center"><span class="mo-cap-no">—</span></td>
+              <td class="right mo-usage-cell">
+                <div class="mo-sparkline">
+                  <div class="mo-spark-bar" style="height:20%"></div>
+                  <div class="mo-spark-bar" style="height:25%"></div>
+                  <div class="mo-spark-bar" style="height:20%"></div>
+                  <div class="mo-spark-bar" style="height:30%"></div>
+                  <div class="mo-spark-bar" style="height:22%"></div>
+                  <div class="mo-spark-bar" style="height:28%"></div>
+                  <div class="mo-spark-bar" style="height:35%"></div>
+                </div>
+                <span class="mo-usage-total">421K</span>
+              </td>
+              <td class="right mo-star-cell">
+                <div class="mo-star-wrap">
+                  <button class="mo-star-btn" title="Star">☆</button>
+                  <span>22</span>
+                </div>
+              </td>
+            </tr>
+
+          </tbody>
+        </table>
+      </div>
+
+      <!-- ═══════════════════════════════════════════════════════
+           State 2: My models tab — populated
+      ═══════════════════════════════════════════════════════ -->
+      <div class="mo-state-gap"></div>
+      <div class="mo-state-label">My models tab — org-trained private models</div>
+
+      <!-- (same page header — abbreviated for mockup) -->
+      <div class="mo-page-header" style="margin-bottom:4px;">
+        <div class="mo-page-header-row">
+          <div class="page-title-group">
+            <span class="page-title">Models</span>
+            <span class="docs-icon">?</span>
+          </div>
+        </div>
+        <div class="mo-subtitle-row">
+          <span class="mo-subtitle-text">Models served via the <a class="gateway-status-link" href="#" title="Model Gateway documentation" style="font-size:inherit;color:inherit;">Model Gateway ↗</a>.</span>
+          <div class="gateway-status">
+            <div class="gateway-dot gateway-dot-running"></div>
+            <span>Running v2.0.0</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="mo-tab-bar">
+        <div class="mo-tab">All models <span class="mo-tab-count">27</span></div>
+        <div class="mo-tab active">My models <span class="mo-tab-count">4</span></div>
+      </div>
+
+      <div class="mo-filter-row">
+        <div class="mo-search-wrap">
+          <span class="mo-search-icon">⌕</span>
+          <input class="mo-search-input" type="text" placeholder="Search models…" />
+        </div>
+        <button class="mo-chip">Provider ▾</button>
+        <button class="mo-chip">Trainable</button>
+        <button class="mo-chip">Reasoning</button>
+        <button class="mo-chip">Favorites</button>
+        <div class="mo-sort-wrap">
+          <span class="mo-result-count">4 models</span>
+          <button class="btn-outline">Most used ▾</button>
+        </div>
+      </div>
+
+      <div class="mo-table-wrap">
+        <table class="mo-table">
+          <thead>
+            <tr>
+              <th>Model</th>
+              <th>Provider</th>
+              <th class="right">Price/M</th>
+              <th class="right">Speed</th>
+              <th class="center">Reasoning</th>
+              <th class="center">Trainable</th>
+              <th class="right">Usage</th>
+              <th class="right">☆</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="mo-model-cell">
+                <div class="mo-model-name-row">
+                  <span class="mo-provider-icon hud">H</span>
+                  <span class="mo-model-name">rl-webagent-v2</span>
+                </div>
+                <div class="mo-model-id-row">
+                  <span class="mo-model-id">hud-rl-webagent-v2-20260601</span>
+                  <button class="mo-copy-btn" title="Copy model ID">⎘</button>
+                </div>
+              </td>
+              <td><span class="mo-provider-text">HUD</span></td>
+              <td class="right"><span class="mo-price-private">—</span></td>
+              <td class="right mo-speed-cell">
+                <span class="mo-speed-value">38 t/s</span>
+                <div class="mo-speed-bar-bg"><div class="mo-speed-bar-fill" style="width:60%"></div></div>
+              </td>
+              <td class="center"><span class="mo-cap-no">—</span></td>
+              <td class="center"><span class="mo-cap-yes">✓</span></td>
+              <td class="right mo-usage-cell">
+                <div class="mo-sparkline">
+                  <div class="mo-spark-bar" style="height:40%"></div>
+                  <div class="mo-spark-bar" style="height:50%"></div>
+                  <div class="mo-spark-bar" style="height:60%"></div>
+                  <div class="mo-spark-bar" style="height:45%"></div>
+                  <div class="mo-spark-bar" style="height:55%"></div>
+                  <div class="mo-spark-bar" style="height:70%"></div>
+                  <div class="mo-spark-bar" style="height:100%"></div>
+                </div>
+                <span class="mo-usage-total">14K</span>
+              </td>
+              <td class="right mo-star-cell">
+                <div class="mo-star-wrap">
+                  <button class="mo-star-btn" title="Star">☆</button>
+                  <span style="color:var(--mo-muted);opacity:.5">2</span>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td class="mo-model-cell">
+                <div class="mo-model-name-row">
+                  <span class="mo-provider-icon hud">H</span>
+                  <span class="mo-model-name">rl-webagent-v1</span>
+                </div>
+                <div class="mo-model-id-row">
+                  <span class="mo-model-id">hud-rl-webagent-v1-20260410</span>
+                  <button class="mo-copy-btn" title="Copy model ID">⎘</button>
+                </div>
+              </td>
+              <td><span class="mo-provider-text">HUD</span></td>
+              <td class="right"><span class="mo-price-private">—</span></td>
+              <td class="right mo-speed-cell">
+                <span class="mo-speed-value">36 t/s</span>
+                <div class="mo-speed-bar-bg"><div class="mo-speed-bar-fill" style="width:57%"></div></div>
+              </td>
+              <td class="center"><span class="mo-cap-no">—</span></td>
+              <td class="center"><span class="mo-cap-yes">✓</span></td>
+              <td class="right mo-usage-cell">
+                <div class="mo-sparkline">
+                  <div class="mo-spark-bar" style="height:20%"></div>
+                  <div class="mo-spark-bar" style="height:15%"></div>
+                  <div class="mo-spark-bar" style="height:10%"></div>
+                  <div class="mo-spark-bar" style="height:15%"></div>
+                  <div class="mo-spark-bar" style="height:20%"></div>
+                  <div class="mo-spark-bar" style="height:10%"></div>
+                  <div class="mo-spark-bar" style="height:5%"></div>
+                </div>
+                <span class="mo-usage-total">3.2K</span>
+              </td>
+              <td class="right mo-star-cell">
+                <div class="mo-star-wrap">
+                  <button class="mo-star-btn" title="Star">☆</button>
+                  <span style="color:var(--mo-muted);opacity:.5">1</span>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- ═══════════════════════════════════════════════════════
+           State 3: My models — empty state
+      ═══════════════════════════════════════════════════════ -->
+      <div class="mo-state-gap"></div>
+      <div class="mo-state-label">My models — empty state (zero trained models)</div>
+
+      <div class="mo-tab-bar" style="margin-bottom:0">
+        <div class="mo-tab">All models <span class="mo-tab-count">27</span></div>
+        <div class="mo-tab active">My models <span class="mo-tab-count">0</span></div>
+      </div>
+
+      <div class="mo-empty-state">
+        <div class="mo-empty-icon">◇</div>
+        <div class="mo-empty-title">Train your first model</div>
+        <div class="mo-cli-block">
+          <span>hud rl run &lt;taskset&gt; -m &lt;model-id&gt;</span>
+          <button class="mo-cli-copy" title="Copy command">⎘</button>
+        </div>
+        <a class="mo-link-tertiary" href="#">Read the docs ↗</a>
+      </div>
+
+      <!-- ═══════════════════════════════════════════════════════
+           State 4: Gateway degraded
+      ═══════════════════════════════════════════════════════ -->
+      <div class="mo-state-gap"></div>
+      <div class="mo-state-label">Gateway degraded status variant</div>
+
+      <div class="mo-page-header" style="margin-bottom:14px;">
+        <div class="mo-page-header-row">
+          <div class="page-title-group">
+            <span class="page-title">Models</span>
+            <span class="docs-icon">?</span>
+          </div>
+        </div>
+        <div class="mo-subtitle-row">
+          <span class="mo-subtitle-text">Models served via the <a class="gateway-status-link" href="#" title="Model Gateway documentation" style="font-size:inherit;color:inherit;">Model Gateway ↗</a>.</span>
+          <div class="gateway-status">
+            <div class="gateway-dot-degraded-pulse"></div>
+            <span class="gateway-status-degraded">Degraded v2.0.0 — elevated latency</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══════════════════════════════════════════════════════
+           State 5: Error state
+      ═══════════════════════════════════════════════════════ -->
+      <div class="mo-state-gap"></div>
+      <div class="mo-state-label">Error state (fetch failure)</div>
+
+      <div class="mo-tab-bar" style="margin-bottom:0">
+        <div class="mo-tab active">All models <span class="mo-tab-count">—</span></div>
+        <div class="mo-tab">My models <span class="mo-tab-count">—</span></div>
+      </div>
+
+      <div class="mo-filter-row" style="margin-top:12px;">
+        <div class="mo-search-wrap">
+          <span class="mo-search-icon">⌕</span>
+          <input class="mo-search-input" type="text" placeholder="Search models…" disabled style="opacity:.5" />
+        </div>
+        <button class="mo-chip" style="opacity:.5" disabled>Provider ▾</button>
+        <button class="mo-chip" style="opacity:.5" disabled>Trainable</button>
+      </div>
+
+      <div class="mo-error-state">
+        <div class="mo-error-icon">⚠</div>
+        <div class="mo-error-title">Couldn't load models — try again.</div>
+        <button class="btn-primary">Retry</button>
+      </div>
+
+      <!-- ═══════════════════════════════════════════════════════
+           State 6: Loading skeleton
+      ═══════════════════════════════════════════════════════ -->
+      <div class="mo-state-gap"></div>
+      <div class="mo-state-label">Loading skeleton</div>
+
+      <div class="mo-tab-bar">
+        <div class="mo-tab active">All models <span class="mo-tab-count" style="opacity:.4">—</span></div>
+        <div class="mo-tab">My models</div>
+      </div>
+      <div class="mo-filter-row" style="margin-bottom:14px;">
+        <div class="mo-search-wrap" style="opacity:.4;pointer-events:none;">
+          <span class="mo-search-icon">⌕</span>
+          <input class="mo-search-input" type="text" placeholder="Search models…" />
+        </div>
+      </div>
+
+      <div class="mo-table-wrap">
+        <table class="mo-table">
+          <thead>
+            <tr>
+              <th>Model</th><th>Provider</th><th class="right">Price/M</th>
+              <th class="right">Speed</th><th class="center">Reasoning</th>
+              <th class="center">Trainable</th><th class="right">Usage</th><th class="right">☆</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- 8 skeleton rows -->
+            <tr style="border-bottom:1px solid var(--mo-border);">
+              <td style="padding:12px 10px;">
+                <span class="skel" style="width:140px;height:13px;display:block;margin-bottom:5px;"></span>
+                <span class="skel" style="width:100px;height:11px;display:block;"></span>
+              </td>
+              <td><span class="skel" style="width:60px;height:12px;display:block;"></span></td>
+              <td class="right"><span class="skel" style="width:50px;height:12px;display:inline-block;"></span></td>
+              <td class="right" style="padding:12px 10px;">
+                <span class="skel" style="width:40px;height:12px;display:block;margin-left:auto;margin-bottom:4px;"></span>
+                <span class="skel" style="width:60px;height:3px;display:block;margin-left:auto;"></span>
+              </td>
+              <td class="center"><span class="skel" style="width:16px;height:16px;display:inline-block;border-radius:50%;"></span></td>
+              <td class="center"><span class="skel" style="width:16px;height:16px;display:inline-block;border-radius:50%;"></span></td>
+              <td class="right" style="padding:12px 10px;">
+                <div style="display:flex;align-items:flex-end;gap:2px;height:14px;justify-content:flex-end;margin-bottom:4px;">
+                  <span class="skel" style="width:5px;height:60%;display:block;"></span>
+                  <span class="skel" style="width:5px;height:80%;display:block;"></span>
+                  <span class="skel" style="width:5px;height:50%;display:block;"></span>
+                  <span class="skel" style="width:5px;height:90%;display:block;"></span>
+                  <span class="skel" style="width:5px;height:70%;display:block;"></span>
+                  <span class="skel" style="width:5px;height:60%;display:block;"></span>
+                  <span class="skel" style="width:5px;height:100%;display:block;"></span>
+                </div>
+                <span class="skel" style="width:36px;height:11px;display:block;margin-left:auto;"></span>
+              </td>
+              <td class="right"><span class="skel" style="width:30px;height:12px;display:inline-block;"></span></td>
+            </tr>
+            <!-- (additional rows abbreviated for mockup — same pattern repeats) -->
+            <tr style="border-bottom:1px solid var(--mo-border);opacity:.7;"><td style="padding:12px 10px;"><span class="skel" style="width:120px;height:13px;display:block;margin-bottom:5px;"></span><span class="skel" style="width:90px;height:11px;display:block;"></span></td><td><span class="skel" style="width:55px;height:12px;display:block;"></span></td><td class="right"><span class="skel" style="width:50px;height:12px;display:inline-block;"></span></td><td></td><td></td><td></td><td></td><td></td></tr>
+            <tr style="border-bottom:1px solid var(--mo-border);opacity:.5;"><td style="padding:12px 10px;"><span class="skel" style="width:130px;height:13px;display:block;margin-bottom:5px;"></span><span class="skel" style="width:95px;height:11px;display:block;"></span></td><td><span class="skel" style="width:60px;height:12px;display:block;"></span></td><td class="right"><span class="skel" style="width:45px;height:12px;display:inline-block;"></span></td><td></td><td></td><td></td><td></td><td></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+    </div><!-- .mo-main -->
+  </div><!-- .main-region -->
+
+</div><!-- .shell-layout -->
+
+</body>
+</html>
