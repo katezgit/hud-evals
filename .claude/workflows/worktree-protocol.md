@@ -2,6 +2,16 @@
 
 Single source of truth for every worktree decision the orchestrator makes — when to spawn, where to spawn from, how multiple agents share a worktree, how portal ports are handled, and how teardown runs. CLAUDE.md L67 points here as a hard stop before any worktree spawn.
 
+## Scope — when worktrees apply
+
+Worktrees apply only when the work touches version-controlled code: `apps/**`, `packages/**`, root configs, or any tracked file under code-implementation phases (`implementation`, `design-qa`, `review`, `ship`).
+
+**Design phases (`discovery` → `motion`) work directly on `main` — no worktree.** Their outputs are docs (`docs/`) and exploration artifacts (`.intermediate/`); neither benefits from branch isolation, and `.intermediate/` is gitignored, so worktree cleanup discards uncommitted previews.
+
+`.intermediate/` is a shared workspace across the main checkout — design artifacts always land there directly. HTML previews, discovery drafts, audit screenshots, and phase self-reviews persist across sessions because nothing isolates them per-worktree.
+
+If a design-phase task somehow requires worktree isolation (rare — only if the task simultaneously edits tracked code), state the exception in one line before spawning.
+
 ## When to spawn — topic state machine
 
 State the decision in one line before acting.
