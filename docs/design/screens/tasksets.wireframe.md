@@ -56,18 +56,32 @@ The `MAIN` region is the content area to the right of AppShell's persistent side
 ┌──────────────────────────────────────────────────────────────────────────────────┐
 │  PAGE HEADER                                                                     │
 │                                                                                  │
-│  ┌─────────────────────────────────────────────┐  ┌───────────────────────────┐ │
-│  │  Tasksets                                   │  │  + New Taskset            │ │
-│  │  (h1 / page title)                          │  │  (primary button)         │ │
-│  └─────────────────────────────────────────────┘  └───────────────────────────┘ │
+│  ┌──────────────────────────────────────────────────┐  ┌───────────────────────┐ │
+│  │  Tasksets  [?]                                   │  │  + New Taskset        │ │
+│  │  (h1 / page title)  (docs icon, ghost weight)    │  │  (primary button)     │ │
+│  └──────────────────────────────────────────────────┘  └───────────────────────┘ │
 │                                                                                  │
 └──────────────────────────────────────────────────────────────────────────────────┘
 ```
 
 **Annotations:**
 - "Tasksets" is the h1 / page title. No subtitle or description — the page is self-evident to Alex who is already in the product.
+- `[?]` represents the per-primitive docs icon immediately to the right of the title. Ghost visual weight — it must not compete with the title for attention. Icon glyph is placeholder; final glyph is a design-tokens-phase decision.
+- **Docs icon behavior**: click or `Enter` opens `docs.hud.ai/concepts/tasksets` in a new tab. The URL pattern is a contract with the docs site: every first-class primitive page has a corresponding `/concepts/<primitive>` path. **Open question:** this URL contract has not been confirmed with the docs site owner — flag for implementation verification before linking.
+- **Tooltip**: `"Tasksets documentation"` on hover and on focus. Disambiguates the icon for keyboard and screen-reader users.
+- **ARIA**: rendered as `<a aria-label="Tasksets documentation, opens in new tab" rel="noopener">`. Matches the sidebar `Documentation ↗` external-link convention.
 - `+ New Taskset` is top-right, primary button. It links to the Taskset create flow (out of scope for this wireframe). The `+` prefix is standard HUD convention for create actions observed across screenshots.
 - No breadcrumb — `/tasksets` is a first-class nav destination, not a nested route.
+
+**Docs paths — three moments, not redundancy:**
+
+| Path | User state | Job |
+|---|---|---|
+| Page-title docs icon `[?]` | Already on the Tasksets page | "I'm here; I want the concept doc for *this* primitive — 1 click." |
+| Sidebar `Documentation ↗` link | Anywhere in the app | Browse intent; general docs landing. |
+| Empty-state `Read the docs ↗` link (§11a) | First arrival, zero data | "I have no Tasksets — what even is this?" |
+
+Each path serves a distinct moment. Preserving all three is not redundancy.
 
 ---
 
@@ -468,10 +482,11 @@ Shown when the Tasksets list fails to load due to a network error, server error,
 
 ```
 ┌────────────────────────────────────────────────────────────────────────────────┐
-│  [Tasksets]                                              [+ New Taskset]        │
+│  [Tasksets] [?]                                          [+ New Taskset]        │
+│  (page title + docs icon)                                                       │
 │                                                                                 │
 │  [Public 42]  [My Team 3]                                                       │
-│  [Search Tasksets…]          [Grid | List ✓]  [↕ Sort ▾]  [Group by None ▾]   │
+│  [Search Tasksets…]  [Grid | List ✓]  [↕ Sort ▾]  [Group by None ▾]           │
 │  (My Team + DoorDash-scale also shows: [Owner: Anyone ▾])                       │
 │                                                                                 │
 │  LIST VIEW (default):                                                           │
@@ -492,28 +507,42 @@ Shown when the Tasksets list fails to load due to a network error, server error,
 - Grid view: 2 columns (from 3 at desktop).
 - List view: unchanged — list is naturally responsive.
 - **Leaderboard preview in grid cards collapses to top-2 rows** (from top-3). At tablet card width, three leaderboard rows with three score columns become too cramped to read. Top-2 preserves primary scan signal.
-- Sort button label truncates to icon only `[↕]` with a tooltip "Sort". Active sort is communicated via `aria-label` on the button.
-- Group by button label truncates to icon only with a tooltip "Group by".
+- **Docs icon `[?]`**: visible inline with the title. Same ghost weight as desktop.
+- **Sort button**: label truncates to icon only `[↕]` with a tooltip "Sort". Active sort communicated via `aria-label` on the button.
+- **Group by button**: label truncates to icon only with a tooltip "Group by".
+- **Owner filter**: collapses to icon + count badge (e.g., `Owner: 2`) to save horizontal space when one or more owners are selected; shows `Owner` label only when no filter is active.
+- **Error state (§10)**: fills the content area below the filter row, same as desktop but narrower. Tabs, search, sort, group by, and docs icon all remain accessible above the error block.
+- **Group headers (§8)**: horizontal bars spanning the content area; collapse/expand chevron at the start; count chip at the end. Same as desktop.
+- **Pagination**: `Showing N of M · Load more` inline at the bottom of the list, centered or left-aligned (engineer's call).
 
 ### Mobile
 
 - Sidebar hides; top bar appears with hamburger (see app-shell.wireframe.md §5).
 - View toggle hidden — list view is forced on mobile (grid cards are too narrow to show leaderboard meaningfully at single-column width).
 - **Leaderboard preview in list rows collapses to top-1 only** — rank number + model name + Avg score. Rationale: at mobile width, the full leaderboard column cannot share horizontal space with the identity and meta blocks. Showing the top result preserves the "is this hard?" signal.
-- Sort button remains; label truncates to `[↕]`.
-- Group by button remains; label truncates to icon.
-- Owner filter chip hidden on mobile (too much filter UI for mobile width; accessible via desktop).
+- **Docs icon `[?]`**: visible inline with the title. Icon glyph is small; the tap target extends beyond the visible glyph to meet touch-target adequacy (no px spec — this is a design-tokens-phase decision; call it out for implementation).
 - `+ New Taskset` button collapses to `+` icon-only button with `aria-label="New Taskset"` in the page header to preserve horizontal space.
-- Search input expands to full width (takes up its own row below the tabs).
+- **Filter row on mobile**: the desktop filter row (search + view toggle + sort + group by + owner filter) is too wide for mobile. Pattern:
+  - Search input takes its own full-width row below the tabs.
+  - View toggle is hidden (list forced).
+  - Sort, Group by, and Owner filter collapse into a single `[⚙ Filters ▾]` overflow trigger. When any non-default filter is active, a small badge on the trigger shows the count of active non-default controls.
+  - Tapping `[⚙ Filters]` opens a **mobile bottom sheet** (see diagram below).
 - Footer meta in list rows collapses: task count and model count remain; owner + visibility badge hidden (recoverable from detail page).
+- **Error state (§10) on mobile**: error block fills the content area. Copy may wrap to multiple lines. Retry button stacks below the message if horizontal space is tight. Tabs, search, the `[⚙ Filters]` trigger, and the page-title docs icon all remain accessible above the error block.
+- **Group headers (§8) on mobile**: chevron, label, and count render on a single line when the label fits. If the label is too long, the count wraps below the label; chevron stays inline with the label's first line. Collapsed state persists in session. When a group is collapsed, the chevron alone is the tap target (tap target extends beyond the glyph).
+- **Pagination**: `Showing N of M · Load more` row at the bottom of the list. Load more button stretches to full width for tap-target ease. After loading, keyboard focus moves to the first newly-loaded row so screen-reader users hear new content — see also §13 (a11y).
+- **Star toggle (§15)**: no hover state on touch devices. Tap toggles star directly. Tap target extends beyond the visible icon glyph.
+- **Tab counts**: tab label + count chip stay on a single line at normal mobile widths. If the viewport is extremely narrow, the count chip may wrap below the tab label — do not truncate the integer.
+- **Empty-state and search-no-match (§11a, §11b)**: center column adapts naturally. CTAs stack vertically if the row width is too narrow for them side-by-side. `Read the docs ↗` tertiary link stays below the primary actions on all sizes.
 
 ```
 ┌─────────────────────────────────────────────┐
-│  [Tasksets]                             [+]  │  ← mobile: icon-only CTA
+│  [Tasksets] [?]                         [+]  │  ← docs icon + icon-only CTA
 │                                              │
 │  [Public 42]  [My Team 3]                    │
 │  ──────────────────────────────────────────  │
-│  [Search Tasksets…]          [↕ Sort ▾]      │  ← view toggle hidden
+│  [Search Tasksets…          ]                │  ← full-width search, own row
+│  [⚙ Filters ▾]  (badge if active)           │  ← sort + group + owner overflow
 │                                              │
 │  OSWorld-Verified  ☆  3                      │
 │  #1 Sonnet 4.5  54%        367  5            │  ← top-1 leaderboard, no owner
@@ -522,9 +551,40 @@ Shown when the Tasksets list fails to load due to a network error, server error,
 │  #1 Sonnet 4.6  25%         35  4            │
 │  ────────────────────────────────────────    │
 │                                              │
-│  Showing 50 of 127  ·  [Load more]           │
+│  [          Load more           ]            │  ← full-width button
+│  Showing 50 of 127                           │
 └─────────────────────────────────────────────┘
 ```
+
+#### Mobile bottom sheet — `[⚙ Filters]`
+
+Opens when the user taps `[⚙ Filters]`. Slides up from the bottom of the viewport.
+
+```
+┌─────────────────────────────────────────────┐
+│  ────  (drag handle, decorative)             │
+│                                              │
+│  Sort                                        │
+│  ● Starred first  ○ Newest first  ○ …       │
+│                                              │
+│  Group by                                   │
+│  ● None  ○ Environment  ○ Owner             │
+│                                              │
+│  Owner  (My Team + 10+ owners only)          │
+│  [multi-select list]                         │
+│                                              │
+│  [           Done           ]                │  ← applies + closes
+│                                              │
+└─────────────────────────────────────────────┘
+```
+
+**Bottom sheet behavior:**
+- Current selections are pre-populated when the sheet opens.
+- `Done` applies the selections and closes the sheet.
+- Tapping the background outside the sheet dismisses without applying changes (reverts to previous state).
+- `Escape` key dismisses without applying changes.
+- The sheet preserves current selections on open — closing without tapping `Done` keeps the prior state.
+- Active filter count badge on `[⚙ Filters]` reflects the number of non-default selections (e.g., badge shows `2` if sort is non-default and one owner is selected).
 
 ---
 
@@ -557,8 +617,11 @@ Shown when the Tasksets list fails to load due to a network error, server error,
 **Group headers:**
 - Each group header is a `<button>` with `aria-expanded="true/false"` controlling the group's content region. `aria-label="menu-agent-env, 12 Tasksets, expanded"`.
 
+**Docs icon (page-title `[?]`):**
+- Rendered as `<a aria-label="Tasksets documentation, opens in new tab" rel="noopener">`. Focus is in the natural tab order between the page title region and `+ New Taskset`.
+
 **Load more button:**
-- `aria-label="Load more Tasksets"`. After loading, focus does not jump; new rows append below current position.
+- `aria-label="Load more Tasksets"`. After loading, focus moves to the first newly-loaded row so screen-reader users hear new content without having to manually navigate down. This applies on all viewport sizes including mobile (referenced from §12 mobile pagination note).
 
 **Loading state (initial fetch or tab switch):**
 - Skeleton rows/cards replace content during data fetch. Skeletons use `aria-busy="true"` on the tabpanel. Screen readers announce "Loading" via an off-screen `aria-live` region.
@@ -617,23 +680,25 @@ The star icon appears in the card header (grid) and in the identity block (list)
 
 | Component | Usage in this screen | Notes |
 |---|---|---|
-| `PageHeader` | Page title + `+ New Taskset` CTA | `h1` with primary button. Same pattern as other index pages. |
+| `PageHeader` | Page title + docs icon + `+ New Taskset` CTA | `h1` with inline docs icon (ghost weight `<a>`) and primary button. Same pattern as other index pages. |
+| `DocsIcon` | Adjacent to page title in `PageHeader` | Ghost-weight `<a>`, `aria-label="Tasksets documentation, opens in new tab"`, `rel="noopener"`. Tooltip on hover/focus. Deep-links to `/concepts/<primitive>`. |
 | `TabBar` | Public / My Team tabs with count chips | `role="tablist"`, controlled tab panel. Count chips on each tab label. |
-| `SearchInput` | Filters within active tab | Debounced (300ms). `aria-live` region for result count. Placeholder adapts per tab. |
+| `SearchInput` | Filters within active tab | Debounced (300ms). `aria-live` region for result count. Placeholder adapts per tab. Full-width own row on mobile. |
 | `ViewToggle` | Grid / List segmented control | 2-segment control. Persists to localStorage. Hidden on mobile. |
-| `SortMenu` | Sort dropdown | `role="menu"`, single-select, URL-persisted. |
-| `GroupByMenu` | Group by dropdown | `role="menu"`, single-select. Options: None / Environment / Owner. |
-| `OwnerFilter` | Multi-select owner filter chip | Visible in My Team tab when org has 10+ distinct owners. |
+| `SortMenu` | Sort dropdown | `role="menu"`, single-select, URL-persisted. Icon-only `[↕]` on tablet + mobile. |
+| `GroupByMenu` | Group by dropdown | `role="menu"`, single-select. Options: None / Environment / Owner. Icon-only on tablet + mobile. |
+| `OwnerFilter` | Multi-select owner filter chip | Visible in My Team tab when org has 10+ distinct owners. Collapses to icon + count badge on tablet. Moves into mobile bottom sheet on mobile. |
+| `MobileFiltersSheet` | Mobile overflow trigger + bottom sheet | `[⚙ Filters ▾]` trigger; bottom sheet contains Sort, Group by, Owner filter. Active badge count. `Done` / background-tap / `Escape` close. |
 | `TasksetCard` | Grid view item | Full card with leaderboard rows. Clickable `<a>`. Star button is nested `<button>`. |
 | `TasksetRow` | List view item | Compact row, inline top-2 leaderboard. Clickable `<a>`. |
-| `GroupHeader` | Collapsible group header in group view | `<button>` with `aria-expanded`. Shows group name + count. |
-| `StarButton` | On card + row | Toggle button. Optimistic update. `aria-pressed`. |
-| `LeaderboardPreview` | Inside card + row | Top-3 (grid) or top-2 (list) ranked model rows. Rank indicator badges. Score columns. |
+| `GroupHeader` | Collapsible group header in group view | `<button>` with `aria-expanded`. Shows group name + count. Single-line on mobile when label fits; wraps count only if label overflows. |
+| `StarButton` | On card + row | Toggle button. Optimistic update. `aria-pressed`. Tap target extends beyond glyph on touch. |
+| `LeaderboardPreview` | Inside card + row | Top-3 (grid) or top-2 (list, desktop/tablet) or top-1 (list, mobile) ranked model rows. Rank indicator badges. Score columns. |
 | `RankBadge` | Inside leaderboard rows | 1/2/3 rank indicator. |
 | `VisibilityBadge` | Card footer, list row meta | Public = highlighted pill. Private = lock icon + text. |
-| `EmptyState` | My Team zero, search no-match | Icon + message + action. CLI command in My Team zero state. |
-| `ErrorState` | Fetch failure | Icon + "Couldn't load Tasksets — try again." + Retry button. |
-| `LoadMore` | Below last row/card when more exist | "Showing N of M · Load more" count + outline button. |
+| `EmptyState` | My Team zero, search no-match | Icon + message + action. CLI command in My Team zero state. CTAs stack vertically on mobile. |
+| `ErrorState` | Fetch failure | Icon + "Couldn't load Tasksets — try again." + Retry button. Retry stacks below message on mobile if horizontal space is tight. |
+| `LoadMore` | Below last row/card when more exist | "Showing N of M · Load more" count + outline button. Full-width button on mobile. Focus moves to first new row after load. |
 | `SkeletonRow` / `SkeletonCard` | Loading state | Animated. Shape mirrors populated layout. |
 
 ---
@@ -690,6 +755,8 @@ The star icon appears in the card header (grid) and in the identity block (list)
 ## Drift log
 
 - **List view as default (over grid)**: the production screenshots (`02a-tasksets-my.png`, `02c-tasksets-myteam.png`) show grid view as the apparent production default for My Team. This wireframe specs List as default per the Operator's stated state machine ("Default view = List — Alex's bias"). This is an intentional divergence from the current production state, not an inconsistency.
+
+- **Per-primitive docs icon**: this wireframe preserves the production per-page docs icon. The icon sits immediately right of the page title at ghost visual weight and deep-links to `docs.hud.ai/concepts/tasksets`. The URL pattern is specced as a contract with the docs site (every first-class primitive maps to `/concepts/<primitive>`); the contract must be confirmed before implementation. Full spec in §2.
 
 - **Leaderboard collapsed in list view to top-2**: grid shows top-3 as confirmed in screenshots. List view showing top-2 is a new design decision — not observed in screenshots directly, derived from density tradeoff reasoning. Flagged here for Operator review.
 
