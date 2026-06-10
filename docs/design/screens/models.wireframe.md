@@ -551,13 +551,90 @@ Usage column hidden at tablet (recoverable from detail page).
 
 ### Mobile — essential columns only
 
-At mobile widths: table collapses to a list of model name rows. Each row shows:
-- Model name + lock icon (if applicable)
-- Provider icon
-- Price/M inline right
-- Capability badges: `✓ Reasoning` · `✓ Trainable` (when true; omitted when false — space is tight)
+#### Persona anchor
 
-Speed, Usage, and Star columns hidden on mobile. Filter row collapses to `[⚙ Filters ▾]` trigger (same pattern as Environments mobile). Tab bar remains full-width.
+Alex and Sam's mobile visit to `/models` is a **quick reference check**, not a filtering session. Documented mobile jobs:
+
+1. "Is my fine-tuned model showing up?" — scans the My models tab by eye or searches by name.
+2. "What's the current `$/M` for X?" — locates a row by name, reads the price inline.
+3. "Is the Gateway up?" — reads the `● Running v2.0.0` status in the sticky page header.
+
+All three jobs complete without touching a filter chip. The filter chips (`Provider ▾`, `Trainable`, `Reasoning`, `Favorites`) are desktop-deliberation controls — Alex uses them before selecting a base model for a Training Job, which he composes at his desk in the SDK. They are not mobile-primary controls. Anti-pattern avoided: burying even an occasionally-useful control (search) inside the sheet — search stays exposed because "is my model showing up?" is the single most likely mobile query.
+
+**Design consequence:** Search is always visible, full-width, below the tab bar. All other filter controls (Provider, Trainable, Reasoning, Favorites, Sort) collapse into a single `[⚙ Filters ▾]` trigger. Result count moves inside the sheet header. The trigger badge shows the count of active non-default filters so the user can see at a glance that filtering is on without opening the sheet.
+
+This differs from the one-line directive in the original spec ("Filter row collapses to `[⚙ Filters ▾]` trigger") only in that it now specifies: (a) Search stays outside the sheet, (b) result count moves inside the sheet, and (c) sheet contents and order. The one-line directive was directionally correct; this expands it with the decisions it deferred.
+
+Cross-link: the `[⚙ Filters ▾]` pattern and mobile bottom sheet structure follow the same model as Environments mobile (`environments.wireframe.md` §13 Mobile). Verified: Environments mobile keeps Search as a separate full-width row and collapses Type + Sort + Group by + Owner into the sheet — same split applied here.
+
+#### Mobile layout
+
+```
+┌─────────────────────────────────────────────┐
+│  [Models] [?]                               │  ← sticky page header
+│  Models via Model Gateway ↗. ● Running 2.0.0│    (Gateway status always visible)
+│                                             │
+│  [All models  27]  [My models  4]           │  ← tab bar, full-width, sticky
+│  ─────────────────────────────────────────  │
+│  [Search models…                          ] │  ← full-width search, own row
+│  [⚙ Filters ▾]  (badge: "2 active")        │  ← trigger; badge shows active count
+│                                             │
+│  [provider icon] Claude Opus 4.5            │  ← model name + lock if restricted
+│                  Anthropic  ·  $15 / $75    │    provider label + Price/M inline
+│                  ✓ Reasoning  ✓ Trainable   │    capability badges (shown when true)
+│  ─────────────────────────────────────────  │
+│  [provider icon] GPT 5.4  🔒                │
+│                  OpenAI  ·  $3 / $15        │
+│                  ✓ Reasoning                │
+│  ─────────────────────────────────────────  │
+│  [provider icon] Gemini 2.5 Flash           │
+│                  Google  ·  $0.075 / $0.30  │
+│  ─────────────────────────────────────────  │
+└─────────────────────────────────────────────┘
+```
+
+**Columns hidden on mobile:** SPEED, USAGE (sparkline + total), PROVIDER column (provider label moved inline under the name), STAR count. Speed and Usage are recoverable from the model detail page; the star count is a discovery signal, not a quick-reference signal.
+
+**Model ID and copy button:** hidden on mobile. The copy icon is a desktop-SDK workflow (copying the model ID into Python config). On mobile this job does not occur. Model ID is accessible from the detail page.
+
+#### Mobile filter sheet (bottom sheet, opened by `[⚙ Filters ▾]`)
+
+```
+┌─────────────────────────────────────────────┐
+│  ────  (drag handle)                         │
+│                                             │
+│  27 models                                  │  ← result count, updates live
+│                                             │
+│  Provider                                   │
+│  [□] All  [□] Anthropic  [□] OpenAI         │
+│  [□] Google  [□] xAI  [□] HUD              │
+│                                             │
+│  Capability                                 │
+│  [□] Trainable (16)  [□] Reasoning (18)     │
+│                                             │
+│  [□] Favorites only                         │
+│                                             │
+│  Sort                                       │
+│  ● Most used  ○ Newest first  ○ Name A–Z    │
+│  ○ Fastest first  ○ Lowest price            │
+│                                             │
+│  [           Done           ]               │
+│                                             │
+└─────────────────────────────────────────────┘
+```
+
+**Sheet section order rationale:**
+
+- Result count at the top: the user sees immediately how many models the current filter state returns as they adjust controls.
+- Provider first: the most selective filter — narrows from 27 to a single lab's model set. Alex uses it when a Job config requires a specific lab. Sam uses it when corporate policy restricts providers. Most likely to be touched.
+- Capability second: Trainable and Reasoning are the next most-used filters for Alex. Grouped under a "Capability" label rather than separate section headings to keep the sheet short. Count badges match the desktop chip counts.
+- Favorites third: least-used on mobile (it requires the user to have starred models); placed last in the filters block.
+- Sort last: the least-urgent control on mobile. Defaults to "Most used" — typically fine for a quick reference check.
+- No "Oldest first" on mobile — omit the two least-used sort options (Oldest first is desktop-only long-tail). Sheet should be scrollable but brief.
+
+**Done button:** applies the sheet state and closes. Changes are reflected live in the result count at the sheet top. "Done" is not a confirm-and-close for all changes individually — it is the single close action. Sheet dismisses on Done, on drag-down, or on tap-outside.
+
+**Filter trigger badge:** `[⚙ Filters ▾  2]` — the number reflects how many non-default filter dimensions are active (e.g., Provider set to Anthropic only + Trainable on = 2). Badge is absent when all filters are at default.
 
 ---
 
