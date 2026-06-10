@@ -52,8 +52,8 @@ const codeBlockVariants = cva(
         // when language is absent, the wrapper div is unstyled (no border/bg) and the pre
         // keeps its own border/bg + uses pt-8 for copy button clearance (see JSX below).
         block: [
-          "bg-panel text-foreground",
-          "border border-border",
+          "bg-code-bg text-code-fg",
+          "border border-code-border",
           "px-4 py-3",
           "block",
           "w-full",
@@ -218,12 +218,12 @@ const CodeBlock = React.forwardRef<HTMLElement, CodeBlockProps>(
           language ? (
             // Block + language: in-flow header bar above <pre>
             // Wrapper owns border/bg/radius; pre has no border/radius of its own.
-            <div className="relative w-full bg-panel border border-border rounded-md overflow-hidden">
+            <div className="relative w-full bg-code-bg border border-code-border rounded-md overflow-hidden">
               {/* In-flow header row — no absolute positioning */}
-              <div className="flex h-9 items-center justify-between px-3 border-b border-border">
+              <div className="flex h-9 items-center justify-between px-3 border-b border-code-border">
                 <span
                   data-slot="language-label"
-                  className="text-label font-medium text-muted-foreground"
+                  className="text-label font-medium text-code-muted"
                 >
                   {language}
                 </span>
@@ -240,7 +240,7 @@ const CodeBlock = React.forwardRef<HTMLElement, CodeBlockProps>(
                   "relative font-mono text-code",
                   "leading-[--text-code--line-height]",
                   "overflow-x-auto whitespace-pre",
-                  "bg-panel text-foreground",
+                  "bg-code-bg text-code-fg",
                   "px-4 py-3",
                   "block w-full",
                   "max-h-96 overflow-y-auto",
