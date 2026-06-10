@@ -1,7 +1,7 @@
 # Project State
 
-**Current phase:** `discovery`
-**Last transition:** {{YYYY-MM-DD}}
+**Current phase:** `implementation`
+**Last transition:** 2026-06-10
 **Blocking items:** _none_
 
 > **Agents:** after reading this file, load `.claude/workflows/phase-self-review.md` and follow its trigger rules before producing artifacts or proposing a phase transition. (Human readers: skip — workflow is agent-only.)
@@ -28,7 +28,8 @@ Example for `implementation`:
 
 ## Phase history
 
-- {{YYYY-MM-DD}} → `discovery` (project bootstrapped from template)
+- 2026-06-08 → `discovery` (project bootstrapped from template)
+- 2026-06-10 → `implementation` (operator-directed jump — design phases run informally alongside code iteration on the portal app-shell; formal phase artifacts will be back-filled if/when needed)
 
 ## Artifacts
 
