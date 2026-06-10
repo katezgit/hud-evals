@@ -100,6 +100,18 @@ describe("Tabs", () => {
     expect(screen.getByRole("tab", { name: "Future Step" })).toBeDisabled()
   })
 
+  // ── Sliding indicator ─────────────────────────────────────────────────────
+
+  it("renders a sliding indicator element inside the list", () => {
+    render(<SimpleTabs defaultValue="tab-a" />)
+    // Indicator is rendered once a data-state=active child is found (useLayoutEffect).
+    // jsdom has no layout engine so offsetLeft/Width are 0, but the element is present
+    // and its style attribute contains a translateX transform (ready=true after measure).
+    const indicator = document.querySelector("[data-slot='tabs-indicator']")
+    expect(indicator).toBeInTheDocument()
+    expect(indicator?.getAttribute("style")).toContain("translateX")
+  })
+
   // ── Controlled value ──────────────────────────────────────────────────────
 
   it("respects controlled value prop", () => {

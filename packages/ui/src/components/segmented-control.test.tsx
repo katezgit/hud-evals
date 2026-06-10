@@ -171,6 +171,18 @@ describe("SegmentedControl", () => {
     )
   })
 
+  // ── Sliding indicator ─────────────────────────────────────────────────────
+
+  it("renders a sliding thumb indicator element inside the root", () => {
+    render(<Harness initialValue="a" />)
+    // Indicator is rendered once a data-state=on child is found (useLayoutEffect).
+    // jsdom has no layout engine so offsetLeft/Width are 0, but the element is present
+    // and its style attribute contains a translateX transform (ready=true after measure).
+    const indicator = document.querySelector("[data-slot='segmented-control-indicator']")
+    expect(indicator).toBeInTheDocument()
+    expect(indicator?.getAttribute("style")).toContain("translateX")
+  })
+
   // ── Dev-mode aria warning (spec-critical) ─────────────────────────────────
 
   it("warns in dev mode when neither aria-label nor aria-labelledby is provided", () => {
