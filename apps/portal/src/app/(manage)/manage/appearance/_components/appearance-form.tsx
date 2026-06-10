@@ -47,7 +47,7 @@ export function AppearanceForm() {
                 onClick={() => setTheme(option.value)}
                 className={cn(
                   "group flex cursor-pointer flex-col gap-2 rounded-md border border-border bg-card p-2 text-left transition-colors duration-fast ease-out-standard hover:border-border-strong",
-                  isActive && "border-foreground shadow-card",
+                  isActive && "border-primary shadow-card",
                 )}
               >
                 <span
