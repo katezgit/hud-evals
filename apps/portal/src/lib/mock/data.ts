@@ -148,12 +148,6 @@ export const burnHistory: ReadonlyArray<{ day: number; spent: number }> =
 /** Prior 30-day window's total burn — used to compute the delta badge. */
 export const priorPeriodBurn = 5340;
 
-/** Privacy toggles — initial state for scaffolded UI. */
-export const privacyToggles = {
-  retainRunLogs: true,
-  shareTelemetry: false,
-} as const;
-
 /** Org-level "allow new API keys" toggle (Organization page, admin-tier). */
 export const allowApiKeyMinting = true;
 

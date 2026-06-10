@@ -6,7 +6,6 @@ import {
   Lock,
   Palette,
   Settings,
-  ShieldCheck,
   User,
   Users,
   type LucideIcon,
@@ -96,14 +95,6 @@ export const ORG_ROUTES: ReadonlyArray<ManageRoute> = [
     title: "Secrets",
     lead: "Environment credentials injected into runs. Org-scoped.",
     Icon: Lock,
-    adminOnly: true,
-  },
-  {
-    href: "/manage/privacy",
-    label: "Privacy controls",
-    title: "Privacy controls",
-    lead: "Data retention and sharing for the org.",
-    Icon: ShieldCheck,
     adminOnly: true,
   },
 ];

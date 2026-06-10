@@ -22,7 +22,6 @@ export const ADMIN_ONLY_ROUTES: ReadonlySet<string> = new Set([
   "/manage/billing",
   "/manage/limits",
   "/manage/secrets",
-  "/manage/privacy",
 ]);
 
 export function isAdminOnlyRoute(href: string): boolean {
