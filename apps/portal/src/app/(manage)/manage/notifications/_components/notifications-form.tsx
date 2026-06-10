@@ -1,23 +1,49 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
+import { toast } from "sonner";
 import { Button } from "@repo/ui/components/button";
 import { Switch } from "@repo/ui/components/switch";
 import { Panel } from "@/app/(manage)/_components/page-primitives";
 
 export function NotificationsForm() {
+  const [jobEnabled, setJobEnabled] = useState(true);
+  const [browserEnabled, setBrowserEnabled] = useState(false);
+
+  const handleJobToggle = (next: boolean) => {
+    setJobEnabled(next);
+    toast(next ? "Job notifications enabled" : "Job notifications disabled");
+  };
+
+  const handleBrowserToggle = (next: boolean) => {
+    setBrowserEnabled(next);
+    toast(next ? "Browser notifications enabled" : "Browser notifications disabled");
+  };
+
   return (
     <Panel>
       <div className="flex flex-col divide-y divide-border">
         <SettingRow
           title="Job notifications"
           description="Show toast notifications when teammates start or complete jobs."
-          control={<Switch defaultChecked aria-label="Job notifications" />}
+          control={
+            <Switch
+              checked={jobEnabled}
+              onCheckedChange={handleJobToggle}
+              aria-label="Job notifications"
+            />
+          }
         />
         <SettingRow
           title="Browser notifications"
           description="Receive a system notification when a job completes or fails while this tab is in the background."
-          control={<Switch aria-label="Browser notifications" />}
+          control={
+            <Switch
+              checked={browserEnabled}
+              onCheckedChange={handleBrowserToggle}
+              aria-label="Browser notifications"
+            />
+          }
         />
         <SettingRow
           title="GitHub"
