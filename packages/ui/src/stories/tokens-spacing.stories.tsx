@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react";
 import React from "react";
 
 const meta: Meta = {
-  title: "Design Tokens/4. Spacing",
+  title: "Design Tokens/3. Spacing",
   parameters: { layout: "padded" },
 };
 export default meta;
@@ -17,8 +17,6 @@ const SPACING_STEPS = [
   { multiplier: 8,   rem: "2rem",      px: "32px", pxNum: 32, usage: "gap-8 between major regions, pl-8 left-icon inset offset" },
 ] as const;
 
-// Bars render at their true px value — 1:1 scale. The 4px bar is a thin line;
-// that's an honest representation of the spacing system.
 const BAR_WIDTH = 56;
 
 export const SpacingScale: StoryObj = {
@@ -41,12 +39,11 @@ export const SpacingScale: StoryObj = {
           Spacing Scale
         </p>
         <p style={{ fontSize: 12, color: "var(--color-muted-foreground)", marginBottom: 28 }}>
-          Base unit: 4px (Tailwind v4 default —{" "}
-          <code style={{ fontFamily: "var(--font-sans)" }}>--spacing</code>
-          {" "}is intentionally inherited, not overridden in primitive.css). Tailwind multiplies by the numeric class suffix (<code style={{ fontFamily: "var(--font-sans)" }}>spacing-1</code> = 4px, <code style={{ fontFamily: "var(--font-sans)" }}>spacing-2</code> = 8px, …).
+          Base unit: 4px —{" "}
+          <code style={{ fontFamily: "var(--font-sans)" }}>--spacing: 0.25rem</code>
+          {" "}is explicitly declared in <code style={{ fontFamily: "var(--font-sans)" }}>primitive.css</code> (Tailwind v4 does NOT ship a default <code style={{ fontFamily: "var(--font-sans)" }}>--spacing</code>; the declaration is required). Tailwind multiplies by the numeric class suffix (<code style={{ fontFamily: "var(--font-sans)" }}>spacing-1</code> = 4px, <code style={{ fontFamily: "var(--font-sans)" }}>spacing-2</code> = 8px, …).
         </p>
 
-        {/* Bar chart — bars grow from the bottom up */}
         <div
           style={{
             display: "flex",
@@ -60,7 +57,6 @@ export const SpacingScale: StoryObj = {
 
           {SPACING_STEPS.map(({ multiplier, rem, px, pxNum, usage }) => {
             const barHeight = pxNum;
-            // Show token as "spacing-1", "spacing-1.5", etc.
             const tokenSuffix = String(multiplier);
 
             return (
@@ -73,7 +69,6 @@ export const SpacingScale: StoryObj = {
                   flexShrink: 0,
                 }}
               >
-                {/* px label above bar */}
                 <span
                   style={{
                     fontSize: 10,
@@ -86,10 +81,7 @@ export const SpacingScale: StoryObj = {
                   {px}
                 </span>
 
-                {/* Spacer pushes short bars down to share a common baseline */}
                 <div style={{ flex: 1, minHeight: maxBarHeight - barHeight }} />
-
-                {/* The bar */}
                 <div
                   title={`spacing-${tokenSuffix} · ${rem} · ${px} · ${usage}`}
                   style={{
@@ -105,7 +97,6 @@ export const SpacingScale: StoryObj = {
           })}
         </div>
 
-        {/* X-axis labels */}
         <div
           style={{
             display: "flex",
@@ -150,7 +141,6 @@ export const SpacingScale: StoryObj = {
           ))}
         </div>
 
-        {/* Usage reference table */}
         <div
           style={{
             marginTop: 32,

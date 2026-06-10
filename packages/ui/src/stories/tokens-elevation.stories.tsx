@@ -250,7 +250,7 @@ function OverlayCard({ bgToken, bgResolvedValue, blurToken, blurResolvedValue, l
 }
 
 const meta: Meta = {
-  title: "Design Tokens/1. Elevation",
+  title: "Design Tokens/5. Elevation",
   parameters: { layout: "padded" },
 };
 export default meta;

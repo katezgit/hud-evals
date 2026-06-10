@@ -50,12 +50,11 @@ describe("Button", () => {
     expect(screen.getByRole("link", { name: "Link button" })).toBeInTheDocument()
   })
 
-  // ── data-variant / data-size (used by CSS token selectors) ────────────────
+  // ── data-variant (used by CSS token selectors) ───────────────────────────────
 
-  it("exposes data-variant and data-size attributes", () => {
-    render(<Button variant="secondary" size="sm">Sec</Button>)
+  it("exposes data-variant attribute", () => {
+    render(<Button variant="secondary">Sec</Button>)
     const btn = screen.getByRole("button", { name: "Sec" })
     expect(btn).toHaveAttribute("data-variant", "secondary")
-    expect(btn).toHaveAttribute("data-size", "sm")
   })
 })

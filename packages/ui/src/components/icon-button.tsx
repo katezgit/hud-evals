@@ -46,10 +46,12 @@ const iconButtonVariants = cva(
           "disabled:bg-transparent",
         ],
       },
+      // Two sizes only — see .intermediate/design/sizing/primitives-2026-06-08.md
+      // md (32px): toolbar, card-header actions — aligns exactly with Button and Input
+      // sm (24px): table-row trailing actions only — no adjacent Button in the same band
       size: {
         md: ["size-8", "rounded-md", "[&_svg]:size-4"],
-        sm: ["size-7", "rounded-md", "[&_svg]:size-3.5"],
-        xs: ["size-6", "rounded", "[&_svg]:size-3"],
+        sm: ["size-6", "rounded-sm", "[&_svg]:size-3.5"],
       },
     },
     defaultVariants: { variant: "primary", size: "md" },

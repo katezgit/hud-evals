@@ -54,11 +54,12 @@ const preview: Preview = {
         order: [
           "Design Tokens",
           [
-            "1. Introduction",
-            "2. Colors",
-            "3. Typography",
-            "4. Spacing",
+            "1. Colors",
+            "2. Typography",
+            "3. Spacing",
+            "4. Sizing",
             "5. Elevation",
+            "6. Motion",
           ],
           "Components",
           "*",
