@@ -30,7 +30,7 @@ export const tableHeadVariants = cva(
   ].join(" "),
   {
     variants: {
-      density: { default: "px-3", compact: "px-3" },
+      density: { default: "px-3 py-2.5", compact: "px-3 py-2" },
       numeric: { true: "text-right", false: "" },
     },
     defaultVariants: { density: "default", numeric: false },
@@ -122,6 +122,7 @@ export interface TableHeaderCellProps extends React.ComponentPropsWithoutRef<"th
 
 const TableHeaderCell = React.forwardRef<HTMLTableCellElement, TableHeaderCellProps>(
   ({ className, sortable, label, sticky = "none", numeric, children, ...props }, ref) => {
+    const density = React.useContext(DensityContext)
     const isLeft = sticky === "left"
     const isRight = sticky === "right"
     return (
@@ -133,7 +134,7 @@ const TableHeaderCell = React.forwardRef<HTMLTableCellElement, TableHeaderCellPr
           "sticky top-0 align-middle whitespace-nowrap",
           "text-table-header text-muted-foreground",
           "border-b border-border bg-elevated",
-          "h-8 px-3",
+          density === "compact" ? "px-3 py-2" : "px-3 py-2.5",
           numeric ? "text-right" : "text-left",
           isLeft && "left-0 z-table-corner",
           isRight && "right-0 z-table-corner",

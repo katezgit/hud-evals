@@ -85,16 +85,16 @@ describe("tableHeadVariants", () => {
     expect(cls).toContain("px-3")
   })
 
-  it("compact density includes px-3 (no vertical padding)", () => {
+  it("compact density includes px-3 py-2", () => {
     const cls = tableHeadVariants({ density: "compact" })
     expect(cls).toContain("px-3")
-    expect(cls).not.toContain("py-")
+    expect(cls).toContain("py-2")
   })
 
-  it("default density includes px-3 (no vertical padding)", () => {
+  it("default density includes px-3 py-2.5", () => {
     const cls = tableHeadVariants({ density: "default" })
     expect(cls).toContain("px-3")
-    expect(cls).not.toContain("py-")
+    expect(cls).toContain("py-2.5")
   })
 })
 
