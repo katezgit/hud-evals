@@ -123,7 +123,7 @@ function SelectLabel({
       data-slot="select-label"
       className={cn(
         "px-2 pt-3 pb-1 first:pt-2",
-        "text-meta font-sans font-medium text-muted-foreground uppercase",
+        "text-meta tracking-normal font-sans text-muted-foreground",
         className
       )}
       {...props}
