@@ -47,7 +47,7 @@ export function UsageView() {
         />
         <StatCard
           label="Runway"
-          value={`~${creditState.runwayHours} hrs left`}
+          value={`${creditState.runwayHours} hrs left`}
           sub="at current burn"
         />
       </div>
