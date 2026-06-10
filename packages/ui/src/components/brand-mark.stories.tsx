@@ -40,59 +40,6 @@ export const Default: Story = {
   ),
 }
 
-// ── Small — dense toolbar / auth sub-header (20×20 mark) ─────────────────────
-
-export const Small: Story = {
-  args: { size: "sm" },
-  render: (args) => (
-    <div className="flex flex-col gap-6">
-      <div className="flex items-center justify-center p-8 bg-background rounded-lg border border-border">
-        <BrandMark {...args} />
-      </div>
-      <div className="flex items-center justify-center p-8 rounded-lg" style={{ background: "var(--color-panel)" }}>
-        <BrandMark {...args} />
-      </div>
-    </div>
-  ),
-}
-
-// ── Solid (no gradient) ───────────────────────────────────────────────────────
-
-export const SolidFallback: Story = {
-  name: "Solid (gradient=false)",
-  args: { gradient: false },
-  render: (args) => (
-    <div className="flex items-center justify-center p-8 bg-background rounded-lg border border-border">
-      <BrandMark {...args} />
-    </div>
-  ),
-}
-
-// ── No glow ────────────────────────────────────────────────────────────────────
-
-export const NoGlow: Story = {
-  name: "No glow (glow=false)",
-  args: { glow: false },
-  render: (args) => (
-    <div className="flex items-center justify-center p-8 bg-background rounded-lg border border-border">
-      <BrandMark {...args} />
-    </div>
-  ),
-}
-
-// ── Mark only (wordmark=false) ────────────────────────────────────────────────
-
-export const MarkOnly: Story = {
-  name: "Mark only (wordmark=false)",
-  args: { wordmark: false },
-  render: (args) => (
-    <div className="flex items-center gap-6 justify-center p-8 bg-background rounded-lg border border-border">
-      <BrandMark {...args} size="default" />
-      <BrandMark {...args} size="sm" />
-    </div>
-  ),
-}
-
 // ── BrandMarkSquare convenience alias ─────────────────────────────────────────
 
 export const Square: Story = {
