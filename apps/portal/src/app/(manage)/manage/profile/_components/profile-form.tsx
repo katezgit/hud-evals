@@ -67,6 +67,7 @@ export function ProfileForm() {
           onSave={onSubmit}
           saving={isSubmitting}
           disableSave={!isDirty || !isValid}
+          className="border-t-0 pt-0"
         />
       </form>
     </Panel>
