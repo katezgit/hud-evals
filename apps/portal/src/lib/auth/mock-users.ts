@@ -1,16 +1,9 @@
-/**
- * In-memory mock user store.
- *
- * No persistence — registrations evaporate on dev reload. That's intentional:
- * this is a portfolio scaffold, not a real auth system.
- */
-
 export type MockUser = {
   email: string;
   name: string;
 };
 
-// Module-scoped store. Reset whenever the dev server reloads this module.
+// No persistence: store resets on dev reload — mock auth scaffold.
 const users = new Map<string, MockUser>([
   ["demo@hud.app", { email: "demo@hud.app", name: "Demo User" }],
 ]);

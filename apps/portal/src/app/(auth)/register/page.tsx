@@ -7,7 +7,7 @@ import {
   CardFooter,
   CardHeader,
 } from "@repo/ui/components/card";
-import { RegisterForm } from "./register-form";
+import RegisterForm from "./register-form";
 
 export const metadata: Metadata = {
   title: "Create account",
@@ -16,16 +16,11 @@ export const metadata: Metadata = {
 export default function RegisterPage() {
   return (
     <Card variant="elevated">
-      <CardHeader className="flex flex-col items-center gap-3 pt-6 pb-5">
+      <CardHeader className="flex flex-col items-center gap-3 pt-6 pb-4">
         <BrandMark size="sm" />
-        <div className="flex flex-col items-center gap-1">
-          <h1 className="text-subtitle font-semibold text-foreground">
-            Create your HUD account
-          </h1>
-          <p className="text-caption text-muted-foreground">
-            Get started in seconds.
-          </p>
-        </div>
+        <h1 className="text-subtitle font-semibold text-foreground">
+          Create your HUD account
+        </h1>
       </CardHeader>
 
       <CardContent className="p-6">

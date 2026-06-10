@@ -7,7 +7,7 @@ import {
   CardFooter,
   CardHeader,
 } from "@repo/ui/components/card";
-import { LoginForm } from "./login-form";
+import LoginForm from "./login-form";
 
 export const metadata: Metadata = {
   title: "Sign in",
@@ -16,16 +16,11 @@ export const metadata: Metadata = {
 export default function LoginPage() {
   return (
     <Card variant="elevated">
-      <CardHeader className="flex flex-col items-center gap-3 pt-6 pb-5">
+      <CardHeader className="flex flex-col items-center gap-3 pt-6 pb-4">
         <BrandMark size="sm" />
-        <div className="flex flex-col items-center gap-1">
-          <h1 className="text-subtitle font-semibold text-foreground">
-            Sign in to HUD
-          </h1>
-          <p className="text-caption text-muted-foreground">
-            Welcome back. Please sign in to continue.
-          </p>
-        </div>
+        <h1 className="text-subtitle font-semibold text-foreground">
+          Sign in to HUD
+        </h1>
       </CardHeader>
 
       <CardContent className="p-6">

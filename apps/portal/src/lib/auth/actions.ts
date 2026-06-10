@@ -32,7 +32,7 @@ async function delay(ms: number): Promise<void> {
 }
 
 export async function signInWithGithub(
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- React useFormState prev-state arg; unused on success path.
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- React useActionState prev-state arg; unused on success path.
   _prevState: OAuthState,
 ): Promise<OAuthState> {
   await delay(600);
@@ -46,7 +46,7 @@ export async function signInWithGithub(
 }
 
 export async function signInWithGoogle(
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- React useFormState prev-state arg; unused on success path.
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- React useActionState prev-state arg; unused on success path.
   _prevState: OAuthState,
 ): Promise<OAuthState> {
   await delay(600);
