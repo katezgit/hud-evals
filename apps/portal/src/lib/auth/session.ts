@@ -1,39 +1,69 @@
-// Auth stub. Real session lookup (cookie → JWT verify, DB hydrate) is not wired yet.
-// All consumers should treat the returned `Session` as the contract — only the
-// implementation here is provisional.
-
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
-export interface Session {
-  userId: string;
+export type Session = {
   email: string;
-  onboarded: boolean;
-  role: "user" | "admin";
-}
-
-const MOCK_SESSION: Session = {
-  userId: "u_mock",
-  email: "owner@example.com",
-  onboarded: true,
-  role: "admin",
+  name: string;
+  signedInAt: string;
 };
 
-// Returns the active session, or null when unauthed.
-// TODO: wire real auth — read session cookie, verify, hydrate from DB.
-export async function getSession(): Promise<Session | null> {
-  return MOCK_SESSION;
+const COOKIE_NAME = "portal_session";
+const COOKIE_MAX_AGE_SECONDS = 60 * 60 * 24 * 7; // 7 days
+
+function encode(session: Session): string {
+  return Buffer.from(JSON.stringify(session), "utf8").toString("base64");
 }
 
-// Guard for protected route group layouts. Redirects to /login when unauthed
-// so the no-flash invariant holds at server-render time.
+function decode(raw: string): Session | null {
+  try {
+    const json = Buffer.from(raw, "base64").toString("utf8");
+    const parsed = JSON.parse(json) as Partial<Session>;
+    if (
+      typeof parsed.email === "string" &&
+      typeof parsed.name === "string" &&
+      typeof parsed.signedInAt === "string"
+    ) {
+      return {
+        email: parsed.email,
+        name: parsed.name,
+        signedInAt: parsed.signedInAt,
+      };
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+export async function getSession(): Promise<Session | null> {
+  const store = await cookies();
+  const raw = store.get(COOKIE_NAME)?.value;
+  if (!raw) return null;
+  return decode(raw);
+}
+
+export async function setSession(session: Session): Promise<void> {
+  const store = await cookies();
+  // eslint-disable-next-line turbo/no-undeclared-env-vars -- NODE_ENV is Next.js-provided
+  const isProd = process.env.NODE_ENV === "production";
+  store.set(COOKIE_NAME, encode(session), {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: isProd,
+    path: "/",
+    maxAge: COOKIE_MAX_AGE_SECONDS,
+  });
+}
+
+export async function clearSession(): Promise<void> {
+  const store = await cookies();
+  store.delete(COOKIE_NAME);
+}
+
 export async function requireSession(): Promise<Session> {
   const session = await getSession();
-  if (!session) redirect("/login");
+  if (!session) {
+    redirect("/login");
+  }
   return session;
-}
-
-// TODO: wire real auth — set session cookie, sign JWT.
-// The real signature takes a Session; the stub ignores it (no persistence yet).
-export async function setSession(session: Session): Promise<void> {
-  void session;
 }
