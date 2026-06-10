@@ -92,21 +92,10 @@ Two shells share a common structural contract (brand slot, user chip, sidebar ra
 │                         │                                                    │
 │  ── SPACER (flex-1) ──  │                                                    │
 │                         │                                                    │
-│  ── CREDITS WIDGET ───  │                                                    │
-│  px-4 pb-3              │                                                    │
-│  ┌─────────────────────┐│                                                    │
-│  │  credits            ││  ← label: lowercase, muted-fg, text-meta           │
-│  │             4,230   ││  ← current: right-aligned, font-mono               │
-│  │           / 10,000  ││  ← cap: right-aligned, muted-fg                    │
-│  │  [████░░░░░░░░░░░░] ││  ← progress bar, full width, accent fill           │
-│  │  ~92 cr/hr  ~38h    ││  ← burn rate + runway: muted-fg, text-meta         │
-│  └─────────────────────┘│                                                    │
-│  (deep-links to /manage/usage)                                               │
-│                         │                                                    │
 │  ── EXTERNAL LINKS ───  │                                                    │
-│  px-2 pb-2              │                                                    │
+│  px-2 pb-2              │  ← last item inside <nav>                          │
 │  ┌─────────────────────┐│                                                    │
-│  │  [icon]  Marketplace│                                                    │
+│  │  [icon]  Marketplace│                                                     │
 │  │                   ↗ ││  ← trailing external arrow                         │
 │  └─────────────────────┘│                                                    │
 │  ┌─────────────────────┐│                                                    │
@@ -114,7 +103,17 @@ Two shells share a common structural contract (brand slot, user chip, sidebar ra
 │  │                   ↗ ││                                                    │
 │  └─────────────────────┘│                                                    │
 │                         │                                                    │
-│  ── USER CHIP ─────────  │                                                   │
+│  ── CREDITS WIDGET ───  │  ← outside <nav>; account status cluster begins   │
+│  mx-2 mb-2              │                                                    │
+│  ┌─────────────────────┐│                                                    │
+│  │  credits            ││  ← label: lowercase, muted-fg, text-meta           │
+│  │             4,230   ││  ← current: right-aligned, font-mono               │
+│  │           / 10,000  ││  ← cap: right-aligned, muted-fg                    │
+│  │  [████░░░░░░░░░░░░] ││  ← progress bar, full width, neutral fill          │
+│  └─────────────────────┘│                                                    │
+│  (deep-links to /manage/usage; outside <nav>)                                │
+│                         │                                                    │
+│  ── USER CHIP ─────────  │  ← outside <nav>; account status cluster ends    │
 │  px-2 pb-2              │                                                    │
 │  ┌─────────────────────┐│                                                    │
 │  │  [D]  Demo User     ││  ← avatar circle (initial), primary name           │
@@ -257,59 +256,63 @@ Billing, Limits, Secrets, and Privacy controls are owner-restricted. The items a
 ### Layout
 
 ```
-┌─────────────────────────┐
-│  credits                │  ← label row: left-aligned, muted-fg, text-meta,
-│                  4,230  │    uppercase optional (match group label style)
+┌─────────────────────────┐  ← bg-muted/60 rounded-md panel; mx-2 mb-2 inset
+│  credits                │    label row: left-aligned, muted-fg, text-meta
+│                  4,230  │
 │                / 10,000 │  ← current / cap: right-aligned, font-mono,
 │  [████░░░░░░░░░░░░░░░] │    text-meta. Current in default-fg, cap in muted-fg.
-│  ~92 cr/hr  ~38h left   │  ← progress bar: full width, accent fill proportional
-└─────────────────────────┘  ← meta row: burn rate left, runway right, muted-fg
+└─────────────────────────┘  ← progress bar: full width, neutral fill (not accent)
 ```
 
 The numeric line uses the right-aligned numeric convention from `manage.wireframe.md`: the current value and the cap are on the same right edge. The label "credits" floats left on the same row or on its own row above — either reading is consistent with the reference screenshot; the label above the numerics is cleaner at small sidebar widths.
+
+**Containment:** The widget sits inside a `bg-muted/60 rounded-md mx-2 mb-2` panel rendered **outside the `<nav>` element**, directly above the user chip. Credits is account status, not page navigation — it exits `<nav>` and forms an account-status cluster with the user chip at the structural footer. The `rounded-md` cap is load-bearing — it closes the bounding shape even at low fill contrast. No divider between Credits and the user chip; they are the same semantic group. The `border-t border-border` on the External Links row above is the separator between page-nav and the account-status cluster.
+
+**Burn rate and runway are not surfaced in the sidebar widget.** They live on `/manage/usage`. The sidebar widget is a glance-instrument for remaining budget; runway derivation belongs one level deeper.
+
+**Progress fill:** `bg-muted-foreground/30` — a 30% alpha `--neutral-500` fill. Reads as present, legible, ignorable; same perceptual weight as zone-label text. Not a teal accent, not a semantic state color.
 
 **Clickability:** The entire Credits widget is a clickable region that deep-links to `/manage/usage`. No visible link affordance — the widget is not styled as a button. On hover/focus, a subtle `bg-sidebar-accent-subtle` tint appears and a tooltip reads `"View usage details"`. Alex uses this to get to the usage breakdown fast; it is not the primary nav, so it does not get an `aria-current`.
 
 ### Loading state
 
 ```
-┌─────────────────────────┐
+┌─────────────────────────┐  ← bg-muted/60 rounded-md panel (mx-2 mb-2 inset)
 │  credits                │
 │            ░░░░░░░░░░   │  ← skeleton line, right-aligned
 │  [░░░░░░░░░░░░░░░░░░░] │  ← skeleton progress bar
-│  ░░░░░░░░░░  ░░░░░░░   │  ← skeleton meta row
 └─────────────────────────┘
 ```
 
-Skeleton uses `bg-muted animate-pulse`. No spinner — the widget shape is fixed; skeleton prevents layout shift.
+Skeleton uses `bg-muted animate-pulse`. No spinner — the widget shape is fixed; skeleton prevents layout shift. No meta-row skeleton — the row is removed.
 
 ### Empty state (zero credits)
 
 ```
-┌─────────────────────────┐
+┌─────────────────────────┐  ← bg-muted/60 rounded-md panel (mx-2 mb-2 inset)
 │  credits                │
 │                       0 │  ← 0, exact, right-aligned, text-destructive
 │                / 10,000 │
 │  [░░░░░░░░░░░░░░░░░░░] │  ← empty progress bar (no fill)
-│  Add credits →          │  ← text-link to /manage/usage (Top up Credits)
+│  Add credits →          │  ← text-link to /manage/billing
 └─────────────────────────┘
 ```
 
-When Credits reach zero, the current value renders in `text-destructive` (role, not hex — token phase assigns color). The progress bar is unfilled. The meta row is replaced by an inline "Add credits →" text-link because burn rate and runway are not meaningful at zero.
+When Credits reach zero, the current value renders in `text-destructive` (role, not hex — token phase assigns color). The progress bar is unfilled. The CTA row "Add credits →" links to `/manage/billing`. No burn rate or runway is shown — not meaningful at zero.
 
 ### Enterprise tier (unlimited credits)
 
 ```
-┌─────────────────────────┐
+┌─────────────────────────┐  ← bg-muted/60 rounded-md panel (mx-2 mb-2 inset)
 │  credits                │
 │               unlimited │  ← text, not a number, muted-fg italic or text-meta
-│  [████████████████████] │  ← progress bar fully filled (or hidden entirely)
+│  [████████████████████] │  ← progress bar fully filled, neutral fill
 └─────────────────────────┘
 ```
 
-Enterprise accounts on unlimited credit plans show the word "unlimited" instead of a numeric ratio. The progress bar is either fully filled (to signal "you are not constrained") or hidden entirely. The burn-rate meta row is still shown if the data is available — it has value for cost-awareness even on unlimited plans. If the platform does not compute a burn rate for enterprise accounts, the meta row is absent.
+Enterprise accounts on unlimited credit plans show the word "unlimited" instead of a numeric ratio. The progress bar is fully filled in the neutral fill token (`bg-muted-foreground/30`) — same token as the default state. The burn-rate meta row is absent at all tiers in the sidebar widget. Cost-awareness for enterprise lives on `/manage/usage`.
 
-Self-serve accounts with a credit cap (Cloud tier) always show the numeric ratio and the burn-rate meta row.
+Self-serve accounts with a credit cap (Cloud tier) always show the numeric ratio. No burn-rate or runway row in the sidebar widget at any tier.
 
 ### Deep-link target
 
@@ -444,12 +447,12 @@ Sidebar is always visible. No toggle. Main content fills remaining horizontal sp
 │ [flex│                                          │
 │  gap]│                                          │
 │      │                                          │
-│ [◉]  │                                          │  ← Credits: icon with progress ring
-│      │                                          │
 │ [○]  │                                          │  ← Marketplace icon
-│ [○]  │                                          │  ← Documentation icon
+│ [○]  │                                          │  ← Documentation icon  (last inside <nav>)
 │      │                                          │
-│ [D]  │                                          │  ← User chip: avatar only
+│ [◉]  │                                          │  ← Credits: icon with progress ring (outside <nav>)
+│      │                                          │
+│ [D]  │                                          │  ← User chip: avatar only (outside <nav>)
 └──────┴──────────────────────────────────────────┘
 ```
 
@@ -514,11 +517,12 @@ Sidebar is hidden by default. A top bar replaces it:
 │  │                                                     │          │
 │  │  ── SPACER ──────────────────────────────────────── │          │
 │  │                                                     │          │
+│  │  ── EXTERNAL LINKS ──────────────────────────────── │          │
+│  │  [Marketplace ↗]  [Documentation ↗]  (last in nav) │          │
+│  │                                                     │          │
 │  │  ── CREDITS WIDGET ──────────────────────────────── │          │
 │  │  [full credits widget — same as lg+ layout]         │          │
-│  │                                                     │          │
-│  │  ── EXTERNAL LINKS ──────────────────────────────── │          │
-│  │  [Marketplace ↗]  [Documentation ↗]                 │          │
+│  │  (outside <nav>; account status cluster)            │          │
 │  │                                                     │          │
 │  │  ── USER CHIP ───────────────────────────────────── │          │
 │  │  [D]  Demo User                                     │          │
