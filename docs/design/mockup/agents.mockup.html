@@ -1,0 +1,1018 @@
+<!--
+  filename: agents-index-checkpoint.html
+  Agents Index · CHECKPOINT SLICE · QA Agents section only
+  Canonical spec: docs/design/screens/agents.wireframe.md §HUD §1–§5, §2, §3, §4
+  Scope: chrome + page header + QA Agents section ONLY.
+  NOT YET BUILT: Automations / Chat Agents sections, slide-over panel,
+  + New Agent drawer, empty/error/loading states, responsive.
+  Awaiting operator sign-off on tone, card anatomy, density.
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=1440" />
+  <title>Agents — HUD [CHECKPOINT]</title>
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      /* Primitives */
+      --neutral-950: #1c2024; --neutral-50: #F8FAFB; --white: #FFFFFF; --gold: #f7b717;
+      /* Ink */
+      --ink-900: #18212E; --ink-50: #E8EEF5;
+      --ink-800: #3D5269; --ink-100: #B3BFCE;
+      --ink-700: #6C7A8C; --ink-200: #7A8494;
+      --ink-400: #A4ADB9; --ink-500: #475260;
+      /* Surfaces — dark */
+      --surface-bg-dark: #0C1016; --surface-panel-dark: #11161F;
+      --surface-page-dark: #07090D; --surface-elevated-dark: #161D28;
+      --surface-muted-dark: #161D28; --surface-secondary-dark: #1E2733;
+      /* Teal */
+      --teal-800: #055E55; --teal-700: #087A6C; --teal-600: #0E9888;
+      --teal-500: #1A9183; --teal-400: #2BE0C8;
+      /* Status */
+      --scored-600: #2E9E43; --scored-400: #35C46B;
+      --running-600: #2462C5; --running-400: #4FA8FF;
+      --errored-600: #D23B2C; --errored-400: #FF5B52;
+      --warning-600: #C47A0A; --warning-400: #E5A52E;
+
+      /* Semantic roles (dark resolved) */
+      --color-background: var(--surface-bg-dark);
+      --color-panel: var(--surface-panel-dark);
+      --color-page: var(--surface-page-dark);
+      --color-elevated: var(--surface-elevated-dark);
+      --color-foreground: var(--ink-50);
+      --color-muted-foreground: var(--ink-100);
+      --color-meta-foreground: var(--ink-200);
+      --color-text-disabled: var(--ink-500);
+      --color-muted: var(--surface-muted-dark);
+      --color-secondary: var(--surface-secondary-dark);
+      --color-border: rgba(255 255 255 / .08);
+      --color-border-strong: rgba(255 255 255 / .18);
+      --color-primary: var(--teal-400);
+      --color-primary-foreground: #06201C;
+      --color-primary-hover: var(--teal-500);
+      --color-brand: var(--gold);
+      --color-brand-foreground: var(--ink-900);
+
+      /* Sidebar */
+      --sidebar-bg: #0f1117;
+      --sidebar-border: #1e2230;
+      --accent: var(--teal-400);
+      --accent-subtle: rgba(43,224,200,0.09);
+      --muted-fg: var(--ink-200);
+      --default-fg: var(--ink-50);
+      --brand-mark: var(--gold);
+
+      --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+      --mono: "SF Mono", "Fira Code", "Cascadia Code", Consolas, monospace;
+    }
+
+    html, body {
+      height: 100%;
+      font-family: var(--sans);
+      background: var(--color-page);
+      color: var(--color-foreground);
+      font-size: 14px;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── Shell layout ── */
+    .shell {
+      display: flex;
+      height: 100vh;
+      background: var(--color-page);
+    }
+
+    /* ── Sidebar ── */
+    .sidebar {
+      width: 220px;
+      flex-shrink: 0;
+      background: var(--sidebar-bg);
+      border-right: 1px solid var(--sidebar-border);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .brand-slot {
+      padding: 14px 16px 12px;
+      border-bottom: 1px solid var(--sidebar-border);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .brand-mark {
+      width: 20px;
+      height: 20px;
+      background: var(--brand-mark);
+      border-radius: 4px;
+      flex-shrink: 0;
+    }
+
+    .brand-wordmark {
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: var(--default-fg);
+    }
+
+    .nav-groups {
+      padding: 0 4px;
+      flex: 1;
+      overflow-y: auto;
+    }
+
+    .nav-group-label {
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--muted-fg);
+      padding: 0 12px;
+      margin-top: 20px;
+      margin-bottom: 4px;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 5px 12px;
+      font-size: 13px;
+      color: var(--muted-fg);
+      border-radius: 4px;
+      margin: 1px 0;
+      cursor: pointer;
+      text-decoration: none;
+      position: relative;
+      transition: background 0.1s, color 0.1s;
+    }
+
+    .nav-item:hover {
+      background: rgba(255,255,255,0.04);
+      color: var(--default-fg);
+    }
+
+    .nav-item.selected {
+      color: var(--accent);
+      background: var(--accent-subtle);
+    }
+
+    .nav-item.selected::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 4px;
+      bottom: 4px;
+      width: 2px;
+      background: var(--accent);
+      border-radius: 0 2px 2px 0;
+    }
+
+    .nav-item svg {
+      width: 16px;
+      height: 16px;
+      flex-shrink: 0;
+    }
+
+    .nav-item-label {
+      flex: 1;
+    }
+
+    .nav-item-ext {
+      font-size: 11px;
+      color: var(--muted-fg);
+      opacity: 0.6;
+    }
+
+    .sidebar-spacer {
+      flex: 1;
+    }
+
+    /* Credits widget */
+    .credits-widget {
+      margin: 0 8px 4px;
+      padding: 8px 10px;
+      border-radius: 6px;
+      border: 1px solid var(--sidebar-border);
+    }
+
+    .credits-label {
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--muted-fg);
+      margin-bottom: 4px;
+    }
+
+    .credits-numbers {
+      display: flex;
+      align-items: baseline;
+      gap: 4px;
+      margin-bottom: 6px;
+    }
+
+    .credits-used {
+      font-size: 13px;
+      font-family: var(--mono);
+      font-weight: 600;
+      color: var(--default-fg);
+    }
+
+    .credits-limit {
+      font-size: 11px;
+      font-family: var(--mono);
+      color: var(--muted-fg);
+    }
+
+    .credits-bar {
+      height: 3px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 99px;
+      overflow: hidden;
+    }
+
+    .credits-bar-fill {
+      height: 100%;
+      background: var(--accent);
+      border-radius: 99px;
+      width: 48%;
+    }
+
+    /* User chip */
+    .user-chip {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px 12px;
+    }
+
+    .user-avatar {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--teal-800);
+      color: var(--teal-400);
+      font-size: 10px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .user-info {
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+      overflow: hidden;
+    }
+
+    .user-name {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--default-fg);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .user-meta {
+      font-size: 10px;
+      color: var(--muted-fg);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* ── Main area ── */
+    .main {
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── Sticky page header ── */
+    .page-header {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      padding: 24px 32px 16px;
+      background: var(--color-page);
+      border-bottom: 1px solid var(--color-border);
+    }
+
+    .page-header-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .page-title-group {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .page-title {
+      font-size: 22px;
+      font-weight: 600;
+      letter-spacing: -0.015em;
+      color: var(--color-foreground);
+      line-height: 1;
+    }
+
+    .docs-icon-link {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--color-meta-foreground);
+      text-decoration: none;
+      transition: color 0.1s;
+      margin-top: 2px;
+    }
+
+    .docs-icon-link:hover {
+      color: var(--color-foreground);
+    }
+
+    .docs-icon-link svg {
+      width: 14px;
+      height: 14px;
+    }
+
+    .page-subtitle {
+      font-size: 13px;
+      color: var(--color-muted-foreground);
+      margin-top: 6px;
+      line-height: 1.5;
+    }
+
+    /* New Agent CTA */
+    .btn-new-agent {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      height: 32px;
+      padding: 0 14px;
+      background: var(--color-primary);
+      color: var(--color-primary-foreground);
+      font-size: 13px;
+      font-weight: 500;
+      border: none;
+      border-radius: 999px;
+      cursor: pointer;
+      white-space: nowrap;
+      flex-shrink: 0;
+      transition: background 0.1s;
+    }
+
+    .btn-new-agent:hover {
+      background: var(--color-primary-hover);
+    }
+
+    .btn-new-agent svg {
+      width: 14px;
+      height: 14px;
+    }
+
+    /* ── Content area ── */
+    .content {
+      padding: 0 32px 40px;
+    }
+
+    /* ── Section heading ── */
+    .section-heading-row {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      margin-top: 32px;
+      margin-bottom: 4px;
+    }
+
+    .section-heading-left {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+    }
+
+    .section-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--color-foreground);
+    }
+
+    .section-meta-count {
+      font-size: 12px;
+      color: var(--color-meta-foreground);
+    }
+
+    .section-helper {
+      font-size: 12px;
+      color: var(--color-muted-foreground);
+      margin-bottom: 14px;
+      line-height: 1.5;
+    }
+
+    /* Secondary section CTA */
+    .btn-section-add {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      height: 26px;
+      padding: 0 10px;
+      background: transparent;
+      color: var(--color-muted-foreground);
+      font-size: 12px;
+      font-weight: 500;
+      border: 1px solid var(--color-border);
+      border-radius: 5px;
+      cursor: pointer;
+      transition: border-color 0.1s, color 0.1s;
+      white-space: nowrap;
+    }
+
+    .btn-section-add:hover {
+      border-color: var(--color-border-strong);
+      color: var(--color-foreground);
+    }
+
+    .btn-section-add svg {
+      width: 12px;
+      height: 12px;
+    }
+
+    /* ── Card grid ── */
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    /* ── Agent card ── */
+    .agent-card {
+      background: var(--color-panel);
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      padding: 14px 16px;
+      cursor: pointer;
+      transition: border-color 0.1s, background 0.1s;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .agent-card:hover {
+      border-color: var(--color-border-strong);
+      background: var(--surface-elevated-dark);
+    }
+
+    /* Card top row */
+    .card-top-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .card-badges {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* QA type badge */
+    .badge-qa {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: rgba(43,224,200,0.10);
+      color: var(--teal-400);
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 999px;
+    }
+
+    .badge-qa svg {
+      width: 11px;
+      height: 11px;
+    }
+
+    /* HUD origin badge */
+    .badge-hud {
+      display: inline-flex;
+      align-items: center;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--gold);
+      border: 1px solid rgba(247,183,23,0.30);
+      padding: 1px 6px;
+      border-radius: 4px;
+    }
+
+    /* Overflow menu button */
+    .card-overflow-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 24px;
+      height: 24px;
+      background: transparent;
+      border: none;
+      border-radius: 4px;
+      color: transparent;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: background 0.1s, color 0.1s;
+    }
+
+    .agent-card:hover .card-overflow-btn {
+      color: var(--color-meta-foreground);
+    }
+
+    .card-overflow-btn:hover {
+      background: rgba(255,255,255,0.06);
+      color: var(--color-muted-foreground) !important;
+    }
+
+    .card-overflow-btn svg {
+      width: 14px;
+      height: 14px;
+    }
+
+    /* Card title */
+    .card-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--color-foreground);
+    }
+
+    /* Card description */
+    .card-desc {
+      font-size: 12.5px;
+      line-height: 1.5;
+      color: var(--color-muted-foreground);
+      margin-top: 4px;
+    }
+
+    /* Card divider */
+    .card-divider {
+      height: 1px;
+      background: var(--color-border);
+      margin: 12px 0;
+    }
+
+    /* Scenario slug row */
+    .card-slug-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .card-slug {
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--color-meta-foreground);
+    }
+
+    .copy-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: transparent;
+      border: none;
+      color: var(--color-text-disabled);
+      cursor: pointer;
+      padding: 2px;
+      border-radius: 3px;
+      transition: color 0.1s;
+      flex-shrink: 0;
+    }
+
+    .copy-btn:hover {
+      color: var(--color-muted-foreground);
+    }
+
+    .copy-btn svg {
+      width: 11px;
+      height: 11px;
+    }
+
+    /* Card model */
+    .card-model {
+      font-size: 12px;
+      color: var(--color-foreground);
+      margin-top: 4px;
+    }
+
+    /* Card run signal row */
+    .card-run-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .card-run-signal {
+      font-size: 11px;
+      color: var(--color-meta-foreground);
+    }
+
+    /* Taskset inline pill (custom card) */
+    .taskset-pill {
+      display: inline-flex;
+      align-items: center;
+      font-size: 11px;
+      color: var(--teal-400);
+      background: rgba(43,224,200,0.08);
+      border: 1px solid rgba(43,224,200,0.18);
+      padding: 1px 7px;
+      border-radius: 999px;
+      margin-left: 4px;
+    }
+
+    /* Use CTA */
+    .btn-use {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--teal-400);
+      background: transparent;
+      border: 1px solid rgba(43,224,200,0.35);
+      border-radius: 6px;
+      padding: 4px 10px;
+      cursor: pointer;
+      white-space: nowrap;
+      flex-shrink: 0;
+      transition: background 0.1s, border-color 0.1s;
+    }
+
+    .btn-use:hover {
+      background: var(--accent-subtle);
+      border-color: rgba(43,224,200,0.55);
+    }
+  </style>
+</head>
+<body>
+
+<div class="shell">
+
+  <!-- ── Sidebar ── -->
+  <aside class="sidebar">
+
+    <!-- Brand -->
+    <div class="brand-slot">
+      <div class="brand-mark"></div>
+      <span class="brand-wordmark">hud</span>
+    </div>
+
+    <!-- Nav groups -->
+    <nav class="nav-groups">
+
+      <div class="nav-group-label">Workspace</div>
+
+      <a class="nav-item" href="#">
+        <i data-lucide="home"></i>
+        <span class="nav-item-label">Home</span>
+      </a>
+      <a class="nav-item" href="#">
+        <i data-lucide="list-tree"></i>
+        <span class="nav-item-label">Tasksets</span>
+      </a>
+      <a class="nav-item" href="#">
+        <i data-lucide="globe"></i>
+        <span class="nav-item-label">Environments</span>
+      </a>
+      <a class="nav-item" href="#">
+        <i data-lucide="cpu"></i>
+        <span class="nav-item-label">Models</span>
+      </a>
+      <a class="nav-item selected" href="#" aria-current="page">
+        <i data-lucide="shield-check"></i>
+        <span class="nav-item-label">Agents</span>
+      </a>
+      <a class="nav-item" href="#">
+        <i data-lucide="library"></i>
+        <span class="nav-item-label">Library</span>
+      </a>
+
+      <div class="nav-group-label">Observe</div>
+
+      <a class="nav-item" href="#">
+        <i data-lucide="briefcase"></i>
+        <span class="nav-item-label">Jobs</span>
+      </a>
+      <a class="nav-item" href="#">
+        <i data-lucide="list-checks"></i>
+        <span class="nav-item-label">Traces</span>
+      </a>
+
+      <div class="nav-group-label" style="margin-top:20px;"></div>
+
+      <a class="nav-item" href="#">
+        <i data-lucide="store"></i>
+        <span class="nav-item-label">Marketplace</span>
+        <span class="nav-item-ext">↗</span>
+      </a>
+      <a class="nav-item" href="#">
+        <i data-lucide="book-open"></i>
+        <span class="nav-item-label">Docs</span>
+        <span class="nav-item-ext">↗</span>
+      </a>
+
+    </nav>
+
+    <!-- Credits widget -->
+    <div class="credits-widget">
+      <div class="credits-label">Credits</div>
+      <div class="credits-numbers">
+        <span class="credits-used">$24.18</span>
+        <span class="credits-limit">/ $50.00</span>
+      </div>
+      <div class="credits-bar">
+        <div class="credits-bar-fill"></div>
+      </div>
+    </div>
+
+    <!-- User chip -->
+    <div class="user-chip">
+      <div class="user-avatar">KZ</div>
+      <div class="user-info">
+        <span class="user-name">Kate Z.</span>
+        <span class="user-meta">kate · acme-rl</span>
+      </div>
+    </div>
+
+  </aside>
+
+  <!-- ── Main ── -->
+  <main class="main">
+
+    <!-- Sticky page header -->
+    <header class="page-header">
+      <div class="page-header-top">
+        <div>
+          <div class="page-title-group">
+            <h1 class="page-title">Agents</h1>
+            <a class="docs-icon-link" href="#" aria-label="Agents documentation, opens in new tab" title="Agents docs">
+              <i data-lucide="help-circle"></i>
+            </a>
+          </div>
+          <p class="page-subtitle">Configure agents that connect a Model to an Environment Scenario. QA Agents audit traces, Automations run on demand or from CI, Chat Agents serve multi-turn conversation over A2A.</p>
+        </div>
+        <button class="btn-new-agent" type="button" aria-label="Create a new agent">
+          <i data-lucide="plus"></i>
+          New Agent
+        </button>
+      </div>
+    </header>
+
+    <!-- Scrollable content -->
+    <div class="content">
+
+      <!-- QA Agents section -->
+      <section aria-labelledby="qa-agents-heading">
+
+        <div class="section-heading-row">
+          <div class="section-heading-left">
+            <h2 class="section-title" id="qa-agents-heading">QA Agents</h2>
+            <span class="section-meta-count" aria-label="6 agents">5 Standard · 1 Custom</span>
+          </div>
+          <button class="btn-section-add" type="button">
+            <i data-lucide="plus"></i>
+            New QA Agent
+          </button>
+        </div>
+
+        <p class="section-helper">Automated trace and task analysis — false negatives, false positives, reward hacking, failure classification. Attach to a Taskset as a column.</p>
+
+        <!-- Card grid -->
+        <div class="card-grid" role="list">
+
+          <!-- Card 1: Prompt Alignment Analysis [HUD] -->
+          <article class="agent-card" role="listitem">
+            <div class="card-top-row">
+              <h3 class="card-title">Prompt Alignment Analysis</h3>
+              <div class="card-badges">
+                <span class="badge-qa" aria-label="QA agent">
+                  <i data-lucide="shield-check"></i>
+                  QA
+                </span>
+                <span class="badge-hud" aria-label="Standard — HUD-provided">HUD</span>
+              </div>
+            </div>
+
+            <p class="card-desc" style="margin-top:8px;">Check whether the grader and submission actually match what the task prompt requires.</p>
+
+            <div class="card-divider"></div>
+
+            <div class="card-slug-row">
+              <code class="card-slug" aria-label="Scenario: trace-explorer:prompt_alignment_analysis">trace-explorer:prompt_alignment_analysis</code>
+              <button class="copy-btn" type="button" aria-label="Copy scenario slug">
+                <i data-lucide="copy"></i>
+              </button>
+            </div>
+            <div class="card-model">Claude Sonnet 4.5</div>
+
+            <div class="card-divider"></div>
+
+            <div class="card-run-row">
+              <span class="card-run-signal">↗ 2 tasksets · 15 runs · today 9:06 AM</span>
+              <button class="btn-use" type="button" aria-label="Use Prompt Alignment Analysis">Use →</button>
+            </div>
+          </article>
+
+          <!-- Card 2: Failure Analysis [HUD] -->
+          <article class="agent-card" role="listitem">
+            <div class="card-top-row">
+              <h3 class="card-title">Failure Analysis</h3>
+              <div class="card-badges">
+                <span class="badge-qa" aria-label="QA agent">
+                  <i data-lucide="shield-check"></i>
+                  QA
+                </span>
+                <span class="badge-hud" aria-label="Standard — HUD-provided">HUD</span>
+              </div>
+            </div>
+
+            <p class="card-desc" style="margin-top:8px;">Analyze why a trace failed — find all problems, not just a single category.</p>
+
+            <div class="card-divider"></div>
+
+            <div class="card-slug-row">
+              <code class="card-slug" aria-label="Scenario: trace-explorer:failure_analysis">trace-explorer:failure_analysis</code>
+              <button class="copy-btn" type="button" aria-label="Copy scenario slug">
+                <i data-lucide="copy"></i>
+              </button>
+            </div>
+            <div class="card-model">Claude Sonnet 4.5</div>
+
+            <div class="card-divider"></div>
+
+            <div class="card-run-row">
+              <span class="card-run-signal">↗ 3 tasksets · 22 runs · today 9:06 AM</span>
+              <button class="btn-use" type="button" aria-label="Use Failure Analysis">Use →</button>
+            </div>
+          </article>
+
+          <!-- Card 3: False Negative Analysis [HUD] -->
+          <article class="agent-card" role="listitem">
+            <div class="card-top-row">
+              <h3 class="card-title">False Negative Analysis</h3>
+              <div class="card-badges">
+                <span class="badge-qa" aria-label="QA agent">
+                  <i data-lucide="shield-check"></i>
+                  QA
+                </span>
+                <span class="badge-hud" aria-label="Standard — HUD-provided">HUD</span>
+              </div>
+            </div>
+
+            <p class="card-desc" style="margin-top:8px;">Determine whether a low-reward trace is a false negative.</p>
+
+            <div class="card-divider"></div>
+
+            <div class="card-slug-row">
+              <code class="card-slug" aria-label="Scenario: trace-explorer:false_negative_analysis">trace-explorer:false_negative_analysis</code>
+              <button class="copy-btn" type="button" aria-label="Copy scenario slug">
+                <i data-lucide="copy"></i>
+              </button>
+            </div>
+            <div class="card-model">Claude Sonnet 4.5</div>
+
+            <div class="card-divider"></div>
+
+            <div class="card-run-row">
+              <span class="card-run-signal">↗ 1 taskset · 8 runs · 2d ago</span>
+              <button class="btn-use" type="button" aria-label="Use False Negative Analysis">Use →</button>
+            </div>
+          </article>
+
+          <!-- Card 4: False Positive Analysis [HUD] -->
+          <article class="agent-card" role="listitem">
+            <div class="card-top-row">
+              <h3 class="card-title">False Positive Analysis</h3>
+              <div class="card-badges">
+                <span class="badge-qa" aria-label="QA agent">
+                  <i data-lucide="shield-check"></i>
+                  QA
+                </span>
+                <span class="badge-hud" aria-label="Standard — HUD-provided">HUD</span>
+              </div>
+            </div>
+
+            <p class="card-desc" style="margin-top:8px;">Determine whether a passing trace is a false positive.</p>
+
+            <div class="card-divider"></div>
+
+            <div class="card-slug-row">
+              <code class="card-slug" aria-label="Scenario: trace-explorer:false_positive_analysis">trace-explorer:false_positive_analysis</code>
+              <button class="copy-btn" type="button" aria-label="Copy scenario slug">
+                <i data-lucide="copy"></i>
+              </button>
+            </div>
+            <div class="card-model">Claude Sonnet 4.5</div>
+
+            <div class="card-divider"></div>
+
+            <div class="card-run-row">
+              <span class="card-run-signal">↗ 1 taskset · 4 runs · 5d ago</span>
+              <button class="btn-use" type="button" aria-label="Use False Positive Analysis">Use →</button>
+            </div>
+          </article>
+
+          <!-- Card 5: Reward Hacking Analysis [HUD] — not run yet -->
+          <article class="agent-card" role="listitem">
+            <div class="card-top-row">
+              <h3 class="card-title">Reward Hacking Analysis</h3>
+              <div class="card-badges">
+                <span class="badge-qa" aria-label="QA agent">
+                  <i data-lucide="shield-check"></i>
+                  QA
+                </span>
+                <span class="badge-hud" aria-label="Standard — HUD-provided">HUD</span>
+              </div>
+            </div>
+
+            <p class="card-desc" style="margin-top:8px;">Detect whether the agent gamed the evaluation to achieve its reward.</p>
+
+            <div class="card-divider"></div>
+
+            <div class="card-slug-row">
+              <code class="card-slug" aria-label="Scenario: trace-explorer:reward_hacking_analysis">trace-explorer:reward_hacking_analysis</code>
+              <button class="copy-btn" type="button" aria-label="Copy scenario slug">
+                <i data-lucide="copy"></i>
+              </button>
+            </div>
+            <div class="card-model">Claude Sonnet 4.5</div>
+
+            <div class="card-divider"></div>
+
+            <div class="card-run-row">
+              <span class="card-run-signal" style="color: var(--color-text-disabled);">↗ 0 tasksets · Not yet run</span>
+              <button class="btn-use" type="button" aria-label="Use Reward Hacking Analysis">Use →</button>
+            </div>
+          </article>
+
+          <!-- Card 6: Browser Tool Misuse (Custom — no HUD badge) -->
+          <article class="agent-card" role="listitem">
+            <div class="card-top-row">
+              <h3 class="card-title">Browser Tool Misuse</h3>
+              <div class="card-badges">
+                <span class="badge-qa" aria-label="QA agent">
+                  <i data-lucide="shield-check"></i>
+                  QA
+                </span>
+                <!-- No HUD badge — user-created -->
+              </div>
+            </div>
+
+            <p class="card-desc" style="margin-top:8px;">
+              Flag traces where the agent calls the browser API outside the scenario's intended scope.
+              <span class="taskset-pill">attached to 3 tasksets</span>
+            </p>
+
+            <div class="card-divider"></div>
+
+            <div class="card-slug-row">
+              <code class="card-slug" aria-label="Scenario: browser:tool_misuse_check">browser:tool_misuse_check</code>
+              <button class="copy-btn" type="button" aria-label="Copy scenario slug">
+                <i data-lucide="copy"></i>
+              </button>
+            </div>
+            <div class="card-model">Claude Sonnet 4.5</div>
+
+            <div class="card-divider"></div>
+
+            <div class="card-run-row">
+              <span class="card-run-signal">↗ 3 tasksets · 27 runs · today 8:21 AM</span>
+              <button class="btn-use" type="button" aria-label="Use Browser Tool Misuse">Use →</button>
+            </div>
+          </article>
+
+        </div><!-- /card-grid -->
+      </section>
+
+    </div><!-- /content -->
+
+  </main>
+</div>
+
+<script>
+  lucide.createIcons();
+</script>
+
+</body>
+</html>
