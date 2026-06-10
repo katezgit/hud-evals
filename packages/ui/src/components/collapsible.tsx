@@ -4,8 +4,7 @@ import { Collapsible as CollapsiblePrimitive } from "radix-ui"
 
 import { cn } from "@repo/ui/lib/cn"
 
-export interface CollapsibleProps
-  extends React.ComponentPropsWithoutRef<typeof CollapsiblePrimitive.Root> {}
+export type CollapsibleProps = React.ComponentPropsWithoutRef<typeof CollapsiblePrimitive.Root>
 
 const Collapsible = React.forwardRef<
   React.ElementRef<typeof CollapsiblePrimitive.Root>,
@@ -22,10 +21,7 @@ const Collapsible = React.forwardRef<
 Collapsible.displayName = "Collapsible"
 
 // UNSTYLED — callers compose their own trigger element via asChild (e.g. ghost Button + chevron).
-export interface CollapsibleTriggerProps
-  extends React.ComponentPropsWithoutRef<
-    typeof CollapsiblePrimitive.Trigger
-  > {}
+export type CollapsibleTriggerProps = React.ComponentPropsWithoutRef<typeof CollapsiblePrimitive.Trigger>
 
 const CollapsibleTrigger = React.forwardRef<
   React.ElementRef<typeof CollapsiblePrimitive.Trigger>,
@@ -36,10 +32,7 @@ const CollapsibleTrigger = React.forwardRef<
 
 CollapsibleTrigger.displayName = "CollapsibleTrigger"
 
-export interface CollapsibleContentProps
-  extends React.ComponentPropsWithoutRef<
-    typeof CollapsiblePrimitive.Content
-  > {}
+export type CollapsibleContentProps = React.ComponentPropsWithoutRef<typeof CollapsiblePrimitive.Content>
 
 const CollapsibleContent = React.forwardRef<
   React.ElementRef<typeof CollapsiblePrimitive.Content>,

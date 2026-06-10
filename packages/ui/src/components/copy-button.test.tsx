@@ -39,7 +39,6 @@ describe("CopyButton", () => {
       setupUser()
       renderCopyButton({ value: "abc123" })
       const btn = screen.getByRole("button", { name: "Copy abc123" })
-      // eslint-disable-next-line testing-library/no-node-access
       const svg = btn.querySelector("svg")
       expect(svg).toBeInTheDocument()
       expect(svg).toHaveAttribute("aria-hidden", "true")
@@ -206,7 +205,6 @@ describe("CopyButton", () => {
       setupUser()
       renderCopyButton({ value: "abc123" })
       const btn = screen.getByRole("button", { name: "Copy abc123" })
-      // eslint-disable-next-line testing-library/no-node-access
       const svg = btn.querySelector("svg")
       expect(svg).toHaveAttribute("aria-hidden", "true")
     })
@@ -216,7 +214,6 @@ describe("CopyButton", () => {
       renderCopyButton({ value: "abc123" })
       await user.click(screen.getByRole("button", { name: "Copy abc123" }))
       const btn = screen.getByRole("button", { name: "Copied abc123" })
-      // eslint-disable-next-line testing-library/no-node-access
       const svg = btn.querySelector("svg")
       expect(svg).toHaveAttribute("aria-hidden", "true")
     })

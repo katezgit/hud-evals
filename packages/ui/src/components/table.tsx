@@ -368,7 +368,7 @@ function TableSkeletonRow({ colCount, density: densityProp, className }: TableSk
     >
       {Array.from({ length: colCount }, (_, i) => (
         <td key={i} className="px-3 py-2">
-          <div className="h-3 rounded-sm bg-muted animate-[shimmer_1800ms_linear_infinite] bg-[size:200%_100%] bg-gradient-to-r from-muted via-elevated to-muted" />
+          <div className="h-3 rounded-sm bg-muted animate-[shimmer_1800ms_linear_infinite] bg-[size:200%_100%] bg-gradient-to-r from-muted via-elevated to-muted" /> {/* eslint-disable-line no-restricted-syntax -- bg-[size:...] is background-size shorthand; no token equivalent */}
         </td>
       ))}
     </tr>

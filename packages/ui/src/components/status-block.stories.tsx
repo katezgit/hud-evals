@@ -35,11 +35,11 @@ type Story = StoryObj<typeof meta>
 function SampleChildren() {
   return (
     <>
-      <div className="flex items-baseline justify-between font-mono text-[11px]">
+      <div className="flex items-baseline justify-between font-mono text-[11px]"> {/* eslint-disable-line no-restricted-syntax -- no 11px text token; matches StatusBlock internal layout */}
         <span className="text-muted-foreground">quota</span>
         <span className="font-medium text-foreground tabular-nums">8,400 / 10,000</span>
       </div>
-      <p className="mt-1.5 font-mono text-[11px] text-meta-foreground">
+      <p className="mt-1.5 font-mono text-[11px] text-meta-foreground"> {/* eslint-disable-line no-restricted-syntax -- no 11px text token */}
         ~120 units/hr · ~14h left
       </p>
     </>
@@ -73,14 +73,14 @@ export const Destructive: Story = {
 export const WithProgressAndAction: Story = {
   render: (args) => (
     <StatusBlock {...args} tone="destructive">
-      <div className="font-mono text-[11px] font-medium">items</div>
-      <div className="mt-0.5 text-right font-mono text-[11px] font-semibold tabular-nums">
+      <div className="font-mono text-[11px] font-medium">items</div> {/* eslint-disable-line no-restricted-syntax -- no 11px text token */}
+      <div className="mt-0.5 text-right font-mono text-[11px] font-semibold tabular-nums"> {/* eslint-disable-line no-restricted-syntax -- no 11px text token */}
         0 / 100
       </div>
       <div className="mt-1.5">
         <Progress value={0} state="error" aria-hidden="true" />
       </div>
-      <div className="mt-1.5 flex items-baseline justify-between gap-2 font-mono text-[11px] font-medium">
+      <div className="mt-1.5 flex items-baseline justify-between gap-2 font-mono text-[11px] font-medium"> {/* eslint-disable-line no-restricted-syntax -- no 11px text token */}
         <span>No items remaining</span>
         <a href="#" className="whitespace-nowrap hover:underline">
           Add Items →
