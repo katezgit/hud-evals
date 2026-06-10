@@ -219,19 +219,22 @@ export default function ModelsCatalog() {
         cell: (info) => {
           const m = info.row.original;
           return (
-            <div className="flex items-start gap-2">
-              <ProviderIcon provider={m.provider} className="mt-0.5" />
-              <div className="flex min-w-0 flex-col gap-1">
-                <span className="inline-flex items-center gap-2">
-                  <Link
-                    href={`/models/${m.modelId}`}
-                    className="text-body font-medium text-foreground hover:underline"
-                  >
-                    {m.name}
-                  </Link>
-                  {m.isPrivate && <VisibilityIcon visibility="private" />}
-                </span>
-                <div className="flex items-center gap-1">
+            <div className="flex items-start gap-2 leading-tight">
+              <ProviderIcon provider={m.provider} className="mt-px shrink-0" />
+              <div className="min-w-0">
+                <Link
+                  href={`/models/${m.modelId}`}
+                  className="text-body font-medium text-foreground hover:underline"
+                >
+                  {m.name}
+                </Link>
+                {m.isPrivate && (
+                  <VisibilityIcon
+                    visibility="private"
+                    className="ml-2 inline align-middle"
+                  />
+                )}
+                <div className="mt-0.5 flex items-center gap-1">
                   <code className="font-mono text-caption text-muted-foreground">
                     {m.modelId}
                   </code>
