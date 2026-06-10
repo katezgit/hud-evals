@@ -1,15 +1,9 @@
-interface AuthLayoutProps {
-  children: React.ReactNode;
-}
+import type { ReactNode } from "react";
 
-// (auth) group — public, no session gate. Centered card chrome.
-// Middleware already redirects authed users hitting /login or /register to /.
-export default function AuthLayout({ children }: AuthLayoutProps) {
+export default function AuthLayout({ children }: { children: ReactNode }) {
   return (
-    <div className="flex min-h-dvh items-center justify-center bg-background p-6">
-      <div className="w-full max-w-sm rounded-surface border border-border bg-panel p-8 shadow-card">
-        {children}
-      </div>
-    </div>
+    <main className="flex min-h-screen items-center justify-center bg-muted p-6">
+      <div className="w-full max-w-[400px]">{children}</div>
+    </main>
   );
 }
