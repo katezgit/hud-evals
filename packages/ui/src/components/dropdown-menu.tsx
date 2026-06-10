@@ -89,6 +89,10 @@ function DropdownMenuItem({
         // data-[highlighted] fires on both pointer hover + keyboard nav — sidesteps the
         // Tailwind v4 :hover/:focus cascade issue. No font-medium (weight shift jitters glyphs).
         "data-[highlighted]:bg-highlight",
+        // Suppress global *:focus-visible ring — bg-highlight is the sole active-option indicator.
+        // Forced-colors fallback restores a visible outline in Windows HC mode.
+        "focus-visible:shadow-none focus-visible:outline-none",
+        "forced-colors:focus-visible:outline-2 forced-colors:focus-visible:outline-current",
         "data-[highlighted]:[&_svg:not([class*='text-destructive'])]:text-foreground",
         "[&_svg:not([class*='text-destructive'])]:text-muted-foreground",
         // cursor-not-allowed kept without pointer-events-none — Radix gates clicks internally.
@@ -120,6 +124,10 @@ function DropdownMenuCheckboxItem({
         "text-body text-popover-foreground outline-hidden",
         // data-[highlighted] fires on both pointer + keyboard; no font-medium (weight shift jitters glyphs).
         "data-[highlighted]:bg-highlight",
+        // Suppress global *:focus-visible ring — bg-highlight is the sole active-option indicator.
+        // Forced-colors fallback restores a visible outline in Windows HC mode.
+        "focus-visible:shadow-none focus-visible:outline-none",
+        "forced-colors:focus-visible:outline-2 forced-colors:focus-visible:outline-current",
         // cursor-not-allowed kept without pointer-events-none — Radix gates clicks internally.
         "data-[disabled]:cursor-not-allowed data-[disabled]:text-text-disabled",
         "[&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
@@ -162,6 +170,10 @@ function DropdownMenuRadioItem({
         "text-body text-popover-foreground outline-hidden",
         // data-[highlighted] fires on both pointer + keyboard; no font-medium (weight shift jitters glyphs).
         "data-[highlighted]:bg-highlight",
+        // Suppress global *:focus-visible ring — bg-highlight is the sole active-option indicator.
+        // Forced-colors fallback restores a visible outline in Windows HC mode.
+        "focus-visible:shadow-none focus-visible:outline-none",
+        "forced-colors:focus-visible:outline-2 forced-colors:focus-visible:outline-current",
         // cursor-not-allowed kept without pointer-events-none — Radix gates clicks internally.
         "data-[disabled]:cursor-not-allowed data-[disabled]:text-text-disabled",
         "[&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
@@ -251,6 +263,10 @@ function DropdownMenuSubTrigger({
         "text-body text-popover-foreground outline-hidden",
         // data-[highlighted] fires on both pointer + keyboard; no font-medium (weight shift jitters glyphs).
         "data-[highlighted]:bg-highlight",
+        // Suppress global *:focus-visible ring — bg-highlight is the sole active-option indicator.
+        // Forced-colors fallback restores a visible outline in Windows HC mode.
+        "focus-visible:shadow-none focus-visible:outline-none",
+        "forced-colors:focus-visible:outline-2 forced-colors:focus-visible:outline-current",
         // data-[state=open]: sub-menu open with cursor parked here; bg-border persists (no flicker on open).
         "data-[state=open]:bg-border",
         "data-[inset]:pl-8",
