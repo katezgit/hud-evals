@@ -219,8 +219,8 @@ export default function ModelsCatalog() {
         cell: (info) => {
           const m = info.row.original;
           return (
-            <div className="flex items-center gap-2">
-              <ProviderIcon provider={m.provider} />
+            <div className="flex items-start gap-2">
+              <ProviderIcon provider={m.provider} className="mt-0.5" />
               <div className="flex min-w-0 flex-col gap-0.5">
                 <div className="flex items-center gap-2">
                   <Link
