@@ -95,7 +95,15 @@ export function ApiKeysClient({ initialKeys }: ApiKeysClientProps) {
         header: "Expires",
         cell: (info) => {
           const value = info.getValue();
-          return value ? DATE_FMT.format(new Date(value)) : "Never";
+          if (value) return DATE_FMT.format(new Date(value));
+          return (
+            <div className="flex flex-col gap-0.5">
+              <span>Never</span>
+              <span className="text-meta italic text-meta-foreground">
+                Set on creation only — revoke to change.
+              </span>
+            </div>
+          );
         },
         meta: { cellClassName: "font-mono text-label text-muted-foreground" },
       }),
