@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react";
 import React from "react";
 
 const meta: Meta = {
-  title: "Design Tokens/3. Typography",
+  title: "Design Tokens/2. Typography",
   parameters: { layout: "padded" },
 };
 export default meta;

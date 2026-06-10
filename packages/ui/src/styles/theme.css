@@ -63,6 +63,17 @@
    *   border-strong: +10pp alpha for selected/active edges */
   --color-border:        light-dark(rgb(var(--border-seed-light) / .17), rgb(var(--border-seed-dark) / .08));
   --color-border-strong: light-dark(rgb(var(--border-seed-light) / .28), rgb(var(--border-seed-dark) / .18));
+  /* Code block surface — PINNED flat literals; always dark in both themes.
+   * Light mode: high-contrast pop against page bg.
+   * Dark mode: --ink-900 (#18212E) reads visibly lighter than --surface-bg-dark (#0C1016). */
+  --color-code-bg:     var(--ink-900);             /* #18212E — block body + header */
+  --color-code-fg:     var(--ink-50);              /* #E8EEF5 — primary code text */
+  --color-code-muted:  var(--ink-100);             /* #B3BFCE — language label */
+  --color-code-border: rgba(255 255 255 / .08);    /* hairline on dark surface */
+  /* Highlighted option — select-kind components (Select, Command, DropdownMenu, Combobox, MultiSelect).
+   * References --surface-elevated primitive directly: subtle visible lift on panel/bg surfaces,
+   * no magic alpha values. Light #F0F2F6 (~6% gray on white panel) / dark #161D28 (clear lift from #11161F panel). */
+  --color-highlight:     light-dark(var(--surface-elevated-light), var(--surface-elevated-dark));
 
   /* ═══════════════════════════════════════════════════════════════════════════
    * IDENTITY — brand-meaningful hues. Sparse usage.
@@ -109,9 +120,10 @@
 
   /* Interaction surfaces. hover / surface-hover currently match; kept separate
    * for future role divergence. */
-  --color-surface-hover: light-dark(var(--surface-elevated-light),  var(--surface-elevated-dark));
-  --color-selected:      light-dark(var(--surface-secondary-light), var(--surface-secondary-dark));
-  --color-hover:         light-dark(var(--surface-elevated-light),  var(--surface-elevated-dark));
+  --color-surface-hover:  light-dark(var(--surface-elevated-light),  var(--surface-elevated-dark));
+  --color-selected:       light-dark(var(--surface-secondary-light), var(--surface-secondary-dark));
+  --color-hover:          light-dark(var(--surface-elevated-light),  var(--surface-elevated-dark));
+  --color-control-raised: light-dark(var(--surface-panel-light),     var(--surface-elevated-dark));
 
   /* Focus ring + glow. */
   --color-ring:      light-dark(var(--teal-700), var(--teal-500));
@@ -195,16 +207,14 @@
 }
 
 /* ─── Overlay roles ──────────────────────────────────────────────────────────
- * --color-overlay-* live in @theme (generate bg-overlay-* utilities).
- * --blur-overlay-* live in :root (composite values; not blur amounts — no
- * blur-overlay-* utility should exist). Reference with prop-(--blur-overlay-*)
- * syntax, same pattern as --motion-* composites. */
+ * --color-overlay-* and --blur-overlay-* live in @theme so they generate
+ * rank-1 utilities (bg-overlay-*, backdrop-blur-overlay-*). */
 @theme {
   --color-overlay-dialog: color-mix(in srgb, var(--neutral-950) 10%, transparent);
   --color-overlay-drawer: color-mix(in srgb, var(--neutral-950)  2%, transparent);
 }
 
-:root {
+@theme inline {
   --blur-overlay-dialog: var(--blur-xs);   /* 4px — heavier; content behind recedes */
   --blur-overlay-drawer: 2px;              /* lighter; background reads through */
 }
@@ -254,6 +264,7 @@
 /* ─── Blur ───────────────────────────────────────────────────────────────────*/
 @theme inline {
   --blur-2xs: var(--blur-2xs);
+  --blur-xs:  var(--blur-xs);
 }
 
 /* ─── Duration ───────────────────────────────────────────────────────────────*/
@@ -281,8 +292,10 @@
   --animate-slide-up-in:    var(--animate-slide-up-in);
   --animate-slide-down-out: var(--animate-slide-down-out);
   --animate-row-reveal:     var(--animate-row-reveal);
-  --animate-shimmer:        var(--animate-shimmer);
-  --animate-running-pulse:  var(--animate-running-pulse);
+  --animate-shimmer:         var(--animate-shimmer);
+  --animate-running-pulse:   var(--animate-running-pulse);
+  --animate-slide-right-in:  var(--animate-slide-right-in);
+  --animate-slide-left-out:  var(--animate-slide-left-out);
 }
 
 
@@ -291,6 +304,8 @@
 @theme {
   /* Badge */
   --radius-badge: var(--radius-sm);
+  /* Surface — cards, dialogs, toasts; mirrors --radius-lg (8px) from primitive.css */
+  --radius-surface: var(--radius-surface);
 }
 
 /* ─── Reduced motion ─────────────────────────────────────────────────────────

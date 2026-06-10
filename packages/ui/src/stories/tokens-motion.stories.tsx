@@ -83,7 +83,7 @@ export const DurationScale: StoryObj = {
         Duration scale — 4 steps, 80–220ms ceiling
       </p>
       <DurationRow token="--duration-instant" label="80ms"  usage="Hover bg, press overlay" widthPct={36} />
-      <DurationRow token="--duration-fast"    label="120ms" usage="Focus ring, badge state change, icon swap" widthPct={54} />
+      <DurationRow token="--duration-fast"    label="120ms" usage="Focus ring, badge state change, icon swap" widthPct={55} />
       <DurationRow token="--duration-subtle"  label="180ms" usage="Button press scale, row select highlight" widthPct={82} />
       <DurationRow token="--duration-base"    label="220ms" usage="Modal/popover enter, row reveal, skeleton shimmer" widthPct={100} />
       <p
