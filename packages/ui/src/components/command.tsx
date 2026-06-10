@@ -155,8 +155,8 @@ function CommandGroup({
       className={cn(
         "overflow-hidden p-1",
         "text-foreground",
-        "[&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:py-1.5",
-        "[&_[cmdk-group-heading]]:text-label [&_[cmdk-group-heading]]:font-sans [&_[cmdk-group-heading]]:text-muted-foreground",
+        "[&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:pt-3 [&_[cmdk-group-heading]]:pb-1",
+        "[&_[cmdk-group-heading]]:text-meta [&_[cmdk-group-heading]]:font-sans [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:text-muted-foreground [&_[cmdk-group-heading]]:uppercase",
         className
       )}
       {...props}
