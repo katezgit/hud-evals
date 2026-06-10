@@ -88,7 +88,7 @@ function DropdownMenuItem({
         "text-body text-popover-foreground outline-hidden",
         // data-[highlighted] fires on both pointer hover + keyboard nav — sidesteps the
         // Tailwind v4 :hover/:focus cascade issue. No font-medium (weight shift jitters glyphs).
-        "data-[highlighted]:bg-border",
+        "data-[highlighted]:bg-highlight",
         "data-[highlighted]:[&_svg:not([class*='text-destructive'])]:text-foreground",
         "[&_svg:not([class*='text-destructive'])]:text-muted-foreground",
         // cursor-not-allowed kept without pointer-events-none — Radix gates clicks internally.
@@ -119,7 +119,7 @@ function DropdownMenuCheckboxItem({
         "relative flex cursor-default select-none items-center gap-2 rounded-md py-1.5 pr-2 pl-8",
         "text-body text-popover-foreground outline-hidden",
         // data-[highlighted] fires on both pointer + keyboard; no font-medium (weight shift jitters glyphs).
-        "data-[highlighted]:bg-border",
+        "data-[highlighted]:bg-highlight",
         // cursor-not-allowed kept without pointer-events-none — Radix gates clicks internally.
         "data-[disabled]:cursor-not-allowed data-[disabled]:text-text-disabled",
         "[&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
@@ -161,7 +161,7 @@ function DropdownMenuRadioItem({
         "relative flex cursor-default select-none items-center gap-2 rounded-md py-1.5 pr-2 pl-8",
         "text-body text-popover-foreground outline-hidden",
         // data-[highlighted] fires on both pointer + keyboard; no font-medium (weight shift jitters glyphs).
-        "data-[highlighted]:bg-border",
+        "data-[highlighted]:bg-highlight",
         // cursor-not-allowed kept without pointer-events-none — Radix gates clicks internally.
         "data-[disabled]:cursor-not-allowed data-[disabled]:text-text-disabled",
         "[&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
@@ -250,7 +250,7 @@ function DropdownMenuSubTrigger({
         "flex cursor-default select-none items-center gap-2 rounded-md px-2 py-1.5",
         "text-body text-popover-foreground outline-hidden",
         // data-[highlighted] fires on both pointer + keyboard; no font-medium (weight shift jitters glyphs).
-        "data-[highlighted]:bg-border",
+        "data-[highlighted]:bg-highlight",
         // data-[state=open]: sub-menu open with cursor parked here; bg-border persists (no flicker on open).
         "data-[state=open]:bg-border",
         "data-[inset]:pl-8",

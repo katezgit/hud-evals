@@ -181,8 +181,8 @@ function CommandItem({
         "text-body text-foreground",
         "outline-none",
         // cmdk unifies keyboard + pointer cursor into data-[selected=true] — no hover: variant needed.
-        // bg-border matches Select's data-[highlighted]; no font-medium (weight shift jitters glyphs).
-        "data-[selected=true]:bg-border",
+        // bg-highlight matches Select's data-[highlighted] — see --color-highlight in theme.css; no font-medium (weight shift jitters glyphs).
+        "data-[selected=true]:bg-highlight",
         "data-[selected=true]:[&_svg]:text-foreground",
         "[&_svg]:text-muted-foreground",
         // cursor-not-allowed kept without pointer-events-none — cmdk gates onSelect; OS cursor signal preserved.

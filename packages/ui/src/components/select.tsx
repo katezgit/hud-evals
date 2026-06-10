@@ -147,7 +147,7 @@ function SelectItem({
         // Radix's data-[highlighted] fires on both pointer hover + keyboard nav — sidesteps the
         // Tailwind v4 :hover/:focus cascade where focus: always wins. No font-medium on highlight
         // or selected (weight shift jitters glyphs across rows; selection is signaled by indicator).
-        "data-[highlighted]:bg-border",
+        "data-[highlighted]:bg-highlight",
         "data-[highlighted]:[&_svg]:text-foreground",
         "[&_svg]:text-muted-foreground",
         // cursor-not-allowed kept without pointer-events-none — Radix gates clicks internally.

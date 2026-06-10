@@ -63,6 +63,9 @@
    *   border-strong: +10pp alpha for selected/active edges */
   --color-border:        light-dark(rgb(var(--border-seed-light) / .17), rgb(var(--border-seed-dark) / .08));
   --color-border-strong: light-dark(rgb(var(--border-seed-light) / .28), rgb(var(--border-seed-dark) / .18));
+  /* Highlighted option — select-kind components (Select, Command, DropdownMenu, Combobox, MultiSelect).
+   * Lighter than --color-border (.17/.08) — reads as state without competing with selection or edges. */
+  --color-highlight:     light-dark(rgb(var(--border-seed-light) / .12), rgb(var(--border-seed-dark) / .06));
 
   /* ═══════════════════════════════════════════════════════════════════════════
    * IDENTITY — brand-meaningful hues. Sparse usage.
