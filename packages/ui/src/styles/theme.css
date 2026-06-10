@@ -71,8 +71,9 @@
   --color-code-muted:  var(--ink-100);             /* #B3BFCE — language label */
   --color-code-border: rgba(255 255 255 / .08);    /* hairline on dark surface */
   /* Highlighted option — select-kind components (Select, Command, DropdownMenu, Combobox, MultiSelect).
-   * Lighter than --color-border (.17/.08) — reads as state without competing with selection or edges. */
-  --color-highlight:     light-dark(rgb(var(--border-seed-light) / .12), rgb(var(--border-seed-dark) / .06));
+   * References --surface-elevated primitive directly: subtle visible lift on panel/bg surfaces,
+   * no magic alpha values. Light #F0F2F6 (~6% gray on white panel) / dark #161D28 (clear lift from #11161F panel). */
+  --color-highlight:     light-dark(var(--surface-elevated-light), var(--surface-elevated-dark));
 
   /* ═══════════════════════════════════════════════════════════════════════════
    * IDENTITY — brand-meaningful hues. Sparse usage.
