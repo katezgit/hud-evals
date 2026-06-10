@@ -1,10 +1,8 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Users } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { Button } from "@repo/ui/components/button";
 import { Card } from "@repo/ui/components/card";
 import { CopyButton } from "@repo/ui/components/copy-button";
 import { Input } from "@repo/ui/components/input";
@@ -132,19 +130,6 @@ export function OrganizationAdminView() {
           />
         </form>
       </Panel>
-
-      <Card className="mb-4 flex flex-row items-center gap-3 border-border bg-muted px-4 py-4">
-        <Users aria-hidden="true" className="size-4 shrink-0 text-muted-foreground" />
-        <div className="flex-1 text-body text-foreground">
-          <p>
-            <strong className="font-semibold">Working solo?</strong> A personal account is just an
-            org of one. Invite teammates whenever you&rsquo;re ready — same structure scales up.
-          </p>
-        </div>
-        <Button variant="secondary" size="sm">
-          Set up team
-        </Button>
-      </Card>
 
       <Card className="mb-4 px-4 py-4">
         <div className="flex items-start justify-between gap-3">
