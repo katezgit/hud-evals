@@ -126,8 +126,14 @@ describe("tableRowVariants", () => {
     expect(cls).toContain("ease-out-standard")
   })
 
-  it("compact density variant returns a string without error", () => {
-    expect(typeof tableRowVariants({ density: "compact" })).toBe("string")
+  it("default density includes h-9", () => {
+    const cls = tableRowVariants({ density: "default" })
+    expect(cls).toContain("h-9")
+  })
+
+  it("compact density includes h-8", () => {
+    const cls = tableRowVariants({ density: "compact" })
+    expect(cls).toContain("h-8")
   })
 })
 
@@ -147,9 +153,9 @@ describe("tableCellVariants", () => {
     expect(cls).toContain("font-normal")
   })
 
-  it("default density includes px-3 (no vertical padding)", () => {
+  it("default density includes px-4 (no vertical padding)", () => {
     const cls = tableCellVariants()
-    expect(cls).toContain("px-3")
+    expect(cls).toContain("px-4")
     expect(cls).not.toContain("py-")
   })
 
