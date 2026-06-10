@@ -480,9 +480,9 @@ ManageShell collapses to an identical icon rail. The "← Back to app" item beco
 
 ```
 ┌──────────────────────────────────────────────────┐
-│  TOP BAR  h-12  border-b  bg-sidebar             │
-│  ┌──┐  [■] HUD                          [D]      │
-│  │☰ │  hamburger  brand mark+wordmark   avatar   │
+│  TOP BAR  h-12  border-b  bg-muted               │
+│  ┌──┐  [■·]               [4,230] [D]            │
+│  │☰ │  mark+dot (no wdmk)  chip    avatar         │
 │  └──┘                                            │
 ├──────────────────────────────────────────────────┤
 │  MAIN CONTENT  flex-1                            │
@@ -494,8 +494,37 @@ ManageShell collapses to an identical icon rail. The "← Back to app" item beco
 
 Sidebar is hidden by default. A top bar replaces it:
 - Left: hamburger icon button (`aria-label="Open navigation"`, `aria-expanded` reflects state)
-- Center: brand mark + wordmark
-- Right: user avatar (tapping opens the org switcher popover directly, bypassing the drawer — this is a shortcut for org switching and sign-out from mobile)
+- Center: `BrandMark` in collapsed (mark + gold dot only) mode — wordmark is dropped on mobile. Layout rationale: `justify-between` with an asymmetric right cluster would push the brand off-center if the wordmark is retained; mark-only is the standard resolution. Redundancy rationale: user has already opened the app.
+- Right cluster (`flex items-center gap-1`): **credits chip** + user avatar
+
+**Credits chip (`MobileCreditsChip`) — sm only:**
+
+The chip is a compact inline display of the current credits balance. It links to `/manage/usage` (same destination as the sidebar `CreditsPill`). It does NOT appear at `md+` — it renders inside `MobileTopBar` which is already `md:hidden`.
+
+- Format: adaptive — `< 10,000` → full comma-separated (`4,230`); `≥ 10,000` → compact rounded (`42k`). Hundreds matter when balance is in the thousands (4.2k vs 4.8k is a real call at 200 cr/hr burn); above 10k they don't.
+- Typography: `font-mono text-label tabular-nums`
+- Healthy color: `text-meta-foreground`; on hover: `text-foreground`
+- Tap target: `min-h-8 px-1.5` — entire chip is the link; ≥ 32px height
+- Hover: `bg-hover` tint (same as other nav affordances)
+
+**Credits chip state variants (sm only):**
+
+| State     | Display            | Color                  | Note                                    |
+| --------- | ------------------ | ---------------------- | --------------------------------------- |
+| Healthy   | `4,230` or `42k`   | `text-meta-foreground` | Adaptive format per rule above          |
+| Zero      | `0`                | `text-destructive`     | No inline CTA — tap navigates to usage  |
+| Unlimited | chip hidden        | —                      | `total === 0` convention; avatar shifts left |
+| Loading   | skeleton `w-10 h-4`| `bg-muted-foreground/20` | Fixed width; avatar position does not shift |
+
+No intermediate warning state (e.g., "low" at 10%) — only zero is unambiguous and actionable at a glance.
+
+**Top-bar item reference (sm):**
+
+```
+[hamburger 36px] [mark·dot ~24px] ···gap··· [chip ~42–51px] [gap-1 4px] [avatar 32px]
+px-3 12px each side
+Total at 375px: 12 + 36 + 24 + 51 + 4 + 32 + 12 = 171px · slack: 204px ✓
+```
 
 **Drawer (tap hamburger to open):**
 

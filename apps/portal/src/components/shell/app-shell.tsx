@@ -37,6 +37,7 @@ import { AvatarMenu, AvatarMenuCollapsed } from "@/components/shell/avatar-menu"
 import { BrandMark } from "@/components/shell/brand-mark";
 import { CreditsPill, CreditsIconButton } from "@/components/shell/credits-pill";
 import { DevRoleSwitcher } from "@/components/shell/dev-role-switcher";
+import { MobileCreditsChip } from "@/components/shell/mobile-credits-chip";
 import { SidebarProvider } from "@/components/shell/sidebar-context";
 import { SidebarNavLink } from "@/components/shell/sidebar-nav-link";
 import { useActiveJobs } from "@/components/shell/use-active-jobs";
@@ -140,6 +141,7 @@ export function AppShell({ email, name, children }: AppShellProps) {
               user={user}
               currentOrg={currentOrg}
               orgs={orgList}
+              creditState={creditState}
             />
 
             <main id="main-content" className="flex-1 overflow-y-auto">
@@ -363,23 +365,36 @@ interface MobileTopBarProps {
   user: { name: string; email: string };
   currentOrg: Org;
   orgs: ReadonlyArray<OrgMembership>;
+  creditState: CreditState;
 }
 
-function MobileTopBar({ drawerOpen, onOpenDrawer, user, currentOrg, orgs }: MobileTopBarProps) {
+function MobileTopBar({
+  drawerOpen,
+  onOpenDrawer,
+  user,
+  currentOrg,
+  orgs,
+  creditState,
+}: MobileTopBarProps) {
   return (
     <header className="flex h-12 shrink-0 items-center justify-between border-b border-border bg-muted px-3 md:hidden">
-      <IconButton
-        variant="ghost"
-        size="md"
-        aria-label="Open navigation"
-        aria-expanded={drawerOpen}
-        aria-controls={MOBILE_DRAWER_ID}
-        onClick={onOpenDrawer}
-      >
-        <Menu />
-      </IconButton>
-      <BrandMark />
-      <AvatarMenuCollapsed user={user} currentOrg={currentOrg} orgs={orgs} />
+      <div className="flex items-center gap-1">
+        <IconButton
+          variant="ghost"
+          size="md"
+          aria-label="Open navigation"
+          aria-expanded={drawerOpen}
+          aria-controls={MOBILE_DRAWER_ID}
+          onClick={onOpenDrawer}
+        >
+          <Menu />
+        </IconButton>
+        <BrandMark />
+      </div>
+      <div className="flex items-center gap-1">
+        <MobileCreditsChip state={creditState} />
+        <AvatarMenuCollapsed user={user} currentOrg={currentOrg} orgs={orgs} />
+      </div>
     </header>
   );
 }
