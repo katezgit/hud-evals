@@ -1,0 +1,1114 @@
+<!--
+  filename: v3-scenarios-tab.html
+  CHECKPOINT 3 — Environment Detail · Variant C (private owner) · Scenarios tab (dedicated tab)
+  Scope: App-shell chrome + sticky page header + tab bar (Scenarios tab active)
+         §5a: Scenarios (6) — 2-column card gallery showing all three card states:
+              - default/collapsed (2 cards; one with amber warning)
+              - schema expanded (2 cards; one with amber warning)
+              - source expanded (2 cards; one also schema-expanded per Decision 3)
+         §5b: Empty state — below .state-label divider
+
+  DISTINCTION: This is the dedicated Scenarios tab — a full gallery with schema/source expansion.
+  The Overview tab has an ABBREVIATED scenarios section (3-col grid, abbreviated cards, no schema/source)
+  that is separate from this deeper view. See v1.html for the Overview's abbreviated Scenarios section.
+
+  DRAWER CONTEXT: The `Load this scenario →` CTA on each card here navigates the user back to the
+  Overview tab with the Configure drawer open for the chosen scenario (per spec §5a annotation).
+  There is no right column on the Scenarios tab — the drawer is an Overview-tab construct.
+  Cards occupy full Scenarios tab width (2-column gallery at desktop, 1-column at mobile).
+
+  Token source: verbatim from v1.html (:root block, .shell-layout, .sidebar, .main-region)
+  Canonical spec: docs/design/screens/environment-detail.wireframe.md §5 (§5a + §5b) + Decision 3
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Environment Detail — Checkpoint 3 · Scenarios tab (hud-browser, private owner)</title>
+  <style>
+    /* ── Reset ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    /* ─────────────────────────────────────────────────
+       TOKEN ROOT — verbatim from v1.html
+    ───────────────────────────────────────────────── */
+    :root {
+      --sidebar-bg:    #0f1117;
+      --sidebar-border:#1e2230;
+      --page-bg:       #090c12;
+      --accent:        #10b981;
+      --accent-subtle: rgba(16,185,129,0.10);
+      --muted-fg:      #6b7280;
+      --default-fg:    #e5e7eb;
+      --brand-mark:    #f59e0b;
+
+      /* Detail page content tokens — namespaced ed- (environment-detail),
+         hex values inherited verbatim from v1.html */
+      --ed-bg:         #0f0f10;
+      --ed-bg-raised:  #17171a;
+      --ed-bg-input:   #1e1e23;
+      --ed-border:     #2a2a30;
+      --ed-border-mid: #333340;
+      --ed-muted:      #6b6b7a;
+      --ed-dim:        #8f8fa0;
+      --ed-body:       #c4c4d0;
+      --ed-heading:    #eeeef2;
+      --ed-green:      #3dd68c;
+      --ed-amber:      #e8a72e;
+      --ed-red:        #e05252;
+      --ed-blue:       #4b8ef0;
+      --ed-purple:     #9d78f0;
+
+      /* Scenarios-tab-specific derivatives — all via var(--ed-*) */
+      --ed-code-bg:          var(--ed-bg-input);        /* monospace code block background */
+      --ed-code-border:      var(--ed-border);          /* code block border */
+      --ed-schema-bg:        var(--ed-bg-raised);       /* schema block background */
+      --ed-schema-border:    var(--ed-border);          /* schema block top rule */
+      --ed-schema-required:  var(--ed-amber);           /* * required param star */
+      --ed-schema-type:      var(--ed-muted);           /* type column color */
+      --ed-card-gap:         16px;                      /* PINNED: 2-col gallery gap */
+
+      --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+      --mono: "SF Mono", "Fira Code", "Cascadia Code", Consolas, monospace;
+    }
+
+    html, body {
+      height: 100%;
+      font-family: var(--sans);
+      font-size: 13px;
+      background: #06080e;
+      color: var(--default-fg);
+      line-height: 1.5;
+    }
+
+    /* ═══════════════════════════════════
+       OUTER CHROME — app shell (verbatim from v1)
+    ═══════════════════════════════════ */
+    .shell-layout {
+      display: flex;
+      height: 100vh;
+      min-height: 600px;
+    }
+
+    /* ── Sidebar (verbatim from v1) ── */
+    .sidebar {
+      background: var(--sidebar-bg);
+      border-right: 1px solid var(--sidebar-border);
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      width: 220px;
+      height: 100%;
+      overflow-y: auto;
+      overflow-x: hidden;
+    }
+    .brand-slot {
+      display: flex; align-items: center; gap: 8px;
+      padding: 14px 16px 12px;
+      border-bottom: 1px solid var(--sidebar-border);
+      flex-shrink: 0;
+    }
+    .brand-mark {
+      width: 20px; height: 20px;
+      background: var(--brand-mark); border-radius: 4px;
+      flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .brand-wordmark { font-size: 14px; font-weight: 700; color: var(--default-fg); letter-spacing: -0.02em; }
+    .group-label {
+      font-size: 10px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--muted-fg); padding: 0 16px; margin-top: 20px; margin-bottom: 4px;
+    }
+    .nav-item {
+      display: flex; align-items: center; gap: 8px; padding: 5px 12px;
+      font-size: 13px; color: var(--muted-fg); cursor: pointer;
+      position: relative; border-radius: 4px; margin: 1px 4px;
+      text-decoration: none;
+    }
+    .nav-item:hover { background: rgba(255,255,255,0.04); color: var(--default-fg); }
+    .nav-item.selected { color: var(--accent); background: var(--accent-subtle); }
+    .nav-item.selected::before {
+      content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 2px;
+      background: var(--accent); border-radius: 0 2px 2px 0;
+    }
+    .nav-item-icon { width: 16px; height: 16px; flex-shrink: 0; color: inherit; opacity: 0.8; }
+    .nav-item.selected .nav-item-icon { opacity: 1; }
+    .nav-item-label { flex: 1; white-space: nowrap; }
+    .nav-item-count { font-size: 11px; color: var(--muted-fg); margin-left: auto; font-variant-numeric: tabular-nums; }
+    .nav-item-ext { font-size: 10px; color: var(--muted-fg); margin-left: auto; }
+    .spacer { flex: 1; }
+
+    /* Credits widget (verbatim from v1) */
+    .credits-widget {
+      margin: 0 8px 4px; padding: 8px 10px;
+      border-radius: 6px; border: 1px solid var(--sidebar-border); cursor: pointer;
+    }
+    .credits-widget:hover { background: var(--accent-subtle); }
+    .credits-label { font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted-fg); }
+    .credits-numbers { display: flex; justify-content: flex-end; align-items: baseline; gap: 2px; margin: 2px 0; }
+    .credits-current { font-size: 13px; font-variant-numeric: tabular-nums; color: var(--default-fg); font-family: var(--mono); }
+    .credits-cap { font-size: 11px; font-variant-numeric: tabular-nums; color: var(--muted-fg); font-family: var(--mono); }
+    .credits-bar-bg { height: 3px; background: rgba(255,255,255,0.08); border-radius: 2px; overflow: hidden; margin: 4px 0; }
+    .credits-bar-fill { height: 100%; background: var(--accent); border-radius: 2px; }
+    .credits-meta { display: flex; justify-content: space-between; font-size: 10px; color: var(--muted-fg); margin-top: 2px; }
+
+    /* User chip (verbatim from v1) */
+    .user-chip {
+      display: flex; align-items: center; gap: 8px;
+      padding: 8px 10px; margin: 4px 6px 6px;
+      border-radius: 6px; border: 1px solid var(--sidebar-border);
+      cursor: pointer; flex-shrink: 0;
+    }
+    .user-chip:hover { background: rgba(255,255,255,0.04); }
+    .avatar {
+      width: 28px; height: 28px; border-radius: 50%;
+      background: #1e2230; border: 1px solid var(--sidebar-border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 600; color: var(--default-fg); flex-shrink: 0;
+    }
+    .user-info { flex: 1; overflow: hidden; min-width: 0; }
+    .user-name { font-size: 12px; font-weight: 500; color: var(--default-fg); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .user-meta { font-size: 10px; color: var(--muted-fg); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .switcher-icon { color: var(--muted-fg); flex-shrink: 0; }
+
+    /* ── Main scroll region (verbatim from v1) ── */
+    .main-region {
+      flex: 1;
+      overflow-y: auto;
+      background: var(--ed-bg);
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ══════════════════════════════════════════
+       STICKY HEADER STACK (verbatim from v1)
+    ══════════════════════════════════════════ */
+    .ed-sticky-stack {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: var(--ed-bg);
+      border-bottom: 1px solid var(--ed-border);
+    }
+
+    /* ── Page header (verbatim from v1) ── */
+    .ed-page-header {
+      padding: 16px 28px 0;
+    }
+
+    /* Breadcrumb (verbatim from v1) */
+    .ed-breadcrumb {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 12px; color: var(--ed-muted);
+      margin-bottom: 10px;
+    }
+    .ed-breadcrumb-link {
+      color: var(--ed-dim); text-decoration: none; cursor: pointer;
+      display: flex; align-items: center; gap: 4px;
+    }
+    .ed-breadcrumb-link:hover { color: var(--ed-body); text-decoration: underline; }
+    .ed-breadcrumb-sep { color: var(--ed-muted); }
+    .ed-breadcrumb-current { color: var(--ed-dim); font-family: var(--mono); font-size: 11.5px; }
+
+    /* Title row (verbatim from v1) */
+    .ed-header-row {
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
+      margin-bottom: 8px;
+    }
+    .ed-title-group {
+      display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+    }
+    .ed-env-icon {
+      width: 18px; height: 18px; border-radius: 4px;
+      background: #1a2640; border: 1px solid #2a3a5a;
+      display: inline-flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .ed-env-name {
+      font-size: 20px; font-weight: 600; letter-spacing: -0.02em;
+      color: var(--ed-heading); line-height: 1.2;
+      font-family: var(--mono);
+    }
+    .ed-privacy-pill {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-size: 11px; font-weight: 500;
+      border-radius: 10px;
+      padding: 2px 8px;
+      white-space: nowrap;
+      flex-shrink: 0;
+      color: var(--ed-dim);
+      background: rgba(255,255,255,.07);
+      border: 1px solid rgba(255,255,255,.12);
+    }
+
+    /* Descriptor strip (verbatim from v1) */
+    .ed-descriptor-strip {
+      display: flex; align-items: center; gap: 0; flex-wrap: wrap;
+      font-size: 12px; color: var(--ed-dim);
+      padding-bottom: 12px;
+    }
+    .ed-strip-field { display: flex; align-items: center; gap: 4px; }
+    .ed-strip-sep { color: var(--ed-muted); margin: 0 8px; }
+    .ed-strip-chip {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-size: 11px; color: var(--ed-dim);
+      background: rgba(255,255,255,.06);
+      border: 1px solid var(--ed-border);
+      border-radius: 4px; padding: 1px 6px;
+    }
+    .ed-strip-slug {
+      font-family: var(--mono); font-size: 11.5px; color: var(--ed-body);
+    }
+    .ed-copy-btn {
+      background: transparent; border: none; cursor: pointer;
+      color: var(--ed-muted); font-size: 11px; padding: 1px 4px;
+      border-radius: 2px; display: inline-flex; align-items: center;
+    }
+    .ed-copy-btn:hover { color: var(--ed-body); background: rgba(255,255,255,.06); }
+
+    /* ── Tab bar (verbatim from v1; Scenarios tab active) ── */
+    .ed-tab-bar {
+      display: flex; align-items: flex-end;
+      padding: 0 28px;
+    }
+    .ed-tab {
+      padding: 8px 14px; font-size: 12.5px; color: var(--ed-muted);
+      cursor: pointer; border-bottom: 2px solid transparent;
+      margin-bottom: -1px; display: flex; align-items: center; gap: 6px;
+    }
+    .ed-tab:hover { color: var(--ed-body); }
+    .ed-tab.active { color: var(--ed-heading); border-bottom-color: var(--ed-green); }
+    .ed-tab-count {
+      font-size: 10.5px; color: var(--ed-muted);
+      background: rgba(255,255,255,.06); padding: 1px 5px; border-radius: 10px;
+    }
+    .ed-tab.active .ed-tab-count { color: var(--ed-dim); }
+
+    /* ── Checkpoint label (exploration watermark — verbatim from v1) ── */
+    .state-label {
+      font-size: 10px; font-weight: 600; text-transform: uppercase;
+      letter-spacing: .08em; color: var(--ed-muted);
+      padding: 6px 28px;
+      background: rgba(232,167,46,.06);
+      border-bottom: 1px solid rgba(232,167,46,.15);
+    }
+
+    /* ══════════════════════════════════════════
+       SCENARIOS TAB CONTENT
+    ══════════════════════════════════════════ */
+    .ed-scenarios-tab {
+      padding: 24px 28px 48px;
+      flex: 1;
+    }
+
+    /* ── Tab section header row ── */
+    .ed-tab-section-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 20px;
+    }
+    .ed-tab-section-title {
+      font-size: 15px; font-weight: 600; color: var(--ed-heading);
+      display: flex; align-items: center; gap: 6px;
+    }
+    .ed-tab-section-count {
+      font-size: 13px; font-weight: 400; color: var(--ed-muted);
+    }
+
+    /* Owner-only outline button (header + bottom) */
+    .ed-btn-outline {
+      background: transparent;
+      color: var(--ed-dim);
+      border: 1px solid var(--ed-border-mid);
+      border-radius: 5px;
+      padding: 5px 12px;
+      font-size: 12px; font-weight: 500;
+      cursor: pointer;
+      display: inline-flex; align-items: center; gap: 5px;
+      white-space: nowrap;
+    }
+    .ed-btn-outline:hover { border-color: var(--ed-muted); color: var(--ed-body); }
+
+    /* ── 2-column card gallery ── */
+    .ed-scenario-gallery {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--ed-card-gap);
+      align-items: start; /* cards expand in place; no masonry */
+    }
+
+    /* ── Scenario card frame (verbatim shell from v1; extended here) ── */
+    .ed-scenario-card {
+      border: 1px solid var(--ed-border);
+      border-radius: 6px;
+      background: var(--ed-bg-raised);
+      padding: 14px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+    .ed-scenario-card:hover { border-color: var(--ed-border-mid); }
+
+    /* Card header row: name + source toggle */
+    .ed-scenario-card-header {
+      display: flex; align-items: flex-start; justify-content: space-between;
+      gap: 8px; margin-bottom: 6px;
+    }
+    .ed-scenario-name {
+      font-family: var(--mono); font-size: 12.5px; font-weight: 500;
+      color: var(--ed-heading); line-height: 1.3;
+    }
+
+    /* Source toggle [</>] — top-right of card */
+    .ed-scenario-source-toggle {
+      background: transparent; border: 1px solid var(--ed-border);
+      border-radius: 3px; cursor: pointer;
+      color: var(--ed-muted); font-size: 11px; font-family: var(--mono);
+      padding: 2px 6px;
+      display: inline-flex; align-items: center; gap: 4px;
+      white-space: nowrap; flex-shrink: 0;
+    }
+    .ed-scenario-source-toggle:hover { color: var(--ed-body); border-color: var(--ed-border-mid); }
+    .ed-scenario-source-toggle.active { color: var(--ed-blue); border-color: rgba(75,142,240,.35); background: rgba(75,142,240,.06); }
+    /* Tooltip-like visible label beside the </> when source is expanded */
+    .ed-source-toggle-label {
+      font-family: var(--sans); font-size: 10px; color: var(--ed-muted);
+    }
+
+    /* Description — 2 lines max, ellipsis (verbatim from v1) */
+    .ed-scenario-desc {
+      font-size: 12px; color: var(--ed-dim); line-height: 1.55;
+      margin-bottom: 8px;
+      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    /* Amber missing-env-var warning (verbatim styling from v1) */
+    .ed-scenario-warning {
+      display: flex; align-items: center; gap: 5px;
+      font-size: 11.5px; color: var(--ed-amber);
+      background: rgba(232,167,46,.08);
+      border: 1px solid rgba(232,167,46,.22);
+      border-radius: 4px; padding: 4px 8px;
+      margin-bottom: 8px;
+    }
+
+    /* ─────────────────────────────────
+       SCHEMA DISCLOSURE BLOCK
+    ───────────────────────────────── */
+    .ed-schema-block {
+      background: var(--ed-code-bg);
+      border: 1px solid var(--ed-schema-border);
+      border-radius: 4px;
+      padding: 10px 12px;
+      margin-bottom: 8px;
+    }
+    .ed-schema-label {
+      font-size: 10px; font-weight: 600; text-transform: uppercase;
+      letter-spacing: .08em; color: var(--ed-muted);
+      margin-bottom: 8px;
+    }
+    .ed-schema-rule {
+      border: none; border-top: 1px solid var(--ed-border);
+      margin: 0 0 8px;
+    }
+    .ed-schema-row {
+      display: grid;
+      grid-template-columns: 14px 100px 1fr;
+      gap: 0 8px;
+      align-items: baseline;
+      padding: 2px 0;
+      font-family: var(--mono); font-size: 11.5px;
+      line-height: 1.6;
+    }
+    .ed-schema-req-star {
+      color: var(--ed-schema-required);
+      font-size: 11px;
+    }
+    .ed-schema-param-name {
+      color: var(--ed-body);
+    }
+    .ed-schema-param-type {
+      color: var(--ed-schema-type);
+    }
+    .ed-schema-legend {
+      font-size: 10px; color: var(--ed-muted);
+      margin-top: 6px;
+    }
+
+    /* ─────────────────────────────────
+       SOURCE CODE DISCLOSURE BLOCK
+    ───────────────────────────────── */
+    .ed-source-block {
+      background: var(--ed-code-bg);
+      border: 1px solid var(--ed-code-border);
+      border-radius: 4px;
+      padding: 0;
+      margin-bottom: 8px;
+      overflow: hidden;
+    }
+    .ed-source-code {
+      font-family: var(--mono); font-size: 11.5px;
+      color: var(--ed-body); line-height: 1.65;
+      padding: 10px 12px;
+      max-height: 160px;
+      overflow-y: auto;
+      white-space: pre;
+      tab-size: 4;
+    }
+    /* Subtle scrollbar styling */
+    .ed-source-code::-webkit-scrollbar { width: 4px; height: 4px; }
+    .ed-source-code::-webkit-scrollbar-track { background: transparent; }
+    .ed-source-code::-webkit-scrollbar-thumb { background: var(--ed-border-mid); border-radius: 2px; }
+
+    /* Syntax hint colors — via tokens only */
+    .ed-code-decorator { color: var(--ed-green); }
+    .ed-code-keyword  { color: var(--ed-purple); }
+    .ed-code-fn       { color: var(--ed-blue); }
+    .ed-code-type     { color: var(--ed-amber); }
+    .ed-code-str      { color: var(--ed-green); }
+    .ed-code-comment  { color: var(--ed-muted); }
+
+    /* ── Card footer: [Show/Hide schema] + [Load this scenario →] ── */
+    .ed-scenario-footer {
+      display: flex; align-items: center; gap: 8px;
+      margin-top: auto;
+      padding-top: 4px;
+    }
+    /* [Show schema] / [Hide schema] outline button (verbatim from v1 .ed-btn-outline-sm) */
+    .ed-btn-outline-sm {
+      background: transparent; color: var(--ed-dim);
+      border: 1px solid var(--ed-border-mid); border-radius: 4px;
+      padding: 4px 9px; font-size: 11.5px; font-weight: 500;
+      cursor: pointer; display: inline-flex; align-items: center; gap: 3px;
+      white-space: nowrap;
+    }
+    .ed-btn-outline-sm:hover { border-color: var(--ed-muted); color: var(--ed-body); }
+    /* [Load this scenario →] green CTA (verbatim from v1) */
+    .ed-btn-load {
+      background: transparent; color: var(--ed-green);
+      border: 1px solid rgba(61,214,140,.3); border-radius: 4px;
+      padding: 4px 10px; font-size: 11.5px; font-weight: 500;
+      cursor: pointer; display: inline-flex; align-items: center; gap: 4px;
+      white-space: nowrap; margin-left: auto;
+    }
+    .ed-btn-load:hover { background: rgba(61,214,140,.08); border-color: rgba(61,214,140,.5); }
+
+    /* ── Bottom owner-only [+ Create Task] ── */
+    .ed-gallery-footer {
+      margin-top: 20px;
+      display: flex;
+    }
+
+    /* ══════════════════════════════════════════
+       §5b EMPTY STATE
+    ══════════════════════════════════════════ */
+    .ed-empty-state {
+      padding: 24px 28px 48px;
+    }
+    .ed-empty-heading {
+      font-size: 14px; font-weight: 500; color: var(--ed-heading);
+      margin-bottom: 6px;
+    }
+    .ed-empty-body {
+      font-size: 13px; color: var(--ed-dim); line-height: 1.65;
+      margin-bottom: 16px;
+    }
+    .ed-empty-body code {
+      font-family: var(--mono); font-size: 12px; color: var(--ed-body);
+      background: var(--ed-code-bg);
+      border: 1px solid var(--ed-border);
+      border-radius: 3px; padding: 1px 5px;
+    }
+
+    /* CLI command block */
+    .ed-cli-block {
+      display: inline-flex; align-items: center; gap: 12px;
+      background: var(--ed-code-bg);
+      border: 1px solid var(--ed-border);
+      border-radius: 5px;
+      padding: 9px 14px;
+      font-family: var(--mono); font-size: 12.5px; color: var(--ed-body);
+      margin-bottom: 12px;
+    }
+    .ed-cli-copy {
+      background: transparent; border: none; cursor: pointer;
+      color: var(--ed-muted); padding: 2px 4px;
+      border-radius: 3px; display: inline-flex; align-items: center;
+    }
+    .ed-cli-copy:hover { color: var(--ed-body); background: rgba(255,255,255,.06); }
+
+    /* Doc link */
+    .ed-doc-link {
+      font-size: 12.5px; color: var(--ed-blue); text-decoration: none;
+      display: inline-flex; align-items: center; gap: 3px;
+    }
+    .ed-doc-link:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+
+<div class="shell-layout">
+
+  <!-- ══════════════════════════════════════════
+       APP-SHELL SIDEBAR — verbatim from v1 (Environments selected)
+  ══════════════════════════════════════════ -->
+  <aside class="sidebar">
+    <div class="brand-slot">
+      <div class="brand-mark">
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+          <rect width="12" height="12" rx="2" fill="#78350f"/>
+          <path d="M2 9L6 3L10 9" stroke="#f59e0b" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <span class="brand-wordmark">hud</span>
+    </div>
+
+    <div class="group-label">Workspace</div>
+
+    <a class="nav-item">
+      <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="2" y="2" width="5" height="5" rx="1"/><rect x="9" y="2" width="5" height="5" rx="1"/>
+        <rect x="2" y="9" width="5" height="5" rx="1"/><rect x="9" y="9" width="5" height="5" rx="1"/>
+      </svg>
+      <span class="nav-item-label">Home</span>
+    </a>
+
+    <a class="nav-item">
+      <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M2 4h12M2 8h8M2 12h10"/><circle cx="13" cy="11" r="2.5"/>
+      </svg>
+      <span class="nav-item-label">Tasksets</span>
+      <span class="nav-item-count">127</span>
+    </a>
+
+    <!-- Environments — selected -->
+    <a class="nav-item selected" aria-current="page">
+      <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="2" y="2" width="12" height="5" rx="1.5"/>
+        <rect x="2" y="9" width="12" height="5" rx="1.5"/>
+        <circle cx="5" cy="4.5" r="0.8" fill="currentColor" stroke="none"/>
+        <circle cx="5" cy="11.5" r="0.8" fill="currentColor" stroke="none"/>
+        <path d="M8 4.5h4M8 11.5h4"/>
+      </svg>
+      <span class="nav-item-label">Environments</span>
+      <span class="nav-item-count">42</span>
+    </a>
+
+    <a class="nav-item">
+      <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="8" cy="8" r="3"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2M3.22 3.22l1.42 1.42M11.36 11.36l1.42 1.42M3.22 12.78l1.42-1.42M11.36 4.64l1.42-1.42"/>
+      </svg>
+      <span class="nav-item-label">Models</span>
+      <span class="nav-item-count">27</span>
+    </a>
+
+    <a class="nav-item">
+      <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="8" cy="5" r="2.5"/><path d="M3 14c0-2.76 2.24-5 5-5s5 2.24 5 5"/>
+      </svg>
+      <span class="nav-item-label">Agents</span>
+      <span class="nav-item-count">4</span>
+    </a>
+
+    <a class="nav-item">
+      <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4 2h8a1 1 0 011 1v10a1 1 0 01-1 1H4a1 1 0 01-1-1V3a1 1 0 011-1z"/><path d="M6 6h4M6 9h4M6 12h2"/>
+      </svg>
+      <span class="nav-item-label">Library</span>
+    </a>
+
+    <div class="group-label">Observe</div>
+
+    <a class="nav-item">
+      <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="2" y="8" width="3" height="5" rx="0.5"/><rect x="6.5" y="5" width="3" height="8" rx="0.5"/>
+        <rect x="11" y="2" width="3" height="11" rx="0.5"/>
+      </svg>
+      <span class="nav-item-label">Dashboard</span>
+    </a>
+
+    <a class="nav-item">
+      <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="8" cy="8" r="6"/><path d="M8 4v4l3 1.5"/>
+      </svg>
+      <span class="nav-item-label">Progress</span>
+    </a>
+
+    <div class="spacer"></div>
+
+    <div class="credits-widget" title="View usage details">
+      <div class="credits-label">credits</div>
+      <div class="credits-numbers">
+        <span class="credits-current">4,230</span>
+        <span class="credits-cap">&nbsp;/ 10,000</span>
+      </div>
+      <div class="credits-bar-bg"><div class="credits-bar-fill" style="width:42.3%"></div></div>
+      <div class="credits-meta"><span>~92 cr/hr</span><span>~38h left</span></div>
+    </div>
+
+    <div style="padding:2px 4px;">
+      <a class="nav-item" style="font-size:12px;">
+        <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M7 3H3a1 1 0 00-1 1v9a1 1 0 001 1h9a1 1 0 001-1V9"/><path d="M10 2h4v4M14 2L7 9"/>
+        </svg>
+        <span class="nav-item-label">Marketplace</span>
+        <span class="nav-item-ext">↗</span>
+      </a>
+      <a class="nav-item" style="font-size:12px;">
+        <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 2h8a1 1 0 011 1v10a1 1 0 01-1 1H4a1 1 0 01-1-1V3a1 1 0 011-1z"/><path d="M6 6h4M6 9h4"/>
+        </svg>
+        <span class="nav-item-label">Documentation</span>
+        <span class="nav-item-ext">↗</span>
+      </a>
+    </div>
+
+    <div class="user-chip">
+      <div class="avatar">A</div>
+      <div class="user-info">
+        <div class="user-name">Alex Kim</div>
+        <div class="user-meta">Princeton NLP · owner</div>
+      </div>
+      <svg class="switcher-icon" width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 4.5L6 2 9 4.5M3 7.5L6 10 9 7.5"/>
+      </svg>
+    </div>
+  </aside>
+
+  <!-- ══════════════════════════════════════════
+       MAIN SCROLL REGION
+  ══════════════════════════════════════════ -->
+  <div class="main-region" id="main-content">
+
+    <!-- ─────────────────────────────────────
+         STICKY HEADER STACK (verbatim from v1 — Scenarios tab active)
+    ───────────────────────────────────── -->
+    <div class="ed-sticky-stack">
+
+      <!-- PAGE HEADER -->
+      <div class="ed-page-header">
+
+        <!-- Breadcrumb -->
+        <nav class="ed-breadcrumb" aria-label="Breadcrumb">
+          <a class="ed-breadcrumb-link" href="#">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M8 2L4 6l4 4"/>
+            </svg>
+            Environments
+          </a>
+          <span class="ed-breadcrumb-sep">/</span>
+          <span class="ed-breadcrumb-current">hud-browser</span>
+        </nav>
+
+        <!-- Title row -->
+        <div class="ed-header-row">
+          <div class="ed-title-group">
+            <div class="ed-env-icon">
+              <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="#4b8ef0" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="8" cy="8" r="6"/><path d="M8 2c-2 2-3 4-3 6s1 4 3 6M8 2c2 2 3 4 3 6s-1 4-3 6M2 8h12"/>
+              </svg>
+            </div>
+            <span class="ed-env-name">hud-browser</span>
+            <span class="ed-privacy-pill">
+              <svg width="10" height="10" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="4" y="7" width="8" height="7" rx="1.5"/>
+                <path d="M5.5 7V5.5a2.5 2.5 0 015 0V7"/>
+              </svg>
+              Private
+            </span>
+          </div>
+          <!-- No right-slot CTA for Variant C (Decision 2) -->
+        </div>
+
+        <!-- Descriptor strip -->
+        <div class="ed-descriptor-strip">
+          <div class="ed-strip-field">
+            <span class="ed-strip-chip">
+              <svg width="10" height="10" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="8" cy="8" r="6"/><path d="M8 2c-2 2-3 4-3 6s1 4 3 6M8 2c2 2 3 4 3 6s-1 4-3 6M2 8h12"/>
+              </svg>
+              Browser
+            </span>
+          </div>
+          <span class="ed-strip-sep">·</span>
+          <div class="ed-strip-field">
+            <span class="ed-strip-slug">hud-browser</span>
+            <button class="ed-copy-btn" title="Copy slug">
+              <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="5" y="5" width="8" height="9" rx="1.5"/><path d="M3 11V3a1 1 0 011-1h8"/>
+              </svg>
+            </button>
+          </div>
+          <span class="ed-strip-sep">·</span>
+          <div class="ed-strip-field">
+            <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="1" y="2" width="14" height="12" rx="2"/>
+              <path d="M4 6l3 2.5L4 11M9 11h3"/>
+            </svg>
+            Deployed via CLI
+          </div>
+          <span class="ed-strip-sep">·</span>
+          <div class="ed-strip-field">Created 16 days ago</div>
+        </div>
+      </div><!-- /ed-page-header -->
+
+      <!-- TAB BAR — Scenarios tab is active -->
+      <div class="ed-tab-bar" role="tablist" aria-label="Environment detail tabs">
+        <button class="ed-tab" role="tab" aria-selected="false">Overview</button>
+        <button class="ed-tab active" role="tab" aria-selected="true">
+          Scenarios
+          <span class="ed-tab-count">6</span>
+        </button>
+        <button class="ed-tab" role="tab" aria-selected="false">
+          Builds
+          <span class="ed-tab-count">3</span>
+        </button>
+        <button class="ed-tab" role="tab" aria-selected="false">
+          Instances
+          <span class="ed-tab-count">41</span>
+        </button>
+        <button class="ed-tab" role="tab" aria-selected="false">Settings</button>
+      </div>
+
+    </div><!-- /ed-sticky-stack -->
+
+    <!-- ─────────────────────────────────────
+         CHECKPOINT LABEL — §5a (populated)
+    ───────────────────────────────────── -->
+    <div class="state-label">CHECKPOINT 3 — §5a · Scenarios tab (dedicated tab, full gallery) · 6 scenarios, all 3 card states · Load CTA → navigates to Overview + opens drawer</div>
+
+    <!-- ══════════════════════════════════════════
+         SCENARIOS TAB CONTENT — §5a
+    ══════════════════════════════════════════ -->
+    <div class="ed-scenarios-tab" role="tabpanel" aria-label="Scenarios">
+
+      <!-- Section header row -->
+      <div class="ed-tab-section-header">
+        <h2 class="ed-tab-section-title">
+          Scenarios
+          <span class="ed-tab-section-count">(6)</span>
+        </h2>
+        <!-- Owner-only: [+ Create Scenario] -->
+        <button class="ed-btn-outline" aria-label="Create a new scenario">
+          <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M8 3v10M3 8h10"/>
+          </svg>
+          Create Scenario
+        </button>
+      </div>
+
+      <!-- ─────────────────────────────────────
+           2-COLUMN CARD GALLERY
+      ───────────────────────────────────── -->
+      <div class="ed-scenario-gallery">
+
+        <!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+             ROW 1 · DEFAULT / COLLAPSED STATE (2 cards)
+             Card A: no warning  |  Card B: amber warning
+        ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+
+        <!-- Card 1A: remote-browser:answer — default, no warning -->
+        <div class="ed-scenario-card">
+          <div class="ed-scenario-card-header">
+            <span class="ed-scenario-name">remote-browser:answer</span>
+            <button class="ed-scenario-source-toggle" title="Show source code">
+              &lt;/&gt;
+            </button>
+          </div>
+          <p class="ed-scenario-desc">Answer a question using a remote browser session.</p>
+          <!-- no warning — env vars configured -->
+          <div class="ed-scenario-footer">
+            <button class="ed-btn-outline-sm">Show schema</button>
+            <button class="ed-btn-load">
+              Load this scenario
+              <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4 8h8M10 5l3 3-3 3"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Card 1B: remote-browser:sheet-edit — default, amber warning (GCP_CREDENTIALS_BASE64) -->
+        <div class="ed-scenario-card">
+          <div class="ed-scenario-card-header">
+            <span class="ed-scenario-name">remote-browser:sheet-edit</span>
+            <button class="ed-scenario-source-toggle" title="Show source code">
+              &lt;/&gt;
+            </button>
+          </div>
+          <p class="ed-scenario-desc">Edit a Google Sheet cell.</p>
+          <!-- amber warning -->
+          <div class="ed-scenario-warning">
+            <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M8 2L1.5 13.5h13L8 2z"/><path d="M8 6v4M8 11.5v.5"/>
+            </svg>
+            Missing: GCP_CREDENTIALS_BASE64
+          </div>
+          <div class="ed-scenario-footer">
+            <button class="ed-btn-outline-sm">Show schema</button>
+            <button class="ed-btn-load">
+              Load this scenario
+              <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4 8h8M10 5l3 3-3 3"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+             ROW 2 · SCHEMA EXPANDED STATE (2 cards)
+             Card A: no warning  |  Card B: amber warning
+        ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+
+        <!-- Card 2A: remote-browser:find-info — schema expanded, no warning -->
+        <div class="ed-scenario-card">
+          <div class="ed-scenario-card-header">
+            <span class="ed-scenario-name">remote-browser:find-info</span>
+            <button class="ed-scenario-source-toggle" title="Show source code">
+              &lt;/&gt;
+            </button>
+          </div>
+          <p class="ed-scenario-desc">Find specific information on a webpage.</p>
+          <!-- no warning -->
+          <!-- SCHEMA BLOCK (expanded) -->
+          <div class="ed-schema-block">
+            <div class="ed-schema-label">Schema</div>
+            <hr class="ed-schema-rule" />
+            <div class="ed-schema-row">
+              <span class="ed-schema-req-star">*</span>
+              <span class="ed-schema-param-name">url</span>
+              <span class="ed-schema-param-type">string</span>
+            </div>
+            <div class="ed-schema-row">
+              <span class="ed-schema-req-star">*</span>
+              <span class="ed-schema-param-name">prompt</span>
+              <span class="ed-schema-param-type">string</span>
+            </div>
+            <div class="ed-schema-row">
+              <span></span>
+              <span class="ed-schema-param-name">expected</span>
+              <span class="ed-schema-param-type">null</span>
+            </div>
+            <div class="ed-schema-row">
+              <span></span>
+              <span class="ed-schema-param-name">compare_mode</span>
+              <span class="ed-schema-param-type">string</span>
+            </div>
+            <div class="ed-schema-legend">* required parameter</div>
+          </div>
+          <div class="ed-scenario-footer">
+            <button class="ed-btn-outline-sm">Hide schema</button>
+            <button class="ed-btn-load">
+              Load this scenario
+              <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4 8h8M10 5l3 3-3 3"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Card 2B: 2048-target — schema expanded + amber warning (BROWSERBASE_API_KEY) -->
+        <div class="ed-scenario-card">
+          <div class="ed-scenario-card-header">
+            <span class="ed-scenario-name">2048-target</span>
+            <button class="ed-scenario-source-toggle" title="Show source code">
+              &lt;/&gt;
+            </button>
+          </div>
+          <p class="ed-scenario-desc">Reach a specific tile value in 2048.</p>
+          <!-- amber warning -->
+          <div class="ed-scenario-warning">
+            <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M8 2L1.5 13.5h13L8 2z"/><path d="M8 6v4M8 11.5v.5"/>
+            </svg>
+            Missing: BROWSERBASE_API_KEY
+          </div>
+          <!-- SCHEMA BLOCK (expanded) -->
+          <div class="ed-schema-block">
+            <div class="ed-schema-label">Schema</div>
+            <hr class="ed-schema-rule" />
+            <div class="ed-schema-row">
+              <span class="ed-schema-req-star">*</span>
+              <span class="ed-schema-param-name">target</span>
+              <span class="ed-schema-param-type">string</span>
+            </div>
+            <div class="ed-schema-row">
+              <span></span>
+              <span class="ed-schema-param-name">expected</span>
+              <span class="ed-schema-param-type">null</span>
+            </div>
+            <div class="ed-schema-row">
+              <span></span>
+              <span class="ed-schema-param-name">compare_mode</span>
+              <span class="ed-schema-param-type">string</span>
+            </div>
+            <div class="ed-schema-legend">* required parameter</div>
+          </div>
+          <div class="ed-scenario-footer">
+            <button class="ed-btn-outline-sm">Hide schema</button>
+            <button class="ed-btn-load">
+              Load this scenario
+              <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4 8h8M10 5l3 3-3 3"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+             ROW 3 · SOURCE EXPANDED STATE (2 cards)
+             Card A: source only  |  Card B: BOTH schema + source (Decision 3)
+        ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+
+        <!-- Card 3A: 2048-near-win — source expanded only, no warning -->
+        <div class="ed-scenario-card">
+          <div class="ed-scenario-card-header">
+            <span class="ed-scenario-name">2048-near-win</span>
+            <!-- Source toggle: active state (source is open) -->
+            <button class="ed-scenario-source-toggle active" title="Hide source code">
+              &lt;/&gt;
+              <span class="ed-source-toggle-label">Hide source code</span>
+            </button>
+          </div>
+          <p class="ed-scenario-desc">Play 2048 to a near-win state.</p>
+          <!-- no warning -->
+          <!-- SOURCE BLOCK (expanded) -->
+          <div class="ed-source-block">
+            <div class="ed-source-code"><span class="ed-code-decorator">@env.scenario</span>(<span class="ed-code-str">"near-win"</span>)
+<span class="ed-code-keyword">async def</span> <span class="ed-code-fn">near_win</span>(
+    target: <span class="ed-code-type">str</span>,
+    expected: <span class="ed-code-type">Optional</span>[<span class="ed-code-type">Any</span>] = <span class="ed-code-keyword">None</span>,
+    compare_mode: <span class="ed-code-type">str</span> = <span class="ed-code-str">"exact"</span>,
+) -> <span class="ed-code-type">Any</span>:
+    <span class="ed-code-str">"""Play 2048 to a near-win state."""</span>
+    ...</div>
+          </div>
+          <!-- schema toggle is still available (Show schema) -->
+          <div class="ed-scenario-footer">
+            <button class="ed-btn-outline-sm">Show schema</button>
+            <button class="ed-btn-load">
+              Load this scenario
+              <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4 8h8M10 5l3 3-3 3"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Card 3B: book-flight — BOTH schema AND source expanded (Decision 3 coexist) -->
+        <div class="ed-scenario-card">
+          <div class="ed-scenario-card-header">
+            <span class="ed-scenario-name">book-flight</span>
+            <!-- Source toggle: active (source is open) -->
+            <button class="ed-scenario-source-toggle active" title="Hide source code">
+              &lt;/&gt;
+              <span class="ed-source-toggle-label">Hide source code</span>
+            </button>
+          </div>
+          <p class="ed-scenario-desc">Book a flight matching the given criteria.</p>
+          <!-- no warning -->
+          <!-- SCHEMA BLOCK (expanded — coexisting with source per Decision 3) -->
+          <div class="ed-schema-block">
+            <div class="ed-schema-label">Schema</div>
+            <hr class="ed-schema-rule" />
+            <div class="ed-schema-row">
+              <span class="ed-schema-req-star">*</span>
+              <span class="ed-schema-param-name">url</span>
+              <span class="ed-schema-param-type">string</span>
+            </div>
+            <div class="ed-schema-row">
+              <span class="ed-schema-req-star">*</span>
+              <span class="ed-schema-param-name">prompt</span>
+              <span class="ed-schema-param-type">string</span>
+            </div>
+            <div class="ed-schema-row">
+              <span></span>
+              <span class="ed-schema-param-name">expected</span>
+              <span class="ed-schema-param-type">null</span>
+            </div>
+            <div class="ed-schema-row">
+              <span></span>
+              <span class="ed-schema-param-name">compare_mode</span>
+              <span class="ed-schema-param-type">string</span>
+            </div>
+            <div class="ed-schema-legend">* required parameter</div>
+          </div>
+          <!-- SOURCE BLOCK (expanded — coexisting with schema) -->
+          <div class="ed-source-block">
+            <div class="ed-source-code"><span class="ed-code-decorator">@env.scenario</span>(<span class="ed-code-str">"book-flight"</span>)
+<span class="ed-code-keyword">async def</span> <span class="ed-code-fn">book_flight</span>(
+    url: <span class="ed-code-type">str</span>,
+    prompt: <span class="ed-code-type">str</span>,
+    expected: <span class="ed-code-type">Optional</span>[<span class="ed-code-type">Any</span>] = <span class="ed-code-keyword">None</span>,
+    compare_mode: <span class="ed-code-type">str</span> = <span class="ed-code-str">"exact"</span>,
+) -> <span class="ed-code-type">Any</span>:
+    <span class="ed-code-str">"""Book a flight matching the given criteria."""</span>
+    ...</div>
+          </div>
+          <!-- [Hide schema] + Load CTA -->
+          <div class="ed-scenario-footer">
+            <button class="ed-btn-outline-sm">Hide schema</button>
+            <button class="ed-btn-load">
+              Load this scenario
+              <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4 8h8M10 5l3 3-3 3"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+      </div><!-- /ed-scenario-gallery -->
+
+      <!-- Owner-only [+ Create Task] at bottom of gallery -->
+      <div class="ed-gallery-footer">
+        <button class="ed-btn-outline" aria-label="Create a task using a scenario">
+          <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M8 3v10M3 8h10"/>
+          </svg>
+          Create Task
+        </button>
+      </div>
+
+    </div><!-- /ed-scenarios-tab -->
+
+    <!-- ─────────────────────────────────────
+         CHECKPOINT LABEL — §5b (empty state)
+    ───────────────────────────────────── -->
+    <div class="state-label">CHECKPOINT 3 — §5b · Scenarios tab · Empty state (no scenarios yet)</div>
+
+    <!-- ══════════════════════════════════════════
+         §5b EMPTY STATE
+    ══════════════════════════════════════════ -->
+    <div class="ed-empty-state" role="region" aria-label="Scenarios empty state">
+      <div class="ed-empty-heading">No Scenarios yet.</div>
+      <p class="ed-empty-body">
+        Add Scenarios using the <code>@env.scenario</code> decorator, then redeploy.
+      </p>
+      <!-- CLI block -->
+      <div class="ed-cli-block">
+        hud deploy
+        <button class="ed-cli-copy" title="Copy command" aria-label="Copy hud deploy command">
+          <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="5" y="5" width="8" height="9" rx="1.5"/><path d="M3 11V3a1 1 0 011-1h8"/>
+          </svg>
+        </button>
+      </div>
+      <!-- Doc link -->
+      <div>
+        <a class="ed-doc-link" href="#" target="_blank" rel="noopener">
+          Read the docs
+          <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M7 3H3a1 1 0 00-1 1v9a1 1 0 001 1h9a1 1 0 001-1V9"/><path d="M10 2h4v4M14 2L7 9"/>
+          </svg>
+        </a>
+      </div>
+    </div>
+
+  </div><!-- /main-region -->
+
+</div><!-- /shell-layout -->
+
+</body>
+</html>

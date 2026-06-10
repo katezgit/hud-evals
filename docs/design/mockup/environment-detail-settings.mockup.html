@@ -1,0 +1,1750 @@
+<!--
+  filename: v5-settings-variant-a.html
+  SECTION 5 — Environment Detail · Settings tab (Variant C owner, full edit) + Variant A header treatment
+  Scope:
+    Section A — Settings tab, Variant C (private owner, full edit access)
+               Sub-sections: Environment Info · Pod Configuration · File Tracking (enabled + expanded)
+                             Environment Variables · Build Arguments
+    Section B — Variant A (public visitor) header branching: GitHub-source CTA vs CLI-only CTA
+               Case 1: [Use as template] → GitHub source known
+               Case 2: CLI snippet in body, session-scoped panel note, no header CTA
+               Optional Section C — Variant A restricted Builds + Instances tabs (brief)
+
+  Canonical spec:
+    docs/design/screens/environment-detail.wireframe.md §8 (Settings), §8b (Variant A read-only),
+    §2 (page header / Variant A CTA), §3 (tab bar), §4a (Configure panel Variant A session note),
+    §6b (Builds visitor), §7b (Instances visitor), Decisions 2, 7, 8
+
+  Peer anchor: .intermediate/design/environment-detail/v1.html
+    — :root tokens (--ed-*), .shell-layout, .sidebar, .main-region, sticky-header pattern, breadcrumb,
+      tab bar, descriptor strip all verbatim-copied from v1.
+
+  Token discipline: zero new hex values. New derivatives use var(). Pinned values noted "PINNED".
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Environment Detail — v5: Settings tab + Variant A header (hud-browser)</title>
+  <style>
+    /* ── Reset ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    /* ─────────────────────────────────────────────────
+       TOKEN ROOT — verbatim from v1.html
+    ───────────────────────────────────────────────── */
+    :root {
+      --sidebar-bg:    #0f1117;
+      --sidebar-border:#1e2230;
+      --page-bg:       #090c12;
+      --accent:        #10b981;
+      --accent-subtle: rgba(16,185,129,0.10);
+      --muted-fg:      #6b7280;
+      --default-fg:    #e5e7eb;
+      --brand-mark:    #f59e0b;
+
+      /* Detail page content tokens — verbatim from v1.html */
+      --ed-bg:         #0f0f10;
+      --ed-bg-raised:  #17171a;
+      --ed-bg-input:   #1e1e23;
+      --ed-border:     #2a2a30;
+      --ed-border-mid: #333340;
+      --ed-muted:      #6b6b7a;
+      --ed-dim:        #8f8fa0;
+      --ed-body:       #c4c4d0;
+      --ed-heading:    #eeeef2;
+      --ed-green:      #3dd68c;
+      --ed-amber:      #e8a72e;
+      --ed-red:        #e05252;
+      --ed-blue:       #4b8ef0;
+      --ed-purple:     #9d78f0;
+
+      /* ── New derivatives (v5 only) ── */
+      /* Settings card wrapper — slightly raised from page-bg */
+      --ed-settings-card-bg: var(--ed-bg-raised);
+      --ed-settings-card-border: var(--ed-border);
+
+      /* Toggle track — enabled state. Uses accent-subtle as bg tint. PINNED: 16,185,129 matches --accent hex */
+      --ed-toggle-on-bg: rgba(16,185,129,0.25);
+      --ed-toggle-on-border: rgba(16,185,129,0.50);
+      --ed-toggle-thumb-on: var(--ed-green);
+
+      /* Toggle track — disabled/off state */
+      --ed-toggle-off-bg: rgba(255,255,255,0.06);
+      --ed-toggle-off-border: var(--ed-border-mid);
+      --ed-toggle-thumb-off: var(--ed-muted);
+
+      /* Variant A micro-label accent — amber for contrast against dark bg */
+      --ed-variant-label-bg: rgba(232,167,46,0.08);
+      --ed-variant-label-border: rgba(232,167,46,0.22);
+      --ed-variant-label-fg: var(--ed-amber);
+
+      /* CLI block bg */
+      --ed-cli-bg: var(--ed-bg-input);
+      --ed-cli-border: var(--ed-border-mid);
+
+      /* Session note — muted amber-tinted info surface */
+      --ed-session-note-bg: rgba(232,167,46,0.06);
+      --ed-session-note-border: rgba(232,167,46,0.18);
+      --ed-session-note-fg: var(--ed-dim);
+
+      /* Read-only field bg (Variant A Settings) */
+      --ed-readonly-bg: rgba(255,255,255,0.03);
+
+      --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+      --mono: "SF Mono", "Fira Code", "Cascadia Code", Consolas, monospace;
+    }
+
+    html, body {
+      height: 100%;
+      font-family: var(--sans);
+      font-size: 13px;
+      background: #06080e;
+      color: var(--default-fg);
+      line-height: 1.5;
+    }
+
+    /* ═══════════════════════════════════
+       OUTER CHROME — app shell (verbatim from v1)
+    ═══════════════════════════════════ */
+    .shell-layout {
+      display: flex;
+      height: 100vh;
+      min-height: 600px;
+    }
+
+    /* ── Sidebar ── */
+    .sidebar {
+      background: var(--sidebar-bg);
+      border-right: 1px solid var(--sidebar-border);
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      width: 220px;
+      height: 100%;
+      overflow-y: auto;
+      overflow-x: hidden;
+    }
+    .brand-slot {
+      display: flex; align-items: center; gap: 8px;
+      padding: 14px 16px 12px;
+      border-bottom: 1px solid var(--sidebar-border);
+      flex-shrink: 0;
+    }
+    .brand-mark {
+      width: 20px; height: 20px;
+      background: var(--brand-mark); border-radius: 4px;
+      flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .brand-wordmark { font-size: 14px; font-weight: 700; color: var(--default-fg); letter-spacing: -0.02em; }
+    .group-label {
+      font-size: 10px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--muted-fg); padding: 0 16px; margin-top: 20px; margin-bottom: 4px;
+    }
+    .nav-item {
+      display: flex; align-items: center; gap: 8px; padding: 5px 12px;
+      font-size: 13px; color: var(--muted-fg); cursor: pointer;
+      position: relative; border-radius: 4px; margin: 1px 4px;
+      text-decoration: none;
+    }
+    .nav-item:hover { background: rgba(255,255,255,0.04); color: var(--default-fg); }
+    .nav-item.selected { color: var(--accent); background: var(--accent-subtle); }
+    .nav-item.selected::before {
+      content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 2px;
+      background: var(--accent); border-radius: 0 2px 2px 0;
+    }
+    .nav-item-icon { width: 16px; height: 16px; flex-shrink: 0; color: inherit; opacity: 0.8; }
+    .nav-item.selected .nav-item-icon { opacity: 1; }
+    .nav-item-label { flex: 1; white-space: nowrap; }
+    .nav-item-count { font-size: 11px; color: var(--muted-fg); margin-left: auto; font-variant-numeric: tabular-nums; }
+    .nav-item-ext { font-size: 10px; color: var(--muted-fg); margin-left: auto; }
+    .spacer { flex: 1; }
+
+    /* Credits widget */
+    .credits-widget {
+      margin: 0 8px 4px; padding: 8px 10px;
+      border-radius: 6px; border: 1px solid var(--sidebar-border); cursor: pointer;
+    }
+    .credits-widget:hover { background: var(--accent-subtle); }
+    .credits-label { font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted-fg); }
+    .credits-numbers { display: flex; justify-content: flex-end; align-items: baseline; gap: 2px; margin: 2px 0; }
+    .credits-current { font-size: 13px; font-variant-numeric: tabular-nums; color: var(--default-fg); font-family: var(--mono); }
+    .credits-cap { font-size: 11px; font-variant-numeric: tabular-nums; color: var(--muted-fg); font-family: var(--mono); }
+    .credits-bar-bg { height: 3px; background: rgba(255,255,255,0.08); border-radius: 2px; overflow: hidden; margin: 4px 0; }
+    .credits-bar-fill { height: 100%; background: var(--accent); border-radius: 2px; }
+    .credits-meta { display: flex; justify-content: space-between; font-size: 10px; color: var(--muted-fg); margin-top: 2px; }
+
+    /* User chip */
+    .user-chip {
+      display: flex; align-items: center; gap: 8px;
+      padding: 8px 10px; margin: 4px 6px 6px;
+      border-radius: 6px; border: 1px solid var(--sidebar-border);
+      cursor: pointer; flex-shrink: 0;
+    }
+    .user-chip:hover { background: rgba(255,255,255,0.04); }
+    .avatar {
+      width: 28px; height: 28px; border-radius: 50%;
+      background: #1e2230; border: 1px solid var(--sidebar-border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 600; color: var(--default-fg); flex-shrink: 0;
+    }
+    .user-info { flex: 1; overflow: hidden; min-width: 0; }
+    .user-name { font-size: 12px; font-weight: 500; color: var(--default-fg); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .user-meta { font-size: 10px; color: var(--muted-fg); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .switcher-icon { color: var(--muted-fg); flex-shrink: 0; }
+
+    /* ── Main scroll region (verbatim from v1) ── */
+    .main-region {
+      flex: 1;
+      overflow-y: auto;
+      background: var(--ed-bg);
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ══════════════════════════════════════════
+       STICKY HEADER STACK (verbatim from v1)
+    ══════════════════════════════════════════ */
+    .ed-sticky-stack {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: var(--ed-bg);
+      border-bottom: 1px solid var(--ed-border);
+    }
+
+    /* ── Page header (verbatim from v1) ── */
+    .ed-page-header { padding: 16px 28px 0; }
+
+    .ed-breadcrumb {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 12px; color: var(--ed-muted);
+      margin-bottom: 10px;
+    }
+    .ed-breadcrumb-link {
+      color: var(--ed-dim); text-decoration: none; cursor: pointer;
+      display: flex; align-items: center; gap: 4px;
+    }
+    .ed-breadcrumb-link:hover { color: var(--ed-body); text-decoration: underline; }
+    .ed-breadcrumb-sep { color: var(--ed-muted); }
+    .ed-breadcrumb-current { color: var(--ed-dim); font-family: var(--mono); font-size: 11.5px; }
+
+    .ed-header-row {
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
+      margin-bottom: 8px;
+    }
+    .ed-title-group {
+      display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+    }
+    .ed-env-icon {
+      width: 18px; height: 18px; border-radius: 4px;
+      background: #1a2640; border: 1px solid #2a3a5a;
+      display: inline-flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .ed-env-name {
+      font-size: 20px; font-weight: 600; letter-spacing: -0.02em;
+      color: var(--ed-heading); line-height: 1.2;
+      font-family: var(--mono);
+    }
+    .ed-privacy-pill {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-size: 11px; font-weight: 500;
+      border-radius: 10px; padding: 2px 8px;
+      white-space: nowrap; flex-shrink: 0;
+      color: var(--ed-dim);
+      background: rgba(255,255,255,.07);
+      border: 1px solid rgba(255,255,255,.12);
+    }
+    .ed-privacy-pill.public {
+      color: var(--ed-green);
+      background: rgba(61,214,140,.08);
+      border-color: rgba(61,214,140,.25);
+    }
+
+    /* Descriptor strip (verbatim from v1) */
+    .ed-descriptor-strip {
+      display: flex; align-items: center; gap: 0; flex-wrap: wrap;
+      font-size: 12px; color: var(--ed-dim);
+      padding-bottom: 12px;
+    }
+    .ed-strip-field { display: flex; align-items: center; gap: 4px; }
+    .ed-strip-sep { color: var(--ed-muted); margin: 0 8px; }
+    .ed-strip-chip {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-size: 11px; color: var(--ed-dim);
+      background: rgba(255,255,255,.06);
+      border: 1px solid var(--ed-border);
+      border-radius: 4px; padding: 1px 6px;
+    }
+    .ed-strip-slug { font-family: var(--mono); font-size: 11.5px; color: var(--ed-body); }
+    .ed-copy-btn {
+      background: transparent; border: none; cursor: pointer;
+      color: var(--ed-muted); font-size: 11px; padding: 1px 4px;
+      border-radius: 2px; display: inline-flex; align-items: center;
+    }
+    .ed-copy-btn:hover { color: var(--ed-body); background: rgba(255,255,255,.06); }
+
+    /* Star toggle (Variant A — public env) */
+    .ed-strip-star {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-size: 11.5px; color: var(--ed-muted);
+      background: transparent; border: none; cursor: pointer; padding: 1px 4px;
+      border-radius: 3px;
+    }
+    .ed-strip-star:hover { color: var(--ed-body); }
+
+    /* ── Tab bar (verbatim from v1) ── */
+    .ed-tab-bar {
+      display: flex; align-items: flex-end;
+      padding: 0 28px;
+    }
+    .ed-tab {
+      padding: 8px 14px; font-size: 12.5px; color: var(--ed-muted);
+      cursor: pointer; border-bottom: 2px solid transparent;
+      margin-bottom: -1px; display: flex; align-items: center; gap: 6px;
+      background: transparent; border-left: none; border-right: none; border-top: none;
+    }
+    .ed-tab:hover { color: var(--ed-body); }
+    .ed-tab.active { color: var(--ed-heading); border-bottom-color: var(--ed-green); }
+    .ed-tab-count {
+      font-size: 10.5px; color: var(--ed-muted);
+      background: rgba(255,255,255,.06); padding: 1px 5px; border-radius: 10px;
+    }
+    .ed-tab.active .ed-tab-count { color: var(--ed-dim); }
+
+    /* Checkpoint / state label (verbatim from v1) */
+    .state-label {
+      font-size: 10px; font-weight: 600; text-transform: uppercase;
+      letter-spacing: .08em; color: var(--ed-muted);
+      padding: 6px 28px;
+      background: rgba(232,167,46,.06);
+      border-bottom: 1px solid rgba(232,167,46,.15);
+      flex-shrink: 0;
+    }
+
+    /* Variant A micro-label strip — signals context quickly for the operator */
+    .variant-micro-label {
+      display: inline-flex; align-items: center; gap: 5px;
+      font-size: 9.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.09em;
+      color: var(--ed-variant-label-fg);
+      background: var(--ed-variant-label-bg);
+      border: 1px solid var(--ed-variant-label-border);
+      border-radius: 3px;
+      padding: 2px 7px;
+      margin-right: 10px;
+      flex-shrink: 0;
+    }
+
+    /* ══════════════════════════════════════════
+       SETTINGS TAB LAYOUT
+       Single scrollable column, padded 28px h
+    ══════════════════════════════════════════ */
+    .ed-settings-wrap {
+      flex: 1;
+      padding: 24px 28px 64px;
+      max-width: 780px; /* readable column width for settings forms */
+    }
+
+    /* ── Settings sub-section card ── */
+    .ed-settings-card {
+      background: var(--ed-settings-card-bg);
+      border: 1px solid var(--ed-settings-card-border);
+      border-radius: 8px;
+      padding: 20px 22px;
+      margin-bottom: 20px;
+    }
+    .ed-settings-section-heading {
+      font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.09em;
+      color: var(--ed-muted);
+      margin-bottom: 16px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--ed-border);
+    }
+
+    /* Field row */
+    .ed-field-row { margin-bottom: 16px; }
+    .ed-field-row:last-child { margin-bottom: 0; }
+    .ed-field-label {
+      font-size: 12px; font-weight: 500; color: var(--ed-body);
+      margin-bottom: 5px; display: block;
+    }
+    .ed-field-caption {
+      font-size: 11px; color: var(--ed-muted); margin-top: 4px; line-height: 1.5;
+    }
+
+    /* Text input */
+    .ed-input {
+      width: 100%;
+      background: var(--ed-bg-input);
+      border: 1px solid var(--ed-border);
+      border-radius: 5px;
+      padding: 7px 10px;
+      font-size: 13px; font-family: var(--sans);
+      color: var(--ed-body); outline: none;
+    }
+    .ed-input:focus { border-color: var(--ed-border-mid); }
+    .ed-input.mono { font-family: var(--mono); font-size: 12px; }
+    .ed-input[readonly] {
+      background: var(--ed-readonly-bg);
+      color: var(--ed-dim);
+      cursor: default;
+    }
+
+    /* Inline ID + copy row */
+    .ed-id-row {
+      display: flex; align-items: center; gap: 8px;
+      flex-wrap: wrap;
+    }
+    .ed-id-value {
+      font-family: var(--mono); font-size: 12px; color: var(--ed-body);
+      background: var(--ed-bg-input); border: 1px solid var(--ed-border);
+      border-radius: 4px; padding: 4px 8px;
+      display: inline-flex; align-items: center; gap: 6px;
+    }
+    .ed-cli-hint {
+      font-family: var(--mono); font-size: 11.5px; color: var(--ed-dim);
+      background: var(--ed-cli-bg); border: 1px solid var(--ed-cli-border);
+      border-radius: 4px; padding: 5px 10px;
+      display: flex; align-items: center; gap: 8px;
+      margin-top: 6px;
+    }
+
+    /* Select (dropdown) — simplified */
+    .ed-select {
+      width: 100%;
+      background: var(--ed-bg-input);
+      border: 1px solid var(--ed-border);
+      border-radius: 5px;
+      padding: 7px 10px;
+      font-size: 13px; font-family: var(--sans);
+      color: var(--ed-body); outline: none;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%236b6b7a' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 10px center;
+      padding-right: 28px;
+      cursor: pointer;
+    }
+    .ed-select:focus { border-color: var(--ed-border-mid); }
+
+    /* Numeric input with unit suffix */
+    .ed-input-with-unit {
+      display: flex; align-items: stretch;
+      border: 1px solid var(--ed-border);
+      border-radius: 5px;
+      overflow: hidden;
+      background: var(--ed-bg-input);
+    }
+    .ed-input-with-unit input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      padding: 7px 10px;
+      font-size: 13px; font-family: var(--mono);
+      color: var(--ed-body); outline: none;
+      min-width: 0;
+    }
+    .ed-input-unit {
+      display: flex; align-items: center;
+      padding: 0 10px;
+      font-size: 11.5px; color: var(--ed-muted);
+      background: rgba(255,255,255,0.04);
+      border-left: 1px solid var(--ed-border);
+      white-space: nowrap;
+    }
+
+    /* ── Save button ── */
+    .ed-btn-save {
+      display: inline-flex; align-items: center; gap: 5px;
+      background: rgba(61,214,140,.10);
+      border: 1px solid rgba(61,214,140,.30);
+      color: var(--ed-green);
+      border-radius: 5px;
+      padding: 7px 16px;
+      font-size: 12.5px; font-weight: 500;
+      cursor: pointer; margin-top: 16px;
+    }
+    .ed-btn-save:hover { background: rgba(61,214,140,.16); border-color: rgba(61,214,140,.50); }
+
+    /* ── Toggle switch ── */
+    .ed-toggle-row {
+      display: flex; align-items: center; gap: 10px;
+      margin-bottom: 10px;
+    }
+    .ed-toggle-btn {
+      width: 36px; height: 20px;
+      border-radius: 10px;
+      border: 1px solid var(--ed-toggle-on-border);
+      background: var(--ed-toggle-on-bg);
+      position: relative; cursor: pointer; flex-shrink: 0;
+      padding: 0;
+    }
+    .ed-toggle-btn::after {
+      content: '';
+      position: absolute;
+      top: 2px; left: 18px; /* enabled — thumb right */
+      width: 14px; height: 14px;
+      border-radius: 50%;
+      background: var(--ed-toggle-thumb-on);
+      transition: left 0.15s ease;
+    }
+    .ed-toggle-btn.off {
+      border-color: var(--ed-toggle-off-border);
+      background: var(--ed-toggle-off-bg);
+    }
+    .ed-toggle-btn.off::after {
+      left: 2px;
+      background: var(--ed-toggle-thumb-off);
+    }
+    .ed-toggle-label {
+      font-size: 12.5px; font-weight: 500;
+      color: var(--ed-body);
+    }
+    .ed-toggle-hint {
+      font-size: 11.5px; color: var(--ed-muted); line-height: 1.5;
+      margin-bottom: 16px;
+    }
+
+    /* ── File tracking list ── */
+    .ed-tracking-section-label {
+      font-size: 11px; font-weight: 600; color: var(--ed-dim);
+      text-transform: uppercase; letter-spacing: 0.07em;
+      margin-bottom: 8px; margin-top: 16px;
+    }
+    .ed-path-list { margin-bottom: 4px; }
+    .ed-path-row {
+      display: flex; align-items: center; gap: 8px;
+      padding: 5px 8px;
+      border-radius: 4px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--ed-border);
+      margin-bottom: 4px;
+    }
+    .ed-path-row:hover { border-color: var(--ed-border-mid); }
+    .ed-path-value {
+      flex: 1; font-family: var(--mono); font-size: 12px; color: var(--ed-body);
+    }
+    .ed-path-remove {
+      background: transparent; border: none; cursor: pointer;
+      color: var(--ed-muted); font-size: 13px; padding: 2px 4px;
+      border-radius: 3px; display: inline-flex; align-items: center;
+      flex-shrink: 0;
+    }
+    .ed-path-remove:hover { color: var(--ed-red); background: rgba(224,82,82,.10); }
+
+    .ed-add-path-row {
+      display: flex; align-items: center; gap: 6px;
+      margin-top: 6px;
+    }
+    .ed-add-path-input {
+      flex: 1;
+      background: var(--ed-bg-input);
+      border: 1px solid var(--ed-border);
+      border-radius: 4px;
+      padding: 5px 8px;
+      font-size: 12px; font-family: var(--mono);
+      color: var(--ed-body); outline: none;
+    }
+    .ed-add-path-input::placeholder { color: var(--ed-muted); }
+    .ed-add-path-input:focus { border-color: var(--ed-border-mid); }
+    .ed-btn-add-path {
+      background: transparent; border: 1px solid var(--ed-border-mid);
+      color: var(--ed-dim); border-radius: 4px;
+      padding: 5px 10px; font-size: 11.5px; cursor: pointer;
+      white-space: nowrap;
+    }
+    .ed-btn-add-path:hover { color: var(--ed-body); border-color: var(--ed-muted); }
+
+    /* ── Environment Variables table (Settings) ── */
+    .ed-vars-table {
+      width: 100%; border-collapse: collapse; margin-bottom: 12px;
+    }
+    .ed-vars-table th {
+      font-size: 10.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.07em;
+      color: var(--ed-muted); text-align: left;
+      padding: 0 10px 8px; border-bottom: 1px solid var(--ed-border);
+    }
+    .ed-vars-table td {
+      padding: 8px 10px;
+      border-bottom: 1px solid var(--ed-border);
+      font-size: 12px; color: var(--ed-body);
+      vertical-align: middle;
+    }
+    .ed-vars-table tr:last-child td { border-bottom: none; }
+    .ed-vars-table tr:hover td { background: rgba(255,255,255,0.02); }
+    .ed-vars-name { font-family: var(--mono); font-size: 11.5px; color: var(--ed-body); }
+    .ed-vars-required-badge {
+      display: inline-flex; align-items: center; gap: 3px;
+      font-size: 10px; font-weight: 600;
+      padding: 1px 5px; border-radius: 3px;
+      color: var(--ed-amber);
+      background: rgba(232,167,46,.10);
+      border: 1px solid rgba(232,167,46,.22);
+    }
+    .ed-vars-optional-badge {
+      display: inline-flex; align-items: center;
+      font-size: 10px; color: var(--ed-muted);
+      padding: 1px 5px; border-radius: 3px;
+      background: rgba(255,255,255,.05);
+      border: 1px solid var(--ed-border);
+    }
+    .ed-vars-masked {
+      font-family: var(--mono); font-size: 12px;
+      letter-spacing: 0.06em; color: var(--ed-dim);
+    }
+    .ed-vars-dash { color: var(--ed-muted); }
+    .ed-vars-actions {
+      display: flex; align-items: center; gap: 6px;
+    }
+    .ed-reveal-btn {
+      background: transparent; border: none; cursor: pointer;
+      color: var(--ed-muted); padding: 3px 5px;
+      border-radius: 3px; display: inline-flex; align-items: center;
+    }
+    .ed-reveal-btn:hover { color: var(--ed-body); background: rgba(255,255,255,.06); }
+    .ed-kebab-btn {
+      background: transparent; border: 1px solid var(--ed-border);
+      border-radius: 3px; cursor: pointer;
+      color: var(--ed-muted); padding: 3px 6px; font-size: 12px;
+      display: inline-flex; align-items: center;
+    }
+    .ed-kebab-btn:hover { color: var(--ed-body); border-color: var(--ed-border-mid); }
+
+    /* Add variable CTA row */
+    .ed-add-var-row {
+      margin-top: 10px;
+    }
+    .ed-btn-add-var {
+      display: inline-flex; align-items: center; gap: 5px;
+      background: transparent;
+      border: 1px dashed var(--ed-border-mid);
+      color: var(--ed-dim);
+      border-radius: 5px; padding: 6px 12px;
+      font-size: 12px; cursor: pointer; width: 100%;
+      justify-content: center;
+    }
+    .ed-btn-add-var:hover { border-color: var(--ed-muted); color: var(--ed-body); }
+
+    /* Build args textarea */
+    .ed-build-args-textarea {
+      width: 100%;
+      background: var(--ed-bg-input);
+      border: 1px solid var(--ed-border);
+      border-radius: 5px;
+      padding: 10px;
+      font-family: var(--mono); font-size: 12px;
+      color: var(--ed-body);
+      resize: vertical; min-height: 100px;
+      outline: none; line-height: 1.65;
+    }
+    .ed-build-args-textarea:focus { border-color: var(--ed-border-mid); }
+    .ed-build-args-textarea::placeholder { color: var(--ed-muted); }
+
+    /* Build arg key=value rows (populated state) */
+    .ed-kv-list { margin-bottom: 8px; }
+    .ed-kv-row {
+      display: flex; align-items: center; gap: 6px;
+      padding: 5px 8px;
+      border-radius: 4px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--ed-border);
+      margin-bottom: 4px;
+    }
+    .ed-kv-key { font-family: var(--mono); font-size: 12px; color: var(--ed-body); flex-shrink: 0; }
+    .ed-kv-eq { color: var(--ed-muted); padding: 0 4px; flex-shrink: 0; }
+    .ed-kv-val { font-family: var(--mono); font-size: 12px; color: var(--ed-green); flex: 1; }
+
+    /* ══════════════════════════════════════════
+       VARIANT A HEADER — two-column overview layout
+       (abbreviated: header + top of left column only)
+    ══════════════════════════════════════════ */
+    .ed-overview-abbrev {
+      display: grid;
+      grid-template-columns: 1fr 300px;
+      gap: 0;
+      flex: 1;
+      min-height: 0;
+    }
+    .ed-left-col-abbrev {
+      padding: 20px 28px 32px;
+      border-right: 1px solid var(--ed-border);
+    }
+    .ed-right-col-abbrev {
+      display: flex;
+      flex-direction: column;
+      background: var(--ed-bg-raised);
+    }
+    .ed-configure-panel-abbrev {
+      padding: 18px 18px 24px;
+    }
+    .ed-panel-heading { font-size: 14px; font-weight: 600; color: var(--ed-heading); margin-bottom: 4px; }
+    .ed-panel-subtitle { font-size: 12px; color: var(--ed-muted); line-height: 1.5; margin-bottom: 14px; }
+
+    /* Session-scoped note (Variant A Configure panel) */
+    .ed-session-note {
+      background: var(--ed-session-note-bg);
+      border: 1px solid var(--ed-session-note-border);
+      border-radius: 5px;
+      padding: 8px 10px;
+      font-size: 11.5px; color: var(--ed-session-note-fg);
+      line-height: 1.55;
+      margin-bottom: 14px;
+    }
+
+    /* CLI block */
+    .ed-cli-block {
+      display: flex; align-items: center; gap: 10px;
+      background: var(--ed-cli-bg);
+      border: 1px solid var(--ed-cli-border);
+      border-radius: 5px;
+      padding: 9px 12px;
+      font-family: var(--mono); font-size: 12.5px;
+      color: var(--ed-body);
+      margin-bottom: 8px;
+    }
+    .ed-cli-copy-btn {
+      background: transparent; border: 1px solid var(--ed-border-mid);
+      border-radius: 3px; cursor: pointer;
+      color: var(--ed-muted); padding: 2px 7px; font-size: 11.5px;
+      display: inline-flex; align-items: center; gap: 3px; margin-left: auto; flex-shrink: 0;
+    }
+    .ed-cli-copy-btn:hover { color: var(--ed-body); border-color: var(--ed-muted); }
+
+    /* Doc link */
+    .ed-doc-link {
+      font-size: 12px; color: var(--ed-blue); text-decoration: none;
+      display: inline-flex; align-items: center; gap: 3px;
+    }
+    .ed-doc-link:hover { text-decoration: underline; }
+
+    /* Description block */
+    .ed-description {
+      font-size: 13px; color: var(--ed-body); line-height: 1.65;
+      margin-bottom: 16px;
+    }
+
+    /* Header CTA button */
+    .ed-header-cta {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: rgba(255,255,255,.07);
+      border: 1px solid rgba(255,255,255,.18);
+      color: var(--ed-heading);
+      border-radius: 6px;
+      padding: 7px 14px;
+      font-size: 13px; font-weight: 500;
+      cursor: pointer; flex-shrink: 0;
+      text-decoration: none;
+    }
+    .ed-header-cta:hover { background: rgba(255,255,255,.12); border-color: rgba(255,255,255,.28); }
+
+    /* GitHub source link in strip */
+    .ed-strip-gh-link {
+      color: var(--ed-blue); text-decoration: none;
+      display: inline-flex; align-items: center; gap: 3px;
+    }
+    .ed-strip-gh-link:hover { text-decoration: underline; }
+
+    /* Configure panel env-var input row (abbreviated) */
+    .ed-var-row-abbrev { margin-bottom: 12px; }
+    .ed-var-label-abbrev {
+      font-family: var(--mono); font-size: 11px; font-weight: 600;
+      color: var(--ed-body); letter-spacing: 0.02em;
+      margin-bottom: 4px; display: block;
+    }
+    .ed-var-input-wrap { display: flex; align-items: center; gap: 4px; }
+    .ed-var-input {
+      flex: 1;
+      background: var(--ed-bg-input);
+      border: 1px solid var(--ed-border);
+      border-radius: 5px;
+      padding: 6px 10px;
+      font-size: 12px; font-family: var(--mono);
+      color: var(--ed-body); outline: none;
+    }
+    .ed-var-input:focus { border-color: var(--ed-border-mid); }
+    .ed-var-reveal {
+      background: transparent; border: none; cursor: pointer;
+      color: var(--ed-muted); padding: 4px 6px;
+      border-radius: 4px; display: inline-flex; align-items: center;
+    }
+    .ed-var-reveal:hover { color: var(--ed-body); background: rgba(255,255,255,.06); }
+
+    /* Case separator label (within a section, for operator comparison) */
+    .ed-case-label {
+      font-size: 10px; font-weight: 600; text-transform: uppercase;
+      letter-spacing: 0.08em; color: var(--ed-muted);
+      padding: 5px 28px;
+      background: rgba(75,142,240,0.06);
+      border-bottom: 1px solid rgba(75,142,240,0.15);
+      border-top: 1px solid rgba(75,142,240,0.10);
+    }
+
+    /* "Deployed via CLI" source in strip */
+    .ed-strip-cli-icon { display: inline-flex; align-items: center; gap: 4px; }
+
+    /* Read-only plain-text display for Variant A Settings */
+    .ed-readonly-value {
+      font-size: 13px; color: var(--ed-body); padding: 4px 0;
+    }
+    .ed-readonly-value.mono { font-family: var(--mono); font-size: 12px; }
+    .ed-readonly-note {
+      font-size: 11.5px; color: var(--ed-muted);
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--ed-border);
+      border-radius: 5px; padding: 8px 12px;
+      margin-bottom: 16px;
+      line-height: 1.55;
+    }
+  </style>
+</head>
+<body>
+
+<div class="shell-layout">
+
+  <!-- ══════════════════════════════════════════
+       APP-SHELL SIDEBAR (Environments selected) — verbatim from v1
+  ══════════════════════════════════════════ -->
+  <aside class="sidebar">
+    <div class="brand-slot">
+      <div class="brand-mark">
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+          <rect width="12" height="12" rx="2" fill="#78350f"/>
+          <path d="M2 9L6 3L10 9" stroke="#f59e0b" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <span class="brand-wordmark">hud</span>
+    </div>
+
+    <div class="group-label">Workspace</div>
+
+    <a class="nav-item">
+      <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="2" y="2" width="5" height="5" rx="1"/><rect x="9" y="2" width="5" height="5" rx="1"/>
+        <rect x="2" y="9" width="5" height="5" rx="1"/><rect x="9" y="9" width="5" height="5" rx="1"/>
+      </svg>
+      <span class="nav-item-label">Home</span>
+    </a>
+    <a class="nav-item">
+      <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M2 4h12M2 8h8M2 12h10"/><circle cx="13" cy="11" r="2.5"/>
+      </svg>
+      <span class="nav-item-label">Tasksets</span>
+      <span class="nav-item-count">127</span>
+    </a>
+    <a class="nav-item selected" aria-current="page">
+      <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="2" y="2" width="12" height="5" rx="1.5"/>
+        <rect x="2" y="9" width="12" height="5" rx="1.5"/>
+        <circle cx="5" cy="4.5" r="0.8" fill="currentColor" stroke="none"/>
+        <circle cx="5" cy="11.5" r="0.8" fill="currentColor" stroke="none"/>
+        <path d="M8 4.5h4M8 11.5h4"/>
+      </svg>
+      <span class="nav-item-label">Environments</span>
+      <span class="nav-item-count">42</span>
+    </a>
+    <a class="nav-item">
+      <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="8" cy="8" r="3"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2M3.22 3.22l1.42 1.42M11.36 11.36l1.42 1.42M3.22 12.78l1.42-1.42M11.36 4.64l1.42-1.42"/>
+      </svg>
+      <span class="nav-item-label">Models</span>
+      <span class="nav-item-count">27</span>
+    </a>
+    <a class="nav-item">
+      <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="8" cy="5" r="2.5"/><path d="M3 14c0-2.76 2.24-5 5-5s5 2.24 5 5"/>
+      </svg>
+      <span class="nav-item-label">Agents</span>
+      <span class="nav-item-count">4</span>
+    </a>
+    <a class="nav-item">
+      <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4 2h8a1 1 0 011 1v10a1 1 0 01-1 1H4a1 1 0 01-1-1V3a1 1 0 011-1z"/><path d="M6 6h4M6 9h4M6 12h2"/>
+      </svg>
+      <span class="nav-item-label">Library</span>
+    </a>
+
+    <div class="group-label">Observe</div>
+
+    <a class="nav-item">
+      <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="2" y="8" width="3" height="5" rx="0.5"/><rect x="6.5" y="5" width="3" height="8" rx="0.5"/>
+        <rect x="11" y="2" width="3" height="11" rx="0.5"/>
+      </svg>
+      <span class="nav-item-label">Dashboard</span>
+    </a>
+    <a class="nav-item">
+      <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="8" cy="8" r="6"/><path d="M8 4v4l3 1.5"/>
+      </svg>
+      <span class="nav-item-label">Progress</span>
+    </a>
+
+    <div class="spacer"></div>
+
+    <div class="credits-widget">
+      <div class="credits-label">credits</div>
+      <div class="credits-numbers">
+        <span class="credits-current">4,230</span>
+        <span class="credits-cap">&nbsp;/ 10,000</span>
+      </div>
+      <div class="credits-bar-bg"><div class="credits-bar-fill" style="width:42.3%"></div></div>
+      <div class="credits-meta"><span>~92 cr/hr</span><span>~38h left</span></div>
+    </div>
+
+    <div style="padding:2px 4px;">
+      <a class="nav-item" style="font-size:12px;">
+        <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M7 3H3a1 1 0 00-1 1v9a1 1 0 001 1h9a1 1 0 001-1V9"/><path d="M10 2h4v4M14 2L7 9"/>
+        </svg>
+        <span class="nav-item-label">Marketplace</span>
+        <span class="nav-item-ext">↗</span>
+      </a>
+      <a class="nav-item" style="font-size:12px;">
+        <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 2h8a1 1 0 011 1v10a1 1 0 01-1 1H4a1 1 0 01-1-1V3a1 1 0 011-1z"/><path d="M6 6h4M6 9h4"/>
+        </svg>
+        <span class="nav-item-label">Documentation</span>
+        <span class="nav-item-ext">↗</span>
+      </a>
+    </div>
+
+    <div class="user-chip">
+      <div class="avatar">A</div>
+      <div class="user-info">
+        <div class="user-name">Alex Kim</div>
+        <div class="user-meta">Princeton NLP · owner</div>
+      </div>
+      <svg class="switcher-icon" width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 4.5L6 2 9 4.5M3 7.5L6 10 9 7.5"/>
+      </svg>
+    </div>
+  </aside>
+
+  <!-- ══════════════════════════════════════════
+       MAIN SCROLL REGION
+  ══════════════════════════════════════════ -->
+  <div class="main-region" id="main-content">
+
+
+    <!-- ══════════════════════════════════════════════════════════════════
+         SECTION A — Settings tab · Variant C (private owner, full edit)
+    ══════════════════════════════════════════════════════════════════ -->
+
+    <div class="state-label">SECTION A — Settings tab · Variant C (private owner, full edit access)</div>
+
+    <!-- Sticky header — Settings active tab -->
+    <div class="ed-sticky-stack">
+      <div class="ed-page-header">
+
+        <nav class="ed-breadcrumb" aria-label="Breadcrumb">
+          <a class="ed-breadcrumb-link" href="#">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M8 2L4 6l4 4"/>
+            </svg>
+            Environments
+          </a>
+          <span class="ed-breadcrumb-sep">/</span>
+          <span class="ed-breadcrumb-current">hud-browser</span>
+        </nav>
+
+        <div class="ed-header-row">
+          <div class="ed-title-group">
+            <div class="ed-env-icon">
+              <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="#4b8ef0" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="8" cy="8" r="6"/><path d="M8 2c-2 2-3 4-3 6s1 4 3 6M8 2c2 2 3 4 3 6s-1 4-3 6M2 8h12"/>
+              </svg>
+            </div>
+            <span class="ed-env-name">hud-browser</span>
+            <span class="ed-privacy-pill" role="img" aria-label="Private environment">
+              <svg width="10" height="10" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="4" y="7" width="8" height="7" rx="1.5"/>
+                <path d="M5.5 7V5.5a2.5 2.5 0 015 0V7"/>
+              </svg>
+              Private
+            </span>
+          </div>
+          <!-- No CTA for Variant C owner (Decision 2) -->
+        </div>
+
+        <div class="ed-descriptor-strip">
+          <div class="ed-strip-field">
+            <span class="ed-strip-chip">
+              <svg width="10" height="10" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="8" cy="8" r="6"/><path d="M8 2c-2 2-3 4-3 6s1 4 3 6M8 2c2 2 3 4 3 6s-1 4-3 6M2 8h12"/>
+              </svg>
+              Browser
+            </span>
+          </div>
+          <span class="ed-strip-sep">·</span>
+          <div class="ed-strip-field">
+            <span class="ed-strip-slug">hud-browser</span>
+            <button class="ed-copy-btn" title="Copy slug" aria-label="Copy environment slug hud-browser">
+              <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="5" y="5" width="8" height="9" rx="1.5"/><path d="M3 11V3a1 1 0 011-1h8"/>
+              </svg>
+            </button>
+          </div>
+          <span class="ed-strip-sep">·</span>
+          <div class="ed-strip-field ed-strip-cli-icon">
+            <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="1" y="2" width="14" height="12" rx="2"/>
+              <path d="M4 6l3 2.5L4 11M9 11h3"/>
+            </svg>
+            Deployed via CLI
+          </div>
+          <span class="ed-strip-sep">·</span>
+          <div class="ed-strip-field">Created 16 days ago</div>
+        </div>
+      </div><!-- /ed-page-header -->
+
+      <!-- Tab bar — Settings active -->
+      <div class="ed-tab-bar" role="tablist" aria-label="Environment detail tabs">
+        <button class="ed-tab" role="tab" aria-selected="false">Overview</button>
+        <button class="ed-tab" role="tab" aria-selected="false">
+          Scenarios
+          <span class="ed-tab-count">6</span>
+        </button>
+        <button class="ed-tab" role="tab" aria-selected="false">
+          Builds
+          <span class="ed-tab-count">3</span>
+        </button>
+        <button class="ed-tab" role="tab" aria-selected="false">
+          Instances
+          <span class="ed-tab-count">41</span>
+        </button>
+        <button class="ed-tab active" role="tab" aria-selected="true">Settings</button>
+      </div>
+    </div><!-- /ed-sticky-stack -->
+
+    <!-- ── Settings tab content ── -->
+    <div class="ed-settings-wrap" role="tabpanel" aria-label="Settings">
+
+      <!-- ── 1. ENVIRONMENT INFO ── -->
+      <div class="ed-settings-card">
+        <div class="ed-settings-section-heading">Environment Info</div>
+
+        <div class="ed-field-row">
+          <label class="ed-field-label" for="display-name-c">Display Name</label>
+          <input
+            id="display-name-c"
+            class="ed-input"
+            type="text"
+            value="hud-browser"
+            aria-label="Display name for this environment"
+          />
+          <button class="ed-btn-save" aria-label="Save display name">
+            <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M13 2H5a1 1 0 00-1 1v10a1 1 0 001 1h8a1 1 0 001-1V5l-2-3z"/>
+              <path d="M9 2v4H5M7 9.5h2M7 12h2"/>
+            </svg>
+            Save
+          </button>
+        </div>
+
+        <div class="ed-field-row">
+          <label class="ed-field-label">Environment ID</label>
+          <div class="ed-id-row">
+            <div class="ed-id-value">
+              24176be5-ceea-4b18-aca4-42851795b672
+              <button class="ed-copy-btn" title="Copy ID" aria-label="Copy environment ID">
+                <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="5" y="5" width="8" height="9" rx="1.5"/><path d="M3 11V3a1 1 0 011-1h8"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+          <div class="ed-cli-hint" title="Copy this command">
+            <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="1" y="2" width="14" height="12" rx="2"/>
+              <path d="M4 6l3 2.5L4 11M9 11h3"/>
+            </svg>
+            hud link --id 24176be5-ceea-4b18-aca4-42851795b672
+            <button class="ed-copy-btn" aria-label="Copy hud link command" style="margin-left:auto;">
+              <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="5" y="5" width="8" height="9" rx="1.5"/><path d="M3 11V3a1 1 0 011-1h8"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div><!-- /environment info card -->
+
+      <!-- ── 2. POD CONFIGURATION ── -->
+      <div class="ed-settings-card">
+        <div class="ed-settings-section-heading">Pod Configuration</div>
+
+        <div class="ed-field-row">
+          <label class="ed-field-label" for="resource-tier">Resource Tier</label>
+          <select class="ed-select" id="resource-tier" aria-label="Resource tier">
+            <option selected>1 vCPU / 4 GB · $0.50/hr (Default)</option>
+            <option>2 vCPU / 8 GB · $1.00/hr</option>
+            <option>4 vCPU / 16 GB · $2.00/hr</option>
+          </select>
+        </div>
+
+        <div class="ed-field-row">
+          <label class="ed-field-label" for="req-timeout">Request Timeout</label>
+          <div class="ed-input-with-unit">
+            <input id="req-timeout" type="number" value="30" min="1" aria-label="Request timeout in seconds"/>
+            <span class="ed-input-unit">s</span>
+          </div>
+          <div class="ed-field-caption">Maximum time to wait for an environment to respond before the request is terminated.</div>
+        </div>
+
+        <div class="ed-field-row">
+          <label class="ed-field-label" for="session-duration">Session Duration</label>
+          <div class="ed-input-with-unit">
+            <input id="session-duration" type="number" value="10" min="1" aria-label="Session duration limit in minutes"/>
+            <span class="ed-input-unit">m</span>
+          </div>
+          <div class="ed-field-caption">Maximum lifetime of an active Instance session.</div>
+        </div>
+
+        <button class="ed-btn-save" aria-label="Save pod configuration">
+          <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M13 2H5a1 1 0 00-1 1v10a1 1 0 001 1h8a1 1 0 001-1V5l-2-3z"/>
+            <path d="M9 2v4H5M7 9.5h2M7 12h2"/>
+          </svg>
+          Save Pod Configuration
+        </button>
+      </div><!-- /pod config card -->
+
+      <!-- ── 3. FILE TRACKING — enabled + expanded ── -->
+      <div class="ed-settings-card">
+        <div class="ed-settings-section-heading">File Tracking</div>
+
+        <!-- Toggle — enabled state -->
+        <div class="ed-toggle-row">
+          <button
+            class="ed-toggle-btn"
+            role="switch"
+            aria-checked="true"
+            aria-label="Enable file tracking"
+            title="Disable file tracking"
+          ></button>
+          <span class="ed-toggle-label">Enabled</span>
+        </div>
+        <p class="ed-toggle-hint">File changes in the container will appear as diffs on the Trace.</p>
+
+        <!-- Tracked Paths -->
+        <div class="ed-tracking-section-label">Tracked Paths</div>
+        <div class="ed-path-list">
+          <div class="ed-path-row">
+            <span class="ed-path-value">src/**</span>
+            <button class="ed-path-remove" aria-label="Remove tracked path src/**" title="Remove">×</button>
+          </div>
+          <div class="ed-path-row">
+            <span class="ed-path-value">scripts/*.py</span>
+            <button class="ed-path-remove" aria-label="Remove tracked path scripts/*.py" title="Remove">×</button>
+          </div>
+          <div class="ed-path-row">
+            <span class="ed-path-value">/workspace</span>
+            <button class="ed-path-remove" aria-label="Remove tracked path /workspace" title="Remove">×</button>
+          </div>
+          <div class="ed-path-row">
+            <span class="ed-path-value">/app</span>
+            <button class="ed-path-remove" aria-label="Remove tracked path /app" title="Remove">×</button>
+          </div>
+        </div>
+        <div class="ed-add-path-row">
+          <input class="ed-add-path-input" type="text" placeholder="/path/to/track" aria-label="New tracked path" />
+          <button class="ed-btn-add-path">+ Add path</button>
+        </div>
+
+        <!-- Exclude Patterns -->
+        <div class="ed-tracking-section-label" style="margin-top:20px;">Exclude Patterns</div>
+        <div class="ed-path-list">
+          <div class="ed-path-row">
+            <span class="ed-path-value">**/__pycache__/**</span>
+            <button class="ed-path-remove" aria-label="Remove exclude pattern **/__pycache__/**" title="Remove">×</button>
+          </div>
+          <div class="ed-path-row">
+            <span class="ed-path-value">**/.env*</span>
+            <button class="ed-path-remove" aria-label="Remove exclude pattern **/.env*" title="Remove">×</button>
+          </div>
+          <div class="ed-path-row">
+            <span class="ed-path-value">node_modules/</span>
+            <button class="ed-path-remove" aria-label="Remove exclude pattern node_modules/" title="Remove">×</button>
+          </div>
+          <div class="ed-path-row">
+            <span class="ed-path-value">.venv/</span>
+            <button class="ed-path-remove" aria-label="Remove exclude pattern .venv/" title="Remove">×</button>
+          </div>
+          <div class="ed-path-row">
+            <span class="ed-path-value">*.pyc</span>
+            <button class="ed-path-remove" aria-label="Remove exclude pattern *.pyc" title="Remove">×</button>
+          </div>
+          <div class="ed-path-row">
+            <span class="ed-path-value">.git/objects/</span>
+            <button class="ed-path-remove" aria-label="Remove exclude pattern .git/objects/" title="Remove">×</button>
+          </div>
+        </div>
+        <div class="ed-add-path-row">
+          <input class="ed-add-path-input" type="text" placeholder="pattern" aria-label="New exclude pattern" />
+          <button class="ed-btn-add-path">+ Add pattern</button>
+        </div>
+
+        <button class="ed-btn-save" aria-label="Save file tracking configuration">
+          <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M13 2H5a1 1 0 00-1 1v10a1 1 0 001 1h8a1 1 0 001-1V5l-2-3z"/>
+            <path d="M9 2v4H5M7 9.5h2M7 12h2"/>
+          </svg>
+          Save File Tracking
+        </button>
+      </div><!-- /file tracking card -->
+
+      <!-- ── 4. ENVIRONMENT VARIABLES ── -->
+      <div class="ed-settings-card">
+        <div class="ed-settings-section-heading">Environment Variables</div>
+        <p style="font-size:12px;color:var(--ed-muted);margin-bottom:14px;line-height:1.55;">
+          Variable schema and org-shared default values.
+          Per-run values are entered in the
+          <a href="#" style="color:var(--ed-blue);text-decoration:none;">Configure panel on Overview</a>.
+        </p>
+
+        <table class="ed-vars-table" aria-label="Environment variables">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Required</th>
+              <th>Type</th>
+              <th>Default Value</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="ed-vars-name">BROWSERBASE_API_KEY</span></td>
+              <td><span class="ed-vars-required-badge">* required</span></td>
+              <td style="color:var(--ed-dim);font-size:12px;">string</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:6px;">
+                  <span class="ed-vars-masked">••••••••</span>
+                  <button class="ed-reveal-btn" aria-label="Reveal BROWSERBASE_API_KEY">
+                    <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M1 8s2.5-5 7-5 7 5 7 5-2.5 5-7 5-7-5-7-5z"/><circle cx="8" cy="8" r="2"/>
+                    </svg>
+                  </button>
+                </div>
+              </td>
+              <td>
+                <button class="ed-kebab-btn" aria-label="More actions for BROWSERBASE_API_KEY">⋮</button>
+              </td>
+            </tr>
+            <tr>
+              <td><span class="ed-vars-name">BROWSERBASE_PROJECT_ID</span></td>
+              <td><span class="ed-vars-required-badge">* required</span></td>
+              <td style="color:var(--ed-dim);font-size:12px;">string</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:6px;">
+                  <span class="ed-vars-masked">••••••••</span>
+                  <button class="ed-reveal-btn" aria-label="Reveal BROWSERBASE_PROJECT_ID">
+                    <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M1 8s2.5-5 7-5 7 5 7 5-2.5 5-7 5-7-5-7-5z"/><circle cx="8" cy="8" r="2"/>
+                    </svg>
+                  </button>
+                </div>
+              </td>
+              <td>
+                <button class="ed-kebab-btn" aria-label="More actions for BROWSERBASE_PROJECT_ID">⋮</button>
+              </td>
+            </tr>
+            <tr>
+              <td><span class="ed-vars-name">DISPLAY_HEIGHT</span></td>
+              <td><span class="ed-vars-optional-badge">optional</span></td>
+              <td style="color:var(--ed-dim);font-size:12px;">int</td>
+              <td><span class="ed-vars-dash" style="font-size:12px;">(not set)</span></td>
+              <td>
+                <button class="ed-kebab-btn" aria-label="More actions for DISPLAY_HEIGHT">⋮</button>
+              </td>
+            </tr>
+            <tr>
+              <td><span class="ed-vars-name">DISPLAY_WIDTH</span></td>
+              <td><span class="ed-vars-optional-badge">optional</span></td>
+              <td style="color:var(--ed-dim);font-size:12px;">int</td>
+              <td><span class="ed-vars-dash" style="font-size:12px;">(not set)</span></td>
+              <td>
+                <button class="ed-kebab-btn" aria-label="More actions for DISPLAY_WIDTH">⋮</button>
+              </td>
+            </tr>
+            <tr>
+              <td><span class="ed-vars-name">GCP_CREDENTIALS_BASE64</span></td>
+              <td><span class="ed-vars-optional-badge">optional</span></td>
+              <td style="color:var(--ed-dim);font-size:12px;">string</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:6px;">
+                  <span class="ed-vars-masked">••••••••</span>
+                  <button class="ed-reveal-btn" aria-label="Reveal GCP_CREDENTIALS_BASE64">
+                    <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M1 8s2.5-5 7-5 7 5 7 5-2.5 5-7 5-7-5-7-5z"/><circle cx="8" cy="8" r="2"/>
+                    </svg>
+                  </button>
+                </div>
+              </td>
+              <td>
+                <button class="ed-kebab-btn" aria-label="More actions for GCP_CREDENTIALS_BASE64">⋮</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="ed-add-var-row">
+          <button class="ed-btn-add-var" aria-label="Add environment variable">
+            <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M8 2v12M2 8h12"/>
+            </svg>
+            Add variable
+          </button>
+        </div>
+      </div><!-- /env vars card -->
+
+      <!-- ── 5. BUILD ARGUMENTS ── -->
+      <div class="ed-settings-card">
+        <div class="ed-settings-section-heading">Build Arguments</div>
+        <p class="ed-field-caption" style="margin-bottom:12px;">
+          Passed as <code style="font-family:var(--mono);font-size:11px;background:rgba(255,255,255,0.07);padding:1px 4px;border-radius:3px;">--build-arg KEY=value</code> to the Docker build. One per line.
+        </p>
+
+        <div class="ed-kv-list">
+          <div class="ed-kv-row">
+            <span class="ed-kv-key">PYTHON_VERSION</span>
+            <span class="ed-kv-eq">=</span>
+            <span class="ed-kv-val">3.11</span>
+            <button class="ed-path-remove" aria-label="Remove build arg PYTHON_VERSION" title="Remove" style="margin-left:auto;">×</button>
+          </div>
+          <div class="ed-kv-row">
+            <span class="ed-kv-key">INSTALL_PLAYWRIGHT</span>
+            <span class="ed-kv-eq">=</span>
+            <span class="ed-kv-val">true</span>
+            <button class="ed-path-remove" aria-label="Remove build arg INSTALL_PLAYWRIGHT" title="Remove" style="margin-left:auto;">×</button>
+          </div>
+        </div>
+
+        <div class="ed-add-path-row">
+          <input class="ed-add-path-input" type="text" placeholder="KEY" style="max-width:150px;" aria-label="Build arg key" />
+          <span style="color:var(--ed-muted);font-family:var(--mono);font-size:13px;padding:0 4px;">=</span>
+          <input class="ed-add-path-input" type="text" placeholder="value" style="flex:1;" aria-label="Build arg value" />
+          <button class="ed-btn-add-path">+ Add</button>
+        </div>
+
+        <button class="ed-btn-save" aria-label="Save build arguments">
+          <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M13 2H5a1 1 0 00-1 1v10a1 1 0 001 1h8a1 1 0 001-1V5l-2-3z"/>
+            <path d="M9 2v4H5M7 9.5h2M7 12h2"/>
+          </svg>
+          Save Build Arguments
+        </button>
+      </div><!-- /build args card -->
+
+    </div><!-- /ed-settings-wrap -->
+
+
+    <!-- ══════════════════════════════════════════════════════════════════════════
+         SECTION B — Variant A (public visitor) header treatment — two cases
+    ══════════════════════════════════════════════════════════════════════════ -->
+
+    <div class="state-label">SECTION B — Variant A (public visitor) · Header CTA branching · Overview tab</div>
+
+    <!-- ─────────────────────────────
+         CASE 1: GitHub source known → [Use as template] in header
+    ───────────────────────────────── -->
+
+    <div class="ed-case-label">GitHub source known → header CTA: [Use as template] · Descriptor strip shows GitHub source</div>
+
+    <div class="ed-sticky-stack" style="position:relative;top:auto;">
+      <div class="ed-page-header">
+
+        <nav class="ed-breadcrumb" aria-label="Breadcrumb">
+          <a class="ed-breadcrumb-link" href="#">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M8 2L4 6l4 4"/>
+            </svg>
+            Environments
+          </a>
+          <span class="ed-breadcrumb-sep">/</span>
+          <span class="ed-breadcrumb-current">browserbase</span>
+        </nav>
+
+        <div class="ed-header-row">
+          <div class="ed-title-group">
+            <!-- Variant A micro-label -->
+            <span class="variant-micro-label" title="Variant A — public visitor (GitHub source known)">Variant A — public visitor</span>
+
+            <div class="ed-env-icon">
+              <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="#4b8ef0" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="8" cy="8" r="6"/><path d="M8 2c-2 2-3 4-3 6s1 4 3 6M8 2c2 2 3 4 3 6s-1 4-3 6M2 8h12"/>
+              </svg>
+            </div>
+            <span class="ed-env-name">browserbase</span>
+            <span class="ed-privacy-pill public" role="img" aria-label="Public environment">
+              🌐 Public
+            </span>
+          </div>
+          <!-- Right slot CTA — Case 1: GitHub source known -->
+          <a class="ed-header-cta" href="#" target="_blank" rel="noopener" aria-label="Use browserbase as a template, opens GitHub in new tab">
+            <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M7 3H3a1 1 0 00-1 1v9a1 1 0 001 1h9a1 1 0 001-1V9"/><path d="M10 2h4v4M14 2L7 9"/>
+            </svg>
+            Use as template
+          </a>
+        </div>
+
+        <!-- Descriptor strip — GitHub source -->
+        <div class="ed-descriptor-strip">
+          <div class="ed-strip-field">
+            <span class="ed-strip-chip">
+              <svg width="10" height="10" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="8" cy="8" r="6"/><path d="M8 2c-2 2-3 4-3 6s1 4 3 6M8 2c2 2 3 4 3 6s-1 4-3 6M2 8h12"/>
+              </svg>
+              Browser
+            </span>
+          </div>
+          <span class="ed-strip-sep">·</span>
+          <div class="ed-strip-field">
+            <span class="ed-strip-slug">browserbase</span>
+            <button class="ed-copy-btn" title="Copy slug" aria-label="Copy environment slug browserbase">
+              <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="5" y="5" width="8" height="9" rx="1.5"/><path d="M3 11V3a1 1 0 011-1h8"/>
+              </svg>
+            </button>
+          </div>
+          <span class="ed-strip-sep">·</span>
+          <!-- GitHub source field -->
+          <div class="ed-strip-field">
+            <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M8 1.5C4.41 1.5 1.5 4.41 1.5 8c0 2.88 1.87 5.32 4.46 6.18.33.06.45-.14.45-.31v-1.09c-1.82.4-2.2-.88-2.2-.88-.3-.75-.73-.95-.73-.95-.6-.41.04-.4.04-.4.66.05 1 .68 1 .68.59 1.01 1.54.72 1.91.55.06-.43.23-.72.42-.88-1.46-.17-2.99-.73-2.99-3.24 0-.72.26-1.3.67-1.76-.07-.17-.29-.84.07-1.74 0 0 .55-.18 1.8.67.52-.14 1.08-.22 1.64-.22s1.12.08 1.64.22c1.25-.85 1.8-.67 1.8-.67.36.9.14 1.57.07 1.74.42.46.67 1.04.67 1.76 0 2.52-1.53 3.07-2.99 3.23.23.2.44.6.44 1.21v1.79c0 .17.12.38.45.31C12.63 13.32 14.5 10.88 14.5 8c0-3.59-2.91-6.5-6.5-6.5z"/>
+            </svg>
+            <a class="ed-strip-gh-link" href="#" target="_blank" rel="noopener" aria-label="View source on GitHub: kv/browserbase, opens in new tab">
+              GitHub: kv/browserbase
+              <svg width="10" height="10" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M7 3H3a1 1 0 00-1 1v9a1 1 0 001 1h9a1 1 0 001-1V9"/><path d="M10 2h4v4M14 2L7 9"/>
+              </svg>
+            </a>
+          </div>
+          <span class="ed-strip-sep">·</span>
+          <div class="ed-strip-field">Created 16 days ago</div>
+          <span class="ed-strip-sep">·</span>
+          <!-- Star toggle (public env) -->
+          <button class="ed-strip-star" aria-label="Star browserbase" aria-pressed="false">
+            ☆ 47
+          </button>
+        </div>
+      </div><!-- /ed-page-header Case 1 -->
+
+      <!-- Tab bar — Overview active (Variant A: no counts on Builds/Instances) -->
+      <div class="ed-tab-bar" role="tablist" aria-label="Environment detail tabs">
+        <button class="ed-tab active" role="tab" aria-selected="true">Overview</button>
+        <button class="ed-tab" role="tab" aria-selected="false">
+          Scenarios
+          <span class="ed-tab-count">6</span>
+        </button>
+        <button class="ed-tab" role="tab" aria-selected="false">Builds</button>
+        <button class="ed-tab" role="tab" aria-selected="false">Instances</button>
+        <button class="ed-tab" role="tab" aria-selected="false">Settings</button>
+      </div>
+    </div><!-- /sticky stack Case 1 -->
+
+    <!-- Body context snippet — Case 1 (GitHub source: no CLI block in body) -->
+    <div class="ed-overview-abbrev">
+      <div class="ed-left-col-abbrev">
+        <div style="font-size:10.5px;color:var(--ed-muted);text-transform:uppercase;letter-spacing:.07em;font-weight:600;margin-bottom:10px;">Description</div>
+        <p class="ed-description">
+          A HUD environment wrapping <a href="#" style="color:var(--ed-blue);text-decoration:none;" target="_blank">Browserbase</a> for remote browser sessions. Runs a headless Chromium instance accessible via Playwright. Supports answer, navigation, form-fill, and game scenarios out of the box.
+        </p>
+        <div style="font-size:11px;color:var(--ed-muted);border-top:1px solid var(--ed-border);padding-top:10px;margin-top:4px;">
+          ↓ Scenarios (6) follow — abbreviated for section scope
+        </div>
+      </div>
+      <div class="ed-right-col-abbrev">
+        <div class="ed-configure-panel-abbrev">
+          <div class="ed-panel-heading">Configure</div>
+          <div class="ed-panel-subtitle">Enter your keys to run a scenario.</div>
+          <!-- No session note in Case 1 body snippet — session note shown in Case 2 below -->
+          <div class="ed-var-row-abbrev">
+            <label class="ed-var-label-abbrev">BROWSERBASE_API_KEY</label>
+            <div class="ed-var-input-wrap">
+              <input class="ed-var-input" type="password" placeholder="Enter your API key" aria-label="BROWSERBASE_API_KEY" />
+              <button class="ed-var-reveal" aria-label="Reveal BROWSERBASE_API_KEY">
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M1 8s2.5-5 7-5 7 5 7 5-2.5 5-7 5-7-5-7-5z"/><circle cx="8" cy="8" r="2"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+          <div class="ed-var-row-abbrev">
+            <label class="ed-var-label-abbrev">BROWSERBASE_PROJECT_ID</label>
+            <div class="ed-var-input-wrap">
+              <input class="ed-var-input" type="password" placeholder="Enter project ID" aria-label="BROWSERBASE_PROJECT_ID" />
+              <button class="ed-var-reveal" aria-label="Reveal BROWSERBASE_PROJECT_ID">
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M1 8s2.5-5 7-5 7 5 7 5-2.5 5-7 5-7-5-7-5z"/><circle cx="8" cy="8" r="2"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+          <div style="font-size:10.5px;color:var(--ed-muted);margin-top:12px;border-top:1px solid var(--ed-border);padding-top:10px;">
+            ← Select a scenario to continue
+          </div>
+        </div>
+      </div>
+    </div><!-- /Case 1 overview abbrev -->
+
+
+    <!-- ─────────────────────────────
+         CASE 2: CLI-only source → no header CTA; CLI block in Overview body; session note in panel
+    ───────────────────────────────── -->
+
+    <div class="ed-case-label">CLI-only source → no header CTA · CLI block in Overview body · Session-scoped note in Configure panel</div>
+
+    <div class="ed-sticky-stack" style="position:relative;top:auto;">
+      <div class="ed-page-header">
+
+        <nav class="ed-breadcrumb" aria-label="Breadcrumb">
+          <a class="ed-breadcrumb-link" href="#">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M8 2L4 6l4 4"/>
+            </svg>
+            Environments
+          </a>
+          <span class="ed-breadcrumb-sep">/</span>
+          <span class="ed-breadcrumb-current">browserbase</span>
+        </nav>
+
+        <div class="ed-header-row">
+          <div class="ed-title-group">
+            <!-- Variant A micro-label -->
+            <span class="variant-micro-label" title="Variant A — public visitor (CLI-only source)">Variant A — public visitor</span>
+
+            <div class="ed-env-icon">
+              <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="#4b8ef0" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="8" cy="8" r="6"/><path d="M8 2c-2 2-3 4-3 6s1 4 3 6M8 2c2 2 3 4 3 6s-1 4-3 6M2 8h12"/>
+              </svg>
+            </div>
+            <span class="ed-env-name">browserbase</span>
+            <span class="ed-privacy-pill public" role="img" aria-label="Public environment">
+              🌐 Public
+            </span>
+          </div>
+          <!-- Right slot — NO CTA for CLI-only source (Decision 2) -->
+        </div>
+
+        <!-- Descriptor strip — CLI source (no GitHub link) -->
+        <div class="ed-descriptor-strip">
+          <div class="ed-strip-field">
+            <span class="ed-strip-chip">
+              <svg width="10" height="10" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="8" cy="8" r="6"/><path d="M8 2c-2 2-3 4-3 6s1 4 3 6M8 2c2 2 3 4 3 6s-1 4-3 6M2 8h12"/>
+              </svg>
+              Browser
+            </span>
+          </div>
+          <span class="ed-strip-sep">·</span>
+          <div class="ed-strip-field">
+            <span class="ed-strip-slug">browserbase</span>
+            <button class="ed-copy-btn" title="Copy slug" aria-label="Copy environment slug browserbase">
+              <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="5" y="5" width="8" height="9" rx="1.5"/><path d="M3 11V3a1 1 0 011-1h8"/>
+              </svg>
+            </button>
+          </div>
+          <span class="ed-strip-sep">·</span>
+          <div class="ed-strip-field ed-strip-cli-icon">
+            <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="1" y="2" width="14" height="12" rx="2"/>
+              <path d="M4 6l3 2.5L4 11M9 11h3"/>
+            </svg>
+            Deployed via CLI
+          </div>
+          <span class="ed-strip-sep">·</span>
+          <div class="ed-strip-field">Created 16 days ago</div>
+          <span class="ed-strip-sep">·</span>
+          <button class="ed-strip-star" aria-label="Star browserbase" aria-pressed="false">
+            ☆ 47
+          </button>
+        </div>
+      </div><!-- /ed-page-header Case 2 -->
+
+      <!-- Tab bar — Overview active (Variant A) -->
+      <div class="ed-tab-bar" role="tablist" aria-label="Environment detail tabs">
+        <button class="ed-tab active" role="tab" aria-selected="true">Overview</button>
+        <button class="ed-tab" role="tab" aria-selected="false">
+          Scenarios
+          <span class="ed-tab-count">6</span>
+        </button>
+        <button class="ed-tab" role="tab" aria-selected="false">Builds</button>
+        <button class="ed-tab" role="tab" aria-selected="false">Instances</button>
+        <button class="ed-tab" role="tab" aria-selected="false">Settings</button>
+      </div>
+    </div><!-- /sticky stack Case 2 -->
+
+    <!-- Body context snippet — Case 2 (CLI-only: CLI block appears between Description and Scenarios) -->
+    <div class="ed-overview-abbrev">
+      <div class="ed-left-col-abbrev">
+        <div style="font-size:10.5px;color:var(--ed-muted);text-transform:uppercase;letter-spacing:.07em;font-weight:600;margin-bottom:10px;">Description</div>
+        <p class="ed-description">
+          A HUD environment wrapping <a href="#" style="color:var(--ed-blue);text-decoration:none;" target="_blank">Browserbase</a> for remote browser sessions. Runs a headless Chromium instance accessible via Playwright.
+        </p>
+
+        <!-- CLI template block — §4a Variant A annotation; between Description and Scenarios -->
+        <div class="ed-cli-block" aria-label="hud init browserbase command">
+          <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;color:var(--ed-muted);">
+            <rect x="1" y="2" width="14" height="12" rx="2"/>
+            <path d="M4 6l3 2.5L4 11M9 11h3"/>
+          </svg>
+          hud init browserbase
+          <button class="ed-cli-copy-btn" aria-label="Copy hud init browserbase command">
+            <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="5" y="5" width="8" height="9" rx="1.5"/><path d="M3 11V3a1 1 0 011-1h8"/>
+            </svg>
+            Copy
+          </button>
+        </div>
+        <div style="margin-bottom:16px;">
+          <a class="ed-doc-link" href="#" target="_blank" rel="noopener">
+            Read the docs
+            <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M7 3H3a1 1 0 00-1 1v9a1 1 0 001 1h9a1 1 0 001-1V9"/><path d="M10 2h4v4M14 2L7 9"/>
+            </svg>
+          </a>
+        </div>
+
+        <div style="font-size:11px;color:var(--ed-muted);border-top:1px solid var(--ed-border);padding-top:10px;margin-top:4px;">
+          ↓ Scenarios (6) follow — abbreviated for section scope
+        </div>
+      </div>
+
+      <!-- Right column — Configure panel with session-scoped note (§4a Variant A) -->
+      <div class="ed-right-col-abbrev">
+        <div class="ed-configure-panel-abbrev">
+          <div class="ed-panel-heading">Configure</div>
+          <div class="ed-panel-subtitle">Enter your keys to run a scenario.</div>
+
+          <!-- Session-scoped note — §4a Variant A annotation (Decision 8) -->
+          <div class="ed-session-note" role="note">
+            <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:text-top;margin-right:4px;flex-shrink:0;">
+              <circle cx="8" cy="8" r="6"/><path d="M8 5v3M8 10.5v.5"/>
+            </svg>
+            These values are scoped to your session and won't be saved to this environment.
+          </div>
+
+          <div class="ed-var-row-abbrev">
+            <label class="ed-var-label-abbrev">BROWSERBASE_API_KEY</label>
+            <div class="ed-var-input-wrap">
+              <input class="ed-var-input" type="password" placeholder="Enter your API key" aria-label="BROWSERBASE_API_KEY" />
+              <button class="ed-var-reveal" aria-label="Reveal BROWSERBASE_API_KEY">
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M1 8s2.5-5 7-5 7 5 7 5-2.5 5-7 5-7-5-7-5z"/><circle cx="8" cy="8" r="2"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+          <div class="ed-var-row-abbrev">
+            <label class="ed-var-label-abbrev">BROWSERBASE_PROJECT_ID</label>
+            <div class="ed-var-input-wrap">
+              <input class="ed-var-input" type="password" placeholder="Enter project ID" aria-label="BROWSERBASE_PROJECT_ID" />
+              <button class="ed-var-reveal" aria-label="Reveal BROWSERBASE_PROJECT_ID">
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M1 8s2.5-5 7-5 7 5 7 5-2.5 5-7 5-7-5-7-5z"/><circle cx="8" cy="8" r="2"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+          <div style="font-size:10.5px;color:var(--ed-muted);margin-top:12px;border-top:1px solid var(--ed-border);padding-top:10px;">
+            ← Select a scenario to continue
+          </div>
+        </div>
+      </div>
+    </div><!-- /Case 2 overview abbrev -->
+
+
+    <!-- ══════════════════════════════════════════════════════════════════════════
+         SECTION C (optional) — Variant A restricted Builds + Instances tabs
+         Brief rendering only — shows the restricted-content state for each tab
+    ══════════════════════════════════════════════════════════════════════════ -->
+
+    <div class="state-label">SECTION C — Variant A · Builds tab (restricted) + Instances tab (visitor scope)</div>
+
+    <!-- Variant A Builds tab — restricted content (§6b) -->
+    <div style="padding:0 28px 20px;border-bottom:1px solid var(--ed-border);background:var(--ed-bg);">
+      <div style="padding-top:20px;">
+        <div style="font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:var(--ed-amber);background:rgba(232,167,46,.08);border:1px solid rgba(232,167,46,.22);border-radius:3px;padding:2px 7px;display:inline-flex;margin-bottom:14px;">Variant A — Builds tab</div>
+
+        <!-- Read-only summary line -->
+        <div style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--ed-body);margin-bottom:10px;">
+          <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--ed-green);">
+            <path d="M13 4L6 11l-3-3"/>
+          </svg>
+          <span>Latest build: <strong style="color:var(--ed-green);">v0.1.0</strong> · 16 days ago</span>
+        </div>
+
+        <p style="font-size:12.5px;color:var(--ed-muted);margin-bottom:14px;line-height:1.6;">
+          Build history is available to the environment owner.<br/>
+          To deploy your own copy of this environment:
+        </p>
+
+        <div class="ed-cli-block" style="max-width:480px;" aria-label="hud init browserbase command">
+          <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;color:var(--ed-muted);">
+            <rect x="1" y="2" width="14" height="12" rx="2"/><path d="M4 6l3 2.5L4 11M9 11h3"/>
+          </svg>
+          hud init browserbase
+          <button class="ed-cli-copy-btn" aria-label="Copy hud init browserbase">
+            <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="5" y="5" width="8" height="9" rx="1.5"/><path d="M3 11V3a1 1 0 011-1h8"/>
+            </svg>
+            Copy
+          </button>
+        </div>
+
+        <div style="margin-top:8px;">
+          <a class="ed-doc-link" href="#" target="_blank" rel="noopener">
+            Read the docs
+            <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M7 3H3a1 1 0 00-1 1v9a1 1 0 001 1h9a1 1 0 001-1V9"/><path d="M10 2h4v4M14 2L7 9"/>
+            </svg>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Variant A Instances tab — visitor scope (§7b) -->
+    <div style="padding:20px 28px 48px;background:var(--ed-bg);">
+      <div style="font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:var(--ed-amber);background:rgba(232,167,46,.08);border:1px solid rgba(232,167,46,.22);border-radius:3px;padding:2px 7px;display:inline-flex;margin-bottom:14px;">Variant A — Instances tab</div>
+
+      <div style="font-size:14px;font-weight:600;color:var(--ed-heading);margin-bottom:4px;">Your test runs on this environment</div>
+      <div style="font-size:12.5px;color:var(--ed-muted);margin-bottom:16px;">Scoped to your session. You are not seeing the owner's instances.</div>
+
+      <!-- Filter chips -->
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:20px;" role="group" aria-label="Filter instances by status">
+        <button style="background:var(--accent-subtle);border:1px solid rgba(16,185,129,.30);border-radius:12px;padding:3px 10px;font-size:12px;color:var(--accent);cursor:pointer;" role="radio" aria-checked="true">All (0)</button>
+        <button style="background:transparent;border:1px solid var(--ed-border);border-radius:12px;padding:3px 10px;font-size:12px;color:var(--ed-muted);cursor:pointer;" role="radio" aria-checked="false">Running (0)</button>
+        <button style="background:transparent;border:1px solid var(--ed-border);border-radius:12px;padding:3px 10px;font-size:12px;color:var(--ed-muted);cursor:pointer;" role="radio" aria-checked="false">Terminated (0)</button>
+        <div style="margin-left:auto;display:flex;gap:4px;">
+          <button style="background:transparent;border:1px solid var(--ed-border);border-radius:4px;padding:3px 8px;font-size:11.5px;color:var(--ed-muted);cursor:pointer;">☰ Comfortable</button>
+          <button style="background:rgba(255,255,255,.06);border:1px solid var(--ed-border-mid);border-radius:4px;padding:3px 8px;font-size:11.5px;color:var(--ed-body);cursor:pointer;">☰ Compact</button>
+        </div>
+      </div>
+
+      <!-- Empty state -->
+      <div style="padding:32px 0;text-align:center;border:1px dashed var(--ed-border);border-radius:6px;background:rgba(255,255,255,.02);">
+        <div style="font-size:14px;font-weight:500;color:var(--ed-body);margin-bottom:6px;">No Instances yet.</div>
+        <div style="font-size:12.5px;color:var(--ed-muted);margin-bottom:16px;line-height:1.6;">
+          Load a Scenario and run it to see your test runs here.
+        </div>
+        <button style="display:inline-flex;align-items:center;gap:6px;background:transparent;border:1px solid var(--ed-border-mid);border-radius:5px;padding:7px 16px;font-size:12.5px;color:var(--ed-dim);cursor:pointer;">
+          <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 8h8M6 5l-3 3 3 3"/>
+          </svg>
+          Go to Overview
+        </button>
+      </div>
+    </div>
+
+  </div><!-- /main-region -->
+
+</div><!-- /shell-layout -->
+
+</body>
+</html>

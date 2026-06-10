@@ -1,0 +1,960 @@
+<!--
+  filename: v1.html
+  CHECKPOINT 1 — Environment Detail · Variant C (private owner) · Overview tab · State 1 (drawer closed)
+  Scope: App-shell chrome + page header (sticky) + tab bar (sticky) + Overview tab full content width
+
+  Content (per production screenshot 2026-06-09 + spec §4a):
+    Description block
+    Info block (Source / Visibility / Created)
+    Scenarios section — 3-col grid, abbreviated cards + run-count chip + Loaded → variant on card 3
+    Tools section — horizontal scroll row of tool cards with schema rows
+    Use Environment Directly section — MCP/Python tab toggle + dark code block
+
+  PATTERN CHANGE (Decision 1, 2026-06-09): No persistent right column.
+  "Load this scenario →" on each card is the drawer trigger. Drawer closed in this view.
+  See v2-configure-states.html for drawer States 2/2b/3.
+
+  Peer anchor: docs/design/mockup/model-detail.wireframe.html
+  Canonical spec: docs/design/screens/environment-detail.wireframe.md §4a
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Environment Detail — Checkpoint 1 (hud-browser, private owner)</title>
+  <style>
+    /* ── Reset ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    /* ─────────────────────────────────────────────────
+       TOKEN ROOT — verbatim from model-detail.wireframe.html
+    ───────────────────────────────────────────────── */
+    :root {
+      --sidebar-bg:    #0f1117;
+      --sidebar-border:#1e2230;
+      --page-bg:       #090c12;
+      --accent:        #10b981;
+      --accent-subtle: rgba(16,185,129,0.10);
+      --muted-fg:      #6b7280;
+      --default-fg:    #e5e7eb;
+      --brand-mark:    #f59e0b;
+
+      /* Detail page content tokens — namespaced ed- (environment-detail),
+         hex values inherited verbatim from md- namespace in peer mockup */
+      --ed-bg:         #0f0f10;
+      --ed-bg-raised:  #17171a;
+      --ed-bg-input:   #1e1e23;
+      --ed-border:     #2a2a30;
+      --ed-border-mid: #333340;
+      --ed-muted:      #6b6b7a;
+      --ed-dim:        #8f8fa0;
+      --ed-body:       #c4c4d0;
+      --ed-heading:    #eeeef2;
+      --ed-green:      #3dd68c;
+      --ed-amber:      #e8a72e;
+      --ed-red:        #e05252;
+      --ed-blue:       #4b8ef0;
+      --ed-purple:     #9d78f0;
+
+      --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+      --mono: "SF Mono", "Fira Code", "Cascadia Code", Consolas, monospace;
+    }
+
+    html, body {
+      height: 100%;
+      font-family: var(--sans);
+      font-size: 13px;
+      background: #06080e;
+      color: var(--default-fg);
+      line-height: 1.5;
+    }
+
+    /* ═══════════════════════════════════
+       OUTER CHROME — app shell
+    ═══════════════════════════════════ */
+    .shell-layout {
+      display: flex;
+      height: 100vh;
+      min-height: 600px;
+    }
+
+    /* ── Sidebar ── */
+    .sidebar {
+      background: var(--sidebar-bg);
+      border-right: 1px solid var(--sidebar-border);
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      width: 220px;
+      height: 100%;
+      overflow-y: auto;
+      overflow-x: hidden;
+    }
+    .brand-slot {
+      display: flex; align-items: center; gap: 8px;
+      padding: 14px 16px 12px;
+      border-bottom: 1px solid var(--sidebar-border);
+      flex-shrink: 0;
+    }
+    .brand-mark {
+      width: 20px; height: 20px;
+      background: var(--brand-mark); border-radius: 4px;
+      flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .brand-wordmark { font-size: 14px; font-weight: 700; color: var(--default-fg); letter-spacing: -0.02em; }
+    .group-label {
+      font-size: 10px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--muted-fg); padding: 0 16px; margin-top: 20px; margin-bottom: 4px;
+    }
+    .nav-item {
+      display: flex; align-items: center; gap: 8px; padding: 5px 12px;
+      font-size: 13px; color: var(--muted-fg); cursor: pointer;
+      position: relative; border-radius: 4px; margin: 1px 4px;
+      text-decoration: none;
+    }
+    .nav-item:hover { background: rgba(255,255,255,0.04); color: var(--default-fg); }
+    .nav-item.selected { color: var(--accent); background: var(--accent-subtle); }
+    .nav-item.selected::before {
+      content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 2px;
+      background: var(--accent); border-radius: 0 2px 2px 0;
+    }
+    .nav-item-icon { width: 16px; height: 16px; flex-shrink: 0; color: inherit; opacity: 0.8; }
+    .nav-item.selected .nav-item-icon { opacity: 1; }
+    .nav-item-label { flex: 1; white-space: nowrap; }
+    .nav-item-count { font-size: 11px; color: var(--muted-fg); margin-left: auto; font-variant-numeric: tabular-nums; }
+    .nav-item-ext { font-size: 10px; color: var(--muted-fg); margin-left: auto; }
+    .spacer { flex: 1; }
+
+    /* Credits widget */
+    .credits-widget {
+      margin: 0 8px 4px; padding: 8px 10px;
+      border-radius: 6px; border: 1px solid var(--sidebar-border); cursor: pointer;
+    }
+    .credits-widget:hover { background: var(--accent-subtle); }
+    .credits-label { font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted-fg); }
+    .credits-numbers { display: flex; justify-content: flex-end; align-items: baseline; gap: 2px; margin: 2px 0; }
+    .credits-current { font-size: 13px; font-variant-numeric: tabular-nums; color: var(--default-fg); font-family: var(--mono); }
+    .credits-cap { font-size: 11px; font-variant-numeric: tabular-nums; color: var(--muted-fg); font-family: var(--mono); }
+    .credits-bar-bg { height: 3px; background: rgba(255,255,255,0.08); border-radius: 2px; overflow: hidden; margin: 4px 0; }
+    .credits-bar-fill { height: 100%; background: var(--accent); border-radius: 2px; }
+    .credits-meta { display: flex; justify-content: space-between; font-size: 10px; color: var(--muted-fg); margin-top: 2px; }
+
+    /* User chip */
+    .user-chip {
+      display: flex; align-items: center; gap: 8px;
+      padding: 8px 10px; margin: 4px 6px 6px;
+      border-radius: 6px; border: 1px solid var(--sidebar-border);
+      cursor: pointer; flex-shrink: 0;
+    }
+    .user-chip:hover { background: rgba(255,255,255,0.04); }
+    .avatar {
+      width: 28px; height: 28px; border-radius: 50%;
+      background: #1e2230; border: 1px solid var(--sidebar-border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 600; color: var(--default-fg); flex-shrink: 0;
+    }
+    .user-info { flex: 1; overflow: hidden; min-width: 0; }
+    .user-name { font-size: 12px; font-weight: 500; color: var(--default-fg); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .user-meta { font-size: 10px; color: var(--muted-fg); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .switcher-icon { color: var(--muted-fg); flex-shrink: 0; }
+
+    /* ── Main scroll region ── */
+    .main-region {
+      flex: 1;
+      overflow-y: auto;
+      background: var(--ed-bg);
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ══════════════════════════════════════════
+       STICKY HEADER STACK
+       (page-header + tab-bar both sticky,
+        stacking in document order)
+    ══════════════════════════════════════════ */
+    .ed-sticky-stack {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: var(--ed-bg);
+      border-bottom: 1px solid var(--ed-border);
+    }
+
+    /* ── Page header ── */
+    .ed-page-header {
+      padding: 16px 28px 0;
+    }
+
+    /* Breadcrumb */
+    .ed-breadcrumb {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 12px; color: var(--ed-muted);
+      margin-bottom: 10px;
+    }
+    .ed-breadcrumb-link {
+      color: var(--ed-dim); text-decoration: none; cursor: pointer;
+      display: flex; align-items: center; gap: 4px;
+    }
+    .ed-breadcrumb-link:hover { color: var(--ed-body); text-decoration: underline; }
+    .ed-breadcrumb-sep { color: var(--ed-muted); }
+    .ed-breadcrumb-current { color: var(--ed-dim); font-family: var(--mono); font-size: 11.5px; }
+
+    /* Title row */
+    .ed-header-row {
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
+      margin-bottom: 8px;
+    }
+    .ed-title-group {
+      display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+    }
+    .ed-env-icon {
+      width: 18px; height: 18px; border-radius: 4px;
+      background: #1a2640; border: 1px solid #2a3a5a;
+      display: inline-flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .ed-env-name {
+      font-size: 20px; font-weight: 600; letter-spacing: -0.02em;
+      color: var(--ed-heading); line-height: 1.2;
+      font-family: var(--mono);
+    }
+    .ed-privacy-pill {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-size: 11px; font-weight: 500;
+      border-radius: 10px;
+      padding: 2px 8px;
+      white-space: nowrap;
+      flex-shrink: 0;
+      color: var(--ed-dim);
+      background: rgba(255,255,255,.07);
+      border: 1px solid rgba(255,255,255,.12);
+    }
+    .ed-status-dots {
+      display: flex; align-items: center; gap: 5px;
+    }
+    .ed-status-dot {
+      width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0;
+    }
+    .ed-status-dot.active { background: var(--ed-green); }
+    .ed-status-dot.tbd { background: var(--ed-dim); opacity: 0.5; }
+
+    /* Descriptor strip */
+    .ed-descriptor-strip {
+      display: flex; align-items: center; gap: 0; flex-wrap: wrap;
+      font-size: 12px; color: var(--ed-dim);
+      padding-bottom: 12px;
+    }
+    .ed-strip-field { display: flex; align-items: center; gap: 4px; }
+    .ed-strip-sep { color: var(--ed-muted); margin: 0 8px; }
+    .ed-strip-chip {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-size: 11px; color: var(--ed-dim);
+      background: rgba(255,255,255,.06);
+      border: 1px solid var(--ed-border);
+      border-radius: 4px; padding: 1px 6px;
+    }
+    .ed-strip-slug {
+      font-family: var(--mono); font-size: 11.5px; color: var(--ed-body);
+    }
+    .ed-copy-btn {
+      background: transparent; border: none; cursor: pointer;
+      color: var(--ed-muted); font-size: 11px; padding: 1px 4px;
+      border-radius: 2px; display: inline-flex; align-items: center;
+    }
+    .ed-copy-btn:hover { color: var(--ed-body); background: rgba(255,255,255,.06); }
+
+    /* ── Tab bar ── */
+    .ed-tab-bar {
+      display: flex; align-items: flex-end;
+      padding: 0 28px;
+    }
+    .ed-tab {
+      padding: 8px 14px; font-size: 12.5px; color: var(--ed-muted);
+      cursor: pointer; border-bottom: 2px solid transparent;
+      margin-bottom: -1px; display: flex; align-items: center; gap: 6px;
+    }
+    .ed-tab:hover { color: var(--ed-body); }
+    .ed-tab.active { color: var(--ed-heading); border-bottom-color: var(--ed-green); }
+    .ed-tab-count {
+      font-size: 10.5px; color: var(--ed-muted);
+      background: rgba(255,255,255,.06); padding: 1px 5px; border-radius: 10px;
+    }
+    .ed-tab.active .ed-tab-count { color: var(--ed-dim); }
+
+    /* ══════════════════════════════════════════
+       OVERVIEW TAB CONTENT — full width (drawer closed)
+       No right column. Drawer opens on "Load this scenario →".
+    ══════════════════════════════════════════ */
+    .ed-overview {
+      display: block;
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px 28px 64px;
+    }
+
+    /* Section heading */
+    .ed-section-heading {
+      font-size: 13px; font-weight: 600;
+      color: var(--ed-heading); margin-bottom: 4px;
+    }
+    .ed-section-helper {
+      font-size: 12px; color: var(--ed-muted); line-height: 1.55; margin-bottom: 14px;
+    }
+    .ed-section-divider {
+      border: none; border-top: 1px solid var(--ed-border);
+      margin: 24px 0;
+    }
+
+    /* Description block */
+    .ed-description {
+      font-size: 13px; color: var(--ed-body); line-height: 1.65;
+      margin-bottom: 4px;
+    }
+    .ed-description a { color: var(--ed-blue); text-decoration: none; }
+    .ed-description a:hover { text-decoration: underline; }
+
+    /* Info block — definition list */
+    .ed-info-dl {
+      display: grid; grid-template-columns: 88px 1fr; gap: 8px 12px;
+    }
+    .ed-info-dt { font-size: 12px; color: var(--ed-muted); }
+    .ed-info-dd {
+      font-size: 12px; color: var(--ed-body);
+      display: flex; align-items: center; gap: 5px;
+    }
+    .ed-info-dd.mono { font-family: var(--mono); font-size: 11.5px; }
+    .ed-info-pill {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-size: 11px;
+      border-radius: 10px; padding: 1px 7px;
+      color: var(--ed-dim);
+      background: rgba(255,255,255,.07);
+      border: 1px solid rgba(255,255,255,.12);
+    }
+
+    /* Scenarios section */
+    .ed-scenarios-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 0;
+    }
+
+    /* Scenario card */
+    .ed-scenario-card {
+      border: 1px solid var(--ed-border);
+      border-radius: 6px;
+      background: var(--ed-bg-raised);
+      padding: 14px 16px;
+      display: flex; flex-direction: column;
+      position: relative;
+    }
+    .ed-scenario-card:hover { border-color: var(--ed-border-mid); }
+    /* Loaded state — darker border, green accent */
+    .ed-scenario-card.loaded {
+      border-color: rgba(61,214,140,.4);
+      background: rgba(61,214,140,.03);
+    }
+    .ed-scenario-card-header {
+      display: flex; align-items: flex-start; justify-content: space-between;
+      gap: 8px; margin-bottom: 6px;
+    }
+    .ed-scenario-name {
+      font-family: var(--mono); font-size: 12px; font-weight: 500;
+      color: var(--ed-heading); line-height: 1.3;
+    }
+    /* Run-count chip — top-right of card */
+    .ed-scenario-run-chip {
+      display: inline-flex; align-items: center; gap: 3px;
+      font-size: 10.5px; color: var(--ed-muted);
+      background: rgba(255,255,255,.05);
+      border: 1px solid var(--ed-border);
+      border-radius: 10px; padding: 1px 6px;
+      white-space: nowrap; flex-shrink: 0;
+    }
+    .ed-scenario-desc {
+      font-size: 12px; color: var(--ed-dim); line-height: 1.55;
+      margin-bottom: 10px; flex: 1;
+      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .ed-scenario-warning {
+      display: flex; align-items: center; gap: 5px;
+      font-size: 11px; color: var(--ed-amber);
+      background: rgba(232,167,46,.08);
+      border: 1px solid rgba(232,167,46,.22);
+      border-radius: 4px; padding: 4px 8px;
+      margin-bottom: 8px;
+    }
+    .ed-scenario-footer {
+      display: flex; align-items: center; justify-content: flex-end; gap: 8px;
+      margin-top: auto;
+    }
+    .ed-btn-load {
+      background: transparent; color: var(--ed-green);
+      border: 1px solid rgba(61,214,140,.3); border-radius: 4px;
+      padding: 4px 10px; font-size: 11.5px; font-weight: 500;
+      cursor: pointer; display: inline-flex; align-items: center; gap: 4px;
+      white-space: nowrap;
+    }
+    .ed-btn-load:hover { background: rgba(61,214,140,.08); border-color: rgba(61,214,140,.5); }
+    /* Loaded → badge — replaces Load CTA when drawer is open for this scenario */
+    .ed-scenario-loaded-badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-size: 11.5px; font-weight: 500; color: var(--ed-green);
+      background: rgba(61,214,140,.08);
+      border: 1px solid rgba(61,214,140,.3);
+      border-radius: 4px; padding: 4px 10px;
+      cursor: default;
+    }
+
+    /* ── Tools section ── */
+    .ed-tools-scroll {
+      display: flex; gap: 10px;
+      overflow-x: auto;
+      padding-bottom: 8px;
+    }
+    .ed-tools-scroll::-webkit-scrollbar { height: 4px; }
+    .ed-tools-scroll::-webkit-scrollbar-track { background: transparent; }
+    .ed-tools-scroll::-webkit-scrollbar-thumb { background: var(--ed-border); border-radius: 2px; }
+
+    .ed-tool-card {
+      border: 1px solid var(--ed-border);
+      border-radius: 6px;
+      background: var(--ed-bg-raised);
+      padding: 12px 14px;
+      min-width: 200px; max-width: 240px;
+      flex-shrink: 0;
+    }
+    .ed-tool-name {
+      font-family: var(--mono); font-size: 12px; font-weight: 600;
+      color: var(--ed-heading); margin-bottom: 4px;
+    }
+    .ed-tool-desc {
+      font-size: 11.5px; color: var(--ed-dim); line-height: 1.5;
+      margin-bottom: 10px;
+    }
+    .ed-tool-schema-rule {
+      border: none; border-top: 1px solid var(--ed-border); margin: 0 0 8px;
+    }
+    .ed-tool-schema-row {
+      display: grid; grid-template-columns: auto 1fr; gap: 2px 8px;
+      margin-bottom: 6px;
+    }
+    .ed-tool-field-name {
+      font-family: var(--mono); font-size: 11px; color: var(--ed-body);
+      display: flex; align-items: center; gap: 3px; white-space: nowrap;
+    }
+    .ed-tool-field-required {
+      color: var(--ed-amber); font-size: 10px;
+    }
+    .ed-tool-field-type {
+      font-family: var(--mono); font-size: 10.5px; color: var(--ed-muted);
+    }
+    .ed-tool-field-desc {
+      font-size: 10.5px; color: var(--ed-muted); line-height: 1.4;
+      grid-column: 1 / -1;
+    }
+
+    /* ── Use Environment Directly ── */
+    .ed-use-env-tabs {
+      display: flex; gap: 0;
+      border: 1px solid var(--ed-border);
+      border-radius: 5px; overflow: hidden;
+      width: fit-content;
+      margin-bottom: 12px;
+    }
+    .ed-use-env-tab {
+      padding: 5px 14px; font-size: 12px; color: var(--ed-muted);
+      background: transparent; border: none; cursor: pointer;
+      border-right: 1px solid var(--ed-border);
+    }
+    .ed-use-env-tab:last-child { border-right: none; }
+    .ed-use-env-tab.active {
+      color: var(--ed-heading);
+      background: rgba(255,255,255,.06);
+    }
+    .ed-code-block {
+      background: #0a0c10;
+      border: 1px solid var(--ed-border);
+      border-radius: 5px;
+      padding: 14px 16px;
+      font-family: var(--mono); font-size: 12px; color: #c8d3f5;
+      line-height: 1.6;
+      overflow-x: auto;
+      white-space: pre;
+      margin-bottom: 10px;
+    }
+    .ed-code-block .c-key { color: #7ea2e8; }
+    .ed-code-block .c-str { color: #c3e88d; }
+    .ed-code-block .c-punc { color: #637592; }
+    .ed-learn-more {
+      font-size: 12px; color: var(--ed-blue); text-decoration: none;
+      display: inline-flex; align-items: center; gap: 3px;
+    }
+    .ed-learn-more:hover { text-decoration: underline; }
+
+    /* ── Checkpoint label (exploration watermark) ── */
+    .state-label {
+      font-size: 10px; font-weight: 600; text-transform: uppercase;
+      letter-spacing: .08em; color: var(--ed-muted);
+      padding: 6px 28px;
+      background: rgba(232,167,46,.06);
+      border-bottom: 1px solid rgba(232,167,46,.15);
+    }
+  </style>
+</head>
+<body>
+
+<div class="shell-layout">
+
+  <!-- ══════════════════════════════════════════
+       APP-SHELL SIDEBAR (Environments selected)
+  ══════════════════════════════════════════ -->
+  <aside class="sidebar">
+    <div class="brand-slot">
+      <div class="brand-mark">
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+          <rect width="12" height="12" rx="2" fill="#78350f"/>
+          <path d="M2 9L6 3L10 9" stroke="#f59e0b" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <span class="brand-wordmark">hud</span>
+    </div>
+
+    <div class="group-label">Workspace</div>
+
+    <a class="nav-item">
+      <!-- Home icon -->
+      <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="2" y="2" width="5" height="5" rx="1"/><rect x="9" y="2" width="5" height="5" rx="1"/>
+        <rect x="2" y="9" width="5" height="5" rx="1"/><rect x="9" y="9" width="5" height="5" rx="1"/>
+      </svg>
+      <span class="nav-item-label">Home</span>
+    </a>
+
+    <a class="nav-item">
+      <!-- Tasksets icon -->
+      <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M2 4h12M2 8h8M2 12h10"/><circle cx="13" cy="11" r="2.5"/>
+      </svg>
+      <span class="nav-item-label">Tasksets</span>
+      <span class="nav-item-count">127</span>
+    </a>
+
+    <!-- Environments — selected -->
+    <a class="nav-item selected" aria-current="page">
+      <!-- Environments icon: server/terminal box -->
+      <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="2" y="2" width="12" height="5" rx="1.5"/>
+        <rect x="2" y="9" width="12" height="5" rx="1.5"/>
+        <circle cx="5" cy="4.5" r="0.8" fill="currentColor" stroke="none"/>
+        <circle cx="5" cy="11.5" r="0.8" fill="currentColor" stroke="none"/>
+        <path d="M8 4.5h4M8 11.5h4"/>
+      </svg>
+      <span class="nav-item-label">Environments</span>
+      <span class="nav-item-count">42</span>
+    </a>
+
+    <a class="nav-item">
+      <!-- Models icon -->
+      <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="8" cy="8" r="3"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2M3.22 3.22l1.42 1.42M11.36 11.36l1.42 1.42M3.22 12.78l1.42-1.42M11.36 4.64l1.42-1.42"/>
+      </svg>
+      <span class="nav-item-label">Models</span>
+      <span class="nav-item-count">27</span>
+    </a>
+
+    <a class="nav-item">
+      <!-- Agents icon -->
+      <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="8" cy="5" r="2.5"/><path d="M3 14c0-2.76 2.24-5 5-5s5 2.24 5 5"/>
+      </svg>
+      <span class="nav-item-label">Agents</span>
+      <span class="nav-item-count">4</span>
+    </a>
+
+    <a class="nav-item">
+      <!-- Library icon -->
+      <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4 2h8a1 1 0 011 1v10a1 1 0 01-1 1H4a1 1 0 01-1-1V3a1 1 0 011-1z"/><path d="M6 6h4M6 9h4M6 12h2"/>
+      </svg>
+      <span class="nav-item-label">Library</span>
+    </a>
+
+    <div class="group-label">Observe</div>
+
+    <a class="nav-item">
+      <!-- Dashboard icon -->
+      <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="2" y="8" width="3" height="5" rx="0.5"/><rect x="6.5" y="5" width="3" height="8" rx="0.5"/>
+        <rect x="11" y="2" width="3" height="11" rx="0.5"/>
+      </svg>
+      <span class="nav-item-label">Dashboard</span>
+    </a>
+
+    <a class="nav-item">
+      <!-- Progress icon -->
+      <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="8" cy="8" r="6"/><path d="M8 4v4l3 1.5"/>
+      </svg>
+      <span class="nav-item-label">Progress</span>
+    </a>
+
+    <div class="spacer"></div>
+
+    <!-- Credits widget -->
+    <div class="credits-widget" title="View usage details">
+      <div class="credits-label">credits</div>
+      <div class="credits-numbers">
+        <span class="credits-current">4,230</span>
+        <span class="credits-cap">&nbsp;/ 10,000</span>
+      </div>
+      <div class="credits-bar-bg"><div class="credits-bar-fill" style="width:42.3%"></div></div>
+      <div class="credits-meta"><span>~92 cr/hr</span><span>~38h left</span></div>
+    </div>
+
+    <!-- External links -->
+    <div style="padding:2px 4px;">
+      <a class="nav-item" style="font-size:12px;">
+        <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M7 3H3a1 1 0 00-1 1v9a1 1 0 001 1h9a1 1 0 001-1V9"/><path d="M10 2h4v4M14 2L7 9"/>
+        </svg>
+        <span class="nav-item-label">Marketplace</span>
+        <span class="nav-item-ext">↗</span>
+      </a>
+      <a class="nav-item" style="font-size:12px;">
+        <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 2h8a1 1 0 011 1v10a1 1 0 01-1 1H4a1 1 0 01-1-1V3a1 1 0 011-1z"/><path d="M6 6h4M6 9h4"/>
+        </svg>
+        <span class="nav-item-label">Documentation</span>
+        <span class="nav-item-ext">↗</span>
+      </a>
+    </div>
+
+    <!-- User chip -->
+    <div class="user-chip">
+      <div class="avatar">A</div>
+      <div class="user-info">
+        <div class="user-name">Alex Kim</div>
+        <div class="user-meta">Princeton NLP · owner</div>
+      </div>
+      <svg class="switcher-icon" width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 4.5L6 2 9 4.5M3 7.5L6 10 9 7.5"/>
+      </svg>
+    </div>
+  </aside>
+
+  <!-- ══════════════════════════════════════════
+       MAIN SCROLL REGION
+  ══════════════════════════════════════════ -->
+  <div class="main-region" id="main-content">
+
+    <!-- Checkpoint label -->
+    <div class="state-label">CHECKPOINT 1 — Variant C (private owner) · Overview tab · State 1 (drawer closed, full-width)</div>
+
+    <!-- ─────────────────────────────────────
+         STICKY HEADER STACK
+         (page header + tab bar)
+    ───────────────────────────────────── -->
+    <div class="ed-sticky-stack">
+
+      <!-- PAGE HEADER -->
+      <div class="ed-page-header">
+
+        <!-- Breadcrumb -->
+        <nav class="ed-breadcrumb" aria-label="Breadcrumb">
+          <a class="ed-breadcrumb-link" href="#">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M8 2L4 6l4 4"/>
+            </svg>
+            Environments
+          </a>
+          <span class="ed-breadcrumb-sep">/</span>
+          <span class="ed-breadcrumb-current">hud-browser</span>
+        </nav>
+
+        <!-- Title row -->
+        <div class="ed-header-row">
+          <div class="ed-title-group">
+            <!-- Env type icon: browser/globe glyph -->
+            <div class="ed-env-icon">
+              <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="#4b8ef0" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="8" cy="8" r="6"/><path d="M8 2c-2 2-3 4-3 6s1 4 3 6M8 2c2 2 3 4 3 6s-1 4-3 6M2 8h12"/>
+              </svg>
+            </div>
+            <span class="ed-env-name">hud-browser</span>
+            <!-- Visibility pill: Private -->
+            <span class="ed-privacy-pill">
+              <svg width="10" height="10" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="4" y="7" width="8" height="7" rx="1.5"/>
+                <path d="M5.5 7V5.5a2.5 2.5 0 015 0V7"/>
+              </svg>
+              Private
+            </span>
+            <!-- Status dots (Decision 10 — semantics TBD) -->
+            <div class="ed-status-dots" title="Status — semantics TBD (Decision 10)">
+              <div class="ed-status-dot active"></div>
+              <div class="ed-status-dot tbd"></div>
+            </div>
+          </div>
+          <!-- No right-slot CTA for Variant C (Decision 2) -->
+        </div>
+
+        <!-- Descriptor strip -->
+        <div class="ed-descriptor-strip">
+          <!-- Env type chip -->
+          <div class="ed-strip-field">
+            <span class="ed-strip-chip">
+              <svg width="10" height="10" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="8" cy="8" r="6"/><path d="M8 2c-2 2-3 4-3 6s1 4 3 6M8 2c2 2 3 4 3 6s-1 4-3 6M2 8h12"/>
+              </svg>
+              Browser
+            </span>
+          </div>
+          <span class="ed-strip-sep">·</span>
+          <!-- Slug -->
+          <div class="ed-strip-field">
+            <span class="ed-strip-slug">hud-browser</span>
+            <button class="ed-copy-btn" title="Copy slug">
+              <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="5" y="5" width="8" height="9" rx="1.5"/><path d="M3 11V3a1 1 0 011-1h8"/>
+              </svg>
+            </button>
+          </div>
+          <span class="ed-strip-sep">·</span>
+          <!-- Source: Deployed via CLI -->
+          <div class="ed-strip-field">
+            <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="1" y="2" width="14" height="12" rx="2"/>
+              <path d="M4 6l3 2.5L4 11M9 11h3"/>
+            </svg>
+            Deployed via CLI
+          </div>
+          <span class="ed-strip-sep">·</span>
+          <!-- Created -->
+          <div class="ed-strip-field">Created 16 days ago</div>
+        </div>
+      </div><!-- /ed-page-header -->
+
+      <!-- TAB BAR (Variant C — owner; counts shown) -->
+      <div class="ed-tab-bar" role="tablist" aria-label="Environment detail tabs">
+        <button class="ed-tab active" role="tab" aria-selected="true">Overview</button>
+        <button class="ed-tab" role="tab" aria-selected="false">
+          Scenarios
+          <span class="ed-tab-count">6</span>
+        </button>
+        <button class="ed-tab" role="tab" aria-selected="false">
+          Builds
+          <span class="ed-tab-count">3</span>
+        </button>
+        <button class="ed-tab" role="tab" aria-selected="false">
+          Instances
+          <span class="ed-tab-count">41</span>
+        </button>
+        <button class="ed-tab" role="tab" aria-selected="false">Settings</button>
+      </div>
+
+    </div><!-- /ed-sticky-stack -->
+
+    <!-- ─────────────────────────────────────
+         OVERVIEW TAB — full-width, State 1 (drawer closed)
+    ───────────────────────────────────── -->
+    <div class="ed-overview" role="tabpanel" aria-label="Overview">
+
+      <!-- DESCRIPTION BLOCK -->
+      <p class="ed-description">
+        A HUD environment wrapping <a href="https://www.browserbase.com/" target="_blank" rel="noopener">Browserbase</a> for remote browser sessions. Runs a headless Chromium instance accessible via Playwright. Supports answer, navigation, form-fill, and game scenarios out of the box.
+      </p>
+
+      <hr class="ed-section-divider" />
+
+      <!-- SCENARIOS SECTION — 3-col card grid -->
+      <div class="ed-section-heading">Scenarios <span style="font-weight:400;color:var(--ed-muted);font-size:12px;">(6)</span></div>
+      <p class="ed-section-helper">Each scenario represents a specialized skill or task you can perform with this environment. Select one to configure and run it.</p>
+
+      <div class="ed-scenarios-grid">
+
+        <!-- Card 1: 2048-near-win — 11 runs, no warning, Load CTA -->
+        <div class="ed-scenario-card">
+          <div class="ed-scenario-card-header">
+            <span class="ed-scenario-name">2048-near-win</span>
+            <span class="ed-scenario-run-chip">
+              <svg width="9" height="9" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="8" cy="8" r="6"/><path d="M8 4v4l3 1.5"/>
+              </svg>
+              11 runs
+            </span>
+          </div>
+          <p class="ed-scenario-desc">Navigate the 2048 game from a near-win state to a winning board. Tests multi-step planning with a known-solvable starting position.</p>
+          <div class="ed-scenario-footer">
+            <button class="ed-btn-load" aria-label="Load scenario 2048-near-win, opens configure drawer">
+              Load this scenario
+              <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4 8h8M10 5l3 3-3 3"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Card 2: todo-complete — no warning, Load CTA -->
+        <div class="ed-scenario-card">
+          <div class="ed-scenario-card-header">
+            <span class="ed-scenario-name">todo-complete</span>
+          </div>
+          <p class="ed-scenario-desc">Complete a percentage of seeded todos. Tests task execution with partial-completion grading against a target completion ratio.</p>
+          <div class="ed-scenario-footer">
+            <button class="ed-btn-load" aria-label="Load scenario todo-complete, opens configure drawer">
+              Load this scenario
+              <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4 8h8M10 5l3 3-3 3"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Card 3: todo-create — Loaded → state (drawer open for this scenario) -->
+        <div class="ed-scenario-card loaded" aria-current="true">
+          <div class="ed-scenario-card-header">
+            <span class="ed-scenario-name">todo-create</span>
+          </div>
+          <p class="ed-scenario-desc">Create a new todo item with a specific title. Tests single-step form interaction with exact-match grading.</p>
+          <div class="ed-scenario-footer">
+            <!-- Loaded → badge: replaces "Load this scenario →" when drawer is open -->
+            <span class="ed-scenario-loaded-badge">
+              <svg width="10" height="10" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 8l4 4 6-7"/>
+              </svg>
+              Loaded →
+            </span>
+          </div>
+        </div>
+
+      </div><!-- /ed-scenarios-grid -->
+
+      <hr class="ed-section-divider" />
+
+      <!-- TOOLS SECTION -->
+      <div class="ed-section-heading">Tools</div>
+      <p class="ed-section-helper">These are the tools the agent will have access to when running scenarios.</p>
+
+      <div class="ed-tools-scroll" role="list">
+
+        <!-- Tool: playwright -->
+        <div class="ed-tool-card" role="listitem">
+          <div class="ed-tool-name">playwright</div>
+          <div class="ed-tool-desc">Control computer with mouse, keyboard, and browser actions via Playwright.</div>
+          <hr class="ed-tool-schema-rule" />
+          <div class="ed-tool-schema-row">
+            <div class="ed-tool-field-name">action <span class="ed-tool-field-required">*</span></div>
+            <div class="ed-tool-field-type">string</div>
+            <div class="ed-tool-field-desc">The action to perform (click, type, navigate…)</div>
+          </div>
+          <div class="ed-tool-schema-row">
+            <div class="ed-tool-field-name">coordinate</div>
+            <div class="ed-tool-field-type">array | null</div>
+            <div class="ed-tool-field-desc">Target [x, y] coordinate for pointer actions</div>
+          </div>
+          <div class="ed-tool-schema-row">
+            <div class="ed-tool-field-name">text</div>
+            <div class="ed-tool-field-type">string | null</div>
+            <div class="ed-tool-field-desc">Text to type or key sequence</div>
+          </div>
+        </div>
+
+        <!-- Tool: updown_computer -->
+        <div class="ed-tool-card" role="listitem">
+          <div class="ed-tool-name">updown_computer</div>
+          <div class="ed-tool-desc">Control computer with mouse, keyboard, and screen capture actions.</div>
+          <hr class="ed-tool-schema-rule" />
+          <div class="ed-tool-schema-row">
+            <div class="ed-tool-field-name">action <span class="ed-tool-field-required">*</span></div>
+            <div class="ed-tool-field-type">string</div>
+            <div class="ed-tool-field-desc">The computer action to execute</div>
+          </div>
+          <div class="ed-tool-schema-row">
+            <div class="ed-tool-field-name">coordinate</div>
+            <div class="ed-tool-field-type">array | null</div>
+            <div class="ed-tool-field-desc">Pixel [x, y] for pointer actions; null otherwise</div>
+          </div>
+        </div>
+
+        <!-- Tool: open_computer -->
+        <div class="ed-tool-card" role="listitem">
+          <div class="ed-tool-name">open_computer</div>
+          <div class="ed-tool-desc">Control computer with mouse, keyboard, and screen capture actions.</div>
+          <hr class="ed-tool-schema-rule" />
+          <div class="ed-tool-schema-row">
+            <div class="ed-tool-field-name">action <span class="ed-tool-field-required">*</span></div>
+            <div class="ed-tool-field-type">string</div>
+            <div class="ed-tool-field-desc">The computer action to execute</div>
+          </div>
+          <div class="ed-tool-schema-row">
+            <div class="ed-tool-field-name">coordinate</div>
+            <div class="ed-tool-field-type">array | null</div>
+            <div class="ed-tool-field-desc">Pixel [x, y] for pointer actions</div>
+          </div>
+        </div>
+
+        <!-- Tool: bash_computer -->
+        <div class="ed-tool-card" role="listitem">
+          <div class="ed-tool-name">bash_computer</div>
+          <div class="ed-tool-desc">Control computer with mouse, keyboard, and bash shell execution.</div>
+          <hr class="ed-tool-schema-rule" />
+          <div class="ed-tool-schema-row">
+            <div class="ed-tool-field-name">action <span class="ed-tool-field-required">*</span></div>
+            <div class="ed-tool-field-type">string</div>
+            <div class="ed-tool-field-desc">Action type: bash, screenshot, or pointer</div>
+          </div>
+          <div class="ed-tool-schema-row">
+            <div class="ed-tool-field-name">command</div>
+            <div class="ed-tool-field-type">string | null</div>
+            <div class="ed-tool-field-desc">Shell command to run; required for bash action</div>
+          </div>
+        </div>
+
+      </div><!-- /ed-tools-scroll -->
+
+      <hr class="ed-section-divider" />
+
+      <!-- USE ENVIRONMENT DIRECTLY -->
+      <div class="ed-section-heading">Use Environment Directly</div>
+      <p class="ed-section-helper">Connect to this environment directly from your code or MCP-compatible tools.</p>
+
+      <!-- MCP / Python tab toggle -->
+      <div class="ed-use-env-tabs" role="tablist" aria-label="Integration type">
+        <button class="ed-use-env-tab active" role="tab" aria-selected="true">MCP</button>
+        <button class="ed-use-env-tab" role="tab" aria-selected="false">Python</button>
+      </div>
+
+      <!-- MCP code block -->
+      <div class="ed-code-block" role="tabpanel"><span class="c-punc">{</span>
+  <span class="c-key">"mcpServers"</span><span class="c-punc">:</span> <span class="c-punc">{</span>
+    <span class="c-key">"hud-browser"</span><span class="c-punc">:</span> <span class="c-punc">{</span>
+      <span class="c-key">"command"</span><span class="c-punc">:</span> <span class="c-str">"uvx"</span><span class="c-punc">,</span>
+      <span class="c-key">"args"</span><span class="c-punc">:</span> <span class="c-punc">[</span><span class="c-str">"hud-mcp"</span><span class="c-punc">,</span> <span class="c-str">"hud-browser"</span><span class="c-punc">]</span><span class="c-punc">,</span>
+      <span class="c-key">"env"</span><span class="c-punc">:</span> <span class="c-punc">{</span>
+        <span class="c-key">"HUD_API_KEY"</span><span class="c-punc">:</span> <span class="c-str">"your-api-key"</span>
+      <span class="c-punc">}</span>
+    <span class="c-punc">}</span>
+  <span class="c-punc">}</span>
+<span class="c-punc">}</span></div>
+
+      <a class="ed-learn-more" href="#">
+        Learn more about MCP integrations
+        <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M7 3H3a1 1 0 00-1 1v9a1 1 0 001 1h9a1 1 0 001-1V9"/><path d="M10 2h4v4M14 2L7 9"/>
+        </svg>
+      </a>
+
+    </div><!-- /ed-overview -->
+
+  </div><!-- /main-region -->
+
+</div><!-- /shell-layout -->
+
+</body>
+</html>

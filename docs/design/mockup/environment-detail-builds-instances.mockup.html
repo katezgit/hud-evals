@@ -1,0 +1,1600 @@
+<!--
+  filename: v4-builds-instances.html
+  CHECKPOINT 4 — Environment Detail · Variant C (private owner)
+  Scope: Builds tab (§6a owner default + §6c empty state)
+         Instances tab (§7a owner default state)
+
+  Token root: verbatim --ed-* from v1.html
+  Shell chrome: verbatim from v1.html (sidebar, sticky-header, tab-bar)
+
+  Active tab differs per section — two sticky-header stacks rendered
+  sequentially, one with Builds active, one with Instances active,
+  separated by .state-label dividers.
+
+  NOT BUILT here:
+    - Configure panel states 2/3
+    - Scenarios card states
+    - Settings tab
+    - Variant A/B (visitor restrictions §6b/§7b — see v5)
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Environment Detail — v4 Builds + Instances (hud-browser, private owner)</title>
+  <style>
+    /* ── Reset ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    /* ─────────────────────────────────────────────────
+       TOKEN ROOT — verbatim from v1.html
+    ───────────────────────────────────────────────── */
+    :root {
+      --sidebar-bg:    #0f1117;
+      --sidebar-border:#1e2230;
+      --page-bg:       #090c12;
+      --accent:        #10b981;
+      --accent-subtle: rgba(16,185,129,0.10);
+      --muted-fg:      #6b7280;
+      --default-fg:    #e5e7eb;
+      --brand-mark:    #f59e0b;
+
+      /* Detail page content tokens — namespaced ed- (environment-detail),
+         verbatim from v1.html */
+      --ed-bg:         #0f0f10;
+      --ed-bg-raised:  #17171a;
+      --ed-bg-input:   #1e1e23;
+      --ed-border:     #2a2a30;
+      --ed-border-mid: #333340;
+      --ed-muted:      #6b6b7a;
+      --ed-dim:        #8f8fa0;
+      --ed-body:       #c4c4d0;
+      --ed-heading:    #eeeef2;
+      --ed-green:      #3dd68c;
+      --ed-amber:      #e8a72e;
+      --ed-red:        #e05252;
+      --ed-blue:       #4b8ef0;
+      --ed-purple:     #9d78f0;
+
+      /* ── New derivatives for Builds + Instances ──
+         All derive from existing --ed-* roots. */
+
+      /* Status pill backgrounds */
+      --ed-green-bg:   rgba(61,214,140,0.10);   /* var(--ed-green) at 10% */
+      --ed-green-bdr:  rgba(61,214,140,0.25);   /* var(--ed-green) at 25% */
+      --ed-red-bg:     rgba(224,82,82,0.10);    /* var(--ed-red) at 10% */
+      --ed-red-bdr:    rgba(224,82,82,0.25);    /* var(--ed-red) at 25% */
+      --ed-neutral-bg: rgba(143,143,160,0.10);  /* var(--ed-dim) at 10% */
+      --ed-neutral-bdr:rgba(143,143,160,0.22);  /* var(--ed-dim) at 22% */
+
+      /* Build table */
+      --ed-table-row-hover: rgba(255,255,255,0.025);
+      --ed-source-chip-bg:  rgba(255,255,255,0.06);  /* same as --ed-strip-chip in v1 */
+      --ed-source-chip-bdr: var(--ed-border);
+
+      /* Instruction muted line */
+      --ed-instruction-fg: var(--ed-muted);   /* PINNED — same as --ed-muted */
+
+      /* CLI block */
+      --ed-cli-bg:     #11111a;     /* slightly darker than --ed-bg for contrast */
+      --ed-cli-bdr:    var(--ed-border);
+
+      /* Filter chip */
+      --ed-chip-active-bg:  rgba(61,214,140,0.08);  /* var(--ed-green) at 8% */
+      --ed-chip-active-bdr: rgba(61,214,140,0.28);
+      --ed-chip-active-fg:  var(--ed-green);
+
+      /* Group header */
+      --ed-group-header-bg: rgba(255,255,255,0.025);
+
+      /* Running dot animation */
+      --ed-running-dot: var(--ed-amber);
+
+      --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+      --mono: "SF Mono", "Fira Code", "Cascadia Code", Consolas, monospace;
+    }
+
+    html, body {
+      height: 100%;
+      font-family: var(--sans);
+      font-size: 13px;
+      background: #06080e;
+      color: var(--default-fg);
+      line-height: 1.5;
+    }
+
+    /* ═══════════════════════════════════
+       OUTER CHROME — verbatim from v1
+    ═══════════════════════════════════ */
+    .shell-layout {
+      display: flex;
+      height: 100vh;
+      min-height: 600px;
+    }
+
+    /* ── Sidebar ── */
+    .sidebar {
+      background: var(--sidebar-bg);
+      border-right: 1px solid var(--sidebar-border);
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      width: 220px;
+      height: 100%;
+      overflow-y: auto;
+      overflow-x: hidden;
+    }
+    .brand-slot {
+      display: flex; align-items: center; gap: 8px;
+      padding: 14px 16px 12px;
+      border-bottom: 1px solid var(--sidebar-border);
+      flex-shrink: 0;
+    }
+    .brand-mark {
+      width: 20px; height: 20px;
+      background: var(--brand-mark); border-radius: 4px;
+      flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .brand-wordmark { font-size: 14px; font-weight: 700; color: var(--default-fg); letter-spacing: -0.02em; }
+    .group-label {
+      font-size: 10px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--muted-fg); padding: 0 16px; margin-top: 20px; margin-bottom: 4px;
+    }
+    .nav-item {
+      display: flex; align-items: center; gap: 8px; padding: 5px 12px;
+      font-size: 13px; color: var(--muted-fg); cursor: pointer;
+      position: relative; border-radius: 4px; margin: 1px 4px;
+      text-decoration: none;
+    }
+    .nav-item:hover { background: rgba(255,255,255,0.04); color: var(--default-fg); }
+    .nav-item.selected { color: var(--accent); background: var(--accent-subtle); }
+    .nav-item.selected::before {
+      content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 2px;
+      background: var(--accent); border-radius: 0 2px 2px 0;
+    }
+    .nav-item-icon { width: 16px; height: 16px; flex-shrink: 0; color: inherit; opacity: 0.8; }
+    .nav-item.selected .nav-item-icon { opacity: 1; }
+    .nav-item-label { flex: 1; white-space: nowrap; }
+    .nav-item-count { font-size: 11px; color: var(--muted-fg); margin-left: auto; font-variant-numeric: tabular-nums; }
+    .nav-item-ext { font-size: 10px; color: var(--muted-fg); margin-left: auto; }
+    .spacer { flex: 1; }
+
+    /* Credits widget */
+    .credits-widget {
+      margin: 0 8px 4px; padding: 8px 10px;
+      border-radius: 6px; border: 1px solid var(--sidebar-border); cursor: pointer;
+    }
+    .credits-widget:hover { background: var(--accent-subtle); }
+    .credits-label { font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted-fg); }
+    .credits-numbers { display: flex; justify-content: flex-end; align-items: baseline; gap: 2px; margin: 2px 0; }
+    .credits-current { font-size: 13px; font-variant-numeric: tabular-nums; color: var(--default-fg); font-family: var(--mono); }
+    .credits-cap { font-size: 11px; font-variant-numeric: tabular-nums; color: var(--muted-fg); font-family: var(--mono); }
+    .credits-bar-bg { height: 3px; background: rgba(255,255,255,0.08); border-radius: 2px; overflow: hidden; margin: 4px 0; }
+    .credits-bar-fill { height: 100%; background: var(--accent); border-radius: 2px; }
+    .credits-meta { display: flex; justify-content: space-between; font-size: 10px; color: var(--muted-fg); margin-top: 2px; }
+
+    /* User chip */
+    .user-chip {
+      display: flex; align-items: center; gap: 8px;
+      padding: 8px 10px; margin: 4px 6px 6px;
+      border-radius: 6px; border: 1px solid var(--sidebar-border);
+      cursor: pointer; flex-shrink: 0;
+    }
+    .user-chip:hover { background: rgba(255,255,255,0.04); }
+    .avatar {
+      width: 28px; height: 28px; border-radius: 50%;
+      background: #1e2230; border: 1px solid var(--sidebar-border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 600; color: var(--default-fg); flex-shrink: 0;
+    }
+    .avatar-sm {
+      width: 18px; height: 18px; border-radius: 50%;
+      background: #1e2230; border: 1px solid var(--sidebar-border);
+      display: inline-flex; align-items: center; justify-content: center;
+      font-size: 9px; font-weight: 600; color: var(--default-fg); flex-shrink: 0;
+      vertical-align: middle;
+    }
+    .user-info { flex: 1; overflow: hidden; min-width: 0; }
+    .user-name { font-size: 12px; font-weight: 500; color: var(--default-fg); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .user-meta { font-size: 10px; color: var(--muted-fg); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .switcher-icon { color: var(--muted-fg); flex-shrink: 0; }
+
+    /* ── Main scroll region ── */
+    .main-region {
+      flex: 1;
+      overflow-y: auto;
+      background: var(--ed-bg);
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ══════════════════════════════════════════
+       STICKY HEADER STACK — verbatim from v1
+    ══════════════════════════════════════════ */
+    .ed-sticky-stack {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: var(--ed-bg);
+      border-bottom: 1px solid var(--ed-border);
+    }
+
+    /* ── Page header ── */
+    .ed-page-header {
+      padding: 16px 28px 0;
+    }
+
+    /* Breadcrumb */
+    .ed-breadcrumb {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 12px; color: var(--ed-muted);
+      margin-bottom: 10px;
+    }
+    .ed-breadcrumb-link {
+      color: var(--ed-dim); text-decoration: none; cursor: pointer;
+      display: flex; align-items: center; gap: 4px;
+    }
+    .ed-breadcrumb-link:hover { color: var(--ed-body); text-decoration: underline; }
+    .ed-breadcrumb-sep { color: var(--ed-muted); }
+    .ed-breadcrumb-current { color: var(--ed-dim); font-family: var(--mono); font-size: 11.5px; }
+
+    /* Title row */
+    .ed-header-row {
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
+      margin-bottom: 8px;
+    }
+    .ed-title-group {
+      display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+    }
+    .ed-env-icon {
+      width: 18px; height: 18px; border-radius: 4px;
+      background: #1a2640; border: 1px solid #2a3a5a;
+      display: inline-flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .ed-env-name {
+      font-size: 20px; font-weight: 600; letter-spacing: -0.02em;
+      color: var(--ed-heading); line-height: 1.2;
+      font-family: var(--mono);
+    }
+    .ed-privacy-pill {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-size: 11px; font-weight: 500;
+      border-radius: 10px;
+      padding: 2px 8px;
+      white-space: nowrap;
+      flex-shrink: 0;
+      color: var(--ed-dim);
+      background: rgba(255,255,255,.07);
+      border: 1px solid rgba(255,255,255,.12);
+    }
+
+    /* Descriptor strip */
+    .ed-descriptor-strip {
+      display: flex; align-items: center; gap: 0; flex-wrap: wrap;
+      font-size: 12px; color: var(--ed-dim);
+      padding-bottom: 12px;
+    }
+    .ed-strip-field { display: flex; align-items: center; gap: 4px; }
+    .ed-strip-sep { color: var(--ed-muted); margin: 0 8px; }
+    .ed-strip-chip {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-size: 11px; color: var(--ed-dim);
+      background: rgba(255,255,255,.06);
+      border: 1px solid var(--ed-border);
+      border-radius: 4px; padding: 1px 6px;
+    }
+    .ed-strip-slug { font-family: var(--mono); font-size: 11.5px; color: var(--ed-body); }
+    .ed-copy-btn {
+      background: transparent; border: none; cursor: pointer;
+      color: var(--ed-muted); font-size: 11px; padding: 1px 4px;
+      border-radius: 2px; display: inline-flex; align-items: center;
+    }
+    .ed-copy-btn:hover { color: var(--ed-body); background: rgba(255,255,255,.06); }
+
+    /* ── Tab bar ── */
+    .ed-tab-bar {
+      display: flex; align-items: flex-end;
+      padding: 0 28px;
+    }
+    .ed-tab {
+      padding: 8px 14px; font-size: 12.5px; color: var(--ed-muted);
+      cursor: pointer; border-bottom: 2px solid transparent;
+      margin-bottom: -1px; display: flex; align-items: center; gap: 6px;
+      background: transparent; border-top: none; border-left: none; border-right: none;
+    }
+    .ed-tab:hover { color: var(--ed-body); }
+    .ed-tab.active { color: var(--ed-heading); border-bottom-color: var(--ed-green); }
+    .ed-tab-count {
+      font-size: 10.5px; color: var(--ed-muted);
+      background: rgba(255,255,255,.06); padding: 1px 5px; border-radius: 10px;
+    }
+    .ed-tab.active .ed-tab-count { color: var(--ed-dim); }
+
+    /* ── Checkpoint label (exploration watermark) ── */
+    .state-label {
+      font-size: 10px; font-weight: 600; text-transform: uppercase;
+      letter-spacing: .08em; color: var(--ed-muted);
+      padding: 6px 28px;
+      background: rgba(232,167,46,.06);
+      border-bottom: 1px solid rgba(232,167,46,.15);
+    }
+
+    /* ══════════════════════════════════════════
+       TAB CONTENT CONTAINER
+    ══════════════════════════════════════════ */
+    .tab-content {
+      padding: 0 28px 48px;
+      flex: 1;
+    }
+
+    /* ══════════════════════════════════════════
+       SHARED UTILITY
+    ══════════════════════════════════════════ */
+    .copy-icon-btn {
+      background: transparent; border: none; cursor: pointer;
+      color: var(--ed-muted); padding: 1px 3px;
+      border-radius: 2px; display: inline-flex; align-items: center;
+      vertical-align: middle;
+    }
+    .copy-icon-btn:hover { color: var(--ed-body); background: rgba(255,255,255,.06); }
+
+    /* ══════════════════════════════════════════
+       BUILDS TAB
+    ══════════════════════════════════════════ */
+
+    /* Muted instruction line */
+    .builds-instruction {
+      font-size: 12px;
+      color: var(--ed-instruction-fg);
+      padding: 14px 0 12px;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .builds-instruction code {
+      font-family: var(--mono);
+      font-size: 11.5px;
+      color: var(--ed-dim);
+      background: rgba(255,255,255,.05);
+      border: 1px solid var(--ed-border);
+      border-radius: 3px;
+      padding: 0 5px;
+    }
+
+    /* Build table */
+    .builds-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12.5px;
+    }
+    .builds-table thead th {
+      font-size: 10.5px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: var(--ed-muted);
+      text-align: left;
+      padding: 6px 10px 6px 0;
+      border-bottom: 1px solid var(--ed-border);
+      white-space: nowrap;
+    }
+    .builds-table thead th:last-child { padding-right: 0; width: 28px; }
+    .builds-table tbody tr {
+      border-bottom: 1px solid var(--ed-border);
+    }
+    .builds-table tbody tr:hover { background: var(--ed-table-row-hover); }
+    .builds-table tbody tr:last-child { border-bottom: none; }
+    .builds-table td {
+      padding: 10px 10px 10px 0;
+      vertical-align: top;
+      color: var(--ed-body);
+    }
+    .builds-table td:last-child { padding-right: 0; }
+
+    /* VERSION cell */
+    .build-version {
+      font-family: var(--mono);
+      font-size: 12.5px;
+      color: var(--ed-heading);
+      font-weight: 500;
+      white-space: nowrap;
+    }
+    .build-latest-badge {
+      display: inline-block;
+      font-size: 9px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: var(--ed-green);
+      background: var(--ed-green-bg);
+      border: 1px solid var(--ed-green-bdr);
+      border-radius: 3px;
+      padding: 1px 5px;
+      margin-left: 5px;
+      vertical-align: middle;
+      white-space: nowrap;
+    }
+    .build-sha-row {
+      display: flex; align-items: center; gap: 4px;
+      margin-top: 4px;
+      font-size: 11px;
+      color: var(--ed-muted);
+      font-family: var(--mono);
+    }
+    .build-sha-hash {
+      color: var(--ed-dim);
+    }
+    .build-commit-msg {
+      font-family: var(--sans);
+      font-size: 11px;
+      color: var(--ed-muted);
+      margin-top: 2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 240px;
+    }
+
+    /* STATUS pill */
+    .status-pill {
+      display: inline-flex; align-items: center; gap: 5px;
+      font-size: 11px; font-weight: 600;
+      border-radius: 4px;
+      padding: 3px 8px;
+      white-space: nowrap;
+    }
+    .status-pill.succeeded {
+      color: var(--ed-green);
+      background: var(--ed-green-bg);
+      border: 1px solid var(--ed-green-bdr);
+    }
+    .status-pill.failed {
+      color: var(--ed-red);
+      background: var(--ed-red-bg);
+      border: 1px solid var(--ed-red-bdr);
+    }
+    .status-pill.in-progress {
+      color: var(--ed-dim);
+      background: var(--ed-neutral-bg);
+      border: 1px solid var(--ed-neutral-bdr);
+    }
+
+    /* SOURCE chip */
+    .source-chip {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-size: 11px;
+      color: var(--ed-dim);
+      background: var(--ed-source-chip-bg);
+      border: 1px solid var(--ed-source-chip-bdr);
+      border-radius: 4px;
+      padding: 2px 7px;
+      white-space: nowrap;
+    }
+
+    /* ARTIFACTS */
+    .artifacts-group {
+      display: flex; align-items: center; gap: 6px;
+      flex-wrap: wrap;
+      white-space: nowrap;
+    }
+    .artifact-item {
+      display: inline-flex; align-items: center; gap: 3px;
+      font-size: 11.5px;
+      color: var(--ed-dim);
+      font-variant-numeric: tabular-nums;
+    }
+    .artifact-dash { color: var(--ed-muted); }
+
+    /* DURATION / WHEN */
+    .build-duration {
+      font-size: 12px;
+      color: var(--ed-body);
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+    .build-when {
+      font-size: 12px;
+      color: var(--ed-dim);
+      white-space: nowrap;
+    }
+
+    /* LOGS link */
+    .view-logs-link {
+      font-size: 12px;
+      color: var(--ed-blue);
+      text-decoration: none;
+      white-space: nowrap;
+      cursor: pointer;
+    }
+    .view-logs-link:hover { text-decoration: underline; }
+
+    /* KEBAB */
+    .kebab-btn {
+      background: transparent; border: none; cursor: pointer;
+      color: var(--ed-muted); padding: 4px 6px;
+      border-radius: 4px;
+      display: inline-flex; align-items: center;
+      font-size: 15px;
+      line-height: 1;
+    }
+    .kebab-btn:hover { color: var(--ed-body); background: rgba(255,255,255,.06); }
+
+    /* Empty state / sub-section divider */
+    .sub-section-divider {
+      margin: 32px 0 24px;
+      border: none;
+      border-top: 1px dashed rgba(255,255,255,0.06);
+    }
+    .sub-section-label {
+      font-size: 10px; font-weight: 600; text-transform: uppercase;
+      letter-spacing: .08em; color: var(--ed-muted);
+      margin-bottom: 20px;
+    }
+
+    /* Empty state block */
+    .empty-state {
+      padding: 28px 0 0;
+    }
+    .empty-state-heading {
+      font-size: 14px; font-weight: 600;
+      color: var(--ed-heading);
+      margin-bottom: 4px;
+    }
+    .empty-state-body {
+      font-size: 13px; color: var(--ed-dim);
+      line-height: 1.6;
+      margin-bottom: 16px;
+    }
+    .cli-block {
+      display: flex; align-items: center; justify-content: space-between;
+      background: var(--ed-cli-bg);
+      border: 1px solid var(--ed-cli-bdr);
+      border-radius: 6px;
+      padding: 10px 14px;
+      margin-bottom: 12px;
+      max-width: 340px;
+    }
+    .cli-command {
+      font-family: var(--mono);
+      font-size: 12.5px;
+      color: var(--ed-body);
+    }
+    .docs-link {
+      font-size: 12.5px;
+      color: var(--ed-blue);
+      text-decoration: none;
+      display: inline-flex; align-items: center; gap: 4px;
+    }
+    .docs-link:hover { text-decoration: underline; }
+
+    /* ══════════════════════════════════════════
+       INSTANCES TAB
+    ══════════════════════════════════════════ */
+
+    /* Filter + view-density header row */
+    .instances-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 0 12px;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .filter-chips {
+      display: flex; align-items: center; gap: 6px;
+      flex-wrap: wrap;
+    }
+    .filter-chip {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-size: 12px;
+      border-radius: 5px;
+      padding: 4px 10px;
+      cursor: pointer;
+      border: 1px solid var(--ed-border);
+      color: var(--ed-muted);
+      background: transparent;
+      white-space: nowrap;
+    }
+    .filter-chip:hover { color: var(--ed-body); border-color: var(--ed-border-mid); }
+    .filter-chip.active {
+      color: var(--ed-chip-active-fg);
+      background: var(--ed-chip-active-bg);
+      border-color: var(--ed-chip-active-bdr);
+    }
+    .filter-chip-check {
+      font-size: 10px;
+    }
+
+    .density-toggle {
+      display: flex; align-items: center; gap: 2px;
+    }
+    .density-btn {
+      display: inline-flex; align-items: center; gap: 5px;
+      font-size: 11px;
+      padding: 4px 9px;
+      cursor: pointer;
+      border: 1px solid var(--ed-border);
+      color: var(--ed-muted);
+      background: transparent;
+      white-space: nowrap;
+    }
+    .density-btn:first-child { border-radius: 4px 0 0 4px; border-right: none; }
+    .density-btn:last-child  { border-radius: 0 4px 4px 0; }
+    .density-btn.active { color: var(--ed-body); background: rgba(255,255,255,.05); }
+
+    /* Group header */
+    .instance-group-header {
+      display: flex; align-items: center; gap: 8px;
+      padding: 8px 0 6px;
+      font-size: 12px; font-weight: 600;
+      color: var(--ed-dim);
+      border-top: 1px solid var(--ed-border);
+      margin-top: 2px;
+      cursor: pointer;
+    }
+    .instance-group-header:first-of-type { border-top: none; }
+    .instance-group-chevron {
+      color: var(--ed-muted);
+      font-size: 10px;
+    }
+    .instance-group-count {
+      font-weight: 400;
+      color: var(--ed-muted);
+    }
+
+    /* Instance row */
+    .instance-row {
+      display: flex; align-items: center;
+      gap: 10px;
+      padding: 9px 8px;
+      border-radius: 4px;
+      margin-bottom: 2px;
+      cursor: pointer;
+      position: relative;
+    }
+    .instance-row:hover { background: var(--ed-table-row-hover); }
+
+    /* Expand chevron */
+    .instance-expand {
+      color: var(--ed-muted);
+      font-size: 11px;
+      flex-shrink: 0;
+      width: 14px;
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    /* Instance status pill */
+    .inst-status {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-size: 10.5px; font-weight: 700;
+      border-radius: 4px;
+      padding: 2px 7px;
+      white-space: nowrap;
+      flex-shrink: 0;
+      letter-spacing: 0.04em;
+    }
+    .inst-status.completed {
+      color: var(--ed-green);
+      background: var(--ed-green-bg);
+      border: 1px solid var(--ed-green-bdr);
+    }
+    .inst-status.failed {
+      color: var(--ed-red);
+      background: var(--ed-red-bg);
+      border: 1px solid var(--ed-red-bdr);
+    }
+    .inst-status.running {
+      color: var(--ed-amber);
+      background: rgba(232,167,46,0.10);
+      border: 1px solid rgba(232,167,46,0.25);
+    }
+
+    /* Animated running dot */
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: 0.35; }
+    }
+    .running-dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--ed-amber);
+      display: inline-block;
+      animation: pulse 1.4s ease-in-out infinite;
+    }
+
+    /* Timestamp */
+    .inst-timestamp {
+      font-size: 12px;
+      color: var(--ed-body);
+      white-space: nowrap;
+      font-variant-numeric: tabular-nums;
+      flex-shrink: 0;
+    }
+
+    /* Duration + Cost */
+    .inst-duration {
+      font-size: 12px; color: var(--ed-dim);
+      white-space: nowrap; flex-shrink: 0;
+      font-variant-numeric: tabular-nums;
+    }
+    .inst-cost {
+      font-size: 12px; color: var(--ed-dim);
+      white-space: nowrap; flex-shrink: 0;
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* Resource + session chips */
+    .inst-chips {
+      display: flex; align-items: center; gap: 4px;
+      flex-shrink: 0;
+    }
+    .inst-chip {
+      display: inline-flex; align-items: center;
+      font-size: 10.5px;
+      color: var(--ed-muted);
+      background: rgba(255,255,255,.04);
+      border: 1px solid var(--ed-border);
+      border-radius: 4px;
+      padding: 1px 6px;
+      white-space: nowrap;
+    }
+
+    /* User */
+    .inst-user {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-size: 11.5px; color: var(--ed-dim);
+      white-space: nowrap; flex-shrink: 0;
+    }
+
+    /* Instance ID */
+    .inst-id {
+      display: inline-flex; align-items: center; gap: 3px;
+      font-family: var(--mono); font-size: 11px;
+      color: var(--ed-muted);
+      white-space: nowrap;
+      margin-left: auto;
+      flex-shrink: 0;
+    }
+
+    /* More row */
+    .instance-more-row {
+      padding: 5px 8px 5px 32px;
+      font-size: 11.5px;
+      color: var(--ed-muted);
+      cursor: pointer;
+    }
+    .instance-more-row:hover { color: var(--ed-dim); }
+
+  </style>
+</head>
+<body>
+
+<div class="shell-layout">
+
+  <!-- ══════════════════════════════════════════
+       APP-SHELL SIDEBAR — verbatim from v1
+       (Environments selected)
+  ══════════════════════════════════════════ -->
+  <aside class="sidebar">
+    <div class="brand-slot">
+      <div class="brand-mark">
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+          <rect width="12" height="12" rx="2" fill="#78350f"/>
+          <path d="M2 9L6 3L10 9" stroke="#f59e0b" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <span class="brand-wordmark">hud</span>
+    </div>
+
+    <div class="group-label">Workspace</div>
+
+    <a class="nav-item">
+      <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="2" y="2" width="5" height="5" rx="1"/><rect x="9" y="2" width="5" height="5" rx="1"/>
+        <rect x="2" y="9" width="5" height="5" rx="1"/><rect x="9" y="9" width="5" height="5" rx="1"/>
+      </svg>
+      <span class="nav-item-label">Home</span>
+    </a>
+
+    <a class="nav-item">
+      <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M2 4h12M2 8h8M2 12h10"/><circle cx="13" cy="11" r="2.5"/>
+      </svg>
+      <span class="nav-item-label">Tasksets</span>
+      <span class="nav-item-count">127</span>
+    </a>
+
+    <a class="nav-item selected" aria-current="page">
+      <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="2" y="2" width="12" height="5" rx="1.5"/>
+        <rect x="2" y="9" width="12" height="5" rx="1.5"/>
+        <circle cx="5" cy="4.5" r="0.8" fill="currentColor" stroke="none"/>
+        <circle cx="5" cy="11.5" r="0.8" fill="currentColor" stroke="none"/>
+        <path d="M8 4.5h4M8 11.5h4"/>
+      </svg>
+      <span class="nav-item-label">Environments</span>
+      <span class="nav-item-count">42</span>
+    </a>
+
+    <a class="nav-item">
+      <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="8" cy="8" r="3"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2M3.22 3.22l1.42 1.42M11.36 11.36l1.42 1.42M3.22 12.78l1.42-1.42M11.36 4.64l1.42-1.42"/>
+      </svg>
+      <span class="nav-item-label">Models</span>
+      <span class="nav-item-count">27</span>
+    </a>
+
+    <a class="nav-item">
+      <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="8" cy="5" r="2.5"/><path d="M3 14c0-2.76 2.24-5 5-5s5 2.24 5 5"/>
+      </svg>
+      <span class="nav-item-label">Agents</span>
+      <span class="nav-item-count">4</span>
+    </a>
+
+    <a class="nav-item">
+      <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4 2h8a1 1 0 011 1v10a1 1 0 01-1 1H4a1 1 0 01-1-1V3a1 1 0 011-1z"/><path d="M6 6h4M6 9h4M6 12h2"/>
+      </svg>
+      <span class="nav-item-label">Library</span>
+    </a>
+
+    <div class="group-label">Observe</div>
+
+    <a class="nav-item">
+      <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="2" y="8" width="3" height="5" rx="0.5"/><rect x="6.5" y="5" width="3" height="8" rx="0.5"/>
+        <rect x="11" y="2" width="3" height="11" rx="0.5"/>
+      </svg>
+      <span class="nav-item-label">Dashboard</span>
+    </a>
+
+    <a class="nav-item">
+      <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="8" cy="8" r="6"/><path d="M8 4v4l3 1.5"/>
+      </svg>
+      <span class="nav-item-label">Progress</span>
+    </a>
+
+    <div class="spacer"></div>
+
+    <div class="credits-widget" title="View usage details">
+      <div class="credits-label">credits</div>
+      <div class="credits-numbers">
+        <span class="credits-current">4,230</span>
+        <span class="credits-cap">&nbsp;/ 10,000</span>
+      </div>
+      <div class="credits-bar-bg"><div class="credits-bar-fill" style="width:42.3%"></div></div>
+      <div class="credits-meta"><span>~92 cr/hr</span><span>~38h left</span></div>
+    </div>
+
+    <div style="padding:2px 4px;">
+      <a class="nav-item" style="font-size:12px;">
+        <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M7 3H3a1 1 0 00-1 1v9a1 1 0 001 1h9a1 1 0 001-1V9"/><path d="M10 2h4v4M14 2L7 9"/>
+        </svg>
+        <span class="nav-item-label">Marketplace</span>
+        <span class="nav-item-ext">↗</span>
+      </a>
+      <a class="nav-item" style="font-size:12px;">
+        <svg class="nav-item-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 2h8a1 1 0 011 1v10a1 1 0 01-1 1H4a1 1 0 01-1-1V3a1 1 0 011-1z"/><path d="M6 6h4M6 9h4"/>
+        </svg>
+        <span class="nav-item-label">Documentation</span>
+        <span class="nav-item-ext">↗</span>
+      </a>
+    </div>
+
+    <div class="user-chip">
+      <div class="avatar">A</div>
+      <div class="user-info">
+        <div class="user-name">Alex Kim</div>
+        <div class="user-meta">Princeton NLP · owner</div>
+      </div>
+      <svg class="switcher-icon" width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 4.5L6 2 9 4.5M3 7.5L6 10 9 7.5"/>
+      </svg>
+    </div>
+  </aside>
+
+  <!-- ══════════════════════════════════════════
+       MAIN SCROLL REGION
+  ══════════════════════════════════════════ -->
+  <div class="main-region" id="main-content">
+
+    <!-- ════════════════════════════════════════════════════════════════
+         SECTION A — BUILDS TAB (§6a owner default + §6c empty state)
+    ═════════════════════════════════════════════════════════════════ -->
+
+    <div class="state-label">CHECKPOINT 4A — Variant C (private owner) · Builds tab · §6a owner default + §6c empty state</div>
+
+    <!-- STICKY HEADER — Builds tab active -->
+    <div class="ed-sticky-stack">
+      <div class="ed-page-header">
+
+        <!-- Breadcrumb -->
+        <nav class="ed-breadcrumb" aria-label="Breadcrumb">
+          <a class="ed-breadcrumb-link" href="#">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M8 2L4 6l4 4"/>
+            </svg>
+            Environments
+          </a>
+          <span class="ed-breadcrumb-sep">/</span>
+          <span class="ed-breadcrumb-current">hud-browser</span>
+        </nav>
+
+        <!-- Title row -->
+        <div class="ed-header-row">
+          <div class="ed-title-group">
+            <div class="ed-env-icon">
+              <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="#4b8ef0" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="8" cy="8" r="6"/><path d="M8 2c-2 2-3 4-3 6s1 4 3 6M8 2c2 2 3 4 3 6s-1 4-3 6M2 8h12"/>
+              </svg>
+            </div>
+            <span class="ed-env-name">hud-browser</span>
+            <span class="ed-privacy-pill">
+              <svg width="10" height="10" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="4" y="7" width="8" height="7" rx="1.5"/>
+                <path d="M5.5 7V5.5a2.5 2.5 0 015 0V7"/>
+              </svg>
+              Private
+            </span>
+          </div>
+        </div>
+
+        <!-- Descriptor strip -->
+        <div class="ed-descriptor-strip">
+          <div class="ed-strip-field">
+            <span class="ed-strip-chip">
+              <svg width="10" height="10" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="8" cy="8" r="6"/><path d="M8 2c-2 2-3 4-3 6s1 4 3 6M8 2c2 2 3 4 3 6s-1 4-3 6M2 8h12"/>
+              </svg>
+              Browser
+            </span>
+          </div>
+          <span class="ed-strip-sep">·</span>
+          <div class="ed-strip-field">
+            <span class="ed-strip-slug">hud-browser</span>
+            <button class="ed-copy-btn" title="Copy slug">
+              <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="5" y="5" width="8" height="9" rx="1.5"/><path d="M3 11V3a1 1 0 011-1h8"/>
+              </svg>
+            </button>
+          </div>
+          <span class="ed-strip-sep">·</span>
+          <div class="ed-strip-field">
+            <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="1" y="2" width="14" height="12" rx="2"/>
+              <path d="M4 6l3 2.5L4 11M9 11h3"/>
+            </svg>
+            Deployed via CLI
+          </div>
+          <span class="ed-strip-sep">·</span>
+          <div class="ed-strip-field">Created 16 days ago</div>
+        </div>
+      </div>
+
+      <!-- TAB BAR — Builds active -->
+      <div class="ed-tab-bar" role="tablist" aria-label="Environment detail tabs">
+        <button class="ed-tab" role="tab" aria-selected="false">Overview</button>
+        <button class="ed-tab" role="tab" aria-selected="false">
+          Scenarios
+          <span class="ed-tab-count">6</span>
+        </button>
+        <button class="ed-tab active" role="tab" aria-selected="true">
+          Builds
+          <span class="ed-tab-count">5</span>
+        </button>
+        <button class="ed-tab" role="tab" aria-selected="false">
+          Instances
+          <span class="ed-tab-count">22</span>
+        </button>
+        <button class="ed-tab" role="tab" aria-selected="false">Settings</button>
+      </div>
+    </div><!-- /ed-sticky-stack Builds -->
+
+    <!-- ─── BUILDS TAB CONTENT ─── -->
+    <div class="tab-content" role="tabpanel" aria-label="Builds">
+
+      <!-- §6a — Owner default: instruction + table -->
+
+      <!-- Muted instruction line -->
+      <div class="builds-instruction">
+        <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="1" y="2" width="14" height="12" rx="2"/>
+          <path d="M4 6l3 2.5L4 11M9 11h3"/>
+        </svg>
+        To rebuild, run <code>hud deploy</code> from your project directory.
+      </div>
+
+      <!-- Build table -->
+      <table class="builds-table" aria-label="Build history">
+        <thead>
+          <tr>
+            <th>Version</th>
+            <th>Status</th>
+            <th>Source</th>
+            <th>Artifacts</th>
+            <th>Duration</th>
+            <th>When</th>
+            <th>Logs</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+
+          <!-- Row 1: 0.1.0 LATEST — CLI — SUCCEEDED -->
+          <tr>
+            <td>
+              <div class="build-version">
+                0.1.0
+                <span class="build-latest-badge">LATEST</span>
+              </div>
+              <!-- No SHA sub-row: CLI source -->
+            </td>
+            <td>
+              <span class="status-pill succeeded" aria-label="Status: Succeeded">
+                <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M3 8l4 4 6-7"/>
+                </svg>
+                SUCCEEDED
+              </span>
+            </td>
+            <td>
+              <span class="source-chip">
+                <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="1" y="2" width="14" height="12" rx="2"/>
+                  <path d="M4 6l3 2.5L4 11M9 11h3"/>
+                </svg>
+                CLI
+              </span>
+            </td>
+            <td>
+              <div class="artifacts-group">
+                <span class="artifact-item" title="Tools">🔧 +7</span>
+                <span class="artifact-item" title="Scenarios">&lt;/&gt; +1</span>
+                <span class="artifact-item" title="Files">📄 +6</span>
+              </div>
+            </td>
+            <td><span class="build-duration">3m 41s</span></td>
+            <td><span class="build-when" title="2026-05-24T09:14:00Z">16 days ago</span></td>
+            <td><a class="view-logs-link" href="#">View logs</a></td>
+            <td><button class="kebab-btn" aria-label="More options" title="More options">⋮</button></td>
+          </tr>
+
+          <!-- Row 2: 0.0.9 — GitHub — FAILED (with SHA sub-row) -->
+          <tr>
+            <td>
+              <div class="build-version">0.0.9</div>
+              <!-- GitHub SHA sub-row -->
+              <div class="build-sha-row">
+                <span style="color:var(--ed-muted);font-size:10.5px;">SHA:</span>
+                <span class="build-sha-hash">abc1234</span>
+                <button class="copy-icon-btn" title="Copy SHA" aria-label="Copy commit SHA">
+                  <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="5" y="5" width="8" height="9" rx="1.5"/><path d="M3 11V3a1 1 0 011-1h8"/>
+                  </svg>
+                </button>
+              </div>
+              <div class="build-commit-msg">Fix environment variable handling</div>
+            </td>
+            <td>
+              <span class="status-pill failed" aria-label="Status: Failed">
+                <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M3 3l10 10M13 3L3 13"/>
+                </svg>
+                FAILED
+              </span>
+            </td>
+            <td>
+              <span class="source-chip">
+                <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M6 2a2 2 0 00-2 2v1.5a2.5 2.5 0 002.5 2.5h.5v2.5a1 1 0 001 1h1a1 1 0 001-1V8h.5A2.5 2.5 0 0013 5.5V4a2 2 0 00-2-2H6z"/>
+                </svg>
+                GitHub
+              </span>
+            </td>
+            <td>
+              <div class="artifacts-group">
+                <span class="artifact-item" title="Tools">🔧 +5</span>
+                <span class="artifact-item" title="Scenarios">&lt;/&gt; +0</span>
+                <span class="artifact-item" title="Files">📄 +4</span>
+              </div>
+            </td>
+            <td><span class="build-duration">1m 12s</span></td>
+            <td><span class="build-when" title="2026-05-23T14:32:00Z">17 days ago</span></td>
+            <td><a class="view-logs-link" href="#">View logs</a></td>
+            <td><button class="kebab-btn" aria-label="More options" title="More options">⋮</button></td>
+          </tr>
+
+          <!-- Row 3: 0.0.8 — CLI — IN PROGRESS -->
+          <tr>
+            <td>
+              <div class="build-version">0.0.8</div>
+            </td>
+            <td>
+              <span class="status-pill in-progress" aria-label="Status: In progress">
+                <!-- Spinner glyph -->
+                <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                  <path d="M8 2a6 6 0 010 12" opacity="0.25"/>
+                  <path d="M8 2a6 6 0 016 6"/>
+                </svg>
+                IN PROGRESS
+              </span>
+            </td>
+            <td>
+              <span class="source-chip">
+                <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="1" y="2" width="14" height="12" rx="2"/>
+                  <path d="M4 6l3 2.5L4 11M9 11h3"/>
+                </svg>
+                CLI
+              </span>
+            </td>
+            <td>
+              <span class="artifact-dash" style="color:var(--ed-muted);font-size:13px;">—</span>
+            </td>
+            <td><span class="build-duration" style="color:var(--ed-muted);">—</span></td>
+            <td><span class="build-when">2m ago</span></td>
+            <td><span style="color:var(--ed-muted);font-size:12px;">—</span></td>
+            <td><button class="kebab-btn" aria-label="More options" title="More options">⋮</button></td>
+          </tr>
+
+          <!-- Row 4: 0.0.7 — GitHub — SUCCEEDED (with SHA sub-row) -->
+          <tr>
+            <td>
+              <div class="build-version">0.0.7</div>
+              <div class="build-sha-row">
+                <span style="color:var(--ed-muted);font-size:10.5px;">SHA:</span>
+                <span class="build-sha-hash">7e2f001</span>
+                <button class="copy-icon-btn" title="Copy SHA" aria-label="Copy commit SHA">
+                  <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="5" y="5" width="8" height="9" rx="1.5"/><path d="M3 11V3a1 1 0 011-1h8"/>
+                  </svg>
+                </button>
+              </div>
+              <div class="build-commit-msg">Add scenario for sheet editing</div>
+            </td>
+            <td>
+              <span class="status-pill succeeded" aria-label="Status: Succeeded">
+                <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M3 8l4 4 6-7"/>
+                </svg>
+                SUCCEEDED
+              </span>
+            </td>
+            <td>
+              <span class="source-chip">
+                <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M6 2a2 2 0 00-2 2v1.5a2.5 2.5 0 002.5 2.5h.5v2.5a1 1 0 001 1h1a1 1 0 001-1V8h.5A2.5 2.5 0 0013 5.5V4a2 2 0 00-2-2H6z"/>
+                </svg>
+                GitHub
+              </span>
+            </td>
+            <td>
+              <div class="artifacts-group">
+                <span class="artifact-item" title="Tools">🔧 +4</span>
+                <span class="artifact-item" title="Scenarios">&lt;/&gt; +2</span>
+                <span class="artifact-item" title="Files">📄 +3</span>
+              </div>
+            </td>
+            <td><span class="build-duration">2m 58s</span></td>
+            <td><span class="build-when" title="2026-05-21T11:05:00Z">19 days ago</span></td>
+            <td><a class="view-logs-link" href="#">View logs</a></td>
+            <td><button class="kebab-btn" aria-label="More options" title="More options">⋮</button></td>
+          </tr>
+
+          <!-- Row 5: 0.0.6 — CLI — SUCCEEDED -->
+          <tr>
+            <td>
+              <div class="build-version">0.0.6</div>
+            </td>
+            <td>
+              <span class="status-pill succeeded" aria-label="Status: Succeeded">
+                <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M3 8l4 4 6-7"/>
+                </svg>
+                SUCCEEDED
+              </span>
+            </td>
+            <td>
+              <span class="source-chip">
+                <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="1" y="2" width="14" height="12" rx="2"/>
+                  <path d="M4 6l3 2.5L4 11M9 11h3"/>
+                </svg>
+                CLI
+              </span>
+            </td>
+            <td>
+              <div class="artifacts-group">
+                <span class="artifact-item" title="Tools">🔧 +3</span>
+                <span class="artifact-item" title="Scenarios">&lt;/&gt; +1</span>
+                <span class="artifact-item" title="Files">📄 +2</span>
+              </div>
+            </td>
+            <td><span class="build-duration">2m 04s</span></td>
+            <td><span class="build-when" title="2026-05-18T08:47:00Z">22 days ago</span></td>
+            <td><a class="view-logs-link" href="#">View logs</a></td>
+            <td><button class="kebab-btn" aria-label="More options" title="More options">⋮</button></td>
+          </tr>
+
+        </tbody>
+      </table>
+
+      <!-- Sub-section divider before §6c empty state demo -->
+      <hr class="sub-section-divider" />
+      <div class="sub-section-label">§6c — Empty state (owner, no builds yet)</div>
+
+      <!-- §6c Empty state -->
+      <div class="empty-state">
+        <div class="empty-state-heading">No Builds yet.</div>
+        <div class="empty-state-body">To build this Environment, run <code style="font-family:var(--mono);font-size:12px;color:var(--ed-dim);background:rgba(255,255,255,.05);border:1px solid var(--ed-border);border-radius:3px;padding:0 5px;">hud deploy</code> from your project directory.</div>
+        <div class="cli-block">
+          <span class="cli-command">hud deploy</span>
+          <button class="copy-icon-btn" title="Copy command" aria-label="Copy hud deploy command">
+            <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="5" y="5" width="8" height="9" rx="1.5"/><path d="M3 11V3a1 1 0 011-1h8"/>
+            </svg>
+          </button>
+        </div>
+        <a class="docs-link" href="#" target="_blank" rel="noopener">
+          Read the docs
+          <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M7 3H3a1 1 0 00-1 1v9a1 1 0 001 1h9a1 1 0 001-1V9"/><path d="M10 2h4v4M14 2L7 9"/>
+          </svg>
+        </a>
+      </div>
+
+    </div><!-- /tab-content Builds -->
+
+
+    <!-- ════════════════════════════════════════════════════════════════
+         SECTION B — INSTANCES TAB (§7a owner default state)
+    ═════════════════════════════════════════════════════════════════ -->
+
+    <div class="state-label">CHECKPOINT 4B — Variant C (private owner) · Instances tab · §7a owner default state</div>
+
+    <!-- STICKY HEADER — Instances tab active -->
+    <div class="ed-sticky-stack">
+      <div class="ed-page-header">
+
+        <!-- Breadcrumb -->
+        <nav class="ed-breadcrumb" aria-label="Breadcrumb">
+          <a class="ed-breadcrumb-link" href="#">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M8 2L4 6l4 4"/>
+            </svg>
+            Environments
+          </a>
+          <span class="ed-breadcrumb-sep">/</span>
+          <span class="ed-breadcrumb-current">hud-browser</span>
+        </nav>
+
+        <!-- Title row -->
+        <div class="ed-header-row">
+          <div class="ed-title-group">
+            <div class="ed-env-icon">
+              <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="#4b8ef0" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="8" cy="8" r="6"/><path d="M8 2c-2 2-3 4-3 6s1 4 3 6M8 2c2 2 3 4 3 6s-1 4-3 6M2 8h12"/>
+              </svg>
+            </div>
+            <span class="ed-env-name">hud-browser</span>
+            <span class="ed-privacy-pill">
+              <svg width="10" height="10" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="4" y="7" width="8" height="7" rx="1.5"/>
+                <path d="M5.5 7V5.5a2.5 2.5 0 015 0V7"/>
+              </svg>
+              Private
+            </span>
+          </div>
+        </div>
+
+        <!-- Descriptor strip -->
+        <div class="ed-descriptor-strip">
+          <div class="ed-strip-field">
+            <span class="ed-strip-chip">
+              <svg width="10" height="10" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="8" cy="8" r="6"/><path d="M8 2c-2 2-3 4-3 6s1 4 3 6M8 2c2 2 3 4 3 6s-1 4-3 6M2 8h12"/>
+              </svg>
+              Browser
+            </span>
+          </div>
+          <span class="ed-strip-sep">·</span>
+          <div class="ed-strip-field">
+            <span class="ed-strip-slug">hud-browser</span>
+            <button class="ed-copy-btn" title="Copy slug">
+              <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="5" y="5" width="8" height="9" rx="1.5"/><path d="M3 11V3a1 1 0 011-1h8"/>
+              </svg>
+            </button>
+          </div>
+          <span class="ed-strip-sep">·</span>
+          <div class="ed-strip-field">
+            <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="1" y="2" width="14" height="12" rx="2"/>
+              <path d="M4 6l3 2.5L4 11M9 11h3"/>
+            </svg>
+            Deployed via CLI
+          </div>
+          <span class="ed-strip-sep">·</span>
+          <div class="ed-strip-field">Created 16 days ago</div>
+        </div>
+      </div>
+
+      <!-- TAB BAR — Instances active -->
+      <div class="ed-tab-bar" role="tablist" aria-label="Environment detail tabs">
+        <button class="ed-tab" role="tab" aria-selected="false">Overview</button>
+        <button class="ed-tab" role="tab" aria-selected="false">
+          Scenarios
+          <span class="ed-tab-count">6</span>
+        </button>
+        <button class="ed-tab" role="tab" aria-selected="false">
+          Builds
+          <span class="ed-tab-count">5</span>
+        </button>
+        <button class="ed-tab active" role="tab" aria-selected="true">
+          Instances
+          <span class="ed-tab-count">22</span>
+        </button>
+        <button class="ed-tab" role="tab" aria-selected="false">Settings</button>
+      </div>
+    </div><!-- /ed-sticky-stack Instances -->
+
+    <!-- ─── INSTANCES TAB CONTENT ─── -->
+    <div class="tab-content" role="tabpanel" aria-label="Instances">
+
+      <!-- Filter chips + density toggle -->
+      <div class="instances-header">
+        <div class="filter-chips" role="group" aria-label="Filter instances">
+          <button class="filter-chip active" aria-pressed="true">
+            All (22)
+            <span class="filter-chip-check">✓</span>
+          </button>
+          <button class="filter-chip" aria-pressed="false">Running (0)</button>
+          <button class="filter-chip" aria-pressed="false">Terminated (22)</button>
+        </div>
+        <div class="density-toggle" role="group" aria-label="View density">
+          <button class="density-btn active" aria-pressed="true">
+            <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+              <path d="M2 4h12M2 8h12M2 12h12"/>
+            </svg>
+            Comfortable
+          </button>
+          <button class="density-btn" aria-pressed="false">
+            <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+              <path d="M2 3.5h12M2 6.5h12M2 9.5h12M2 12.5h12"/>
+            </svg>
+            Compact
+          </button>
+        </div>
+      </div>
+
+      <!-- ── DATE GROUP: May 28 (4) — 2 COMPLETED + 2 FAILED ── -->
+      <div class="instance-group-header" role="button" aria-expanded="true" tabindex="0">
+        <span class="instance-group-chevron">▼</span>
+        <span>May 28</span>
+        <span class="instance-group-count">(4)</span>
+      </div>
+
+      <!-- Row: May 28 — COMPLETED #1 -->
+      <div class="instance-row" role="button" tabindex="0" aria-label="Instance 41e1826b - Completed">
+        <span class="instance-expand" aria-label="Expand row">›</span>
+        <span class="inst-status completed" aria-label="Status: Completed">COMPLETED</span>
+        <span class="inst-timestamp">May 28, 2026 05:49:37 PM</span>
+        <span class="inst-duration">2m</span>
+        <span class="inst-cost">$0.04</span>
+        <div class="inst-chips">
+          <span class="inst-chip">1 vCPU / 4GB</span>
+          <span class="inst-chip">10m</span>
+        </div>
+        <span class="inst-user">
+          <span class="avatar-sm">KI</span>
+          Kate Im
+        </span>
+        <span class="inst-id">
+          41e1826b
+          <button class="copy-icon-btn" title="Copy instance ID" aria-label="Copy instance ID">
+            <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="5" y="5" width="8" height="9" rx="1.5"/><path d="M3 11V3a1 1 0 011-1h8"/>
+            </svg>
+          </button>
+        </span>
+      </div>
+
+      <!-- Row: May 28 — FAILED #1 -->
+      <div class="instance-row" role="button" tabindex="0" aria-label="Instance b3f49a12 - Failed">
+        <span class="instance-expand" aria-label="Expand row">›</span>
+        <span class="inst-status failed" aria-label="Status: Failed">FAILED</span>
+        <span class="inst-timestamp">May 28, 2026 03:22:11 PM</span>
+        <span class="inst-duration">1m</span>
+        <span class="inst-cost">$0.02</span>
+        <div class="inst-chips">
+          <span class="inst-chip">1 vCPU / 4GB</span>
+          <span class="inst-chip">10m</span>
+        </div>
+        <span class="inst-user">
+          <span class="avatar-sm">KI</span>
+          Kate Im
+        </span>
+        <span class="inst-id">
+          b3f49a12
+          <button class="copy-icon-btn" title="Copy instance ID" aria-label="Copy instance ID">
+            <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="5" y="5" width="8" height="9" rx="1.5"/><path d="M3 11V3a1 1 0 011-1h8"/>
+            </svg>
+          </button>
+        </span>
+      </div>
+
+      <!-- Row: May 28 — COMPLETED #2 -->
+      <div class="instance-row" role="button" tabindex="0" aria-label="Instance c9a37d40 - Completed">
+        <span class="instance-expand" aria-label="Expand row">›</span>
+        <span class="inst-status completed" aria-label="Status: Completed">COMPLETED</span>
+        <span class="inst-timestamp">May 28, 2026 01:07:54 PM</span>
+        <span class="inst-duration">3m</span>
+        <span class="inst-cost">$0.06</span>
+        <div class="inst-chips">
+          <span class="inst-chip">1 vCPU / 4GB</span>
+          <span class="inst-chip">10m</span>
+        </div>
+        <span class="inst-user">
+          <span class="avatar-sm">KI</span>
+          Kate Im
+        </span>
+        <span class="inst-id">
+          c9a37d40
+          <button class="copy-icon-btn" title="Copy instance ID" aria-label="Copy instance ID">
+            <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="5" y="5" width="8" height="9" rx="1.5"/><path d="M3 11V3a1 1 0 011-1h8"/>
+            </svg>
+          </button>
+        </span>
+      </div>
+
+      <!-- Row: May 28 — FAILED #2 -->
+      <div class="instance-row" role="button" tabindex="0" aria-label="Instance d0e82c77 - Failed">
+        <span class="instance-expand" aria-label="Expand row">›</span>
+        <span class="inst-status failed" aria-label="Status: Failed">FAILED</span>
+        <span class="inst-timestamp">May 28, 2026 10:34:02 AM</span>
+        <span class="inst-duration">1m</span>
+        <span class="inst-cost">$0.02</span>
+        <div class="inst-chips">
+          <span class="inst-chip">1 vCPU / 4GB</span>
+          <span class="inst-chip">10m</span>
+        </div>
+        <span class="inst-user">
+          <span class="avatar-sm">KI</span>
+          Kate Im
+        </span>
+        <span class="inst-id">
+          d0e82c77
+          <button class="copy-icon-btn" title="Copy instance ID" aria-label="Copy instance ID">
+            <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="5" y="5" width="8" height="9" rx="1.5"/><path d="M3 11V3a1 1 0 011-1h8"/>
+            </svg>
+          </button>
+        </span>
+      </div>
+
+      <!-- ── DATE GROUP: May 26 (12) — 1 RUNNING + 3 FAILED + 8 more ── -->
+      <div class="instance-group-header" role="button" aria-expanded="true" tabindex="0" style="margin-top:8px;">
+        <span class="instance-group-chevron">▼</span>
+        <span>May 26</span>
+        <span class="instance-group-count">(12)</span>
+      </div>
+
+      <!-- Row: May 26 — RUNNING -->
+      <div class="instance-row" role="button" tabindex="0" aria-label="Instance e1f60b3a - Running">
+        <span class="instance-expand" aria-label="Expand row">›</span>
+        <span class="inst-status running" aria-label="Status: Running">
+          <span class="running-dot" aria-hidden="true"></span>
+          RUNNING
+        </span>
+        <span class="inst-timestamp">May 26, 2026 08:11:30 PM</span>
+        <span class="inst-duration" style="color:var(--ed-amber);">4m…</span>
+        <span class="inst-cost" style="color:var(--ed-muted);">—</span>
+        <div class="inst-chips">
+          <span class="inst-chip">1 vCPU / 4GB</span>
+          <span class="inst-chip">10m</span>
+        </div>
+        <span class="inst-user">
+          <span class="avatar-sm">KI</span>
+          Kate Im
+        </span>
+        <span class="inst-id">
+          e1f60b3a
+          <button class="copy-icon-btn" title="Copy instance ID" aria-label="Copy instance ID">
+            <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="5" y="5" width="8" height="9" rx="1.5"/><path d="M3 11V3a1 1 0 011-1h8"/>
+            </svg>
+          </button>
+        </span>
+      </div>
+
+      <!-- Row: May 26 — FAILED #1 -->
+      <div class="instance-row" role="button" tabindex="0" aria-label="Instance f2a91c50 - Failed">
+        <span class="instance-expand" aria-label="Expand row">›</span>
+        <span class="inst-status failed" aria-label="Status: Failed">FAILED</span>
+        <span class="inst-timestamp">May 26, 2026 06:58:17 PM</span>
+        <span class="inst-duration">2m</span>
+        <span class="inst-cost">$0.04</span>
+        <div class="inst-chips">
+          <span class="inst-chip">1 vCPU / 4GB</span>
+          <span class="inst-chip">10m</span>
+        </div>
+        <span class="inst-user">
+          <span class="avatar-sm">KI</span>
+          Kate Im
+        </span>
+        <span class="inst-id">
+          f2a91c50
+          <button class="copy-icon-btn" title="Copy instance ID" aria-label="Copy instance ID">
+            <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="5" y="5" width="8" height="9" rx="1.5"/><path d="M3 11V3a1 1 0 011-1h8"/>
+            </svg>
+          </button>
+        </span>
+      </div>
+
+      <!-- Row: May 26 — FAILED #2 -->
+      <div class="instance-row" role="button" tabindex="0" aria-label="Instance 0a3e14d8 - Failed">
+        <span class="instance-expand" aria-label="Expand row">›</span>
+        <span class="inst-status failed" aria-label="Status: Failed">FAILED</span>
+        <span class="inst-timestamp">May 26, 2026 04:30:09 PM</span>
+        <span class="inst-duration">1m</span>
+        <span class="inst-cost">$0.02</span>
+        <div class="inst-chips">
+          <span class="inst-chip">1 vCPU / 4GB</span>
+          <span class="inst-chip">10m</span>
+        </div>
+        <span class="inst-user">
+          <span class="avatar-sm">KI</span>
+          Kate Im
+        </span>
+        <span class="inst-id">
+          0a3e14d8
+          <button class="copy-icon-btn" title="Copy instance ID" aria-label="Copy instance ID">
+            <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="5" y="5" width="8" height="9" rx="1.5"/><path d="M3 11V3a1 1 0 011-1h8"/>
+            </svg>
+          </button>
+        </span>
+      </div>
+
+      <!-- Row: May 26 — FAILED #3 -->
+      <div class="instance-row" role="button" tabindex="0" aria-label="Instance 1b4f8e9c - Failed">
+        <span class="instance-expand" aria-label="Expand row">›</span>
+        <span class="inst-status failed" aria-label="Status: Failed">FAILED</span>
+        <span class="inst-timestamp">May 26, 2026 02:15:44 PM</span>
+        <span class="inst-duration">1m</span>
+        <span class="inst-cost">$0.02</span>
+        <div class="inst-chips">
+          <span class="inst-chip">1 vCPU / 4GB</span>
+          <span class="inst-chip">10m</span>
+        </div>
+        <span class="inst-user">
+          <span class="avatar-sm">KI</span>
+          Kate Im
+        </span>
+        <span class="inst-id">
+          1b4f8e9c
+          <button class="copy-icon-btn" title="Copy instance ID" aria-label="Copy instance ID">
+            <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="5" y="5" width="8" height="9" rx="1.5"/><path d="M3 11V3a1 1 0 011-1h8"/>
+            </svg>
+          </button>
+        </span>
+      </div>
+
+      <!-- "+ 8 more" truncation line -->
+      <div class="instance-more-row">+ 8 more</div>
+
+    </div><!-- /tab-content Instances -->
+
+  </div><!-- /main-region -->
+
+</div><!-- /shell-layout -->
+
+</body>
+</html>
