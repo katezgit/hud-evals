@@ -58,7 +58,7 @@ const columns = [
   columnHelper.accessor("status", {
     header: "Status",
     cell: (info) => (
-      <Badge variant={STATUS_VARIANT[info.getValue()]} showDot>
+      <Badge variant={STATUS_VARIANT[info.getValue()]} size="sm" showDot>
         {STATUS_LABEL[info.getValue()]}
       </Badge>
     ),
