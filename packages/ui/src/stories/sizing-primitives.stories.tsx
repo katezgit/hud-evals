@@ -151,7 +151,7 @@ export const Sizing: StoryObj = {
               padding: "0 12px",
               borderBottom: "1px solid var(--color-border)",
               alignItems: "center",
-              height: 40,
+              height: 36,
             }}
           >
             <Checkbox size="sm" aria-label={`Select ${row.name}`} />
@@ -167,7 +167,7 @@ export const Sizing: StoryObj = {
         ))}
       </div>
       <p style={{ ...META, fontSize: 11 }}>
-        24px sits in a 40px row — 8px margin T/B absorbed by flex items-center. No Button in the same row.
+        24px sits in a 36px row — 6px margin T/B absorbed by flex items-center. No Button in the same row.
       </p>
 
       <div style={DIVIDER} />

@@ -104,7 +104,7 @@ export const DensityComparison: Story = {
   render: () => (
     <div className="flex flex-col gap-8" style={{ width: 680 }}>
       <div className="flex flex-col gap-2">
-        <p className="text-label text-muted-foreground">Default — 40px rows</p>
+        <p className="text-label text-muted-foreground">Default — 36px rows</p>
         <Table totalCount={3} pageOffset={0} density="default">
           <TableHeader>
             <tr>

@@ -30,7 +30,7 @@ export const tableHeadVariants = cva(
   ].join(" "),
   {
     variants: {
-      density: { default: "px-4 py-2", compact: "px-3 py-1.5" },
+      density: { default: "px-3", compact: "px-3" },
       numeric: { true: "text-right", false: "" },
     },
     defaultVariants: { density: "default", numeric: false },
@@ -52,7 +52,7 @@ export const tableCellVariants = cva(
   "align-middle text-body font-normal text-foreground whitespace-nowrap",
   {
     variants: {
-      density: { default: "px-4 py-2", compact: "px-3 py-1.5" },
+      density: { default: "px-3", compact: "px-3" },
       variant: {
         default: "",
         mono: "font-mono text-code [font-feature-settings:'tnum'_1,'lnum'_1]",
@@ -133,7 +133,7 @@ const TableHeaderCell = React.forwardRef<HTMLTableCellElement, TableHeaderCellPr
           "sticky top-0 align-middle whitespace-nowrap",
           "text-table-header text-muted-foreground",
           "border-b border-border bg-elevated",
-          "px-3",
+          "h-8 px-3",
           numeric ? "text-right" : "text-left",
           isLeft && "left-0 z-table-corner",
           isRight && "right-0 z-table-corner",
@@ -205,7 +205,7 @@ const TableRow = React.forwardRef<HTMLTableRowElement, TableRowProps>(
         className={cn(
           "border-b border-border",
           "transition-[background-color] duration-fast ease-out-standard",
-          density === "default" ? "h-10" : "h-8",
+          density === "default" ? "h-9" : "h-8",
           "hover:bg-hover",
           selected && "border-l-2 border-l-primary bg-selected",
           pinned && "border-l-[3px] border-l-primary",
@@ -266,7 +266,7 @@ const TableSelectionBar = React.forwardRef<HTMLTableRowElement, TableSelectionBa
         data-slot="table-selection-bar"
         className={cn(
           "border-b border-border bg-muted",
-          density === "default" ? "h-10" : "h-8",
+          density === "default" ? "h-9" : "h-8",
           className
         )}
         {...props}
@@ -362,7 +362,7 @@ function TableSkeletonRow({ colCount, density: densityProp, className }: TableSk
       aria-hidden="true"
       className={cn(
         "border-b border-border",
-        density === "default" ? "h-10" : "h-8",
+        density === "default" ? "h-9" : "h-8",
         className
       )}
     >

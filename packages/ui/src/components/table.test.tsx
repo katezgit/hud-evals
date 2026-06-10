@@ -74,7 +74,7 @@ describe("tableHeadVariants", () => {
     expect(typeof tableHeadVariants()).toBe("string")
   })
 
-  it("default density includes px-4 py-2 and sticky bg-background", () => {
+  it("default density includes px-3 and sticky bg-background", () => {
     const cls = tableHeadVariants()
     expect(cls).toContain("sticky")
     expect(cls).toContain("bg-background")
@@ -82,19 +82,19 @@ describe("tableHeadVariants", () => {
     expect(cls).toContain("border-b")
     expect(cls).toContain("uppercase")
     expect(cls).toContain("font-medium")
-    expect(cls).toContain("px-4")
-    expect(cls).toContain("py-2")
+    expect(cls).toContain("px-3")
   })
 
-  it("compact density includes px-3 py-1.5", () => {
+  it("compact density includes px-3 (no vertical padding)", () => {
     const cls = tableHeadVariants({ density: "compact" })
     expect(cls).toContain("px-3")
-    expect(cls).toContain("py-1.5")
+    expect(cls).not.toContain("py-")
   })
 
-  it("default variant does not include compact padding", () => {
+  it("default density includes px-3 (no vertical padding)", () => {
     const cls = tableHeadVariants({ density: "default" })
-    expect(cls).not.toContain("px-3")
+    expect(cls).toContain("px-3")
+    expect(cls).not.toContain("py-")
   })
 })
 
@@ -147,16 +147,16 @@ describe("tableCellVariants", () => {
     expect(cls).toContain("font-normal")
   })
 
-  it("default density includes px-4 py-2", () => {
+  it("default density includes px-3 (no vertical padding)", () => {
     const cls = tableCellVariants()
-    expect(cls).toContain("px-4")
-    expect(cls).toContain("py-2")
+    expect(cls).toContain("px-3")
+    expect(cls).not.toContain("py-")
   })
 
-  it("compact density includes px-3 py-1.5", () => {
+  it("compact density includes px-3 (no vertical padding)", () => {
     const cls = tableCellVariants({ density: "compact" })
     expect(cls).toContain("px-3")
-    expect(cls).toContain("py-1.5")
+    expect(cls).not.toContain("py-")
   })
 
   it("mono variant includes font-mono text-code", () => {
