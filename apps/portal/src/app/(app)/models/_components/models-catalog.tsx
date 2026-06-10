@@ -234,7 +234,7 @@ export default function ModelsCatalog() {
                     className="ml-2 inline align-middle"
                   />
                 )}
-                <div className="mt-0.5 flex items-center gap-1">
+                <div className="flex items-center gap-1">
                   <code className="font-mono text-caption text-muted-foreground">
                     {m.modelId}
                   </code>
