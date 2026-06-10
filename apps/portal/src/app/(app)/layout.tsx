@@ -1,17 +1,13 @@
-import { redirect } from "next/navigation";
+import type { ReactNode } from "react";
 import { requireSession } from "@/lib/auth/session";
-import { AppShell } from "@/components/shell";
+import { AppShell } from "@/components/shell/app-shell";
 
-interface AppLayoutProps {
-  children: React.ReactNode;
-}
-
-// (app) group — operations chrome, gated to authed + onboarded users.
-// Reverse direction of the onboarding gate: send not-onboarded users to /step
-// so the two layouts together guarantee a user lands in exactly one group.
-export default async function AppLayout({ children }: AppLayoutProps) {
+export default async function AppLayout({ children }: { children: ReactNode }) {
   const session = await requireSession();
-  if (!session.onboarded) redirect("/step");
 
-  return <AppShell>{children}</AppShell>;
+  return (
+    <AppShell email={session.email} name={session.name}>
+      {children}
+    </AppShell>
+  );
 }
