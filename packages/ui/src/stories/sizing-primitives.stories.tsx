@@ -279,7 +279,7 @@ export const Sizing: StoryObj = {
             </div>
             <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
               <Switch size="md" aria-label="md switch" />
-              <span style={LABEL}>md · 20px track</span>
+              <span style={LABEL}>md · 22px track</span>
             </div>
           </div>
         </div>

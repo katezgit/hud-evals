@@ -25,7 +25,7 @@ const switchTrackVariants = cva(
   {
     variants: {
       size: {
-        md: "w-[36px] h-[20px]",
+        md: "w-[40px] h-[22px]",
         sm: "w-[32px] h-[18px]",
       },
     },
@@ -49,8 +49,8 @@ const switchThumbVariants = cva(
   {
     variants: {
       size: {
-        // md: 14px thumb, 3px gutter; on: translateX(36 - 14 - 3) = 19px
-        md: "size-[14px] data-[state=checked]:translate-x-[19px] data-[state=unchecked]:translate-x-[3px]",
+        // md: 16px thumb, 3px gutter; on: translateX(40 - 16 - 3) = 21px
+        md: "size-[16px] data-[state=checked]:translate-x-[21px] data-[state=unchecked]:translate-x-[3px]",
         // sm: 14px thumb, 2px gutter; on: translateX(32 - 14 - 2) = 16px
         sm: "size-[14px] data-[state=checked]:translate-x-[16px] data-[state=unchecked]:translate-x-[2px]",
       },
