@@ -66,7 +66,7 @@ export function ProfileForm() {
           onCancel={() => reset()}
           onSave={onSubmit}
           saving={isSubmitting}
-          disableSave={!isDirty || !isValid}
+          disableSave={!isValid}
           className="border-t-0 pt-0"
         />
       </form>

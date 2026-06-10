@@ -36,11 +36,11 @@ export default function DirtyActionBar({
         className,
       )}
     >
-      {isDirty ? (
+      {isDirty && (
         <Button variant="secondary" size="md" onClick={onCancel} disabled={saving}>
           Cancel
         </Button>
-      ) : null}
+      )}
       <Button
         variant="primary"
         size="md"

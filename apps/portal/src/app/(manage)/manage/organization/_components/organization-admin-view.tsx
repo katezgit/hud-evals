@@ -128,7 +128,7 @@ export function OrganizationAdminView() {
             onCancel={() => reset()}
             onSave={onSubmit}
             saving={isSubmitting}
-            disableSave={!isDirty || !isValid}
+            disableSave={!isValid}
           />
         </form>
       </Panel>
