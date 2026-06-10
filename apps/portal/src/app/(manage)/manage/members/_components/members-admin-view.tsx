@@ -35,9 +35,6 @@ export function MembersAdminView() {
             </IconButton>
           )}
         />
-        <p className="mt-4 text-caption text-meta-foreground">
-          Just you so far — invite teammates to share jobs, credits and keys.
-        </p>
       </Panel>
     </>
   );
