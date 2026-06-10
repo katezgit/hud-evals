@@ -221,7 +221,7 @@ export default function ModelsCatalog() {
           return (
             <div className="flex items-start gap-2">
               <ProviderIcon provider={m.provider} className="mt-0.5" />
-              <div className="flex min-w-0 flex-col gap-0.5">
+              <div className="flex min-w-0 flex-col gap-1">
                 <div className="flex items-center gap-2">
                   <Link
                     href={`/models/${m.modelId}`}
@@ -231,8 +231,8 @@ export default function ModelsCatalog() {
                   </Link>
                   {m.isPrivate ? <VisibilityIcon visibility="private" /> : null}
                 </div>
-                <div className="flex items-center gap-1.5">
-                  <code className="font-mono text-caption text-muted-foreground">
+                <div className="flex items-center gap-1">
+                  <code className="font-mono text-meta text-muted-foreground">
                     {m.modelId}
                   </code>
                   <CopyButton value={m.modelId} ariaLabel="Copy model ID" />
