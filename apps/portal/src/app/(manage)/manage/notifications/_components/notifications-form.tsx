@@ -12,12 +12,12 @@ export function NotificationsForm() {
 
   const handleJobToggle = (next: boolean) => {
     setJobEnabled(next);
-    toast(next ? "Job notifications enabled" : "Job notifications disabled");
+    toast.info(next ? "Job notifications enabled" : "Job notifications disabled");
   };
 
   const handleBrowserToggle = (next: boolean) => {
     setBrowserEnabled(next);
-    toast(next ? "Browser notifications enabled" : "Browser notifications disabled");
+    toast.info(next ? "Browser notifications enabled" : "Browser notifications disabled");
   };
 
   return (
