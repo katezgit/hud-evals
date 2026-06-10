@@ -378,17 +378,19 @@ function MobileTopBar({
 }: MobileTopBarProps) {
   return (
     <header className="flex h-12 shrink-0 items-center justify-between border-b border-border bg-muted px-3 md:hidden">
-      <IconButton
-        variant="ghost"
-        size="md"
-        aria-label="Open navigation"
-        aria-expanded={drawerOpen}
-        aria-controls={MOBILE_DRAWER_ID}
-        onClick={onOpenDrawer}
-      >
-        <Menu />
-      </IconButton>
-      <BrandMark collapsed />
+      <div className="flex items-center gap-1">
+        <IconButton
+          variant="ghost"
+          size="md"
+          aria-label="Open navigation"
+          aria-expanded={drawerOpen}
+          aria-controls={MOBILE_DRAWER_ID}
+          onClick={onOpenDrawer}
+        >
+          <Menu />
+        </IconButton>
+        <BrandMark />
+      </div>
       <div className="flex items-center gap-1">
         <MobileCreditsChip state={creditState} />
         <AvatarMenuCollapsed user={user} currentOrg={currentOrg} orgs={orgs} />
