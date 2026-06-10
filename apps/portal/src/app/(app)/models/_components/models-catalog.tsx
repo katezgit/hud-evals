@@ -232,7 +232,7 @@ export default function ModelsCatalog() {
                   {m.isPrivate ? <VisibilityIcon visibility="private" /> : null}
                 </div>
                 <div className="flex items-center gap-1">
-                  <code className="font-mono text-meta text-muted-foreground">
+                  <code className="font-mono text-caption text-muted-foreground">
                     {m.modelId}
                   </code>
                   <CopyButton value={m.modelId} ariaLabel="Copy model ID" />
