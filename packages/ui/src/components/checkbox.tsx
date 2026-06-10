@@ -29,7 +29,6 @@ const checkboxVariants = cva(
       size: {
         md: "size-5 rounded-md",
         sm: "size-[18px] rounded-sm",
-        xs: "size-3.5 rounded-sm",
       },
     },
     defaultVariants: {
@@ -45,7 +44,6 @@ const checkboxIndicatorVariants = cva(
       size: {
         md: "size-5",
         sm: "size-[18px]",
-        xs: "size-3.5",
       },
     },
     defaultVariants: {
@@ -59,7 +57,6 @@ const checkIconVariants = cva("", {
     size: {
       md: "size-3.5",
       sm: "size-[13px]",
-      xs: "size-2.5",
     },
   },
   defaultVariants: {

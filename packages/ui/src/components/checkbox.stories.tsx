@@ -8,7 +8,7 @@ const meta: Meta<typeof Checkbox> = {
   argTypes: {
     size: {
       control: "select",
-      options: ["md", "sm", "xs"],
+      options: ["md", "sm"],
     },
     checked: {
       control: "select",
@@ -50,14 +50,6 @@ export const Variants: Story = {
         <Checkbox size="sm" disabled aria-label="Disabled unchecked sm" />
         <Checkbox size="sm" disabled checked aria-label="Disabled checked sm" onCheckedChange={() => {}} />
         <Checkbox size="sm" aria-invalid aria-label="Error unchecked sm" />
-      </div>
-      <div className="flex items-center gap-4">
-        <Checkbox size="xs" aria-label="Unchecked xs" />
-        <Checkbox size="xs" checked aria-label="Checked xs" onCheckedChange={() => {}} />
-        <Checkbox size="xs" checked="indeterminate" aria-label="Indeterminate xs" onCheckedChange={() => {}} />
-        <Checkbox size="xs" disabled aria-label="Disabled unchecked xs" />
-        <Checkbox size="xs" disabled checked aria-label="Disabled checked xs" onCheckedChange={() => {}} />
-        <Checkbox size="xs" aria-invalid aria-label="Error unchecked xs" />
       </div>
     </div>
   ),

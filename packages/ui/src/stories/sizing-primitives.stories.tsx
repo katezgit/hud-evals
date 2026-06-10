@@ -261,10 +261,6 @@ export const Sizing: StoryObj = {
           <p style={{ ...EYEBROW, fontSize: 10, margin: 0 }}>Checkbox sizes</p>
           <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
             <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
-              <Checkbox size="xs" aria-label="xs checkbox" />
-              <span style={LABEL}>xs · 14px</span>
-            </div>
-            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
               <Checkbox size="sm" aria-label="sm checkbox" />
               <span style={LABEL}>sm · 18px</span>
             </div>

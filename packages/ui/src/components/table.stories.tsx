@@ -180,7 +180,7 @@ export const Selection: Story = {
             <tr>
               <th className="sticky top-0 left-0 z-table-corner w-10 bg-elevated border-b border-border px-3 align-middle">
                 <Checkbox
-                  size="xs"
+                  size="sm"
                   aria-label="Select all"
                   checked={allSelected ? true : someSelected ? "indeterminate" : false}
                   onCheckedChange={() => {
