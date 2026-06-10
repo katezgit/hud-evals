@@ -51,27 +51,3 @@ export const Square: Story = {
     </div>
   ),
 }
-
-// ── Both themes side by side (light bg vs dark panel) ────────────────────────
-
-export const ThemeComparison: Story = {
-  name: "Theme comparison",
-  render: () => (
-    <div className="flex flex-col gap-4">
-      <div className="flex items-center gap-8 p-8 bg-background rounded-lg border border-border">
-        <span className="text-xs text-muted-foreground font-mono w-16">light</span>
-        <BrandMark size="default" />
-        <BrandMark size="sm" />
-      </div>
-      <div
-        className="flex items-center gap-8 p-8 rounded-lg"
-        data-theme="dark"
-        style={{ background: "var(--color-panel)" }}
-      >
-        <span className="text-xs font-mono w-16" style={{ color: "var(--color-muted-foreground)" }}>dark</span>
-        <BrandMark size="default" />
-        <BrandMark size="sm" />
-      </div>
-    </div>
-  ),
-}
