@@ -109,8 +109,11 @@ function BackToAppCollapsed() {
 }
 
 function SettingsHeaderFull() {
+  // pl-[11px]: chip is 24px wide with a 14px glyph centered inside; offset by 5px
+  // (half the chip-glyph delta) so the glyph's visual left edge sits at 16px,
+  // aligned with section labels below. No 11px utility on the spacing scale.
   return (
-    <div className="flex items-center gap-2 px-4 pt-3 pb-1">
+    <div className="flex items-center gap-2 pt-3 pr-3 pb-1 pl-[11px]">
       <span
         aria-hidden="true"
         className="flex size-6 items-center justify-center rounded-md bg-muted text-muted-foreground"
