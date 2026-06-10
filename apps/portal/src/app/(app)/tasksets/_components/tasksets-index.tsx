@@ -513,14 +513,14 @@ function ResultsBody({
     );
   }
   return (
-    <div className="flex flex-col gap-2">
+    <div className="flex flex-col gap-4">
       {/* Sticky column header (wireframe §6) — sits just below the sticky
         tab-bar block. top-[7.75rem] approximates the tab-bar bottom under the
         default app-shell density; if the tab-bar height shifts, this will need
         to follow. Acceptable margin here vs. brittle measurement. */}
       <div
         role="row"
-        className="sticky top-[7.75rem] z-[5] -mx-2 flex items-center gap-6 border-b border-border bg-background px-6 py-2 text-label uppercase tracking-wider text-muted-foreground"
+        className="sticky top-[7.75rem] z-[5] -mx-2 flex items-center gap-6 bg-background px-6 py-2 text-label uppercase tracking-wider text-muted-foreground"
       >
         <div className="flex min-w-0 flex-[3]">
           <span className="truncate">Taskset</span>
@@ -529,14 +529,10 @@ function ResultsBody({
           <span>Top models (Avg)</span>
         </div>
         <div className="flex shrink-0 items-center gap-3">
-          <span>Tasks</span>
-          <span>Models</span>
-        </div>
-        <div className="hidden w-40 shrink-0 justify-end md:flex">
-          <span>Owner</span>
+          <span>Tasks · Models</span>
         </div>
       </div>
-      <ul aria-label="Tasksets" className="flex flex-col gap-3">
+      <ul aria-label="Tasksets" className="flex flex-col gap-4">
         {visible.map((t) => {
           const star = starStateFor(t);
           return (

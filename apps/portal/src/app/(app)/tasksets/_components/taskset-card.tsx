@@ -40,9 +40,18 @@ export default function TasksetCard({
         <span className="inline-flex size-6 shrink-0 items-center justify-center rounded bg-secondary text-muted-foreground">
           <ListChecks aria-hidden="true" className="size-3.5" />
         </span>
-        <span className="min-w-0 flex-1 truncate text-body font-semibold text-foreground">
-          {taskset.name}
+        <span className="flex min-w-0 flex-1 items-baseline gap-1.5 font-mono text-body">
+          <span className="truncate text-muted-foreground">
+            {taskset.ownerName}
+          </span>
+          <span aria-hidden="true" className="text-muted-foreground">
+            /
+          </span>
+          <span className="truncate font-semibold text-foreground">
+            {taskset.name}
+          </span>
         </span>
+        {tab === "team" && isPrivate && <VisibilityIcon visibility="private" />}
         <StarCount
           count={starCount}
           pressed={isStarred}
@@ -57,30 +66,17 @@ export default function TasksetCard({
         <LeaderboardPreview rows={taskset.leaderboard} />
       </div>
 
-      <div className="flex flex-col gap-1 border-t border-border pt-3 font-mono text-meta text-meta-foreground">
-        <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-          <span className="inline-flex items-center gap-1 tabular-nums">
-            <ClipboardList aria-hidden="true" className="size-3.5" />
-            <span>{taskset.taskCount}</span>
-            <span>tasks</span>
-          </span>
-          <span className="inline-flex items-center gap-1 tabular-nums">
-            <Bot aria-hidden="true" className="size-3.5" />
-            <span>{taskset.modelCount}</span>
-            <span>models</span>
-          </span>
-        </div>
-        <div className="flex items-center gap-2">
-          <span
-            className={cn(
-              "truncate",
-              tab === "team" ? "text-foreground" : "text-meta-foreground",
-            )}
-          >
-            {taskset.ownerName}
-          </span>
-          {tab === "team" && isPrivate && <VisibilityIcon visibility="private" />}
-        </div>
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 border-t border-border pt-3 font-mono text-meta text-meta-foreground">
+        <span className="inline-flex items-center gap-1 tabular-nums">
+          <ClipboardList aria-hidden="true" className="size-3.5" />
+          <span>{taskset.taskCount}</span>
+          <span>tasks</span>
+        </span>
+        <span className="inline-flex items-center gap-1 tabular-nums">
+          <Bot aria-hidden="true" className="size-3.5" />
+          <span>{taskset.modelCount}</span>
+          <span>models</span>
+        </span>
       </div>
     </Link>
   );
