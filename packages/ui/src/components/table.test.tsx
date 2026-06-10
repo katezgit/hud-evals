@@ -153,9 +153,9 @@ describe("tableCellVariants", () => {
     expect(cls).toContain("font-normal")
   })
 
-  it("default density includes px-3 (no vertical padding)", () => {
+  it("default density includes px-4 (no vertical padding)", () => {
     const cls = tableCellVariants()
-    expect(cls).toContain("px-3")
+    expect(cls).toContain("px-4")
     expect(cls).not.toContain("py-")
   })
 
