@@ -66,6 +66,8 @@ export interface Secret {
   id: string;
   name: string;
   scope: string;
+  /** Plaintext secret value — hidden by default in the table, revealable per-row. */
+  value: string;
 }
 
 export interface UsageRow {

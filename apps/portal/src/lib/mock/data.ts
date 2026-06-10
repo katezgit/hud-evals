@@ -98,8 +98,18 @@ export const apiKeys: ReadonlyArray<ApiKey> = [
 ];
 
 export const secrets: ReadonlyArray<Secret> = [
-  { id: "s_wandb", name: "WANDB_API_KEY", scope: "all envs" },
-  { id: "s_hf", name: "HF_TOKEN", scope: "all envs" },
+  {
+    id: "s_wandb",
+    name: "WANDB_API_KEY",
+    scope: "all envs",
+    value: "wandb_local_abcdef1234567890fedcba0987654321",
+  },
+  {
+    id: "s_hf",
+    name: "HF_TOKEN",
+    scope: "all envs",
+    value: "hf_QrStUvWxYz0123456789AbCdEfGhIjKlMnOp",
+  },
 ];
 
 export const usageRows: ReadonlyArray<UsageRow> = [
