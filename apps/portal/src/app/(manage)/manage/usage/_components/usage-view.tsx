@@ -37,7 +37,7 @@ export function UsageView() {
           value={`${NUMBER.format(creditState.balance)} / ${NUMBER.format(creditState.total)}`}
         >
           <div className="mt-2">
-            <Progress value={percentRemaining} aria-hidden="true" />
+            <Progress value={percentRemaining} state="default" aria-hidden="true" />
           </div>
         </StatCard>
         <StatCard
@@ -81,7 +81,7 @@ export function UsageView() {
               <div key={limit.name} className="flex items-center gap-3">
                 <span className="w-44 shrink-0 text-body text-foreground">{limit.name}</span>
                 <div className="flex-1">
-                  <Progress value={percent} aria-label={limit.name} />
+                  <Progress value={percent} state="default" aria-label={limit.name} />
                 </div>
                 <span className="w-24 text-right font-mono text-label text-muted-foreground tabular-nums">
                   {limit.current} / {limit.max}
