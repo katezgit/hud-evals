@@ -1,14 +1,12 @@
+import type { ReactNode } from "react";
+import ManageShell from "@/app/(manage)/_components/manage-shell";
 import { requireSession } from "@/lib/auth/session";
-import { ManageShell } from "@/components/shell";
 
-interface ManageGroupLayoutProps {
-  children: React.ReactNode;
-}
-
-// (manage) group — settings chrome, gated to authed users. Per-section admin
-// gates (members, billing, etc.) live in those sub-layouts/pages; this layout
-// only enforces "signed in".
-export default async function ManageGroupLayout({ children }: ManageGroupLayoutProps) {
-  await requireSession();
-  return <ManageShell>{children}</ManageShell>;
+export default async function ManageRootLayout({ children }: { children: ReactNode }) {
+  const session = await requireSession();
+  return (
+    <ManageShell email={session.email} name={session.name}>
+      {children}
+    </ManageShell>
+  );
 }

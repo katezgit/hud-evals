@@ -1,9 +1,12 @@
-interface ManageSectionLayoutProps {
-  children: React.ReactNode;
-}
+import type { ReactNode } from "react";
+import ManagePageHeader from "@/app/(manage)/_components/manage-page-header";
+import { ManagePageActionProvider } from "@/app/(manage)/_components/manage-page-action";
 
-// Section layout shared across every /manage/* page. Holds the page header
-// container so individual section pages just supply their own h1 + content.
-export default function ManageSectionLayout({ children }: ManageSectionLayoutProps) {
-  return <div className="mx-auto max-w-3xl">{children}</div>;
+export default function ManageSegmentLayout({ children }: { children: ReactNode }) {
+  return (
+    <ManagePageActionProvider>
+      <ManagePageHeader />
+      {children}
+    </ManagePageActionProvider>
+  );
 }
