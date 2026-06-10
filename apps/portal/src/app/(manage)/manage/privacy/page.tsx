@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
+import type { ReactNode } from "react";
 import { Switch } from "@repo/ui/components/switch";
-import { Card } from "@repo/ui/components/card";
 import AdminGate from "@/app/(manage)/_components/admin-gate";
+import { Panel } from "@/app/(manage)/_components/page-primitives";
 import { privacyToggles } from "@/lib/mock";
 
 export const metadata: Metadata = {
@@ -11,34 +12,48 @@ export const metadata: Metadata = {
 export default function PrivacyPage() {
   return (
     <AdminGate>
-      <PrivacyToggle
-        title="Retain run logs"
-        description="Keep stdout/stderr and metrics for 90 days."
-        defaultChecked={privacyToggles.retainRunLogs}
-      />
-      <PrivacyToggle
-        title="Share anonymized telemetry"
-        description="Help improve scheduling. No code or data leaves your org."
-        defaultChecked={privacyToggles.shareTelemetry}
-      />
+      <Panel>
+        <div className="flex flex-col divide-y divide-border">
+          <PrivacyRow
+            title="Retain run logs"
+            description="Keep stdout/stderr and metrics for 90 days."
+            control={
+              <Switch
+                defaultChecked={privacyToggles.retainRunLogs}
+                aria-label="Retain run logs"
+              />
+            }
+          />
+          <PrivacyRow
+            title="Share anonymized telemetry"
+            description="Help improve scheduling. No code or data leaves your org."
+            control={
+              <Switch
+                defaultChecked={privacyToggles.shareTelemetry}
+                aria-label="Share anonymized telemetry"
+              />
+            }
+          />
+        </div>
+      </Panel>
     </AdminGate>
   );
 }
 
-interface PrivacyToggleProps {
+interface PrivacyRowProps {
   title: string;
   description: string;
-  defaultChecked: boolean;
+  control: ReactNode;
 }
 
-function PrivacyToggle({ title, description, defaultChecked }: PrivacyToggleProps) {
+function PrivacyRow({ title, description, control }: PrivacyRowProps) {
   return (
-    <Card className="mb-4 flex flex-row items-start justify-between gap-4 px-4 py-4">
-      <div className="flex-1">
+    <div className="flex items-center justify-between gap-6 py-4 first:pt-0 last:pb-0">
+      <div className="min-w-0 flex-1">
         <h3 className="text-body font-semibold text-foreground">{title}</h3>
         <p className="mt-1 max-w-prose text-body text-muted-foreground">{description}</p>
       </div>
-      <Switch defaultChecked={defaultChecked} aria-label={title} />
-    </Card>
+      <div className="shrink-0">{control}</div>
+    </div>
   );
 }
