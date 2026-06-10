@@ -49,8 +49,9 @@ const ScrollArea = React.forwardRef<
 ))
 ScrollArea.displayName = "ScrollArea"
 
-// Scrollbar thumb: muted-foreground/40 at rest → muted-foreground/60 on hover.
-// Both values are alpha composites — perceptible step without reaching full opacity.
+// Scrollbar thumb: muted-foreground/20 light (/15 dark) at rest → /35 light (/30 dark) on hover.
+// Per-mode alpha because the ink seed flips between near-black (light) and near-white (dark);
+// matching perceptual weight requires asymmetric alphas. Step is ~15pp — perceptible drag affordance.
 const ScrollBar = React.forwardRef<
   React.ComponentRef<typeof ScrollAreaPrimitive.ScrollAreaScrollbar>,
   React.ComponentPropsWithoutRef<typeof ScrollAreaPrimitive.ScrollAreaScrollbar>
@@ -74,8 +75,8 @@ const ScrollBar = React.forwardRef<
       data-slot="scroll-area-thumb"
       className={cn(
         "relative flex-1 rounded-full",
-        "bg-muted-foreground/40",
-        "hover:bg-muted-foreground/60"
+        "bg-muted-foreground/20 dark:bg-muted-foreground/15",
+        "hover:bg-muted-foreground/35 dark:hover:bg-muted-foreground/30"
       )}
     />
   </ScrollAreaPrimitive.ScrollAreaScrollbar>
