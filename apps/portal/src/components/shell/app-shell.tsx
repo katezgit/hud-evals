@@ -250,19 +250,23 @@ function SidebarBody({
         />
 
         <div className="mt-auto flex flex-col">
-          {collapsed ? (
-            <CreditsIconButton state={creditState} />
-          ) : (
-            <CreditsPill state={creditState} />
-          )}
           {collapsed ? <MarketDocsRowCollapsed /> : <MarketDocsRow />}
         </div>
       </nav>
 
       {collapsed ? (
-        <AvatarMenuCollapsed user={user} currentOrg={currentOrg} orgs={orgs} />
+        <CreditsIconButton state={creditState} />
       ) : (
-        <AvatarMenu user={user} currentOrg={currentOrg} orgs={orgs} />
+        <CreditsPill state={creditState} />
+      )}
+      {collapsed ? (
+        <div className="mx-1.5 mb-3 mt-1">
+          <AvatarMenuCollapsed user={user} currentOrg={currentOrg} orgs={orgs} />
+        </div>
+      ) : (
+        <div className="px-2 pb-2">
+          <AvatarMenu user={user} currentOrg={currentOrg} orgs={orgs} />
+        </div>
       )}
     </>
   );
@@ -320,7 +324,7 @@ function MarketDocsRow() {
           </span>
           <ArrowUpRightIcon
             aria-hidden="true"
-            className="size-3 text-meta-foreground"
+            className="size-3 text-meta-foreground transition-colors group-hover:text-foreground"
           />
         </a>
       ))}

@@ -157,7 +157,7 @@ const AvatarTriggerCollapsed = forwardRef<HTMLButtonElement, AvatarTriggerCollap
         aria-expanded={open}
         onClick={onClick}
         className={cn(
-          "mx-1.5 mb-3 mt-1 flex h-9 items-center justify-center rounded-md hover:bg-hover",
+          "flex h-9 items-center justify-center rounded-md hover:bg-hover",
           open && "bg-secondary",
         )}
       >

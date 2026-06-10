@@ -94,7 +94,7 @@ export function CreditsPill({ state }: CreditsPillProps) {
           <Progress
             value={percentRemaining}
             aria-hidden="true"
-            className="[&>[data-slot=progress-indicator]]:bg-muted-foreground/30 [&>[data-slot=progress-indicator]]:bg-none [&>[data-slot=progress-indicator]]:shadow-none"
+            className="bg-muted-foreground/15 [&>[data-slot=progress-indicator]]:bg-muted-foreground/30 [&>[data-slot=progress-indicator]]:bg-none [&>[data-slot=progress-indicator]]:shadow-none"
           />
         </div>
       </Link>
