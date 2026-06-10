@@ -69,6 +69,7 @@ function SelectTrigger({
 function SelectContent({
   className,
   children,
+  sideOffset = 8,
   position = "popper",
   ...props
 }: React.ComponentProps<typeof SelectPrimitive.Content>) {
@@ -76,6 +77,7 @@ function SelectContent({
     <SelectPrimitive.Portal>
       <SelectPrimitive.Content
         data-slot="select-content"
+        sideOffset={sideOffset}
         position={position}
         className={cn(
           "relative z-overlay overflow-hidden",

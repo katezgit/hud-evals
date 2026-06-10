@@ -360,7 +360,7 @@ export const Combobox = React.forwardRef<HTMLInputElement, ComboboxProps>((props
             }}
             onEscapeKeyDown={(e) => { e.preventDefault(); handleOpenChange(false) }}
             align="start"
-            sideOffset={4}
+            sideOffset={8}
             style={{ width: "var(--radix-popover-trigger-width)" }}
             className={cn(
               "z-overlay overflow-hidden rounded-lg border border-border",
