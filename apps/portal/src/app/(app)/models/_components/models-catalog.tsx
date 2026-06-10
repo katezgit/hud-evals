@@ -1,17 +1,37 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
-import Link from "next/link";
-import { CheckIcon } from "lucide-react";
 import {
+  type CSSProperties,
+  type ReactNode,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
+import Link from "next/link";
+import { CheckIcon, SlidersHorizontalIcon } from "lucide-react";
+import {
+  type Column,
+  type ColumnPinningState,
+  type VisibilityState,
   createColumnHelper,
   flexRender,
   getCoreRowModel,
   useReactTable,
 } from "@tanstack/react-table";
 
-import { Badge } from "@repo/ui/components/badge";
 import { Button } from "@repo/ui/components/button";
+import { Card } from "@repo/ui/components/card";
+import { Checkbox } from "@repo/ui/components/checkbox";
+import {
+  Drawer,
+  DrawerBody,
+  DrawerClose,
+  DrawerContent,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from "@repo/ui/components/drawer";
 import { EmptyState } from "@repo/ui/components/empty-state";
 import { MultiSelect } from "@repo/ui/components/multi-select";
 import { SearchInput } from "@repo/ui/components/search-input";
@@ -31,7 +51,6 @@ import {
   tableBodyClass,
   tableCellVariants,
   tableClass,
-  tableHeaderClass,
   tableHeadVariants,
   tableRowVariants,
 } from "@repo/ui/components/table";
@@ -50,6 +69,12 @@ import ProviderIcon from "./provider-icon";
 import SpeedBar from "./speed-bar";
 import UnknownIndicator from "./unknown-indicator";
 import UsageSparkline from "./usage-sparkline";
+
+// Single-source-of-truth breakpoint: below 1024px the catalog collapses to a
+// one-column mobile list + bottom-sheet filters. Drives column visibility,
+// the name-cell inline meta, the filter UI swap, and the (currently-disabled
+// at this scope) pinning state — keep them in sync via this constant.
+const MOBILE_MEDIA_QUERY = "(max-width: 1023px)";
 
 type SortKey =
   | "most-used"
@@ -70,19 +95,50 @@ const SORT_OPTIONS: ReadonlyArray<{ value: SortKey; label: string }> = [
   { value: "price-desc", label: "Price (highest)" },
 ];
 
-// Two stacked <table>s (sticky header outside the scroll container, body
-// inside) share widths via <colgroup>, so the percentages must match exactly
-// between them. Tuned to the longest content in each column.
-const COLUMN_WIDTHS = [
-  "20%",
-  "11%",
-  "11%",
-  "15%",
-  "11%",
-  "13%",
-  "13%",
-  "6%",
-] as const;
+// Pixel sizes feed TanStack's column-pinning math (`column.getStart`,
+// `getSize`). table-layout:fixed + width:100% lets columns expand
+// proportionally on wide viewports while keeping minWidth = sum-of-sizes so
+// the sticky-pin behavior has real horizontal overflow to anchor against on
+// narrow screens. Tuned to the longest content in each column.
+const COLUMN_SIZES = {
+  name: 220,
+  provider: 110,
+  price: 110,
+  speed: 144,
+  reasoning: 100,
+  trainable: 110,
+  usage: 130,
+  favorite: 60,
+} as const;
+
+// Canonical TanStack sticky-pinning helper. Pinned columns set position +
+// left + z-index inline; unpinned columns get only width.
+//
+// z-index is inline (not via z-table-col / z-table-corner utilities) because
+// twMerge does not recognise custom @utility classes as a "z-index" group,
+// so it leaves both class declarations in the DOM and the wrong one wins on
+// the cascade. Inline `zIndex` sidesteps the cascade entirely:
+//   - pinned body cell  → 2  (over sibling unpinned <td>s during h-scroll)
+//   - pinned header cell → 4  (over sibling unpinned <th>s AND the sticky thead row)
+function getPinningStyles(
+  column: Column<CatalogModel>,
+  isHeader: boolean,
+): CSSProperties {
+  const isPinned = column.getIsPinned();
+  const isLastLeftPinned =
+    isPinned === "left" && column.getIsLastColumn("left");
+  let zIndex: number | undefined;
+  if (isPinned) zIndex = isHeader ? 4 : 2;
+  return {
+    boxShadow: isLastLeftPinned
+      ? "inset -4px 0 4px -4px var(--color-border)"
+      : undefined,
+    left: isPinned === "left" ? `${column.getStart("left")}px` : undefined,
+    position: isPinned ? "sticky" : undefined,
+    zIndex,
+    width: column.getSize(),
+  };
+}
 
 interface Filters {
   providers: ReadonlySet<ModelProvider>;
@@ -140,6 +196,19 @@ export default function ModelsCatalog() {
   const [filters, setFilters] = useState<Filters>(INITIAL_FILTERS);
   const [sortKey, setSortKey] = useState<SortKey>("most-used");
   const [favorites, setFavorites] = useState<ReadonlySet<string>>(() => new Set());
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+
+  // Mobile viewport drives column visibility, the name-cell inline meta, and
+  // the toolbar swap (chips + sort → bottom-sheet trigger). matchMedia lives
+  // here once; downstream values derive.
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia(MOBILE_MEDIA_QUERY);
+    const apply = () => setIsMobile(mq.matches);
+    apply();
+    mq.addEventListener("change", apply);
+    return () => mq.removeEventListener("change", apply);
+  }, []);
 
   const tabScope = useMemo(() => {
     switch (activeTab) {
@@ -215,26 +284,71 @@ export default function ModelsCatalog() {
   const columns = useMemo(
     () => [
       columnHelper.accessor("name", {
+        id: "name",
         header: "Model",
+        size: COLUMN_SIZES.name,
         cell: (info) => {
           const m = info.row.original;
+          // Mobile: hide modelId + copy + lock, render provider label + price
+          // inline + capability badges stacked under the name. Desktop: keep
+          // the existing two-line name/id layout.
+          if (isMobile) {
+            return (
+              <div className="flex items-start gap-2">
+                <ProviderIcon provider={m.provider} className="mt-0.5 shrink-0" />
+                <div className="flex min-w-0 flex-1 flex-col gap-1">
+                  <div className="flex items-center gap-1.5 min-w-0">
+                    <Link
+                      href={`/models/${m.modelId}`}
+                      className="text-body font-medium text-foreground hover:underline truncate"
+                    >
+                      {m.name}
+                    </Link>
+                    {m.isPrivate && <VisibilityIcon visibility="private" />}
+                  </div>
+                  <div className="text-caption text-muted-foreground">
+                    {m.provider}
+                  </div>
+                  {(m.reasoning === true || m.trainable) && (
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      {m.reasoning === true && (
+                        <span className="inline-flex items-center gap-1 rounded-sm bg-muted px-1.5 py-0.5 text-meta text-foreground">
+                          <CheckIcon
+                            aria-hidden="true"
+                            className="size-3 text-state-scored-text"
+                          />
+                          Reasoning
+                        </span>
+                      )}
+                      {m.trainable && (
+                        <span className="inline-flex items-center gap-1 rounded-sm bg-muted px-1.5 py-0.5 text-meta text-foreground">
+                          <CheckIcon
+                            aria-hidden="true"
+                            className="size-3 text-state-scored-text"
+                          />
+                          Trainable
+                        </span>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          }
           return (
-            <div className="flex items-start gap-2 leading-tight">
-              <ProviderIcon provider={m.provider} className="mt-px shrink-0" />
+            <div className="flex items-start gap-2">
+              <ProviderIcon provider={m.provider} className="mt-0.5 shrink-0" />
               <div className="min-w-0">
-                <Link
-                  href={`/models/${m.modelId}`}
-                  className="text-body font-medium text-foreground hover:underline"
-                >
-                  {m.name}
-                </Link>
-                {m.isPrivate && (
-                  <VisibilityIcon
-                    visibility="private"
-                    className="ml-2 inline align-middle"
-                  />
-                )}
-                <div className="flex items-center gap-1">
+                <div className="flex items-center gap-1.5">
+                  <Link
+                    href={`/models/${m.modelId}`}
+                    className="text-body font-medium text-foreground hover:underline truncate"
+                  >
+                    {m.name}
+                  </Link>
+                  {m.isPrivate && <VisibilityIcon visibility="private" />}
+                </div>
+                <div className="flex items-center gap-0 -mt-1.5">
                   <code className="font-mono text-caption text-muted-foreground">
                     {m.modelId}
                   </code>
@@ -246,7 +360,9 @@ export default function ModelsCatalog() {
         },
       }),
       columnHelper.accessor("provider", {
+        id: "provider",
         header: "Provider",
+        size: COLUMN_SIZES.provider,
         cell: (info) => (
           <span className="text-body text-muted-foreground">{info.getValue()}</span>
         ),
@@ -254,6 +370,7 @@ export default function ModelsCatalog() {
       columnHelper.display({
         id: "price",
         header: "Price / M",
+        size: COLUMN_SIZES.price,
         cell: (info) => (
           <span className="font-mono text-label tabular-nums text-foreground">
             {formatPrice(info.row.original.priceIn)}
@@ -261,10 +378,15 @@ export default function ModelsCatalog() {
             {formatPrice(info.row.original.priceOut)}
           </span>
         ),
-        meta: { headerClassName: "text-right", cellClassName: "text-right" },
+        meta: {
+          headerClassName: "text-right",
+          cellClassName: "text-right",
+        },
       }),
       columnHelper.accessor("tokensPerSecond", {
+        id: "speed",
         header: "Speed",
+        size: COLUMN_SIZES.speed,
         cell: (info) => {
           const v = info.getValue();
           return (
@@ -277,10 +399,15 @@ export default function ModelsCatalog() {
             </div>
           );
         },
-        meta: { headerClassName: "text-left", cellClassName: "text-left" },
+        meta: {
+          headerClassName: "text-left",
+          cellClassName: "text-left",
+        },
       }),
       columnHelper.accessor("reasoning", {
+        id: "reasoning",
         header: "Reasoning",
+        size: COLUMN_SIZES.reasoning,
         cell: (info) => {
           const v = info.getValue();
           let inner;
@@ -303,10 +430,15 @@ export default function ModelsCatalog() {
           }
           return <div className="flex items-center justify-center">{inner}</div>;
         },
-        meta: { headerClassName: "text-center", cellClassName: "text-center" },
+        meta: {
+          headerClassName: "text-center",
+          cellClassName: "text-center",
+        },
       }),
       columnHelper.accessor("trainable", {
+        id: "trainable",
         header: "Trainable",
+        size: COLUMN_SIZES.trainable,
         cell: (info) => (
           <div className="flex items-center justify-center">
             {info.getValue() ? (
@@ -322,22 +454,31 @@ export default function ModelsCatalog() {
             )}
           </div>
         ),
-        meta: { headerClassName: "text-center", cellClassName: "text-center" },
+        meta: {
+          headerClassName: "text-center",
+          cellClassName: "text-center",
+        },
       }),
       columnHelper.accessor("usage", {
+        id: "usage",
         header: "Usage",
+        size: COLUMN_SIZES.usage,
         cell: (info) => (
-          <div className="flex items-center gap-2">
+          <div className="flex items-center justify-end gap-2">
             <UsageSparkline data={info.row.original.usageSparkline} />
             <span className="font-mono text-label tabular-nums text-foreground">
               {formatUsage(info.getValue())}
             </span>
           </div>
         ),
+        meta: {
+          headerClassName: "text-right",
+        },
       }),
       columnHelper.display({
         id: "favorite",
-        header: () => <span className="sr-only">Favorite</span>,
+        size: COLUMN_SIZES.favorite,
+        header: "Stars",
         cell: (info) => {
           const m = info.row.original;
           const isFav = favorites.has(m.modelId);
@@ -355,30 +496,42 @@ export default function ModelsCatalog() {
             />
           );
         },
-        meta: { cellClassName: "px-2" },
+        meta: {
+          cellClassName: "px-2",
+        },
       }),
     ],
-    [favorites],
+    [favorites, isMobile],
   );
+
+  // Below 1024px the Price column stays visible alongside Model — the row
+  // overflows the viewport horizontally, so pin Model left so users can
+  // identify the row while scrolling to the price.
+  const columnPinning: ColumnPinningState = isMobile
+    ? { left: ["name"], right: [] }
+    : { left: [], right: [] };
+  const columnVisibility = useMemo<VisibilityState>(() => {
+    if (!isMobile) return {};
+    // Mobile keeps Model + Price so the price has its own column header (the
+    // inline price in the MODEL cell was orphan content without a header).
+    // Provider label moves inline into the MODEL cell; everything else hides.
+    const hidden: VisibilityState = {
+      provider: false,
+      speed: false,
+      reasoning: false,
+      trainable: false,
+      usage: false,
+      favorite: false,
+    };
+    return hidden;
+  }, [isMobile]);
 
   const table = useReactTable({
     data: visibleRows,
     columns,
+    state: { columnPinning, columnVisibility },
     getCoreRowModel: getCoreRowModel(),
   });
-
-  // Sticky-header shadow lifts once the body scrolls past the top edge —
-  // mirrors the Dialog / Drawer convention from the design system.
-  const scrollBodyRef = useRef<HTMLDivElement | null>(null);
-  const [scrolled, setScrolled] = useState(false);
-  useEffect(() => {
-    const el = scrollBodyRef.current;
-    if (!el) return;
-    const onScroll = () => setScrolled(el.scrollTop > 0);
-    onScroll();
-    el.addEventListener("scroll", onScroll, { passive: true });
-    return () => el.removeEventListener("scroll", onScroll);
-  }, []);
 
   const activeFilterCount =
     (filters.providers.size > 0 ? 1 : 0) +
@@ -434,23 +587,26 @@ export default function ModelsCatalog() {
         <TabsList variant="underline">
           <TabsTrigger value="all">
             All models
-            <Badge variant="neutral" size="sm" className="ml-1.5 tabular-nums">
+            <span className="ml-1.5 font-mono text-meta tabular-nums text-meta-foreground">
               {tabCounts.all}
-            </Badge>
+            </span>
           </TabsTrigger>
           <TabsTrigger value="mine">
             My models
-            <Badge variant="neutral" size="sm" className="ml-1.5 tabular-nums">
+            <span className="ml-1.5 font-mono text-meta tabular-nums text-meta-foreground">
               {tabCounts.mine}
-            </Badge>
+            </span>
           </TabsTrigger>
         </TabsList>
       </Tabs>
 
       {/* Actionbar + table = one visual cluster (toolbar shapes its dataset). */}
       <div className="flex flex-col gap-3">
+        {/* Search row — always full-width on its own line below xl
+            (xl:w-64 puts it back inline alongside the desktop chip cluster
+            once there's room for both). */}
         <div className="flex flex-wrap items-center gap-3">
-          <div className="w-64 flex-none">
+          <div className="w-full flex-none xl:w-64">
             <SearchInput
               size="sm"
               defaultValue=""
@@ -461,161 +617,328 @@ export default function ModelsCatalog() {
             />
           </div>
 
-          <MultiSelect
-            size="sm"
-            options={providerOptions}
-            value={providerArray}
-            onValueChange={(v) =>
-              updateFilters({ providers: new Set(v as ModelProvider[]) })
-            }
-            placeholder="Provider"
-            searchPlaceholder="Search providers…"
-            className="w-44"
-          />
+          {/* Desktop-only chip cluster + sort. Hidden below xl — at lg the
+              cluster wrapped into a broken 2-row layout (search + 3 chips
+              then favorites + count + sort). Mobile/tablet use the bottom
+              sheet below. */}
+          <div className="hidden flex-1 flex-wrap items-center gap-3 xl:flex">
+            <MultiSelect
+              size="sm"
+              options={providerOptions}
+              value={providerArray}
+              // Treat full selection as "no filter" → keeps state lean and
+              // collapses trigger label back to "All Providers".
+              onValueChange={(v) => {
+                const all = v.length === providerOptions.length;
+                updateFilters({
+                  providers: all ? new Set() : new Set(v as ModelProvider[]),
+                });
+              }}
+              emptyMeansAll
+              placeholder="All Providers"
+              searchPlaceholder="Search providers…"
+              className="w-44"
+            />
 
-          <ToggleFilterChip
-            label="Trainable"
-            active={filters.trainable}
-            count={toggleCounts.trainable}
-            onToggle={() => updateFilters({ trainable: !filters.trainable })}
-          />
+            <ToggleFilterChip
+              label="Trainable"
+              active={filters.trainable}
+              count={toggleCounts.trainable}
+              onToggle={() => updateFilters({ trainable: !filters.trainable })}
+            />
 
-          <ToggleFilterChip
-            label="Reasoning"
-            active={filters.reasoning}
-            count={toggleCounts.reasoning}
-            onToggle={() => updateFilters({ reasoning: !filters.reasoning })}
-          />
+            <ToggleFilterChip
+              label="Reasoning"
+              active={filters.reasoning}
+              count={toggleCounts.reasoning}
+              onToggle={() => updateFilters({ reasoning: !filters.reasoning })}
+            />
 
-          <ToggleFilterChip
-            label="Favorites"
-            active={filters.favoritesOnly}
-            count={toggleCounts.favorites}
-            onToggle={() =>
-              updateFilters({ favoritesOnly: !filters.favoritesOnly })
-            }
-          />
+            <ToggleFilterChip
+              label="Favorites"
+              active={filters.favoritesOnly}
+              count={toggleCounts.favorites}
+              onToggle={() =>
+                updateFilters({ favoritesOnly: !filters.favoritesOnly })
+              }
+            />
 
-          <div className="ml-auto flex items-center gap-2">
-            <span className="text-label text-muted-foreground">
-              {resultCountLabel}
-            </span>
-            {hasActiveFilters ? (
-              <button
-                type="button"
-                onClick={clearAllFilters}
-                className="text-label text-primary cursor-pointer hover:underline"
-              >
-                Clear all
-              </button>
-            ) : null}
-            <Select value={sortKey} onValueChange={(v) => setSortKey(v as SortKey)}>
-              <SelectTrigger size="sm" aria-label="Sort by" className="w-44">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent align="end">
-                {SORT_OPTIONS.map((opt) => (
-                  <SelectItem key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <div className="ml-auto flex items-center gap-2">
+              <span className="text-label text-muted-foreground">
+                {resultCountLabel}
+              </span>
+              {hasActiveFilters ? (
+                <button
+                  type="button"
+                  onClick={clearAllFilters}
+                  className="text-label text-primary cursor-pointer hover:underline"
+                >
+                  Clear all
+                </button>
+              ) : null}
+              <Select value={sortKey} onValueChange={(v) => setSortKey(v as SortKey)}>
+                <SelectTrigger size="sm" aria-label="Sort by" className="w-44">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent align="end">
+                  {SORT_OPTIONS.map((opt) => (
+                    <SelectItem key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          {/* Mobile + tablet filter trigger. Result count + Clear all live
+              inside the sheet header, not inline — keeps this row minimal. */}
+          <div className="flex w-full items-center justify-between gap-2 xl:hidden">
+            <Drawer
+              direction="bottom"
+              open={mobileFiltersOpen}
+              onOpenChange={setMobileFiltersOpen}
+            >
+              <DrawerTrigger asChild>
+                <Button type="button" variant="secondary" size="sm">
+                  <SlidersHorizontalIcon aria-hidden="true" className="size-3.5" />
+                  Filters
+                  {activeFilterCount > 0 && (
+                    <span className="font-mono text-meta tabular-nums text-foreground">
+                      {activeFilterCount}
+                    </span>
+                  )}
+                </Button>
+              </DrawerTrigger>
+              <DrawerContent size="md">
+                <DrawerHeader>
+                  <div className="flex flex-col gap-1">
+                    <DrawerTitle>Filters & sort</DrawerTitle>
+                    <span className="text-label text-muted-foreground">
+                      {resultCountLabel}
+                    </span>
+                  </div>
+                  {hasActiveFilters && (
+                    <button
+                      type="button"
+                      onClick={clearAllFilters}
+                      className="text-label text-primary cursor-pointer hover:underline"
+                    >
+                      Clear all
+                    </button>
+                  )}
+                </DrawerHeader>
+                <DrawerBody>
+                  <div className="flex flex-col gap-6">
+                    <FilterGroup label="Provider">
+                      {providerOptions.map((opt) => {
+                        const id = `mfilter-provider-${opt.value}`;
+                        const checked = filters.providers.has(
+                          opt.value as ModelProvider,
+                        );
+                        return (
+                          <label
+                            key={opt.value}
+                            htmlFor={id}
+                            className="flex cursor-pointer items-center gap-3 py-1"
+                          >
+                            <Checkbox
+                              id={id}
+                              size="sm"
+                              checked={checked}
+                              onCheckedChange={(next) => {
+                                const nextSet = new Set(filters.providers);
+                                if (next === true) {
+                                  nextSet.add(opt.value as ModelProvider);
+                                } else {
+                                  nextSet.delete(opt.value as ModelProvider);
+                                }
+                                updateFilters({ providers: nextSet });
+                              }}
+                            />
+                            <span className="text-body text-foreground">{opt.label}</span>
+                          </label>
+                        );
+                      })}
+                    </FilterGroup>
+
+                    <FilterGroup label="Capability">
+                      <CapabilityCheckbox
+                        id="mfilter-trainable"
+                        label="Trainable"
+                        count={toggleCounts.trainable}
+                        checked={filters.trainable}
+                        onCheckedChange={(v) => updateFilters({ trainable: v })}
+                      />
+                      <CapabilityCheckbox
+                        id="mfilter-reasoning"
+                        label="Reasoning"
+                        count={toggleCounts.reasoning}
+                        checked={filters.reasoning}
+                        onCheckedChange={(v) => updateFilters({ reasoning: v })}
+                      />
+                    </FilterGroup>
+
+                    <FilterGroup label="Favorites">
+                      <CapabilityCheckbox
+                        id="mfilter-favorites"
+                        label="Show favorites only"
+                        count={toggleCounts.favorites}
+                        checked={filters.favoritesOnly}
+                        onCheckedChange={(v) =>
+                          updateFilters({ favoritesOnly: v })
+                        }
+                      />
+                    </FilterGroup>
+
+                    <FilterGroup label="Sort by">
+                      <div role="radiogroup" aria-label="Sort by" className="flex flex-col gap-1">
+                        {SORT_OPTIONS.map((opt) => {
+                          const id = `mfilter-sort-${opt.value}`;
+                          const checked = sortKey === opt.value;
+                          return (
+                            <label
+                              key={opt.value}
+                              htmlFor={id}
+                              className="flex cursor-pointer items-center gap-3 py-1"
+                            >
+                              <input
+                                id={id}
+                                type="radio"
+                                name="mfilter-sort"
+                                value={opt.value}
+                                checked={checked}
+                                onChange={() => setSortKey(opt.value)}
+                                className="size-4 accent-primary"
+                              />
+                              <span className="text-body text-foreground">{opt.label}</span>
+                            </label>
+                          );
+                        })}
+                      </div>
+                    </FilterGroup>
+                  </div>
+                </DrawerBody>
+                <DrawerFooter>
+                  <DrawerClose asChild>
+                    <Button type="button" variant="primary" size="sm" className="w-full">
+                      Done
+                    </Button>
+                  </DrawerClose>
+                </DrawerFooter>
+              </DrawerContent>
+            </Drawer>
           </div>
         </div>
 
-        {/* Header and body live in two stacked <table>s sharing widths via
-            <colgroup>. Header sits outside the scroll container so the vertical
-            scrollbar is bounded by the body region and never collides with the
-            sticky <th>. */}
-        <div className="overflow-hidden rounded-lg border border-border bg-card">
-        <table className={cn(tableClass, "table-fixed")}>
-          <colgroup>
-            {COLUMN_WIDTHS.map((w, i) => (
-              <col key={i} style={{ width: w }} />
-            ))}
-          </colgroup>
-          <thead
-            className={cn(
-              tableHeaderClass,
-              "relative z-sticky border-b transition-[border-color,box-shadow] prop-(--motion-state-change)",
-              scrolled ? "border-border shadow-2" : "border-transparent shadow-none",
-            )}
-          >
-            {table.getHeaderGroups().map((headerGroup) => (
-              <tr key={headerGroup.id}>
-                {headerGroup.headers.map((header) => {
-                  const meta = header.column.columnDef.meta as
-                    | { headerClassName?: string }
-                    | undefined;
-                  return (
-                    <th
-                      key={header.id}
-                      className={cn(
-                        tableHeadVariants({ density: "compact" }),
-                        meta?.headerClassName,
-                      )}
-                    >
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(header.column.columnDef.header, header.getContext())}
-                    </th>
-                  );
-                })}
-              </tr>
-            ))}
-          </thead>
-        </table>
-        <div
-          ref={scrollBodyRef}
-          className="max-h-[calc(100vh-18rem)] overflow-y-auto"
-        >
-          <table className={cn(tableClass, "table-fixed")}>
-            <colgroup>
-              {COLUMN_WIDTHS.map((w, i) => (
-                <col key={i} style={{ width: w }} />
-              ))}
-            </colgroup>
-            <tbody className={tableBodyClass}>
-              {table.getRowModel().rows.length === 0 ? (
-                <tr>
-                  <td colSpan={columns.length} className="p-0">
-                    <EmptyState
-                      variant="no-results"
-                      title="No models match your filters"
-                      subtitle="Try clearing the search or relaxing the provider filter."
-                    />
-                  </td>
-                </tr>
-              ) : (
-                table.getRowModel().rows.map((row) => (
-                  <tr
-                    key={row.id}
-                    className={tableRowVariants({ density: "compact" })}
-                  >
-                    {row.getVisibleCells().map((cell) => {
-                      const meta = cell.column.columnDef.meta as
-                        | { cellClassName?: string }
+        {/* Single <table> in one overflow-auto wrapper — TanStack pinning needs
+            both tbody and thead to share a horizontal scroll ancestor for
+            `position: sticky; left: 0` to anchor correctly. `border-separate`
+            is mandatory: collapsed borders break box-shadow + sticky together.
+            Sticky lives on <thead> (not each <th>) so the entire header row
+            anchors as one block — per-<th> sticky was visibly jittering
+            during vertical scroll in this layout. */}
+        <Card className="overflow-hidden p-0">
+          <div className="max-h-[calc(100vh-18rem)] overflow-auto">
+            <table
+              className={cn(
+                tableClass,
+                "table-fixed border-separate border-spacing-0",
+              )}
+              style={{ minWidth: table.getTotalSize() }}
+            >
+              <thead className="sticky top-0 z-table-header bg-background">
+                {table.getHeaderGroups().map((headerGroup) => (
+                  <tr key={headerGroup.id}>
+                    {headerGroup.headers.map((header) => {
+                      const meta = header.column.columnDef.meta as
+                        | { headerClassName?: string }
                         | undefined;
                       return (
-                        <td
-                          key={cell.id}
+                        <th
+                          key={header.id}
+                          style={getPinningStyles(header.column, true)}
                           className={cn(
-                            tableCellVariants({ density: "compact" }),
-                            meta?.cellClassName,
+                            tableHeadVariants({ density: "compact" }),
+                            // Cancel per-<th> sticky — sticky lives on <thead>
+                            // now. `static` overrides `sticky` via twMerge's
+                            // position group.
+                            "static",
+                            // Override design-system's `uppercase` — operator
+                            // wants sentence case ("Model", not "MODEL").
+                            "normal-case",
+                            meta?.headerClassName,
                           )}
                         >
-                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                        </td>
+                          {header.isPlaceholder
+                            ? null
+                            : flexRender(
+                                header.column.columnDef.header,
+                                header.getContext(),
+                              )}
+                        </th>
                       );
                     })}
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-        </div>
+                ))}
+              </thead>
+              <tbody
+                className={cn(
+                  tableBodyClass,
+                  // border-separate kills <tr> borders; restore the row
+                  // separator by drawing border-bottom on cells instead.
+                  "[&_tr_td]:border-b [&_tr_td]:border-border",
+                  "[&_tr:last-child_td]:border-b-0",
+                )}
+              >
+                {table.getRowModel().rows.length === 0 ? (
+                  <tr>
+                    <td
+                      colSpan={table.getVisibleLeafColumns().length}
+                      className="p-0"
+                    >
+                      <EmptyState
+                        variant="no-results"
+                        title="No models match your filters"
+                        subtitle="Try clearing the search or relaxing the provider filter."
+                      />
+                    </td>
+                  </tr>
+                ) : (
+                  table.getRowModel().rows.map((row) => (
+                    <tr
+                      key={row.id}
+                      className={tableRowVariants({ density: "compact" })}
+                    >
+                      {row.getVisibleCells().map((cell) => {
+                        const meta = cell.column.columnDef.meta as
+                          | { cellClassName?: string }
+                          | undefined;
+                        const isPinned = cell.column.getIsPinned();
+                        return (
+                          <td
+                            key={cell.id}
+                            style={getPinningStyles(cell.column, false)}
+                            className={cn(
+                              tableCellVariants({ density: "compact" }),
+                              "py-2",
+                              // bg only when actually pinned — keeps row hover
+                              // visible on desktop where the column isn't sticky.
+                              isPinned ? "bg-background" : undefined,
+                              meta?.cellClassName,
+                            )}
+                          >
+                            {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </Card>
       </div>
     </div>
   );
@@ -653,5 +976,51 @@ function ToggleFilterChip({
         </span>
       ) : null}
     </Button>
+  );
+}
+
+function FilterGroup({
+  label,
+  children,
+}: {
+  label: string;
+  children: ReactNode;
+}) {
+  return (
+    <section className="flex flex-col gap-2">
+      <h3 className="text-label font-medium text-foreground">{label}</h3>
+      <div className="flex flex-col gap-1">{children}</div>
+    </section>
+  );
+}
+
+function CapabilityCheckbox({
+  id,
+  label,
+  count,
+  checked,
+  onCheckedChange,
+}: {
+  id: string;
+  label: string;
+  count: number;
+  checked: boolean;
+  onCheckedChange: (next: boolean) => void;
+}) {
+  return (
+    <label htmlFor={id} className="flex cursor-pointer items-center gap-3 py-1">
+      <Checkbox
+        id={id}
+        size="sm"
+        checked={checked}
+        onCheckedChange={(v) => onCheckedChange(v === true)}
+      />
+      <span className="flex-1 text-body text-foreground">{label}</span>
+      {count > 0 && (
+        <span className="font-mono text-meta tabular-nums text-meta-foreground">
+          {count}
+        </span>
+      )}
+    </label>
   );
 }

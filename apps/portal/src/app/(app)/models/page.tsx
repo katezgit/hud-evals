@@ -20,7 +20,7 @@ export default function ModelsPage() {
             aria-label="Models documentation, opens in new tab"
             className="inline-flex items-center justify-center rounded-sm text-muted-foreground hover:text-foreground focus-visible:shadow-focus-ring outline-hidden"
           >
-            <BookOpenIcon aria-hidden="true" className="size-4" />
+            <BookOpenIcon aria-hidden="true" className="size-3.5" />
           </a>
         </div>
         <p className="text-body text-muted-foreground">
@@ -29,10 +29,10 @@ export default function ModelsPage() {
             href="https://docs.hud.ai/platform/models"
             target="_blank"
             rel="noopener noreferrer"
-            aria-label="Model Gateway documentation, opens in new tab"
+            aria-label="Inference Gateway documentation, opens in new tab"
             className="inline-flex items-baseline gap-0.5 text-muted-foreground hover:text-foreground hover:underline"
           >
-            Model Gateway
+            Inference Gateway
             <ArrowUpRightIcon aria-hidden="true" className="size-3 self-center" />
           </a>
           .{" "}
