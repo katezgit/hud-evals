@@ -91,7 +91,7 @@ export function FileTrackingSection() {
             >
               File Tracking
             </h2>
-            <p className="text-label text-muted-foreground">
+            <p className="text-muted-foreground">
               File changes in the container will appear as diffs on the trace.
             </p>
           </div>
@@ -249,7 +249,7 @@ function FileTrackingDrawer({
         )}
 
         {saveState === "error" && error && (
-          <p className="text-label text-state-errored">{error}</p>
+          <p className="text-state-errored">{error}</p>
         )}
       </DrawerBody>
 

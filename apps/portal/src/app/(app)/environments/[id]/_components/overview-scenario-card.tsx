@@ -1,19 +1,22 @@
 "use client";
 
 import { ArrowRightIcon } from "lucide-react";
-import { Button } from "@repo/ui/components/button";
 import { cn } from "@repo/ui/lib/cn";
 import type { Scenario } from "../_data/types";
 
 /**
  * Overview tab scenario card — orient-and-validate role.
  *
- * Light surface: name, one-line description, "Load this scenario →" CTA. The
+ * Light surface: name, one-line description, "Run Evaluation →" CTA. The
  * button is always enabled regardless of env-var state; the drawer handles
  * missing-vars inline. When this scenario's drawer is open, the card switches
  * to the "Loaded" state — darker border + "Loaded" CTA — and reverts the
  * moment the drawer is dismissed. No schema preview, kebab menu, or "Used by"
  * footer — those affordances are exclusive to the Scenarios tab.
+ *
+ * Overview deliberately exposes a single primary action (no "+ Create Task"
+ * pair) to preserve the preview surface's quick-scan posture. Authoring a
+ * stored Task definition belongs on the Scenarios tab card, not here.
  *
  * Sibling: ScenariosTabScenarioCard (full compose surface).
  */
@@ -33,31 +36,45 @@ export function OverviewScenarioCard({
     <article
       aria-current={loaded ? "true" : undefined}
       className={cn(
-        "group/card flex h-full flex-col gap-3 rounded-lg border bg-panel p-4",
-        "transition-shadow hover:shadow-(--shadow-card)",
-        loaded ? "border-foreground" : "border-border",
+        "group/card flex h-full flex-col gap-3 rounded-lg border p-4",
+        "transition-[box-shadow,background-color,border-color]",
+        loaded
+          ? "border-primary bg-primary-glow"
+          : "border-border bg-panel hover:shadow-(--shadow-card)",
       )}
     >
       <div className="flex flex-col gap-1.5">
-        <h3 className="font-mono text-body font-semibold text-foreground">
+        <h3
+          className={cn(
+            "font-mono text-body font-semibold",
+            loaded ? "text-primary" : "text-foreground",
+          )}
+        >
           {scenario.name}
         </h3>
-        <p className="text-label text-muted-foreground line-clamp-3">
+        <p className="text-muted-foreground line-clamp-3">
           {scenario.description}
         </p>
       </div>
 
       <div className="mt-auto">
-        <Button
+        <button
           type="button"
-          variant="secondary"
-          size="sm"
           onClick={() => onLoad(scenario)}
           aria-pressed={loaded}
+          className={cn(
+            "inline-flex h-8 items-center gap-2 rounded-lg border px-3.5 text-body font-medium",
+            "transition-colors duration-fast",
+            "focus-visible:shadow-focus-ring outline-hidden",
+            "[&_svg]:size-4",
+            loaded
+              ? "cursor-default border-primary bg-primary-glow text-primary"
+              : "cursor-pointer border-border bg-transparent text-foreground group-hover/card:border-primary group-hover/card:bg-primary group-hover/card:text-primary-foreground",
+          )}
         >
-          {loaded ? "Loaded" : "Load this scenario"}
+          {loaded ? "Loaded" : "Run Evaluation"}
           {!loaded && <ArrowRightIcon aria-hidden="true" />}
-        </Button>
+        </button>
       </div>
     </article>
   );

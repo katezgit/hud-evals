@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ArrowRightIcon, Braces, Code2 } from "lucide-react";
+import { Braces, Code2, PlusIcon } from "lucide-react";
 import { Button } from "@repo/ui/components/button";
 import { IconButton } from "@repo/ui/components/icon-button";
 import {
@@ -18,11 +18,23 @@ import type { Scenario, ScenarioSchemaEntry } from "../_data/types";
  * Header: name + schema + source-code icon toggles (top-right cluster). Both
  * toggles render a visibly pressed state when their block is open so the user
  * can tell at a glance which disclosures are active. Body: description +
- * missing-var warning + schema/source blocks. Footer: `Load this scenario →`
- * CTA, calm at rest, upgrades to primary on card hover.
+ * schema/source blocks.
  *
- * "Loaded" state mirrors OverviewScenarioCard: darker border + "Loaded" CTA
- * while this scenario's drawer is open.
+ * Footer carries two parallel verbs:
+ *  - Primary "+ Create Task" — creates a stored Task definition (Scenario
+ *    instantiated with specific argument values) that populates a Taskset.
+ *    The durable artifact action.
+ *  - Secondary "Run Evaluation" — opens the one-shot run drawer (formerly
+ *    "Load this scenario") to test the scenario before committing a Task.
+ *
+ * Loaded state (this scenario's run-evaluation drawer is open):
+ *  - Run Evaluation collapses to a disabled "Loaded" pill so the loaded-state
+ *    visual language matches OverviewScenarioCard.
+ *  - Create Task remains enabled — authoring a Task definition is independent
+ *    of whether the run drawer is open.
+ *  - Card frame mirrors OverviewScenarioCard's loaded treatment exactly:
+ *    `border-primary` + `bg-primary-glow` + teal title — so a card in either
+ *    surface reads identically when it's the active "loaded" target.
  *
  * Sibling: OverviewScenarioCard (orient-and-validate surface).
  */
@@ -41,17 +53,32 @@ export function ScenariosTabScenarioCard({
   const [sourceOpen, setSourceOpen] = useState(false);
   const schemaDisabled = scenario.schema.length === 0;
 
+  const handleCreateTask = () => {
+    // End-to-end Create Task flow is out of scope for this refinement; the
+    // visual contract (primary slot on every card) is the deliverable. Wire
+    // to the real flow when it lands.
+    // TODO: wire create-task flow
+    console.log("create task for scenario:", scenario.id);
+  };
+
   return (
     <article
       aria-current={loaded ? "true" : undefined}
       className={cn(
-        "group/card flex h-full w-full flex-col gap-3 rounded-lg border bg-panel p-4",
-        "transition-shadow hover:shadow-(--shadow-card)",
-        loaded ? "border-foreground" : "border-border",
+        "group/card flex h-full w-full flex-col gap-3 rounded-lg border p-4",
+        "transition-[box-shadow,background-color,border-color]",
+        loaded
+          ? "border-primary bg-primary-glow"
+          : "border-border bg-panel hover:shadow-(--shadow-card)",
       )}
     >
       <header className="flex items-start justify-between gap-2">
-        <h3 className="font-mono text-body font-semibold text-foreground truncate">
+        <h3
+          className={cn(
+            "font-mono text-body font-semibold truncate",
+            loaded ? "text-primary" : "text-foreground",
+          )}
+        >
           {scenario.name}
         </h3>
         <div className="flex shrink-0 items-center gap-1">
@@ -95,7 +122,7 @@ export function ScenariosTabScenarioCard({
         </div>
       </header>
 
-      <p className="text-label text-muted-foreground line-clamp-2">
+      <p className="text-muted-foreground line-clamp-2">
         {scenario.description}
       </p>
 
@@ -108,13 +135,20 @@ export function ScenariosTabScenarioCard({
       <footer className="mt-auto flex items-center justify-end gap-2">
         <Button
           type="button"
+          variant="primary"
+          onClick={handleCreateTask}
+        >
+          <PlusIcon aria-hidden="true" />
+          Create Task
+        </Button>
+        <Button
+          type="button"
           variant="secondary"
-          size="sm"
+          disabled={loaded}
           onClick={() => onLoad(scenario)}
           aria-pressed={loaded}
         >
-          {loaded ? "Loaded" : "Load this scenario"}
-          {!loaded && <ArrowRightIcon aria-hidden="true" />}
+          {loaded ? "Loaded" : "Run Evaluation"}
         </Button>
       </footer>
     </article>

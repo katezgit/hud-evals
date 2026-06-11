@@ -169,6 +169,13 @@ export interface Environment {
   name: string;
   /** Publishing organization — drives the badge label (e.g. "HUD"). */
   organization: string;
+  /**
+   * Display name of the team member who owns / created this env. Drives the
+   * Owner filter on the My Team tab. For Explore envs this duplicates
+   * `organization` (no team affiliation), but every env carries the field so
+   * filters and grouping can read a single canonical key.
+   */
+  owner: string;
   /** Catalog tab the env appears under. */
   visibility: EnvVisibility;
   /** Runtime category — drives type filter + type icon on the index card. */
@@ -179,6 +186,12 @@ export interface Environment {
   isStarred: boolean;
   /** Run executions against this env in the trailing 24h window (card footer). */
   runsLast24h: number;
+  /**
+   * Epoch millis of the last run against this env. Used by the My Team tab
+   * default sort ("Last active"). Distinct from `runsLast24h` (count, not
+   * timestamp). Higher = more recent.
+   */
+  lastActiveAt: number;
   /** Source URL or repo reference shown in the Overview info strip. */
   source: string;
   /** Human-readable creation date ("Mar 12, 2025"). */

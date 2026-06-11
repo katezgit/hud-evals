@@ -41,32 +41,6 @@ export function OverviewTab({
 
   return (
     <div className="flex flex-col gap-8">
-      {missingRequired.length > 0 && (
-        <div className="flex items-start gap-2 rounded-md border border-state-warning/40 bg-state-warning-subtle p-3">
-          <AlertTriangle
-            aria-hidden="true"
-            className="size-4 shrink-0 text-state-warning"
-          />
-          <div className="flex flex-1 flex-col gap-1 text-label">
-            <span className="font-medium text-foreground">
-              This env needs setup before scenarios can run.
-            </span>
-            <span className="text-muted-foreground">
-              Missing required env vars:{" "}
-              <span className="font-mono text-foreground">
-                {missingRequired.join(", ")}
-              </span>
-            </span>
-            <Link
-              href={`/environments/${env.id}?tab=settings`}
-              className="w-fit text-primary hover:underline"
-            >
-              Configure in Settings →
-            </Link>
-          </div>
-        </div>
-      )}
-
       <section
         aria-labelledby="overview-about-heading"
         className="flex flex-col gap-3 scroll-mt-32"
@@ -123,16 +97,44 @@ export function OverviewTab({
             >
               Scenarios
             </h2>
-            <p className="text-label text-muted-foreground">
+            <p className="text-muted-foreground">
               Each scenario represents a specialized skill or task you can
               perform with this environment. Select one to configure and run
               it.
             </p>
           </header>
 
-          <ul className="grid gap-3 grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
+          {missingRequired.length > 0 && (
+            <div className="flex flex-col items-start gap-2 rounded-md border border-state-warning/40 bg-state-warning-subtle p-3 md:flex-row md:items-center md:justify-between md:gap-3">
+              <div className="flex items-start gap-2 md:items-center">
+                <AlertTriangle
+                  aria-hidden="true"
+                  className="size-4 shrink-0 text-state-warning"
+                />
+                <div className="flex flex-1 flex-col gap-1">
+                  <span className="font-medium text-foreground">
+                    This env needs setup before scenarios can run.
+                  </span>
+                  <span className="text-muted-foreground">
+                    Missing required env vars:{" "}
+                    <span className="font-mono text-foreground">
+                      {missingRequired.join(", ")}
+                    </span>
+                  </span>
+                </div>
+              </div>
+              <Link
+                href={`/environments/${env.id}?tab=settings`}
+                className="shrink-0 text-primary hover:underline"
+              >
+                Configure in Settings →
+              </Link>
+            </div>
+          )}
+
+          <ul className="grid gap-4 grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
             {previewScenarios.map((scenario) => (
-              <li key={scenario.id} className="flex">
+              <li key={scenario.id}>
                 <OverviewScenarioCard
                   scenario={scenario}
                   loaded={scenario.id === loadedScenarioId}

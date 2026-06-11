@@ -144,7 +144,10 @@ export function AppShell({ email, name, children }: AppShellProps) {
               creditState={creditState}
             />
 
-            <main id="main-content" className="flex-1 overflow-y-auto">
+            <main
+              id="main-content"
+              className="flex-1 overflow-y-auto pb-16 md:pb-24"
+            >
               {children}
             </main>
           </div>

@@ -264,7 +264,7 @@ export function EnvVarsSection({ vars }: EnvVarsSectionProps) {
             onAdd={handleAddVar}
           />
 
-          <p className="text-label text-meta-foreground">
+          <p className="text-meta-foreground">
             Or set via{" "}
             <code className="font-mono text-meta rounded bg-muted-surface px-1 py-0.5 text-foreground">
               hud deploy -e KEY=value
@@ -304,7 +304,7 @@ export function EnvVarsSection({ vars }: EnvVarsSectionProps) {
             </Button>
           </div>
           {saveState === "error" && error && (
-            <p className="text-label text-state-errored text-right">{error}</p>
+            <p className="text-state-errored text-right">{error}</p>
           )}
         </div>
       </CardFooter>
@@ -375,9 +375,9 @@ function AddVarForm({
   return (
     <div
       data-add-env-var-form
-      className="flex flex-col gap-1.5 rounded-md border border-dashed border-border bg-muted-surface/30 p-2.5"
+      className="flex flex-col gap-1.5 rounded-md border border-dashed border-border p-2.5"
     >
-      <div className="text-label font-medium text-muted-foreground">
+      <div className="text-label font-medium text-foreground">
         Add new variable
       </div>
       <div className="flex items-start gap-1.5">
@@ -412,7 +412,7 @@ function AddVarForm({
         </Button>
       </div>
       {error && (
-        <p className="text-label text-state-errored">{error}</p>
+        <p className="text-state-errored">{error}</p>
       )}
     </div>
   );

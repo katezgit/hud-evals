@@ -1,8 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { AlertTriangle, PlusIcon } from "lucide-react";
-import { Button } from "@repo/ui/components/button";
+import { AlertTriangle } from "lucide-react";
 import { CopyButton } from "@repo/ui/components/copy-button";
 import type { Environment, Scenario } from "../_data/types";
 import { useEnvVarsStore } from "./env-vars-store";
@@ -29,47 +28,35 @@ export function ScenariosTab({
   return (
     <div className="flex flex-col gap-4">
       {missingRequired.length > 0 && (
-        <div className="flex items-start gap-2 rounded-md border border-state-warning/40 bg-state-warning-subtle p-3">
-          <AlertTriangle
-            aria-hidden="true"
-            className="size-4 shrink-0 text-state-warning"
-          />
-          <div className="flex flex-1 flex-col gap-1 text-label">
-            <span className="font-medium text-foreground">
-              This env needs setup before scenarios can run.
-            </span>
-            <span className="text-muted-foreground">
-              Missing required env vars:{" "}
-              <span className="font-mono text-foreground">
-                {missingRequired.join(", ")}
+        // Mirrors overview-tab.tsx exactly so the same signal reads identically
+        // across both tabs. Stacks on narrow viewports (icon + message on top,
+        // CTA below); flips to horizontal at md+ (icon · message · CTA on the right).
+        <div className="flex flex-col items-start gap-2 rounded-md border border-state-warning/40 bg-state-warning-subtle p-3 md:flex-row md:items-center md:justify-between md:gap-3">
+          <div className="flex items-start gap-2 md:items-center">
+            <AlertTriangle
+              aria-hidden="true"
+              className="size-4 shrink-0 text-state-warning"
+            />
+            <div className="flex flex-1 flex-col gap-1">
+              <span className="font-medium text-foreground">
+                This env needs setup before scenarios can run.
               </span>
-            </span>
-            <Link
-              href={`/environments/${env.id}?tab=settings`}
-              className="w-fit text-primary hover:underline"
-            >
-              Configure in Settings →
-            </Link>
+              <span className="text-muted-foreground">
+                Missing required env vars:{" "}
+                <span className="font-mono text-foreground">
+                  {missingRequired.join(", ")}
+                </span>
+              </span>
+            </div>
           </div>
+          <Link
+            href={`/environments/${env.id}?tab=settings`}
+            className="shrink-0 text-primary hover:underline"
+          >
+            Configure in Settings →
+          </Link>
         </div>
       )}
-
-      <header className="flex items-center justify-between gap-3">
-        <h2 className="text-subtitle font-semibold text-foreground">
-          Scenarios{" "}
-          <span className="text-muted-foreground tabular-nums">
-            ({env.scenarios.length})
-          </span>
-        </h2>
-        <Button variant="secondary" size="sm" type="button">
-          <PlusIcon aria-hidden="true" />
-          Create Scenario
-        </Button>
-      </header>
-      <p className="text-label text-muted-foreground">
-        Each scenario represents a specialized skill or task you can perform
-        with this environment. Select one to configure and run it.
-      </p>
 
       <ul className="grid gap-3 grid-cols-1 md:grid-cols-2">
         {env.scenarios.map((scenario) => (
@@ -82,13 +69,6 @@ export function ScenariosTab({
           </li>
         ))}
       </ul>
-
-      <div>
-        <Button variant="secondary" size="sm" type="button">
-          <PlusIcon aria-hidden="true" />
-          Create Task
-        </Button>
-      </div>
     </div>
   );
 }
@@ -100,7 +80,7 @@ function ScenariosEmptyState() {
         <h2 className="text-subtitle font-semibold text-foreground">
           No Scenarios yet.
         </h2>
-        <p className="text-label text-muted-foreground">
+        <p className="text-muted-foreground">
           Add Scenarios using the{" "}
           <code className="font-mono text-meta rounded bg-muted-surface px-1 py-0.5 text-foreground">
             @env.scenario
@@ -116,7 +96,7 @@ function ScenariosEmptyState() {
         href="https://docs.hud.ai/scenarios"
         target="_blank"
         rel="noreferrer noopener"
-        className="text-label text-primary hover:underline"
+        className="text-primary hover:underline"
       >
         Read the docs →
       </a>

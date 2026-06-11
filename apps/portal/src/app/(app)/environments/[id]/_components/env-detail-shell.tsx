@@ -20,6 +20,33 @@ import { RunScenarioDrawer } from "./run-scenario-drawer";
 import { ScenariosTab } from "./scenarios-tab";
 import { SettingsTab } from "./settings-tab";
 
+/**
+ * Inline count badge for tab labels. Teal-tinted on the active tab to align
+ * with the active underline + label color; neutral muted on inactive.
+ */
+function TabCountBadge({
+  count,
+  active,
+}: {
+  count: number;
+  active: boolean;
+}) {
+  return (
+    <span
+      aria-hidden="true"
+      className={cn(
+        "ml-1 inline-flex h-4 min-w-4 items-center justify-center rounded-full px-1.5",
+        "font-mono text-meta tabular-nums",
+        active
+          ? "bg-primary-soft text-primary"
+          : "bg-muted text-meta-foreground",
+      )}
+    >
+      {count}
+    </span>
+  );
+}
+
 const TAB_KEYS = [
   "overview",
   "scenarios",
@@ -103,7 +130,13 @@ export function EnvDetailShell({ env }: { env: Environment }) {
             <TabsList variant="underline">
               <TabsTrigger value="overview">Overview</TabsTrigger>
               {env.tabs.scenarios && (
-                <TabsTrigger value="scenarios">Scenarios</TabsTrigger>
+                <TabsTrigger value="scenarios">
+                  Scenarios
+                  <TabCountBadge
+                    count={env.scenarios.length}
+                    active={activeTab === "scenarios"}
+                  />
+                </TabsTrigger>
               )}
               {env.tabs.builds && (
                 <TabsTrigger value="builds">Builds</TabsTrigger>
