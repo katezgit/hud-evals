@@ -1,7 +1,6 @@
 "use client";
 
 import { ArrowRightIcon } from "lucide-react";
-import { Button } from "@repo/ui/components/button";
 import { cn } from "@repo/ui/lib/cn";
 import type { Scenario } from "../_data/types";
 
@@ -55,20 +54,23 @@ export function OverviewScenarioCard({
       </div>
 
       <div className="mt-auto">
-        <Button
+        <button
           type="button"
-          variant="secondary"
-          size="sm"
           onClick={() => onLoad(scenario)}
           aria-pressed={loaded}
           className={cn(
-            !loaded &&
-              "group-hover/card:border-primary group-hover/card:bg-primary group-hover/card:text-primary-foreground",
+            "inline-flex h-8 items-center gap-2 rounded-lg border px-3.5 text-body font-medium",
+            "transition-colors duration-fast",
+            "focus-visible:shadow-focus-ring outline-hidden",
+            "[&_svg]:size-4",
+            loaded
+              ? "cursor-default border-primary bg-primary-glow text-primary"
+              : "cursor-pointer border-border bg-transparent text-foreground group-hover/card:border-primary group-hover/card:bg-primary group-hover/card:text-primary-foreground",
           )}
         >
           {loaded ? "Loaded" : "Load this scenario"}
           {!loaded && <ArrowRightIcon aria-hidden="true" />}
-        </Button>
+        </button>
       </div>
     </article>
   );

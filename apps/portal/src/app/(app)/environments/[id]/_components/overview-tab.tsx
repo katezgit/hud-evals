@@ -105,32 +105,34 @@ export function OverviewTab({
           </header>
 
           {missingRequired.length > 0 && (
-            <div className="flex items-start gap-2 rounded-md border border-state-warning/40 bg-state-warning-subtle p-3">
-              <AlertTriangle
-                aria-hidden="true"
-                className="size-4 shrink-0 text-state-warning"
-              />
-              <div className="flex flex-1 flex-col gap-1 text-label">
-                <span className="font-medium text-foreground">
-                  This env needs setup before scenarios can run.
-                </span>
-                <span className="text-muted-foreground">
-                  Missing required env vars:{" "}
-                  <span className="font-mono text-foreground">
-                    {missingRequired.join(", ")}
+            <div className="flex items-center justify-between gap-3 rounded-md border border-state-warning/40 bg-state-warning-subtle p-3">
+              <div className="flex items-start gap-2">
+                <AlertTriangle
+                  aria-hidden="true"
+                  className="size-4 shrink-0 text-state-warning"
+                />
+                <div className="flex flex-1 flex-col gap-1 text-label">
+                  <span className="font-medium text-foreground">
+                    This env needs setup before scenarios can run.
                   </span>
-                </span>
-                <Link
-                  href={`/environments/${env.id}?tab=settings`}
-                  className="w-fit text-primary hover:underline"
-                >
-                  Configure in Settings →
-                </Link>
+                  <span className="text-muted-foreground">
+                    Missing required env vars:{" "}
+                    <span className="font-mono text-foreground">
+                      {missingRequired.join(", ")}
+                    </span>
+                  </span>
+                </div>
               </div>
+              <Link
+                href={`/environments/${env.id}?tab=settings`}
+                className="shrink-0 text-label text-primary hover:underline"
+              >
+                Configure in Settings →
+              </Link>
             </div>
           )}
 
-          <ul className="grid gap-3 grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
+          <ul className="grid gap-4 grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
             {previewScenarios.map((scenario) => (
               <li key={scenario.id} className="flex">
                 <OverviewScenarioCard

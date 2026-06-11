@@ -164,7 +164,7 @@ export function RunScenarioPane({
             <Loader2 aria-hidden="true" className="size-3.5 animate-spin" />
           )}
           <span aria-live="polite">
-            {submitting ? "Starting…" : "Run"}
+            {submitting ? "Starting…" : "Run Evaluation"}
           </span>
           {!submitting && <ArrowRightIcon aria-hidden="true" />}
         </Button>
