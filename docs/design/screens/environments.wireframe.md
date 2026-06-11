@@ -79,6 +79,7 @@ The `MAIN` region is the content area to the right of AppShell's persistent side
 - "Environments" is the h1 / page title. Platform-canonical noun — never "Sandboxes", "Envs" (UI label).
 - `[?]` docs icon immediately right of title — same ghost-weight `<a>` pattern as Tasksets page. `aria-label="Environments documentation, opens in new tab"`. Deep-links to `docs.hud.ai/concepts/environments`.
 - `+ New Environment` is top-right, primary button. The `+` prefix is standard HUD convention. Links to the Environment create flow (out of scope for this wireframe).
+- **Mobile `+` alignment**: on mobile the button collapses to icon-only `[+]`. It aligns to the H1 title row — vertically centered with the H1 text, not with the composite header block (H1 + activity bar). See §13 mobile for the codified rule.
 
 **Activity bar:**
 - Sits below the h1 row, left-aligned in the header region.
@@ -681,23 +682,64 @@ Query echoed verbatim. "Clear search" clears input, resets to unfiltered list wi
 
 ```
 ┌─────────────────────────────────────────────┐
-│  [Environments] [?]                     [+]  │  ← docs icon + icon-only CTA
-│  301 runs in last 24h · 0 active now         │
-│                                              │
+│  [Environments] [?]                     [+]  │  ← [+] vertically centered
+│  301 runs in last 24h · 0 active now         │    with the H1 text row only
+│                                              │    (not with the composite block)
 │  [Explore 42]  [My Team 3]                   │
 │  ──────────────────────────────────────────  │
 │  [Search Environments…          ]            │  ← full-width search
 │  [⚙ Filters ▾]  (badge if active)           │  ← type + sort + group + owner
 │                                              │
-│  trace-explorer ☆ 3                          │  ← flat list (no group headers
-│  [📋]6 [🔧]13 [{]4  ●  ●                    │    on Explore by default)
+│  [type icon]  Princeton NLP       ★ 42       │  ← row 1: type icon + org + star
+│  swebench-verified                           │  ← row 2: env name (bold, full-width)
+│  [📋] 500  [🔧] 22    301 runs/24h           │  ← row 3: bi-metric left, runs right
 │  ────────────────────────────────────────    │
-│  browserbase ☆ 1                             │
-│  [📋]0 [🔧]3 [{]1                           │
+│  [type icon]  HUD                 ★ 18       │
+│  browserbase                                 │
+│  [📋] 4  [🔧] 4       47 runs/24h            │
 │  ────────────────────────────────────────    │
 │  (no load-more on Explore — full set shown)  │
 └─────────────────────────────────────────────┘
 ```
+
+#### §13a. Mobile page header — `+` button alignment rule
+
+The `[+]` icon-only button is vertically centered with the **H1 title row** — the single line containing "Environments" and the `[?]` docs icon. It is NOT centered with the composite header block (H1 row + activity bar below it).
+
+**What this means for implementation:** the `[+]` and the H1 share a flex row with `align-items: center`. The activity bar sits below that row as a separate element. The `[+]` does not stretch to span the full header block height.
+
+**Right-edge alignment:** the `[+]` right edge aligns to the page's horizontal content padding boundary — the same right edge used by every other page-level element (search input, filter row, list rows). No special inset.
+
+**Breakpoint scope:** this rule applies at the mobile breakpoint (viewport narrower than the tablet breakpoint, per §13 Tablet). At tablet and desktop, the full `+ New Environment` labeled button occupies the same row and the rule does not apply.
+
+#### §13b. Mobile list row anatomy
+
+**Breakpoint:** viewport narrower than the tablet breakpoint.
+
+```
+┌──────────────────────────────────────────────────┐
+│  ROW (full-width tap target → /environments/slug) │
+│                                                   │
+│  [type]  org-name                       ★  N      │  ← row 1
+│  env-name (bold)                                  │  ← row 2
+│  [📋] N  [🔧] N              N runs/24h           │  ← row 3
+│                                                   │
+└──────────────────────────────────────────────────┘
+```
+
+**Slot assignments:**
+
+| Slot | Content | Notes |
+|---|---|---|
+| Row 1 left | Type icon + org name | Type icon is small, same as desktop list. Org name follows immediately. |
+| Row 1 right | Star icon + count | Single right signal; same prominence as desktop. Tab-conditional semantics (§4.1) apply. |
+| Row 2 | Env name (bold, full-width) | Primary identity. Single line, truncates with ellipsis. |
+| Row 3 left | Bi-metric: `[📋] N  [🔧] N` | Scenarios + tools icon+count pairs. No text labels (narrow viewport). Env vars count is omitted on mobile — recoverable on detail page. |
+| Row 3 right | `N runs/24h` | Run activity subtitle. Muted weight. |
+
+**Rationale (persona-anchored):** Sam glances at the list mid-meeting — row 1 answers "whose env / how popular" in one scan. Row 2 gives the env name immediately below with no competing noise. Row 3 gives the two quality signals (scenarios, tools) left and run activity right — same left-to-right read as a monitoring widget. Removing env vars from mobile is acceptable because Sam and Riley only need the configuration detail when authoring, not when browsing. Status dots are omitted from this layout slot; operational health is lower priority on mobile glance. If status dots are needed on mobile, append after the runs subtitle on row 3.
+
+**Card padding:** no change to card padding values specified here — token-phase decision. The inner padding established at desktop/tablet carries to mobile unchanged unless the engineer reports a visual tightness issue, at which point route back to design.
 
 #### Mobile bottom sheet — `[⚙ Filters]`
 
@@ -917,6 +959,10 @@ No spinner — skeleton prevents layout shift and communicates content shape.
 - **`+ New Environment` disabled on credit exhaustion (vs hidden)**: Following the app-shell convention that gated items are visible but disabled, not hidden. Consistent with ManageShell role-gating pattern.
 
 - **Scale reframe — Explore vs My Team progressive disclosure inverted from initial draft**: Original wireframe treated Explore as 2,500-scale gallery requiring group-by-Type default and pagination. Corrected: the 2,500+ platform stat is total envs across all orgs system-wide. Explore is a curated public shelf (~20–50). My Team is where scale-driven progressive disclosure (group-by, owner filter, pagination) earns its keep. Type filter on Explore moves from hero to secondary refinement; Explore pagination removed entirely; default Group-by inverted (Explore = None, My Team at scale = Type or Owner ON).
+
+- **Mobile `[+]` alignment codified (§13a)**: Operator screenshot showed the `+` icon-only button floating right of the H1 title row with the activity bar sitting below. Rule codified: `[+]` is vertically centered with the H1 row only, not with the composite header block. Right edge aligns to page content padding boundary. Added one-line cross-reference in §2 page header anatomy.
+
+- **Mobile card element reorganization (§13b)**: Original mobile card row 1 packed type icon + org name + star count + two bi-metric items into a single narrow row — too many competing signals for Sam's mid-meeting glance. Replaced with a 3-row layout: row 1 = type icon + org name + star count (identity + popularity), row 2 = env name bold full-width (primary label isolated), row 3 = bi-metric pair left + runs/24h right (quality signal + activity signal in one scan). Env vars count dropped from mobile (recoverable on detail page). Status dots deferred to row 3 tail if needed.
 
 ---
 

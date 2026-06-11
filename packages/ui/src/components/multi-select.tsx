@@ -40,13 +40,6 @@ export interface MultiSelectProps {
   size?: "sm" | "md"
   className?: string
   "aria-invalid"?: boolean | "true" | "false"
-  /**
-   * When true, an empty `value` is treated as "all selected" for the Select-all
-   * checkbox display — useful for filter UIs where empty array = "no filter
-   * applied = all rows" (e.g. Provider filter showing "All Providers").
-   * Click-to-clear is a no-op when already empty.
-   */
-  emptyMeansAll?: boolean
 }
 
 // ── Trigger ───────────────────────────────────────────────────────────────────
@@ -104,7 +97,6 @@ const MultiSelect = React.forwardRef<HTMLButtonElement, MultiSelectProps>(
       size = "md",
       className,
       "aria-invalid": ariaInvalid,
-      emptyMeansAll = false,
     },
     ref
   ) => {
@@ -127,8 +119,7 @@ const MultiSelect = React.forwardRef<HTMLButtonElement, MultiSelectProps>(
     )
     const allVisibleSelected =
       selectableVisible.length > 0 &&
-      (selectedVisible.length === selectableVisible.length ||
-        (emptyMeansAll && value.length === 0))
+      selectedVisible.length === selectableVisible.length
 
     function toggleItem(itemValue: string) {
       if (value.includes(itemValue)) {
