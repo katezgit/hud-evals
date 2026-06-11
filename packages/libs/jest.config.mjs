@@ -1,13 +1,15 @@
 /** @type {import('jest').Config} */
 const config = {
-  testEnvironment: "node",
-  extensionsToTreatAsEsm: [".ts"],
+  testEnvironment: "jest-environment-jsdom",
+  extensionsToTreatAsEsm: [".ts", ".tsx"],
+  setupFilesAfterEnv: ["<rootDir>/src/test-setup.ts"],
   transform: {
-    "^.+\\.ts$": [
+    "^.+\\.tsx?$": [
       "ts-jest",
       {
         useESM: true,
         tsconfig: {
+          jsx: "react-jsx",
           module: "ESNext",
           moduleResolution: "Bundler",
           verbatimModuleSyntax: false,
