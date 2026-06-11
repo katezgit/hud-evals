@@ -124,7 +124,7 @@ export function EnvDetailShell({ env }: { env: Environment }) {
               "transition-[border-color,box-shadow] prop-(--motion-state-change)",
             )}
           >
-            <div className="mx-auto w-full max-w-[1536px] px-4 md:px-6 lg:px-8">
+            <div className="mx-auto w-full max-w-[1536px] px-4 md:px-6 lg:px-8 xl:px-12">
               <EnvDetailHeader
                 name={env.name}
                 type={env.type}
@@ -155,7 +155,7 @@ export function EnvDetailShell({ env }: { env: Environment }) {
           </div>
 
           <TabsContent value="overview" className="pt-6">
-            <div className="mx-auto w-full max-w-[1536px] px-4 md:px-6 lg:px-8">
+            <div className="mx-auto w-full max-w-[1536px] px-4 md:px-6 lg:px-8 xl:px-12">
               <OverviewTab
                 env={env}
                 loadedScenarioId={openScenario?.id ?? null}
@@ -167,7 +167,7 @@ export function EnvDetailShell({ env }: { env: Environment }) {
 
           {env.tabs.scenarios && (
             <TabsContent value="scenarios" className="pt-6">
-              <div className="mx-auto w-full max-w-[1536px] px-4 md:px-6 lg:px-8">
+              <div className="mx-auto w-full max-w-[1536px] px-4 md:px-6 lg:px-8 xl:px-12">
                 <ScenariosTab
                   env={env}
                   loadedScenarioId={openScenario?.id ?? null}
@@ -179,7 +179,7 @@ export function EnvDetailShell({ env }: { env: Environment }) {
 
           {env.tabs.builds && (
             <TabsContent value="builds" className="pt-6">
-              <div className="mx-auto w-full max-w-[1536px] px-4 md:px-6 lg:px-8">
+              <div className="mx-auto w-full max-w-[1536px] px-4 md:px-6 lg:px-8 xl:px-12">
                 <BuildsTab builds={env.builds} />
               </div>
             </TabsContent>
@@ -187,14 +187,14 @@ export function EnvDetailShell({ env }: { env: Environment }) {
 
           {env.tabs.instances && (
             <TabsContent value="instances" className="pt-6">
-              <div className="mx-auto w-full max-w-[1536px] px-4 md:px-6 lg:px-8">
+              <div className="mx-auto w-full max-w-[1536px] px-4 md:px-6 lg:px-8 xl:px-12">
                 <InstancesTab envId={env.id} instances={env.instances} />
               </div>
             </TabsContent>
           )}
 
           <TabsContent value="settings" className="pt-6">
-            <div className="mx-auto w-full max-w-[1536px] px-4 md:px-6 lg:px-8">
+            <div className="mx-auto w-full max-w-[1536px] px-4 md:px-6 lg:px-8 xl:px-12">
               <SettingsTab env={env} />
             </div>
           </TabsContent>

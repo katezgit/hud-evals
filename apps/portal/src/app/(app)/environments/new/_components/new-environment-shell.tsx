@@ -36,7 +36,7 @@ export function NewEnvironmentShell() {
           "transition-[border-color,box-shadow] prop-(--motion-state-change)",
         )}
       >
-        <div className="mx-auto w-full max-w-[1536px] px-4 md:px-6 lg:px-8">
+        <div className="mx-auto w-full max-w-[1536px] px-4 md:px-6 lg:px-8 xl:px-12">
           <header className="flex flex-col gap-3 pt-2 pb-6">
             <nav
               aria-label="Breadcrumb"
@@ -69,7 +69,7 @@ export function NewEnvironmentShell() {
         </div>
       </div>
 
-      <div className="mx-auto w-full max-w-[1536px] px-4 md:px-6 lg:px-8 flex flex-col gap-8 pt-6">
+      <div className="mx-auto w-full max-w-[1536px] px-4 md:px-6 lg:px-8 xl:px-12 flex flex-col gap-8 pt-6">
         <CliQuickstart />
         <hr className="border-border" />
         <TemplatesSection />
