@@ -12,8 +12,8 @@ const DensityContext = React.createContext<TableDensity>("default")
 // ── CSS-only exports (legacy — backward-compat, consumed by TanStack Table) ──
 
 export const tableClass = "w-full caption-bottom border-collapse bg-background"
-export const tableHeaderClass = "bg-background"
-export const tableHeaderStickyClass = "bg-elevated"
+export const tableHeaderClass = "bg-muted"
+export const tableHeaderStickyClass = "bg-muted"
 export const tableBodyClass = "[&_tr:last-child]:border-b-0"
 export const tableFooterClass = "border-t border-border bg-muted font-medium [&>tr]:last:border-b-0"
 export const tableCaptionClass = "mt-4 text-caption text-muted-foreground"
@@ -22,7 +22,6 @@ export const tableEmptyCellClass = "py-8 text-center text-body text-muted-foregr
 export const tableHeadVariants = cva(
   [
     "sticky top-0 z-table-header",
-    "bg-background",
     "text-left align-middle whitespace-nowrap",
     "text-label font-medium tracking-[0.01em] uppercase",
     "text-muted-foreground",
@@ -86,7 +85,7 @@ const Table = React.forwardRef<HTMLDivElement, TableProps>(
         data-page-offset={pageOffset}
         className={cn(
           "relative w-full overflow-x-auto",
-          bordered && "rounded-md border border-border overflow-hidden",
+          bordered && "rounded-md border border-border overflow-hidden bg-elevated",
           className
         )}
         {...props}
@@ -111,7 +110,7 @@ const TableHeader = React.forwardRef<HTMLTableSectionElement, TableHeaderProps>(
     <thead
       ref={ref}
       data-slot="table-header"
-      className={cn(className)}
+      className={cn("bg-muted", className)}
       {...props}
     />
   )

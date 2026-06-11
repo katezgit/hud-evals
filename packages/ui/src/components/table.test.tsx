@@ -10,6 +10,7 @@ import {
   tableCellVariants,
   tableEmptyCellClass,
   Table,
+  TableHeader,
 } from "./table"
 
 // ---------------------------------------------------------------------------
@@ -29,8 +30,8 @@ describe("tableClass", () => {
 // ---------------------------------------------------------------------------
 
 describe("tableHeaderClass", () => {
-  it("contains bg-background", () => {
-    expect(tableHeaderClass).toContain("bg-background")
+  it("contains bg-muted", () => {
+    expect(tableHeaderClass).toContain("bg-muted")
   })
 })
 
@@ -76,10 +77,10 @@ describe("tableHeadVariants", () => {
     expect(typeof tableHeadVariants()).toBe("string")
   })
 
-  it("default density includes px-3 and sticky bg-background", () => {
+  it("default density includes px-3 and sticky (no per-cell bg — inherits from thead)", () => {
     const cls = tableHeadVariants()
     expect(cls).toContain("sticky")
-    expect(cls).toContain("bg-background")
+    expect(cls).not.toContain("bg-background")
     expect(cls).toContain("text-muted-foreground")
     expect(cls).toContain("border-b")
     expect(cls).toContain("uppercase")
@@ -205,7 +206,7 @@ describe("tableEmptyCellClass", () => {
 // ---------------------------------------------------------------------------
 
 describe("Table bordered prop", () => {
-  it("adds border class to the wrapper when bordered=true", () => {
+  it("adds border + bg-elevated to the wrapper when bordered=true", () => {
     const { getByTestId } = render(
       <Table totalCount={0} pageOffset={0} bordered data-testid="table-root" />
     )
@@ -213,6 +214,7 @@ describe("Table bordered prop", () => {
     expect(wrapper.className).toContain("border")
     expect(wrapper.className).toContain("rounded-md")
     expect(wrapper.className).toContain("overflow-hidden")
+    expect(wrapper.className).toContain("bg-elevated")
   })
 
   it("does NOT add border class when bordered is omitted", () => {
@@ -223,5 +225,23 @@ describe("Table bordered prop", () => {
     // Should have the base overflow-x-auto but not the bordered set
     expect(wrapper.className).toContain("overflow-x-auto")
     expect(wrapper.className).not.toContain("rounded-md")
+  })
+})
+
+// ---------------------------------------------------------------------------
+// TableHeader — bg-muted structural band
+// ---------------------------------------------------------------------------
+
+describe("TableHeader", () => {
+  it("renders with bg-muted regardless of bordered context", () => {
+    const { container } = render(
+      <table>
+        <TableHeader data-testid="thead">
+          <tr><th>Col</th></tr>
+        </TableHeader>
+      </table>
+    )
+    const thead = container.querySelector("thead")
+    expect(thead?.className).toContain("bg-muted")
   })
 })

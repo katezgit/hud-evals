@@ -350,7 +350,7 @@ export const InsideCard: Story = {
   render: () => (
     <div className="flex flex-col gap-6" style={{ width: 560 }}>
       <p className="text-label text-muted-foreground">
-        Header inherits bg-background — no elevated band competing with the Card container.
+        Header carries bg-muted as a structural band — consistent in both Card and freestanding contexts.
       </p>
       <Card className="overflow-hidden p-0">
         <Table totalCount={3} pageOffset={0}>
@@ -406,9 +406,10 @@ export const PatternA_PageSection: Story = {
       description: {
         story:
           "Use `<Table bordered>` when the table IS the page section — no Card wrapper. " +
-          "The `bordered` prop adds `rounded-md border border-border overflow-hidden` to the outer wrapper, " +
-          "giving the table its own chrome. The last body row's `border-b-0` (applied by TableBody) " +
-          "ensures no doubled bottom edge inside the outer border.",
+          "The `bordered` prop adds `rounded-md border border-border overflow-hidden bg-elevated` to the outer wrapper, " +
+          "so the table reads as a content surface lifted off the page background rather than a transparent section. " +
+          "The `<thead>` carries `bg-muted` to differentiate the label row from data rows. " +
+          "The last body row's `border-b-0` (applied by TableBody) ensures no doubled bottom edge inside the outer border.",
       },
     },
   },
@@ -517,9 +518,10 @@ export const Antipattern_DoubleChrome: Story = {
     docs: {
       description: {
         story:
-          "DO NOT do this. `<Card><Table bordered>` stacks two sets of border + rounded corners. " +
-          "The Card border and the `bordered` Table border fight each other, producing doubled edges " +
-          "and mismatched radii. Use Pattern A (bordered, no Card) or Pattern B (Card, no bordered) — never both.",
+          "DO NOT do this. `<Card><Table bordered>` stacks two sets of border + rounded corners and two bg-elevated surfaces. " +
+          "The Card border and the `bordered` Table border fight each other, producing doubled edges, " +
+          "mismatched radii, and a double bg-elevated that makes the background visually broken. " +
+          "Use Pattern A (bordered, no Card) or Pattern B (Card, no bordered) — never both.",
       },
     },
   },
