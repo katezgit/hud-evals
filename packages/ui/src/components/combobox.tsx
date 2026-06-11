@@ -127,6 +127,8 @@ const TriggerInput = React.forwardRef<HTMLInputElement, TriggerInputProps>(
             size === "md" ? "h-8 px-2.5 rounded-lg" : "h-7 px-2 rounded-md",
             size === "sm" ? "pr-7" : "pr-8",
             "border border-border bg-background",
+            // Lift bg off page canvas on focus / when open — bg-background (#F6F8FA light) → bg-white (#FFFFFF). Functional literal, not a semantic role.
+            "focus:bg-white data-[state=open]:bg-white",
             "aria-invalid:border-state-errored",
             "text-body text-foreground placeholder:text-meta-foreground",
             // Open state: chevron rotation is the only open feedback. Keyboard nav gets the global ring via base.css.
