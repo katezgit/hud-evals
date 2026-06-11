@@ -267,17 +267,25 @@ export default function TasksetsIndex({ tasksets }: TasksetsIndexProps) {
   }));
 
   return (
-    <div className="isolate flex flex-col px-8 pb-10">
+    // --chrome-h is the rendered height of the sticky chrome below
+    // (pt-10 40 + h1 32 + tabs mt-4 16 + tabs 37 + border-b 1 = 126px = 7.875rem).
+    // Drives the list-view column header's pinned top so the two stickies sit
+    // flush with no overlap/gap jump. Update both together if chrome shape changes.
+    <div
+      className="isolate flex flex-col px-8 pb-10 [--chrome-h:7.875rem]"
+    >
       <div
         // Sticky chrome — page header + tab bar pin to the top of the (app)
         // scroll container. pt-10 lives INSIDE the sticky element so its top
         // edge sits at scroll y=0; outer padding would push it down and cause
-        // visible creep before pin. z-30 lifts above in-page siblings (filter
-        // row + SegmentedControl + grouped cards) whose nested utilities can
-        // raise effective stacking; safe because outer wrap has `isolate` so
-        // body-portaled overlays (Dialog, Select Popper, MultiSelect Popover)
-        // still paint above. See docs/conventions/position-sticky.md.
-        className="sticky top-0 z-30 bg-background pt-10"
+        // visible creep before pin. border-b is the wireframe §2 separator so
+        // the filter row scrolling underneath reads as content-below-chrome,
+        // not a cropped glitch. z-30 lifts above in-page siblings (filter row
+        // + SegmentedControl + grouped cards) whose nested utilities can raise
+        // effective stacking; safe because outer wrap has `isolate` so body-
+        // portaled overlays (Dialog, Select Popper, MultiSelect Popover) still
+        // paint above. See docs/conventions/position-sticky.md.
+        className="sticky top-0 z-30 border-b border-border bg-background pt-10"
       >
         <header className="flex items-start justify-between gap-6">
           <h1 className="text-display font-semibold text-foreground">
@@ -617,14 +625,14 @@ function ResultsBody({
   return (
     <div className="flex flex-col gap-4">
       {/* Sticky column header (wireframe §6) — sits just below the sticky
-        tab-bar block. top-[7.75rem] approximates the tab-bar bottom under the
-        default app-shell density; if the tab-bar height shifts, this will need
-        to follow. Acceptable margin here vs. brittle measurement. */}
+        tab-bar block. Pinned top derives from --chrome-h (set on the outer
+        wrap) so the two stickies stay flush regardless of which one we tune
+        next. */}
       <div
         role="row"
         className={cn(
           TASKSET_LIST_GRID,
-          "sticky top-[7.75rem] z-[5] -mx-2 items-center gap-6 bg-background px-6 py-2 text-label text-muted-foreground",
+          "sticky top-(--chrome-h) z-[5] -mx-2 items-center gap-6 bg-background px-6 py-2 text-label text-muted-foreground",
         )}
       >
         <div className="min-w-0 truncate">Taskset</div>
