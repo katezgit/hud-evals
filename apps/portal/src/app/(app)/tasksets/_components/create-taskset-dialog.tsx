@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { Plus } from "lucide-react";
 import { Button } from "@repo/ui/components/button";
@@ -27,7 +27,17 @@ import type { TasksetPurpose } from "@/lib/mock/tasksets";
 
 const DEFAULT_PURPOSE: TasksetPurpose = "benchmark";
 
-export default function CreateTasksetDialog() {
+interface CreateTasksetDialogProps {
+  /**
+   * Custom trigger to compose around the dialog (e.g. icon-only at mobile).
+   * Defaults to the full-text "+ New Taskset" primary button when omitted.
+   * Receives the Radix `asChild` slot — pass a single element (Button,
+   * IconButton, etc.) the dialog will wire open/close to.
+   */
+  trigger?: ReactNode;
+}
+
+export default function CreateTasksetDialog({ trigger }: CreateTasksetDialogProps = {}) {
   const router = useRouter();
   const nameId = useId();
   const purposeId = useId();
@@ -62,10 +72,12 @@ export default function CreateTasksetDialog() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button>
-          <Plus aria-hidden="true" />
-          New Taskset
-        </Button>
+        {trigger ?? (
+          <Button>
+            <Plus aria-hidden="true" />
+            New Taskset
+          </Button>
+        )}
       </DialogTrigger>
       <DialogContent
         size="sm"
