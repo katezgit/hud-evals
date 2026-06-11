@@ -349,7 +349,6 @@ export function EnvironmentsIndex({
         <div className="flex items-center gap-2">
           <div className="w-40">
             <MultiSelect
-              size="sm"
               options={TYPE_OPTIONS.map((o) => ({
                 value: o.value,
                 label: o.label,
