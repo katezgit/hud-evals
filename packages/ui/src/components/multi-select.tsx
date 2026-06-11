@@ -64,6 +64,8 @@ const MultiSelectTrigger = React.forwardRef<
       "group/trigger",
       "flex w-full items-center justify-between gap-2",
       formFieldBoxVariants({ size }),
+      // Lift bg off page canvas on focus / when open — bg-background (#F6F8FA light) → bg-white (#FFFFFF). Functional literal, not a semantic role.
+      "focus-visible:bg-white data-[state=open]:bg-white",
       "data-[state=open]:shadow-focus-ring",
       "[&_svg]:pointer-events-none [&_svg]:shrink-0",
       className

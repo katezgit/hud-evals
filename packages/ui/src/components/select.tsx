@@ -43,6 +43,8 @@ function SelectTrigger({
         "data-[placeholder]:text-meta-foreground",
         // text-body (13px) — no text-foreground pairing here to avoid twMerge conflict with consumer overrides.
         // text-body is already emitted by formFieldBoxVariants size=md; kept here as a noop fallback guard.
+        // Lift bg off page canvas on focus / when open — bg-background (#F6F8FA light) → bg-white (#FFFFFF). Functional literal, not a semantic role.
+        "focus-visible:bg-white data-[state=open]:bg-white",
         "data-[state=open]:shadow-focus-ring",
         "[&_svg]:pointer-events-none [&_svg]:shrink-0",
         "*:data-[slot=select-value]:line-clamp-1 *:data-[slot=select-value]:flex *:data-[slot=select-value]:items-center *:data-[slot=select-value]:gap-2",
