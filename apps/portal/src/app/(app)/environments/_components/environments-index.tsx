@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import {
   ChevronDown,
@@ -26,6 +26,7 @@ import { SearchInput } from "@repo/ui/components/search-input";
 import { SegmentedControl } from "@repo/ui/components/segmented-control";
 import { Tabs, TabsList, TabsTrigger } from "@repo/ui/components/tabs";
 import { cn } from "@repo/ui/lib/cn";
+import { usePageScrolled } from "@repo/libs/hooks";
 import type {
   EnvActivity,
   EnvType,
@@ -100,6 +101,9 @@ export function EnvironmentsIndex({
   // control cluster — CSS-only would duplicate the entire results landmark
   // and break `aria-label="Environments"` uniqueness.
   const isMobile = useIsMobileViewport();
+
+  const stickyRef = useRef<HTMLDivElement>(null);
+  const scrolled = usePageScrolled({ ref: stickyRef });
 
   useEffect(() => {
     const stored = window.localStorage.getItem(VIEW_STORAGE_KEY);
@@ -234,7 +238,18 @@ export function EnvironmentsIndex({
           compositor layer in Chromium, eliminating the subpixel jitter that
           can appear when scrolling causes the sticky element to repaint
           against the cards underneath. */}
-      <div className="sticky top-0 z-page-chrome bg-background pt-6 md:pt-10 will-change-transform">
+      <div
+        ref={stickyRef}
+        className={cn(
+          "sticky top-0 z-page-chrome bg-background pt-6 md:pt-10 will-change-transform",
+          // Scroll-cue: border slot is always occupied (border-b) so flipping
+          // border-color does not shift layout. Mirrors DialogHeader.
+          "border-b",
+          scrolled ? "border-border" : "border-transparent",
+          scrolled ? "shadow-scroll-cue" : "shadow-none",
+          "transition-[border-color,box-shadow] prop-(--motion-state-change)",
+        )}
+      >
         {/* Header row holds ONLY H1 + docs icon + CTA (mobile icon-only or
             desktop labeled). `items-center` aligns the `+` button vertically
             with the H1 row — never with the composite header block. The

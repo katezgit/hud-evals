@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ChevronRight, GitFork, Play } from "lucide-react";
 import { Button } from "@repo/ui/components/button";
+import { IconButton } from "@repo/ui/components/icon-button";
 import { VisibilityIcon } from "@repo/ui/components/visibility-icon";
 import type { Model, Viewer } from "../_data/types";
 import { HeaderSubtitle } from "./header-subtitle";
@@ -18,7 +19,7 @@ export function ModelDetailHeader({
   const showJobsPill = isResearcher && model.activeTrainingJobsCount >= 1;
 
   return (
-    <header className="flex flex-col gap-3 pt-2 pb-4">
+    <header className="flex flex-col gap-3 pt-2 pb-6">
       <nav
         aria-label="Breadcrumb"
         className="flex items-center gap-1 text-label tracking-normal normal-case text-muted-foreground"
@@ -49,16 +50,44 @@ export function ModelDetailHeader({
         <div className="flex shrink-0 flex-col items-end gap-2">
           <div className="flex items-center gap-2">
             {model.trainable && (
-              <Button variant="secondary" size="sm">
-                <GitFork aria-hidden="true" />
-                Fork Model
-              </Button>
+              <>
+                <IconButton
+                  variant="secondary"
+                  size="sm"
+                  aria-label="Fork Model"
+                  className="md:hidden"
+                >
+                  <GitFork aria-hidden="true" />
+                </IconButton>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  className="hidden md:inline-flex"
+                >
+                  <GitFork aria-hidden="true" />
+                  Fork Model
+                </Button>
+              </>
             )}
             {isResearcher && (
-              <Button variant="primary" size="sm">
-                <Play aria-hidden="true" />
-                Train Model
-              </Button>
+              <>
+                <IconButton
+                  variant="primary"
+                  size="sm"
+                  aria-label="Train Model"
+                  className="md:hidden"
+                >
+                  <Play aria-hidden="true" />
+                </IconButton>
+                <Button
+                  variant="primary"
+                  size="sm"
+                  className="hidden md:inline-flex"
+                >
+                  <Play aria-hidden="true" />
+                  Train Model
+                </Button>
+              </>
             )}
           </div>
           {showJobsPill && (

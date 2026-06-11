@@ -1,8 +1,10 @@
 "use client";
 
+import { useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@repo/ui/components/tabs";
 import { cn } from "@repo/ui/lib/cn";
+import { usePageScrolled } from "@repo/libs/hooks";
 import type { Taskset } from "@/lib/mock/tasksets";
 import JobsTab from "./jobs-tab";
 import OverviewTab from "./overview-tab";
@@ -29,6 +31,9 @@ export default function TasksetDetail({ taskset }: TasksetDetailProps) {
   const searchParams = useSearchParams();
   const activeTab = parseTab(searchParams.get("tab"));
 
+  const stickyRef = useRef<HTMLDivElement>(null);
+  const scrolled = usePageScrolled({ ref: stickyRef });
+
   const handleTabChange = (next: string) => {
     const params = new URLSearchParams(searchParams.toString());
     if (next === "overview") params.delete("tab");
@@ -41,13 +46,14 @@ export default function TasksetDetail({ taskset }: TasksetDetailProps) {
   };
 
   return (
-    <div className="flex min-h-full flex-col px-8">
+    <div className="flex min-h-full flex-col px-4 md:px-8">
       <Tabs
         value={activeTab}
         onValueChange={handleTabChange}
         className="flex flex-1 min-w-0 flex-col gap-0"
       >
         <div
+          ref={stickyRef}
           // Sticky block — header + tab strip pinned to the top of the (app)
           // scroll container.
           //
@@ -62,7 +68,15 @@ export default function TasksetDetail({ taskset }: TasksetDetailProps) {
           // the Jobs tab's filter bar), and below all overlays (`z-overlay`=50).
           // Portaled dialogs/drawers are rooted to <body> and still win.
           // Tiered tokens live in `packages/ui/src/styles/primitive.css`.
-          className={cn("sticky top-0 z-page-chrome bg-background pt-6")}
+          className={cn(
+            "sticky top-0 z-page-chrome bg-background pt-6",
+            // Scroll-cue: border slot is always occupied (border-b) so flipping
+            // border-color does not shift layout. Pattern mirrors DialogHeader.
+            "border-b",
+            scrolled ? "border-border" : "border-transparent",
+            scrolled ? "shadow-scroll-cue" : "shadow-none",
+            "transition-[border-color,box-shadow] prop-(--motion-state-change)",
+          )}
         >
           <TasksetDetailHeader taskset={taskset} />
           <TabsList variant="underline" className="border-b-0">
