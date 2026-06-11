@@ -10,7 +10,6 @@ import {
 import { Button } from "@repo/ui/components/button";
 import ManageTable from "@/app/(manage)/_components/manage-table";
 import { ManagePageAction } from "@/app/(manage)/_components/manage-page-action";
-import { Panel } from "@/app/(manage)/_components/page-primitives";
 import type { ApiKey } from "@/lib/mock/types";
 import { CreateApiKeyDialog, type ExpirationOption } from "./create-api-key-dialog";
 import { RevokeKeyButton } from "./revoke-key-button";
@@ -164,9 +163,7 @@ export function ApiKeysClient({ initialKeys }: ApiKeysClientProps) {
           Create New Key
         </Button>
       </ManagePageAction>
-      <Panel>
-        <ManageTable table={table} />
-      </Panel>
+      <ManageTable table={table} bordered />
       <CreateApiKeyDialog
         open={createOpen}
         onOpenChange={setCreateOpen}

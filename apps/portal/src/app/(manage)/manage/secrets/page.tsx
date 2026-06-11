@@ -3,7 +3,6 @@ import { PlusIcon } from "lucide-react";
 import { Button } from "@repo/ui/components/button";
 import AdminGate from "@/app/(manage)/_components/admin-gate";
 import { ManagePageAction } from "@/app/(manage)/_components/manage-page-action";
-import { Panel } from "@/app/(manage)/_components/page-primitives";
 import { secrets } from "@/lib/mock";
 import { SecretsTable } from "./_components";
 
@@ -20,9 +19,7 @@ export default function SecretsPage() {
           Add Secret
         </Button>
       </ManagePageAction>
-      <Panel>
-        <SecretsTable rows={secrets} />
-      </Panel>
+      <SecretsTable rows={secrets} />
     </AdminGate>
   );
 }
