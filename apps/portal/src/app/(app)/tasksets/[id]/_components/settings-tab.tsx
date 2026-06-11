@@ -1,10 +1,9 @@
 import { Separator } from "@repo/ui/components/separator";
 import type { Taskset } from "@/lib/mock/tasksets";
 import DangerZoneSection from "./settings/danger-zone-section";
+import IdentitySection from "./settings/identity-section";
 import MetadataSection from "./settings/metadata-section";
-import NameSection from "./settings/name-section";
 import ProgressStepsSection from "./settings/progress-steps-section";
-import PurposeSection from "./settings/purpose-section";
 import SystemPromptSection from "./settings/system-prompt-section";
 import VisibilitySection from "./settings/visibility-section";
 
@@ -15,9 +14,7 @@ interface SettingsTabProps {
 export default function SettingsTab({ taskset }: SettingsTabProps) {
   return (
     <div className="flex max-w-2xl flex-col gap-6 pb-10">
-      <PurposeSection purpose={taskset.purpose} />
-      <Separator />
-      <NameSection name={taskset.name} />
+      <IdentitySection name={taskset.name} purpose={taskset.purpose} />
       <Separator />
       <SystemPromptSection systemPrompt={taskset.systemPrompt ?? ""} />
       <Separator />
