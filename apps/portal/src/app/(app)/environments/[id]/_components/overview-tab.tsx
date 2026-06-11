@@ -134,7 +134,7 @@ export function OverviewTab({
 
           <ul className="grid gap-4 grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
             {previewScenarios.map((scenario) => (
-              <li key={scenario.id} className="flex">
+              <li key={scenario.id}>
                 <OverviewScenarioCard
                   scenario={scenario}
                   loaded={scenario.id === loadedScenarioId}
