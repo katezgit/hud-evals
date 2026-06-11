@@ -14,16 +14,16 @@ import {
 } from "@repo/ui/components/dialog";
 import { IconButton } from "@repo/ui/components/icon-button";
 
-interface RevokeKeyButtonProps {
+interface RemoveMemberButtonProps {
   name: string;
-  onRevoke: () => void;
+  onRemove: () => void;
 }
 
-export function RevokeKeyButton({ name, onRevoke }: RevokeKeyButtonProps) {
+export function RemoveMemberButton({ name, onRemove }: RemoveMemberButtonProps) {
   const [open, setOpen] = useState(false);
 
   const handleConfirm = () => {
-    onRevoke();
+    onRemove();
     setOpen(false);
   };
 
@@ -32,7 +32,7 @@ export function RevokeKeyButton({ name, onRevoke }: RevokeKeyButtonProps) {
       <IconButton
         variant="destructive-ghost"
         size="sm"
-        aria-label={`Revoke ${name}`}
+        aria-label={`Remove ${name}`}
         onClick={() => setOpen(true)}
       >
         <Trash2 aria-hidden="true" className="size-3.5" />
@@ -45,21 +45,19 @@ export function RevokeKeyButton({ name, onRevoke }: RevokeKeyButtonProps) {
                 aria-hidden="true"
                 className="size-4 text-state-errored"
               />
-              Revoke API key
+              Remove member
             </DialogTitle>
             <DialogDescription>
-              This permanently revokes the key{" "}
-              <code className="font-mono text-label text-foreground">
-                {name}
-              </code>
-              . Any SDK still using it will stop authenticating. This action
-              can&rsquo;t be undone.
+              Remove{" "}
+              <span className="font-medium text-foreground">{name}</span> from
+              this organization. They&rsquo;ll lose access immediately. You can
+              re-invite them later.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <DialogCancelButton />
             <DialogDestructiveButton onClick={handleConfirm}>
-              Revoke key
+              Remove member
             </DialogDestructiveButton>
           </DialogFooter>
         </DialogContent>
