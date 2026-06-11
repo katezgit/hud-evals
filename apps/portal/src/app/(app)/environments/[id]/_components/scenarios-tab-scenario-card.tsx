@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ArrowRightIcon, Braces, Code2 } from "lucide-react";
+import { Braces, Code2, PlusIcon } from "lucide-react";
 import { Button } from "@repo/ui/components/button";
 import { IconButton } from "@repo/ui/components/icon-button";
 import {
@@ -18,11 +18,21 @@ import type { Scenario, ScenarioSchemaEntry } from "../_data/types";
  * Header: name + schema + source-code icon toggles (top-right cluster). Both
  * toggles render a visibly pressed state when their block is open so the user
  * can tell at a glance which disclosures are active. Body: description +
- * missing-var warning + schema/source blocks. Footer: `Load this scenario →`
- * CTA, calm at rest, upgrades to primary on card hover.
+ * schema/source blocks.
  *
- * "Loaded" state mirrors OverviewScenarioCard: darker border + "Loaded" CTA
- * while this scenario's drawer is open.
+ * Footer carries two parallel verbs:
+ *  - Primary "+ Create Task" — creates a stored Task definition (Scenario
+ *    instantiated with specific argument values) that populates a Taskset.
+ *    The durable artifact action.
+ *  - Secondary "Run Evaluation" — opens the one-shot run drawer (formerly
+ *    "Load this scenario") to test the scenario before committing a Task.
+ *
+ * Loaded state (this scenario's run-evaluation drawer is open):
+ *  - Run Evaluation collapses to a disabled "Loaded" pill so the loaded-state
+ *    visual language matches OverviewScenarioCard.
+ *  - Create Task remains enabled — authoring a Task definition is independent
+ *    of whether the run drawer is open.
+ *  - Card border switches to `border-foreground`, the canonical loaded token.
  *
  * Sibling: OverviewScenarioCard (orient-and-validate surface).
  */
@@ -40,6 +50,14 @@ export function ScenariosTabScenarioCard({
   const [schemaOpen, setSchemaOpen] = useState(false);
   const [sourceOpen, setSourceOpen] = useState(false);
   const schemaDisabled = scenario.schema.length === 0;
+
+  const handleCreateTask = () => {
+    // End-to-end Create Task flow is out of scope for this refinement; the
+    // visual contract (primary slot on every card) is the deliverable. Wire
+    // to the real flow when it lands.
+    // TODO: wire create-task flow
+    console.log("create task for scenario:", scenario.id);
+  };
 
   return (
     <article
@@ -108,13 +126,20 @@ export function ScenariosTabScenarioCard({
       <footer className="mt-auto flex items-center justify-end gap-2">
         <Button
           type="button"
+          variant="primary"
+          onClick={handleCreateTask}
+        >
+          <PlusIcon aria-hidden="true" />
+          Create Task
+        </Button>
+        <Button
+          type="button"
           variant="secondary"
-          size="sm"
+          disabled={loaded}
           onClick={() => onLoad(scenario)}
           aria-pressed={loaded}
         >
-          {loaded ? "Loaded" : "Load this scenario"}
-          {!loaded && <ArrowRightIcon aria-hidden="true" />}
+          {loaded ? "Loaded" : "Run Evaluation"}
         </Button>
       </footer>
     </article>

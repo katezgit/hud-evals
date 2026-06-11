@@ -7,12 +7,16 @@ import type { Scenario } from "../_data/types";
 /**
  * Overview tab scenario card — orient-and-validate role.
  *
- * Light surface: name, one-line description, "Load this scenario →" CTA. The
+ * Light surface: name, one-line description, "Run Evaluation →" CTA. The
  * button is always enabled regardless of env-var state; the drawer handles
  * missing-vars inline. When this scenario's drawer is open, the card switches
  * to the "Loaded" state — darker border + "Loaded" CTA — and reverts the
  * moment the drawer is dismissed. No schema preview, kebab menu, or "Used by"
  * footer — those affordances are exclusive to the Scenarios tab.
+ *
+ * Overview deliberately exposes a single primary action (no "+ Create Task"
+ * pair) to preserve the preview surface's quick-scan posture. Authoring a
+ * stored Task definition belongs on the Scenarios tab card, not here.
  *
  * Sibling: ScenariosTabScenarioCard (full compose surface).
  */
@@ -68,7 +72,7 @@ export function OverviewScenarioCard({
               : "cursor-pointer border-border bg-transparent text-foreground group-hover/card:border-primary group-hover/card:bg-primary group-hover/card:text-primary-foreground",
           )}
         >
-          {loaded ? "Loaded" : "Load this scenario"}
+          {loaded ? "Loaded" : "Run Evaluation"}
           {!loaded && <ArrowRightIcon aria-hidden="true" />}
         </button>
       </div>
