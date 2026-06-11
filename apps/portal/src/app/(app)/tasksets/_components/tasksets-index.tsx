@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
@@ -10,10 +10,23 @@ import {
   LayoutGrid,
   List,
   ListChecks,
+  Plus,
+  SlidersHorizontal,
 } from "lucide-react";
 import { Button } from "@repo/ui/components/button";
 import { CodeBlock } from "@repo/ui/components/code-block";
+import {
+  Drawer,
+  DrawerBody,
+  DrawerClose,
+  DrawerContent,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from "@repo/ui/components/drawer";
 import { EmptyState } from "@repo/ui/components/empty-state";
+import { IconButton } from "@repo/ui/components/icon-button";
 import { MultiSelect } from "@repo/ui/components/multi-select";
 import { SearchInput } from "@repo/ui/components/search-input";
 import { SegmentedControl } from "@repo/ui/components/segmented-control";
@@ -25,10 +38,15 @@ import {
   SelectValue,
 } from "@repo/ui/components/select";
 import { Tabs, TabsList, TabsTrigger } from "@repo/ui/components/tabs";
+import { cn } from "@repo/ui/lib/cn";
 import type { Taskset } from "@/lib/mock/tasksets";
 import CreateTasksetDialog from "./create-taskset-dialog";
 import TasksetCard from "./taskset-card";
-import TasksetListRow from "./taskset-list-row";
+import TasksetListRow, { TASKSET_LIST_GRID } from "./taskset-list-row";
+
+// Tailwind `md:` breakpoint = 768px. Below this we force card view + collapse
+// the filter row controls into a bottom sheet (wireframe §12 mobile).
+const MOBILE_MEDIA_QUERY = "(max-width: 767px)";
 
 type TabKey = "team" | "public";
 type ViewKey = "cards" | "list";
@@ -105,6 +123,19 @@ export default function TasksetsIndex({ tasksets }: TasksetsIndexProps) {
   const [collapsedGroups, setCollapsedGroups] = useState<ReadonlySet<string>>(
     () => new Set(),
   );
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+
+  // Drives the mobile branches below (forced cards, hidden inline controls,
+  // bottom-sheet filter trigger, icon-only create CTA). matchMedia avoids
+  // window resize-listener noise; the listener fires only on threshold cross.
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia(MOBILE_MEDIA_QUERY);
+    const apply = () => setIsMobile(mq.matches);
+    apply();
+    mq.addEventListener("change", apply);
+    return () => mq.removeEventListener("change", apply);
+  }, []);
 
   const toggleStar = (id: string) => {
     setToggledStars((prev) => {
@@ -159,6 +190,17 @@ export default function TasksetsIndex({ tasksets }: TasksetsIndexProps) {
 
   const showOwnerFilter =
     activeTab === "team" && distinctOwners.length >= OWNER_FILTER_THRESHOLD;
+
+  // List view is forbidden below md; URL `?view=list` is preserved so the
+  // selection survives rotation back to desktop. See wireframe §12.
+  const effectiveView: ViewKey = isMobile ? "cards" : view;
+
+  // Mobile filter trigger badge — count of non-default controls in the sheet.
+  // (View toggle is excluded; it does not appear in the sheet.)
+  const activeFilterCount =
+    (sortKey === "starred-first" ? 0 : 1) +
+    (groupKey === "none" ? 0 : 1) +
+    (showOwnerFilter && ownerFilter.length > 0 ? 1 : 0);
 
   const visible = useMemo(() => {
     // When the owner filter would be hidden but selections exist, ignore them
@@ -225,23 +267,40 @@ export default function TasksetsIndex({ tasksets }: TasksetsIndexProps) {
   }));
 
   return (
-    <div className="isolate flex flex-col px-8 pb-10">
+    // --chrome-h is the rendered height of the sticky chrome below
+    // (pt-10 40 + h1 32 + tabs mt-4 16 + tabs 37 + border-b 1 = 126px = 7.875rem).
+    // Drives the list-view column header's pinned top so the two stickies sit
+    // flush with no overlap/gap jump. Update both together if chrome shape changes.
+    <div
+      className="isolate flex flex-col px-8 pb-10 [--chrome-h:7.875rem]"
+    >
       <div
         // Sticky chrome — page header + tab bar pin to the top of the (app)
         // scroll container. pt-10 lives INSIDE the sticky element so its top
         // edge sits at scroll y=0; outer padding would push it down and cause
-        // visible creep before pin. z-10 lifts above in-page siblings; safe
-        // because outer wrap has `isolate` so the body-portaled overlays
-        // (Dialog, Select Popper, MultiSelect Popover) still paint above.
-        // See docs/conventions/position-sticky.md.
-        className="sticky top-0 z-10 bg-background pt-10"
+        // visible creep before pin. border-b is the wireframe §2 separator so
+        // the filter row scrolling underneath reads as content-below-chrome,
+        // not a cropped glitch. z-30 lifts above in-page siblings (filter row
+        // + SegmentedControl + grouped cards) whose nested utilities can raise
+        // effective stacking; safe because outer wrap has `isolate` so body-
+        // portaled overlays (Dialog, Select Popper, MultiSelect Popover) still
+        // paint above. See docs/conventions/position-sticky.md.
+        className="sticky top-0 z-30 border-b border-border bg-background pt-10"
       >
         <header className="flex items-start justify-between gap-6">
           <h1 className="text-display font-semibold text-foreground">
             {/* TODO: docs icon `[?]` per wireframe §2 — URL contract unconfirmed. */}
             Tasksets
           </h1>
-          <CreateTasksetDialog />
+          <CreateTasksetDialog
+            trigger={
+              isMobile ? (
+                <IconButton aria-label="New Taskset">
+                  <Plus aria-hidden="true" />
+                </IconButton>
+              ) : undefined
+            }
+          />
         </header>
 
         <Tabs
@@ -268,8 +327,12 @@ export default function TasksetsIndex({ tasksets }: TasksetsIndexProps) {
         </Tabs>
       </div>
 
-      <div className="mt-6 flex flex-wrap items-center gap-3">
-        <div className="min-w-40 flex-1 max-w-xs">
+      {/* Mobile (<md): search takes its own full-width row, then a single
+        bottom-sheet trigger below. Desktop (md+): inline filter row matching
+        the original layout. Selections written via updateParam in both modes
+        — the sheet is a presentation switch, not a separate data flow. */}
+      <div className="mt-6 flex flex-col gap-3 md:flex-row md:flex-wrap md:items-center">
+        <div className="w-full md:min-w-40 md:flex-1 md:max-w-xs">
           <SearchInput
             key={searchInputKey}
             defaultValue=""
@@ -283,76 +346,123 @@ export default function TasksetsIndex({ tasksets }: TasksetsIndexProps) {
           {visible.length} of {tabScope.length}
         </span>
 
-        <div className="ml-auto flex flex-wrap items-center gap-2">
-          {showOwnerFilter && (
-            <div className="min-w-40">
-              <MultiSelect
-                size="sm"
-                options={ownerOptions}
-                value={[...ownerFilter]}
-                onValueChange={(v) => setOwnerFilter(v)}
-                placeholder="Owner: Anyone"
-                searchPlaceholder="Search owners…"
-                maxChips={1}
-              />
-            </div>
-          )}
-          <SegmentedControl
-            aria-label="View"
-            value={view}
-            onValueChange={(v) =>
-              updateParam("view", v === "cards" ? null : v)
-            }
+        {isMobile ? (
+          <Drawer
+            direction="bottom"
+            open={mobileFiltersOpen}
+            onOpenChange={setMobileFiltersOpen}
           >
-            <SegmentedControl.Item value="cards" aria-label="Card view">
-              <LayoutGrid aria-hidden="true" className="size-3.5" />
-            </SegmentedControl.Item>
-            <SegmentedControl.Item value="list" aria-label="List view">
-              <List aria-hidden="true" className="size-3.5" />
-            </SegmentedControl.Item>
-          </SegmentedControl>
-          <Select
-            value={sortKey}
-            onValueChange={(v) =>
-              updateParam("sort", v === "starred-first" ? null : v)
-            }
-          >
-            <SelectTrigger size="sm" aria-label="Sort tasksets" className="w-36">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent align="end">
-              {SORT_OPTIONS.map((opt) => (
-                <SelectItem key={opt.value} value={opt.value}>
-                  {opt.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Select
-            value={groupKey}
-            onValueChange={(v) =>
-              updateParam("group", v === "none" ? null : v)
-            }
-          >
-            <SelectTrigger size="sm" aria-label="Group by" className="w-36">
-              <SelectValue placeholder="Group by" />
-            </SelectTrigger>
-            <SelectContent align="end">
-              {GROUP_OPTIONS.map((opt) => (
-                <SelectItem key={opt.value} value={opt.value}>
-                  {`Group by ${opt.label}`}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+            <DrawerTrigger asChild>
+              <Button variant="secondary" className="w-fit">
+                <SlidersHorizontal aria-hidden="true" className="size-3.5" />
+                Filters
+                {activeFilterCount > 0 && (
+                  <span className="font-mono tabular-nums text-meta text-foreground">
+                    {activeFilterCount}
+                  </span>
+                )}
+              </Button>
+            </DrawerTrigger>
+            <DrawerContent size="md">
+              <DrawerHeader>
+                <DrawerTitle>Filters</DrawerTitle>
+              </DrawerHeader>
+              <DrawerBody>
+                <MobileFiltersSheetBody
+                  sortKey={sortKey}
+                  groupKey={groupKey}
+                  showOwnerFilter={showOwnerFilter}
+                  ownerOptions={ownerOptions}
+                  ownerFilter={ownerFilter}
+                  onSortChange={(v) =>
+                    updateParam("sort", v === "starred-first" ? null : v)
+                  }
+                  onGroupChange={(v) =>
+                    updateParam("group", v === "none" ? null : v)
+                  }
+                  onOwnerChange={setOwnerFilter}
+                />
+              </DrawerBody>
+              <DrawerFooter>
+                <DrawerClose asChild>
+                  <Button variant="primary" className="w-full">
+                    Done
+                  </Button>
+                </DrawerClose>
+              </DrawerFooter>
+            </DrawerContent>
+          </Drawer>
+        ) : (
+          <div className="ml-auto flex flex-wrap items-center gap-2">
+            {showOwnerFilter && (
+              <div className="min-w-40">
+                <MultiSelect
+                  options={ownerOptions}
+                  value={[...ownerFilter]}
+                  onValueChange={(v) => setOwnerFilter(v)}
+                  placeholder="Owner: Anyone"
+                  searchPlaceholder="Search owners…"
+                  maxChips={1}
+                />
+              </div>
+            )}
+            <SegmentedControl
+              aria-label="View"
+              value={view}
+              onValueChange={(v) =>
+                updateParam("view", v === "cards" ? null : v)
+              }
+            >
+              <SegmentedControl.Item value="cards" aria-label="Card view">
+                <LayoutGrid aria-hidden="true" className="size-3.5" />
+              </SegmentedControl.Item>
+              <SegmentedControl.Item value="list" aria-label="List view">
+                <List aria-hidden="true" className="size-3.5" />
+              </SegmentedControl.Item>
+            </SegmentedControl>
+            <Select
+              value={sortKey}
+              onValueChange={(v) =>
+                updateParam("sort", v === "starred-first" ? null : v)
+              }
+            >
+              <SelectTrigger aria-label="Sort tasksets" className="w-36">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent align="end">
+                {SORT_OPTIONS.map((opt) => (
+                  <SelectItem key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select
+              value={groupKey}
+              onValueChange={(v) =>
+                updateParam("group", v === "none" ? null : v)
+              }
+            >
+              <SelectTrigger aria-label="Group by" className="w-36">
+                <SelectValue placeholder="Group by" />
+              </SelectTrigger>
+              <SelectContent align="end">
+                {GROUP_OPTIONS.map((opt) => (
+                  <SelectItem key={opt.value} value={opt.value}>
+                    {`Group by ${opt.label}`}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
       </div>
 
       {/* TODO: pagination per wireframe §9 — mock data fits in one page. */}
       <div className="mt-4">
         <Results
           visible={visible}
-          view={view}
+          view={effectiveView}
           groupKey={groupKey}
           query={query}
           tab={activeTab}
@@ -513,30 +623,27 @@ function ResultsBody({
     );
   }
   return (
-    <div className="flex flex-col gap-2">
+    <div className="flex flex-col gap-4">
       {/* Sticky column header (wireframe §6) — sits just below the sticky
-        tab-bar block. top-[7.75rem] approximates the tab-bar bottom under the
-        default app-shell density; if the tab-bar height shifts, this will need
-        to follow. Acceptable margin here vs. brittle measurement. */}
+        tab-bar block. Pinned top derives from --chrome-h (set on the outer
+        wrap) so the two stickies stay flush regardless of which one we tune
+        next. */}
       <div
         role="row"
-        className="sticky top-[7.75rem] z-[5] -mx-2 flex items-center gap-6 border-b border-border bg-background px-6 py-2 text-label uppercase tracking-wider text-muted-foreground"
+        className={cn(
+          TASKSET_LIST_GRID,
+          "sticky top-(--chrome-h) z-[5] -mx-2 items-center gap-6 bg-background px-6 py-2 text-label text-muted-foreground",
+        )}
       >
-        <div className="flex min-w-0 flex-[3]">
-          <span className="truncate">Taskset</span>
+        <div className="min-w-0 truncate">Taskset</div>
+        <div className="hidden min-w-0 truncate lg:block">
+          Top models (Avg)
         </div>
-        <div className="hidden min-w-0 flex-[4] lg:block">
-          <span>Top models (Avg)</span>
-        </div>
-        <div className="flex shrink-0 items-center gap-3">
-          <span>Tasks</span>
-          <span>Models</span>
-        </div>
-        <div className="hidden w-40 shrink-0 justify-end md:flex">
-          <span>Owner</span>
-        </div>
+        <div className="justify-self-start">Star</div>
+        <div className="justify-self-end">Tasks</div>
+        <div className="justify-self-end">Models</div>
       </div>
-      <ul aria-label="Tasksets" className="flex flex-col gap-3">
+      <ul aria-label="Tasksets" className="flex flex-col gap-4">
         {visible.map((t) => {
           const star = starStateFor(t);
           return (
@@ -570,6 +677,101 @@ function groupBy(
   return [...map.entries()]
     .map(([k, v]) => ({ key: k, items: v }))
     .sort((a, b) => a.key.localeCompare(b.key));
+}
+
+interface MobileFiltersSheetBodyProps {
+  sortKey: SortKey;
+  groupKey: GroupKey;
+  showOwnerFilter: boolean;
+  ownerOptions: ReadonlyArray<{ value: string; label: string }>;
+  ownerFilter: ReadonlyArray<string>;
+  onSortChange: (next: SortKey) => void;
+  onGroupChange: (next: GroupKey) => void;
+  onOwnerChange: (next: ReadonlyArray<string>) => void;
+}
+
+function MobileFiltersSheetBody({
+  sortKey,
+  groupKey,
+  showOwnerFilter,
+  ownerOptions,
+  ownerFilter,
+  onSortChange,
+  onGroupChange,
+  onOwnerChange,
+}: MobileFiltersSheetBodyProps) {
+  return (
+    <div className="flex flex-col gap-6">
+      <fieldset className="flex flex-col gap-2">
+        <legend className="mb-2 text-label text-muted-foreground">Sort</legend>
+        <div role="radiogroup" aria-label="Sort tasksets" className="flex flex-col gap-1">
+          {SORT_OPTIONS.map((opt) => {
+            const id = `mfilter-sort-${opt.value}`;
+            const checked = sortKey === opt.value;
+            return (
+              <label
+                key={opt.value}
+                htmlFor={id}
+                className="flex cursor-pointer items-center gap-3 py-1"
+              >
+                <input
+                  id={id}
+                  type="radio"
+                  name="mfilter-sort"
+                  value={opt.value}
+                  checked={checked}
+                  onChange={() => onSortChange(opt.value)}
+                  className="size-4 accent-primary"
+                />
+                <span className="text-body text-foreground">{opt.label}</span>
+              </label>
+            );
+          })}
+        </div>
+      </fieldset>
+
+      <fieldset className="flex flex-col gap-2">
+        <legend className="mb-2 text-label text-muted-foreground">Group by</legend>
+        <div role="radiogroup" aria-label="Group tasksets" className="flex flex-col gap-1">
+          {GROUP_OPTIONS.map((opt) => {
+            const id = `mfilter-group-${opt.value}`;
+            const checked = groupKey === opt.value;
+            return (
+              <label
+                key={opt.value}
+                htmlFor={id}
+                className="flex cursor-pointer items-center gap-3 py-1"
+              >
+                <input
+                  id={id}
+                  type="radio"
+                  name="mfilter-group"
+                  value={opt.value}
+                  checked={checked}
+                  onChange={() => onGroupChange(opt.value)}
+                  className="size-4 accent-primary"
+                />
+                <span className="text-body text-foreground">{opt.label}</span>
+              </label>
+            );
+          })}
+        </div>
+      </fieldset>
+
+      {showOwnerFilter && (
+        <fieldset className="flex flex-col gap-2">
+          <legend className="mb-2 text-label text-muted-foreground">Owner</legend>
+          <MultiSelect
+            options={[...ownerOptions]}
+            value={[...ownerFilter]}
+            onValueChange={(v) => onOwnerChange(v)}
+            placeholder="Anyone"
+            searchPlaceholder="Search owners…"
+          />
+        </fieldset>
+      )}
+    </div>
+  );
 }
 
 function EmptyTeamState() {
