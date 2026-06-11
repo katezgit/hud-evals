@@ -148,7 +148,7 @@ function ConfigStatsRow({
           />
           <div
             aria-hidden="true"
-            className="h-1.5 flex-1 overflow-hidden rounded-full bg-muted"
+            className="h-1.5 flex-1 overflow-hidden rounded-full bg-muted-surface"
           >
             <div
               className={cn("h-full", configDotClass(configId))}

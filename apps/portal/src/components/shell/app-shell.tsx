@@ -162,7 +162,7 @@ export function AppShell({ email, name, children }: AppShellProps) {
             <DrawerContent
               id={MOBILE_DRAWER_ID}
               size="sm"
-              className="data-[vaul-drawer-direction=left]:w-[280px] bg-muted"
+              className="data-[vaul-drawer-direction=left]:w-[280px] bg-muted-surface"
               aria-label="Main navigation"
             >
               <DrawerTitle className="sr-only">Main navigation</DrawerTitle>
@@ -318,7 +318,7 @@ function MarketDocsRow() {
           href={href}
           target="_blank"
           rel="noreferrer"
-          className="group flex items-center justify-between rounded-md px-2 py-2 text-label text-muted-foreground hover:bg-hover hover:text-foreground"
+          className="group flex items-center justify-between rounded-md px-2 py-2 text-label text-muted-foreground hover:bg-hover-surface hover:text-foreground"
         >
           <span className="flex items-center gap-2.5">
             <Icon
@@ -349,7 +349,7 @@ function MarketDocsRowCollapsed() {
                 target="_blank"
                 rel="noreferrer"
                 aria-label={label}
-                className="group flex h-7 w-full items-center justify-center rounded-md font-regular text-meta-foreground hover:bg-hover hover:text-foreground"
+                className="group flex h-7 w-full items-center justify-center rounded-md font-regular text-meta-foreground hover:bg-hover-surface hover:text-foreground"
               >
                 <Icon className="size-4 shrink-0" aria-hidden="true" />
               </a>
@@ -380,7 +380,7 @@ function MobileTopBar({
   creditState,
 }: MobileTopBarProps) {
   return (
-    <header className="flex h-12 shrink-0 items-center justify-between border-b border-border bg-muted px-3 md:hidden">
+    <header className="flex h-12 shrink-0 items-center justify-between border-b border-border bg-muted-surface px-3 md:hidden">
       <div className="flex items-center gap-1">
         <IconButton
           variant="ghost"

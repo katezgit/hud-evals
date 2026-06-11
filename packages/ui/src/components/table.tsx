@@ -12,10 +12,10 @@ const DensityContext = React.createContext<TableDensity>("default")
 // ── CSS-only exports (legacy — backward-compat, consumed by TanStack Table) ──
 
 export const tableClass = "w-full caption-bottom border-collapse bg-background"
-export const tableHeaderClass = "bg-muted"
-export const tableHeaderStickyClass = "bg-muted"
+export const tableHeaderClass = "bg-muted-surface"
+export const tableHeaderStickyClass = "bg-muted-surface"
 export const tableBodyClass = "[&_tr:last-child]:border-b-0"
-export const tableFooterClass = "border-t border-border bg-muted font-medium [&>tr]:last:border-b-0"
+export const tableFooterClass = "border-t border-border bg-muted-surface font-medium [&>tr]:last:border-b-0"
 export const tableCaptionClass = "mt-4 text-caption text-muted-foreground"
 export const tableEmptyCellClass = "py-8 text-center text-body text-muted-foreground"
 
@@ -44,7 +44,7 @@ export const tableRowVariants = cva(
     "transition-[background-color]",
     "duration-fast ease-out-standard",
     "data-[state=selected]:border-l-2 data-[state=selected]:border-l-primary",
-    "hover:bg-hover",
+    "hover:bg-hover-surface",
   ].join(" "),
   { variants: { density: { default: "min-h-10", compact: "min-h-9" } }, defaultVariants: { density: "default" } }
 )
@@ -116,7 +116,7 @@ const TableHeader = React.forwardRef<HTMLTableSectionElement, TableHeaderProps>(
     <thead
       ref={ref}
       data-slot="table-header"
-      className={cn("bg-muted", className)}
+      className={cn("bg-muted-surface", className)}
       {...props}
     />
   )
@@ -142,7 +142,7 @@ const TableHeaderCell = React.forwardRef<HTMLTableCellElement, TableHeaderCellPr
         scope="col"
         className={cn(
           tableHeadVariants({ density, numeric: !!numeric }),
-          (isLeft || isRight) && "bg-elevated",
+          (isLeft || isRight) && "bg-elevated-surface",
           isLeft && "left-0 z-table-corner",
           isRight && "right-0 z-table-corner",
           !isLeft && !isRight && "z-table-header",
@@ -214,8 +214,8 @@ const TableRow = React.forwardRef<HTMLTableRowElement, TableRowProps>(
           "border-b border-border",
           "transition-[background-color] duration-fast ease-out-standard",
           density === "default" ? "min-h-10" : "min-h-9",
-          "hover:bg-hover",
-          selected && "border-l-2 border-l-primary bg-selected",
+          "hover:bg-hover-surface",
+          selected && "border-l-2 border-l-primary bg-selected-surface",
           pinned && "border-l-[3px] border-l-primary",
           outcome && outcomeRowClass[outcome],
           onDrill && "cursor-pointer",
@@ -279,7 +279,7 @@ const TableSelectionBar = React.forwardRef<HTMLTableRowElement, TableSelectionBa
         ref={ref}
         data-slot="table-selection-bar"
         className={cn(
-          "border-b border-border bg-muted",
+          "border-b border-border bg-muted-surface",
           density === "default" ? "min-h-10" : "min-h-9",
           className
         )}
@@ -382,7 +382,7 @@ function TableSkeletonRow({ colCount, density: densityProp, className }: TableSk
     >
       {Array.from({ length: colCount }, (_, i) => (
         <td key={i} className="px-3 py-2">
-          <div className="h-3 rounded-sm bg-muted animate-[shimmer_1800ms_linear_infinite] bg-[size:200%_100%] bg-gradient-to-r from-muted via-elevated to-muted" /> {/* eslint-disable-line no-restricted-syntax -- bg-[size:...] is background-size shorthand; no token equivalent */}
+          <div className="h-3 rounded-sm bg-muted-surface animate-[shimmer_1800ms_linear_infinite] bg-[size:200%_100%] bg-gradient-to-r from-muted-surface via-elevated-surface to-muted-surface" /> {/* eslint-disable-line no-restricted-syntax -- bg-[size:...] is background-size shorthand; no token equivalent */}
         </td>
       ))}
     </tr>

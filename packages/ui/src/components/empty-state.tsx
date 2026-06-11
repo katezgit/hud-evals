@@ -65,7 +65,7 @@ const EmptyState = React.forwardRef<HTMLDivElement, EmptyStateProps>(
               "flex items-center justify-center shrink-0",
               "size-12",
               "rounded-lg",
-              "bg-muted"
+              "bg-muted-surface"
             )}
           >
             <Icon

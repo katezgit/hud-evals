@@ -179,7 +179,7 @@ export const Selection: Story = {
         <Table totalCount={RUNS.length} pageOffset={0}>
           <TableHeader>
             <tr>
-              <th className="sticky top-0 left-0 z-table-corner w-10 bg-elevated border-b border-border px-3 align-middle">
+              <th className="sticky top-0 left-0 z-table-corner w-10 bg-elevated-surface border-b border-border px-3 align-middle">
                 <Checkbox
                   size="sm"
                   aria-label="Select all"
@@ -350,7 +350,7 @@ export const InsideCard: Story = {
   render: () => (
     <div className="flex flex-col gap-6" style={{ width: 560 }}>
       <p className="text-label text-muted-foreground">
-        Header carries bg-muted as a structural band — consistent in both Card and freestanding contexts.
+        Header carries bg-muted-surface as a structural band — consistent in both Card and freestanding contexts.
       </p>
       <Card className="overflow-hidden p-0">
         <Table totalCount={3} pageOffset={0}>
@@ -408,7 +408,7 @@ export const PatternA_PageSection: Story = {
           "Use `<Table bordered>` when the table IS the page section — no Card wrapper. " +
           "The `bordered` prop adds `rounded-md border border-border overflow-hidden bg-card` to the outer wrapper, " +
           "so the table reads as a self-contained card-equivalent surface. " +
-          "The `<thead>` carries `bg-muted` (#F0F2F6 light) against the `bg-card` (#FFFFFF light) body, giving a visible header band identical to Pattern B. " +
+          "The `<thead>` carries `bg-muted-surface` (#F0F2F6 light) against the `bg-card` (#FFFFFF light) body, giving a visible header band identical to Pattern B. " +
           "The last body row's `border-b-0` (applied by TableBody) ensures no doubled bottom edge inside the outer border. " +
           "First-cell `pl-6` aligns the first column with the section heading's left edge when both share `px-6` indent.",
       },
@@ -529,9 +529,9 @@ export const Antipattern_DoubleChrome: Story = {
     docs: {
       description: {
         story:
-          "DO NOT do this. `<Card><Table bordered>` stacks two sets of border + rounded corners and two bg-elevated surfaces. " +
+          "DO NOT do this. `<Card><Table bordered>` stacks two sets of border + rounded corners and two bg-elevated-surface surfaces. " +
           "The Card border and the `bordered` Table border fight each other, producing doubled edges, " +
-          "mismatched radii, and a double bg-elevated that makes the background visually broken. " +
+          "mismatched radii, and a double bg-elevated-surface that makes the background visually broken. " +
           "Use Pattern A (bordered, no Card) or Pattern B (Card, no bordered) — never both.",
       },
     },

@@ -337,7 +337,7 @@ function LogRowFragment({
   return (
     <>
       <tr
-        className={cn(tableRowVariants({ density: "compact" }), isExpanded && "bg-hover")}
+        className={cn(tableRowVariants({ density: "compact" }), isExpanded && "bg-hover-surface")}
       >
         {cells.map((cell) => (
           <td key={cell.id} className={tableCellVariants({ density: "compact" })}>
@@ -346,7 +346,7 @@ function LogRowFragment({
         ))}
       </tr>
       {isExpanded && (
-        <tr id={expandPanelId} className="border-b border-border bg-muted/40">
+        <tr id={expandPanelId} className="border-b border-border bg-muted-surface/40">
           <td colSpan={colSpan} className="px-4 py-4">
             <LogExpandPanel log={log} />
           </td>

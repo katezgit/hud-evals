@@ -9,7 +9,7 @@ export const formFieldBoxVariants = cva(
     "bg-background border border-border",
     "transition-[color,background-color,border-color,box-shadow,outline]",
     "duration-fast ease-out-standard",
-    "disabled:cursor-not-allowed disabled:bg-muted disabled:border-border disabled:text-muted-foreground",
+    "disabled:cursor-not-allowed disabled:bg-muted-surface disabled:border-border disabled:text-muted-foreground",
     "aria-invalid:border-state-errored",
   ],
   {

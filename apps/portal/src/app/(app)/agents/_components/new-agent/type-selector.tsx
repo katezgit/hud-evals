@@ -69,7 +69,7 @@ function TypeCard({
       className={cn(
         "group flex h-full flex-col items-center gap-3 rounded-lg border border-border bg-panel p-5 text-center",
         "cursor-pointer transition-colors duration-fast",
-        "hover:border-border-strong hover:bg-hover",
+        "hover:border-border-strong hover:bg-hover-surface",
         "focus-visible:shadow-focus-ring outline-hidden",
       )}
     >

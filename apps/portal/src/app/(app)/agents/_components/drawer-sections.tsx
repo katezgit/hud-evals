@@ -25,7 +25,7 @@ const SECTION_HEADING_CLASS =
 // Schema field types render as title-case proper nouns (Number, String, Boolean),
 // not acronyms — no `uppercase` and no paired `tracking-wide` letter-spacing.
 const SCHEMA_TYPE_CHIP_CLASS =
-  "inline-flex shrink-0 items-center gap-1 rounded bg-muted px-1.5 py-0.5 font-mono text-meta text-muted-foreground";
+  "inline-flex shrink-0 items-center gap-1 rounded bg-muted-surface px-1.5 py-0.5 font-mono text-meta text-muted-foreground";
 
 function titleCase(s: string): string {
   return s.charAt(0).toUpperCase() + s.slice(1);

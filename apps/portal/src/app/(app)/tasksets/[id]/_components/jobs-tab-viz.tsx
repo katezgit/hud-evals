@@ -169,7 +169,7 @@ export function DistBar({ dist, total }: DistBarProps) {
 
   return (
     <div
-      className="bg-secondary flex h-1.5 w-44 overflow-hidden rounded-sm"
+      className="bg-secondary-surface flex h-1.5 w-44 overflow-hidden rounded-sm"
       aria-label={summary}
     >
       {seg(dist.scored, "scored")}

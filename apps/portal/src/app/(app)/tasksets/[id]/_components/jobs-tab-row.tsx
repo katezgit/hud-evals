@@ -31,8 +31,8 @@ export function JobRow({ job, tasksetId, focused, ref }: JobRowProps) {
         // border-b applies on every row; the parent <ul> strips it on the last <li>'s child via
         // `[&>li:last-child>a]:border-b-0` (a Link inside its only-child <li> is always :last-child,
         // so we can't rely on `last:border-b-0` here).
-        "group border-border hover:bg-surface-hover relative block border-b px-4 py-2 transition-colors",
-        focused && "bg-surface-hover before:bg-primary before:absolute before:inset-y-0 before:left-0 before:w-0.5",
+        "group border-border hover:bg-hover-surface relative block border-b px-4 py-2 transition-colors",
+        focused && "bg-hover-surface before:bg-primary before:absolute before:inset-y-0 before:left-0 before:w-0.5",
       )}
     >
       <div className={GRID_COLS}>

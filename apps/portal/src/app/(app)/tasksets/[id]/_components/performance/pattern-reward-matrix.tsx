@@ -132,7 +132,7 @@ function HeatmapCell({
     return (
       <td
         aria-hidden="true"
-        className="h-7 w-12 rounded-sm border border-dashed border-border bg-muted/20"
+        className="h-7 w-12 rounded-sm border border-dashed border-border bg-muted-surface/20"
       />
     );
   }

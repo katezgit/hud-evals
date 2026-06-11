@@ -4,7 +4,7 @@ import * as React from "react"
 import { cn } from "@repo/ui/lib/cn"
 
 // Instrument Precision v1: bg-border + animate-pulse.
-// bg-muted (#F0F2F6 light / #161D28 dark) sits too close to canvas (#F6F8FA / #0C1016) —
+// bg-muted-surface (#F0F2F6 light / #161D28 dark) sits too close to canvas (#F6F8FA / #0C1016) —
 // the 50%→100% opacity oscillation produces almost no luminance delta.
 // bg-border is an rgba alpha tint (rgba(20,30,25,.17) light / rgba(255,255,255,.17) dark)
 // that composites visibly on any surface; the opacity oscillation creates a clear pulse.

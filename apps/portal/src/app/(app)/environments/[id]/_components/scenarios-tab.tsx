@@ -82,7 +82,7 @@ function ScenariosEmptyState() {
         </h2>
         <p className="text-muted-foreground">
           Add Scenarios using the{" "}
-          <code className="font-mono text-meta rounded bg-muted px-1 py-0.5 text-foreground">
+          <code className="font-mono text-meta rounded bg-muted-surface px-1 py-0.5 text-foreground">
             @env.scenario
           </code>{" "}
           decorator, then redeploy.

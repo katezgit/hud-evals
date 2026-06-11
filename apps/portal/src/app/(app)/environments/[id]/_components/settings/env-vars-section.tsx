@@ -266,7 +266,7 @@ export function EnvVarsSection({ vars }: EnvVarsSectionProps) {
 
           <p className="text-meta-foreground">
             Or set via{" "}
-            <code className="font-mono text-meta rounded bg-muted px-1 py-0.5 text-foreground">
+            <code className="font-mono text-meta rounded bg-muted-surface px-1 py-0.5 text-foreground">
               hud deploy -e KEY=value
             </code>
           </p>

@@ -97,7 +97,7 @@ function BackToAppCollapsed() {
           <Link
             href="/jobs"
             aria-label="Back to app"
-            className="focus-inset flex size-7 items-center justify-center rounded-md text-muted-foreground hover:bg-hover hover:text-foreground"
+            className="focus-inset flex size-7 items-center justify-center rounded-md text-muted-foreground hover:bg-hover-surface hover:text-foreground"
           >
             <ArrowLeftIcon aria-hidden="true" className="size-3.5" />
           </Link>
@@ -116,7 +116,7 @@ function SettingsHeaderFull() {
     <div className="flex items-center gap-2 pt-3 pr-3 pb-1 pl-[11px]">
       <span
         aria-hidden="true"
-        className="flex size-6 items-center justify-center rounded-md bg-muted text-muted-foreground"
+        className="flex size-6 items-center justify-center rounded-md bg-muted-surface text-muted-foreground"
       >
         <Settings className="size-3.5" />
       </span>
@@ -132,7 +132,7 @@ function SettingsHeaderCollapsed() {
         <TooltipTrigger asChild>
           <span
             aria-label="Settings"
-            className="flex size-6 items-center justify-center rounded-md bg-muted text-muted-foreground"
+            className="flex size-6 items-center justify-center rounded-md bg-muted-surface text-muted-foreground"
           >
             <Settings aria-hidden="true" className="size-3.5" />
           </span>
@@ -179,7 +179,7 @@ function NavGroup({ label, items, isAdmin, className }: NavGroupProps) {
 
 function LockedNote() {
   return (
-    <div className="mx-3 mt-3 flex gap-2 rounded-md bg-muted px-3 py-2 text-caption text-meta-foreground leading-snug">
+    <div className="mx-3 mt-3 flex gap-2 rounded-md bg-muted-surface px-3 py-2 text-caption text-meta-foreground leading-snug">
       <Lock aria-hidden="true" className="mt-1 size-3 shrink-0" />
       <span>Billing, limits, and secrets are managed by an owner.</span>
     </div>

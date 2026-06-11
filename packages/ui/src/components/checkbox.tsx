@@ -12,7 +12,7 @@ const checkboxVariants = cva(
     "border border-border",
     "transition-[background-color,border-color,box-shadow,outline] duration-fast ease-out-standard",
     "bg-transparent",
-    "hover:bg-muted",
+    "hover:bg-muted-surface",
     "data-[state=checked]:bg-primary data-[state=checked]:border-primary",
     "data-[state=checked]:hover:bg-primary-hover data-[state=checked]:hover:border-primary-hover",
     "data-[state=indeterminate]:bg-primary data-[state=indeterminate]:border-primary",

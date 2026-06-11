@@ -390,7 +390,7 @@ export function EnvironmentsIndex({
           variant="secondary"
           className={cn(
             "w-full justify-between",
-            mobileFiltersActiveCount > 0 && "bg-selected",
+            mobileFiltersActiveCount > 0 && "bg-selected-surface",
           )}
           aria-label={
             mobileFiltersActiveCount > 0

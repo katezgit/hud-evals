@@ -789,7 +789,7 @@ function MobileFiltersSheetBody({
 function EmptyTeamState() {
   return (
     <div className="flex flex-col items-center px-8 py-16 text-center">
-      <div className="flex size-12 items-center justify-center rounded-full bg-secondary text-muted-foreground">
+      <div className="flex size-12 items-center justify-center rounded-full bg-secondary-surface text-muted-foreground">
         <ListChecks aria-hidden="true" className="size-6" />
       </div>
       <h2 className="mt-4 text-subtitle font-semibold text-foreground">

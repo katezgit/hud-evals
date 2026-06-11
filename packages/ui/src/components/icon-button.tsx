@@ -15,20 +15,20 @@ const iconButtonVariants = cva(
           "bg-primary text-primary-foreground",
           "hover:bg-primary-hover",
           "active:bg-primary-hover",
-          "disabled:bg-muted",
+          "disabled:bg-muted-surface",
         ],
 
         secondary: [
           "bg-transparent text-foreground border border-border",
-          "hover:bg-secondary",
-          "active:bg-selected",
+          "hover:bg-secondary-surface",
+          "active:bg-selected-surface",
           "disabled:bg-transparent",
         ],
 
         ghost: [
           "bg-transparent text-foreground",
-          "hover:bg-hover",
-          "active:bg-selected",
+          "hover:bg-hover-surface",
+          "active:bg-selected-surface",
           "disabled:bg-transparent",
         ],
 

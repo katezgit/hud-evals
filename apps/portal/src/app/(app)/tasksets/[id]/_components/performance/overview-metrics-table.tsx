@@ -146,7 +146,7 @@ function OverviewRowComponent({ row }: { row: OverviewRow }) {
         {row.entropyObserved.toFixed(2)} / {row.entropyMax.toFixed(2)}
       </td>
       <td className={cn(tableCellVariants({ density: "compact", variant: "mono" }), "text-right")}>
-        <span className="rounded-sm bg-muted px-1.5 py-0.5 text-meta">
+        <span className="rounded-sm bg-muted-surface px-1.5 py-0.5 text-meta">
           {row.topTool.name} ({row.topTool.sharePct}%)
         </span>
       </td>

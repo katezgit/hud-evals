@@ -312,7 +312,7 @@ export default function ModelsCatalog() {
                   {(m.reasoning === true || m.trainable) && (
                     <div className="flex flex-wrap items-center gap-1.5">
                       {m.reasoning === true && (
-                        <span className="inline-flex items-center gap-1 rounded-sm bg-muted px-1.5 py-0.5 text-meta text-foreground">
+                        <span className="inline-flex items-center gap-1 rounded-sm bg-muted-surface px-1.5 py-0.5 text-meta text-foreground">
                           <CheckIcon
                             aria-hidden="true"
                             className="size-3 text-state-scored-text"
@@ -321,7 +321,7 @@ export default function ModelsCatalog() {
                         </span>
                       )}
                       {m.trainable && (
-                        <span className="inline-flex items-center gap-1 rounded-sm bg-muted px-1.5 py-0.5 text-meta text-foreground">
+                        <span className="inline-flex items-center gap-1 rounded-sm bg-muted-surface px-1.5 py-0.5 text-meta text-foreground">
                           <CheckIcon
                             aria-hidden="true"
                             className="size-3 text-state-scored-text"
@@ -962,7 +962,7 @@ function ToggleFilterChip({
       size="sm"
       aria-pressed={active}
       onClick={onToggle}
-      className={cn(active && "bg-selected hover:bg-selected")}
+      className={cn(active && "bg-selected-surface hover:bg-selected-surface")}
     >
       {label}
       {count > 0 ? (

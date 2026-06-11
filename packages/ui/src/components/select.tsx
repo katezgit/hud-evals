@@ -43,8 +43,8 @@ function SelectTrigger({
         "data-[placeholder]:text-meta-foreground",
         // text-body (13px) — no text-foreground pairing here to avoid twMerge conflict with consumer overrides.
         // text-body is already emitted by formFieldBoxVariants size=md; kept here as a noop fallback guard.
-        // Lift bg off page canvas on focus / when open — bg-background (#F6F8FA light) → bg-white (#FFFFFF). Functional literal, not a semantic role.
-        "focus-visible:bg-white data-[state=open]:bg-white",
+        // Lift to form-field surface on focus — light: #FFFFFF, dark: #11161F. Tracks --color-panel.
+        "focus-visible:bg-form-field-surface data-[state=open]:bg-form-field-surface",
         "data-[state=open]:shadow-focus-ring",
         "[&_svg]:pointer-events-none [&_svg]:shrink-0",
         "*:data-[slot=select-value]:line-clamp-1 *:data-[slot=select-value]:flex *:data-[slot=select-value]:items-center *:data-[slot=select-value]:gap-2",
@@ -151,8 +151,8 @@ function SelectItem({
         // Radix's data-[highlighted] fires on both pointer hover + keyboard nav — sidesteps the
         // Tailwind v4 :hover/:focus cascade where focus: always wins. No font-medium on highlight
         // or selected (weight shift jitters glyphs across rows; selection is signaled by indicator).
-        "data-[highlighted]:bg-highlight",
-        // Suppress global *:focus-visible ring — bg-highlight is the sole active-option indicator
+        "data-[highlighted]:bg-highlight-surface",
+        // Suppress global *:focus-visible ring — bg-highlight-surface is the sole active-option indicator
         // (operator direction B). Forced-colors fallback restores a visible outline in Windows HC mode.
         "focus-visible:shadow-none focus-visible:outline-none",
         "forced-colors:focus-visible:outline-2 forced-colors:focus-visible:outline-current",

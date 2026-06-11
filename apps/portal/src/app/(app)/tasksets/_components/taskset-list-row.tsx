@@ -51,13 +51,13 @@ export default function TasksetListRow({
       href={`/tasksets/${taskset.id}`}
       className={cn(
         TASKSET_LIST_GRID,
-        "group items-center gap-6 rounded-lg border border-border bg-panel px-4 py-3 transition-colors duration-fast hover:border-border-strong hover:bg-hover",
+        "group items-center gap-6 rounded-lg border border-border bg-panel px-4 py-3 transition-colors duration-fast hover:border-border-strong hover:bg-hover-surface",
       )}
     >
       {/* Identity track — lock sits inline after the name so it visually hugs
           the taskset name regardless of name length (no reserved slot). */}
       <div className="flex min-w-0 items-center gap-2">
-        <span className="inline-flex size-6 shrink-0 items-center justify-center rounded bg-secondary text-muted-foreground">
+        <span className="inline-flex size-6 shrink-0 items-center justify-center rounded bg-secondary-surface text-muted-foreground">
           <ListChecks aria-hidden="true" className="size-3.5" />
         </span>
         <span className="flex min-w-0 items-baseline gap-1.5 font-mono text-body">

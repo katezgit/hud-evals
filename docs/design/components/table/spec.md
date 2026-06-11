@@ -8,13 +8,16 @@
 
 **Primitives scope:** semantic `<table>` elements + base styling. Sorting, filtering, pagination compose in `apps/**`.
 
+**Engineering convention:** see [docs/conventions/table.md](../../../conventions/table.md) for API usage (JSX primitive vs CSS-string), Pattern A/B examples, and the bg-muted/bg-card token gotcha.
+
 ---
 
 ## Anatomy
 
+**Pattern B — Card-contained (plain `<Table>`, no `bordered`):**
 ```
-┌──────────────────────────────────────────────────────┐  ← ScrollArea (dependency)
-│  [TH] NAME        [TH] STATUS    [TH] REWARD ↕       │  ← thead sticky
+┌──────────────────────────────────────────────────────┐  ← Card chrome (clips corners)
+│  [TH] NAME        [TH] STATUS    [TH] REWARD ↕       │  ← thead sticky, bg-muted
 │  ────────────────────────────────────────────────    │
 │  [TD] run_8f3a4c   [TD] ● Scored  [TD] 0.7341        │  ← row default
 │  [TD] run_2b9f11   [TD] ● Running [TD] —             │  ← row hover
@@ -24,14 +27,27 @@
 └──────────────────────────────────────────────────────┘
 ```
 
+**Pattern A — Page-section (`<Table bordered>`, no Card):**
+```
+╭──────────────────────────────────────────────────────╮  ← rounded-md border border-border bg-card overflow-hidden
+│  [TH] NAME        [TH] STATUS    [TH] REWARD ↕       │  ← thead sticky, bg-muted
+│  ────────────────────────────────────────────────    │
+│  [TD] run_8f3a4c   [TD] ● Scored  [TD] 0.7341        │  ← row default (bg-card body)
+│  [TD] run_2b9f11   [TD] ● Running [TD] —             │  ← row hover
+│ ▌[TD] run_0c5d22   [TD] ● Scored  [TD] 0.6890        │  ← row selected (rail)
+╰──────────────────────────────────────────────────────╯
+```
+
+Anti-pattern: `<Card><Table bordered>` — double chrome (Card border + bordered wrapper).
+
 ---
 
 ## Sub-component Table
 
 | Sub-component | HTML Element | Class export | Role |
 |---|---|---|---|
-| Table | `<table>` | `tableClass` | Root container. `w-full caption-bottom border-collapse`. Background is `bg-background`. |
-| TableHeader | `<thead>` | `tableHeaderClass` | Header band. `bg-background`. Sticky behavior is on individual `<th>` cells, not the `<thead>`. |
+| Table | `<table>` | `tableClass` | Root container. `w-full caption-bottom border-collapse`. Accepts `bordered` prop — see Bordered variant section. |
+| TableHeader | `<thead>` | `tableHeaderClass` | Header band. `bg-muted` always (both density tiers). Sticky behavior is on individual `<th>` cells, not the `<thead>`. |
 | TableBody | `<tbody>` | `tableBodyClass` | Row container. Suppresses last-row border via `[&_tr:last-child]:border-b-0`. |
 | TableFooter | `<tfoot>` | `tableFooterClass` | Summary / aggregate row band. `bg-muted`, `border-t border-border`, `font-medium`. |
 | TableRow | `<tr>` | `tableRowVariants` | Row with hover, selected, and divider states. |
@@ -49,20 +65,29 @@ Format: `--table-[slot]-[state]`
 
 | Token | Semantic ref | Light value | Dark value | Notes |
 |---|---|---|---|---|
-| `--table-bg` | `--color-background` | `#F6F8FA` | `#0C1016` | Sits on page canvas |
-| `--table-border` | `--color-border` | `rgba(20,30,25,.17)` | `rgba(255,255,255,.17)` | Outer border + row dividers |
-| `--table-radius` | `--radius-none` | `0` | `0` | Tables are instruments — no rounding |
+| `--table-bg` | `--color-background` | `#F6F8FA` | `#0C1016` | Sits on page canvas (non-bordered case, inside Card) |
+| `--table-border` | `--color-border` | `rgba(20,30,25,.17)` | `rgba(255,255,255,.17)` | Row dividers; also outer border in bordered case |
+| `--table-radius` | `--radius-none` | `0` | `0` | Table element itself has no rounding; bordered wrapper uses `rounded-md` |
+
+#### Bordered variant wrapper tokens
+
+| Token | Tailwind class | Notes |
+|---|---|---|
+| Background | `bg-card` (`#FFFFFF` / `#11161F`) | NOT `bg-elevated` — see token gotcha below |
+| Border | `border border-border` | Outer frame |
+| Radius | `rounded-md` | Corner rounding on wrapper |
+| Overflow | `overflow-hidden` | Clips table corners to wrapper radius |
 
 ### Column headers `<th>`
 
 | Token | Semantic ref | Light value | Dark value | Notes |
 |---|---|---|---|---|
-| `--table-header-bg` | `--color-background` | `#F6F8FA` | `#0C1016` | Matches canvas; sticky header masks scrolling content |
+| `--table-header-bg` | `--color-muted` | `#F0F2F6` | `#161D28` | `bg-muted` on `<thead>` — both density tiers; provides structural label-band differentiation |
 | `--table-header-fg` | `--color-muted-foreground` | `#54637A` | `#9CA9B9` | De-emphasized column labels |
 | `--table-header-border-bottom` | `--color-border` | `rgba(20,30,25,.17)` | `rgba(255,255,255,.17)` | Divider between header and body |
 | `--table-header-font` | `--text-label` / `--font-weight-medium` | 12px / 500 | 12px / 500 | `letter-spacing: 0.01em`, uppercase |
-| `--table-header-padding-default` | `px-3` | 12px inline | — | No block padding — height set by `h-8` on row |
-| `--table-header-padding-sm` | `px-3` | 12px inline | — | Same inline padding; compact tier uses same header height |
+| `--table-header-padding-default` | `py-2 px-3` (middle) / `pl-6` (first) / `pr-6` (last) | 8px block, 12px middle inline | — | Height governed by `min-h-8` (32px) |
+| `--table-header-padding-sm` | same as default | — | — | Header is density-invariant: always `min-h-8` / `py-2` |
 
 **Header style:** `text-label font-medium uppercase tracking-[0.01em] text-muted-foreground`. Instrument-register 12px / 500 / `0.01em` / uppercase. De-emphasized chrome; the value register (mono cells) remains dominant.
 
@@ -74,17 +99,17 @@ Format: `--table-[slot]-[state]`
 
 ### Rows `<tr>`
 
-Row height: explicit `h-9` (36px) default / `h-8` (32px) compact on `<tr>`. `align-middle` on cells centres 14px/22px body text within the row. See `## Cell heights` below.
+Row min-height: `min-h-10` (40px) default / `min-h-9` (36px) compact on `<tr>`. Explicit `py-*` on cells provides block padding; `align-middle` centres body text. See `## Cell heights` below.
 
 | Token | Semantic ref | Light value | Dark value | Notes |
 |---|---|---|---|---|
-| `--table-row-bg` | transparent | — | — | Rows sit on canvas |
+| `--table-row-bg` | transparent | — | — | Rows sit on canvas / Card bg |
 | `--table-row-bg-hover` | `--color-hover` | `#F0F2F6` | `#161D28` | Pointer hover — surface lift |
 | `--table-row-bg-selected` | none | — | — | No bg wash (see Row States) |
 | `--table-row-selected-rail` | `--color-accent` | `#087A6C` | `#2BE0C8` | 2px left border signals selected row |
 | `--table-row-divider` | `--color-border` | `rgba(20,30,25,.17)` | `rgba(255,255,255,.17)` | Bottom border on every `<tr>` except last |
-| `--table-row-padding-default` | `px-3` | 12px inline | — | No block padding — height set by `h-9` on row |
-| `--table-row-padding-sm` | `px-3` | 12px inline | — | Compact: `h-8` on row |
+| `--table-row-padding-default` | `py-2 px-4` (middle) / `pl-6` (first `<td>`) / `pr-6` (last `<td>`) | 8px block, 16px middle inline | — | First/last cells align with `CardHeader`'s `px-6` |
+| `--table-row-padding-sm` | `py-1.5 px-3` (middle) / `pl-6` (first) / `pr-6` (last) | 6px block, 12px middle inline | — | Compact density |
 
 **Motion.** Hover fill: `transition-[background-color] duration-fast ease-out-standard`. New row reveal: `animation: row-reveal var(--motion-enter)` (`220ms, --ease-out-emphasized`).
 
@@ -166,24 +191,24 @@ Right-alignment lets users compare numeric magnitudes vertically — leading dig
 
 ## Cell heights
 
-**Body row — default density: 36px.** Set via `h-9` on `<tr>`. Body text is 14px / line-height 22px; `py-[7px]` × 2 + 22px = 36px. Cells use `align-middle` — height is enforced on the row, not the cell.
+**Body row — default density: 40px.** Governed by `min-h-10` on `<tr>` + `py-2` (8px) on cells. Body text is 14px / line-height 22px; `py-2` × 2 + 22px = 38px fits within the 40px minimum. Cells use `align-middle`.
 
-**Body row — compact density: 32px.** Set via `h-8` on `<tr>`. Matches the 32px Button default baseline (canonical: `sizing-primitives.stories.tsx`). A trailing `IconButton size="sm"` (24px) fits inside 32px with 4px margin top/bottom — no row height adjustment needed for trailing actions.
+**Body row — compact density: 36px.** `min-h-9` on `<tr>` + `py-1.5` (6px) on cells. A trailing `IconButton size="sm"` (24px) fits inside 36px with 6px clearance top/bottom — no row height adjustment needed.
 
-**Header row: 32px.** Set via `h-8` on `<th>` (or row-level `h-8` if cells span a `<tr>`). Header labels are 12px / uppercase / `font-medium` — tighter than body. Header is always 32px regardless of density tier. A shorter header provides a clear visual hierarchy break between the label band and the data band.
+**Header row: 32px (density-invariant).** `min-h-8` on `<th>` + `py-2` (8px) on header cells. Header is always 32px regardless of body density tier. The shorter header provides a visual hierarchy break between the label band and data band.
 
-**Rule:** Default body rows are 36px; compact body rows are 32px; header rows are always 32px. Rows with a trailing `IconButton size="sm"` (24px) do not change height — the 24px icon fits within 32px (compact) with 4px clearance and within 36px (default) with 6px clearance. Selectable rows (checkbox column) do not change height. No per-row height exceptions.
+**Rule:** Default body rows are 40px (`min-h-10`); compact body rows are 36px (`min-h-9`); header rows are always 32px (`min-h-8`) in both tiers. Explicit `py-*` on cells sets block padding — row height is governed by min-height, not fixed height. Selectable rows (checkbox column) do not change height. No per-row height exceptions.
 
-**Rationale:** 36px default is the correct instrument density for HUD — Alex, Sam, and Riley all scan 50–200-row tables (fleet, eval, trace). 40px (the prior value) added ~10% vertical waste per row across a 100-row table. 36px matches Linear's production issue-list row height (`--row-height: 36px` in their production stylesheet) and sits one step above their 32px compact tier. The 32px header is shorter than the body by 4px, providing a hierarchy signal without additional chrome.
+**First/last cell padding.** `pl-6` on first `<th>` and `<td>`; `pr-6` on last `<th>` and `<td>`. Applies to both density tiers. Aligns the first column's text with `CardHeader`'s `px-6`, so section headings and column labels read on the same vertical grid.
 
 ## Density tiers
 
-| Tier | `<th>` height | `<tr>` (body) height | `<th>` padding | `<td>` padding |
-|---|---|---|---|---|
-| Default | `h-8` (32px) | `h-9` (36px) | `px-3` | `px-3` |
-| Compact | `h-8` (32px) | `h-8` (32px) | `px-3` | `px-3` |
+| Tier | `<th>` min-height | `<tr>` (body) min-height | `<th>` cell padding | `<td>` middle cell padding | First cell | Last cell |
+|---|---|---|---|---|---|---|
+| Default | `min-h-8` (32px) | `min-h-10` (40px) | `py-2 px-3` | `py-2 px-4` | `pl-6` | `pr-6` |
+| Compact | `min-h-8` (32px) | `min-h-9` (36px) | `py-2 px-3` | `py-1.5 px-3` | `pl-6` | `pr-6` |
 
-Density is driven by a `density` variant on `tableHeadVariants` / `tableCellVariants` (default `"default"`). Vertical padding on cells is removed in favour of explicit row height (`h-*`) on `<tr>`; `align-middle` centres content.
+Header is density-invariant: always `min-h-8` / `py-2`. Density is driven by a `density` variant on `tableHeadVariants` / `tableCellVariants` (default `"default"`). Block padding is set on cells (not row-level height); `align-middle` centres content.
 
 ---
 
@@ -207,11 +232,36 @@ Tables with overflow rows wrap in `<ScrollArea><Table/></ScrollArea>`. Table doe
 
 ---
 
+## Bordered variant
+
+The `bordered` prop on `<Table>` adds `rounded-md border border-border bg-card overflow-hidden` to the table wrapper element.
+
+**When to use (Pattern A):** Page-section tables that stand alone without a Card — Members, Limits, Secrets, API keys. The bordered wrapper provides containment when no parent Card exists.
+
+**When NOT to use (Pattern B):** Tables inside a Card. The Card provides chrome; `bordered` adds a second border (double chrome). Use plain `<Table>` inside Card — edge-to-edge so Card clips table corners.
+
+**Anti-pattern:** `<Card><Table bordered>` — double chrome. If you're writing this, remove `bordered`.
+
+**Wrapper classes applied by `bordered` prop:**
+
+```
+rounded-md border border-border bg-card overflow-hidden
+```
+
+The `bg-card` on the wrapper ensures the `bg-muted` `<thead>` is visible (see token gotcha below). The `overflow-hidden` clips the table's square corners to the wrapper's `rounded-md`.
+
+> **Token gotcha — `--color-elevated` == `--color-muted`:** In this palette, `--color-elevated` and `--color-muted` resolve to identical hex values (`#F0F2F6` / `#161D28`). Pairing them produces zero contrast. The bordered wrapper uses `bg-card` (white `#FFFFFF` / `#11161F`), not `bg-elevated`, so the `bg-muted` thead band is visible against the body. Tracked as TODO in `docs/testing/TODO.md`.
+
+---
+
 ## Token Cross-Reference
 
 | Table slot | Token used | Light value | Dark value |
 |---|---|---|---|
-| Table / header background | `--color-background` | `#F6F8FA` | `#0C1016` |
+| Table background (non-bordered / inside Card) | `--color-background` | `#F6F8FA` | `#0C1016` |
+| Bordered wrapper background | `--color-card` (`bg-card`) | `#FFFFFF` | `#11161F` |
+| Bordered wrapper border | `--color-border` | `rgba(20,30,25,.17)` | `rgba(255,255,255,.17)` |
+| Header background | `--color-muted` | `#F0F2F6` | `#161D28` |
 | Header text | `--color-muted-foreground` | `#54637A` | `#9CA9B9` |
 | Header bottom border | `--color-border` | `rgba(20,30,25,.17)` | `rgba(255,255,255,.17)` |
 | Row hover fill | `--color-hover` | `#F0F2F6` | `#161D28` |

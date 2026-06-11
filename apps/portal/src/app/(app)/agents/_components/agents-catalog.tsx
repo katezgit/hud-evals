@@ -353,7 +353,7 @@ function ZeroUserAgents() {
       title="No agents yet"
       subtitle="Create one from the CLI:"
       cta={
-        <pre className="rounded-md border border-border bg-muted px-3 py-2 font-mono text-code text-foreground">
+        <pre className="rounded-md border border-border bg-muted-surface px-3 py-2 font-mono text-code text-foreground">
           {`hud agent create --type qa\nhud agent create --type automation`}
         </pre>
       }
@@ -370,7 +370,7 @@ function ZeroOfKind({ tab }: { tab: TabKey }) {
       title={`No ${LABEL_BY_TAB[tab]} agents yet`}
       subtitle="Create one from the CLI:"
       cta={
-        <pre className="rounded-md border border-border bg-muted px-3 py-2 font-mono text-code text-foreground">
+        <pre className="rounded-md border border-border bg-muted-surface px-3 py-2 font-mono text-code text-foreground">
           {cmd}
         </pre>
       }

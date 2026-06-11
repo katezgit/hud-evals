@@ -120,7 +120,7 @@ export function MobileFiltersSheet({
                 const checked = draftTypes.includes(opt.value);
                 return (
                   <li key={opt.value}>
-                    <label className="flex cursor-pointer items-center gap-3 rounded-md px-2 py-2 hover:bg-hover">
+                    <label className="flex cursor-pointer items-center gap-3 rounded-md px-2 py-2 hover:bg-hover-surface">
                       <Checkbox
                         checked={checked}
                         onCheckedChange={() => toggleType(opt.value)}
@@ -212,7 +212,7 @@ function RadioList<T extends string>({
             <label
               className={cn(
                 "flex cursor-pointer items-center justify-between gap-3 rounded-md px-2 py-2",
-                "hover:bg-hover",
+                "hover:bg-hover-surface",
               )}
             >
               <span className="flex items-center gap-3">

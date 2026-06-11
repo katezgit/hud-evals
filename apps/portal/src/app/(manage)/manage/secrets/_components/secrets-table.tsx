@@ -60,7 +60,7 @@ function SecretValueCell({ value }: SecretValueCellProps) {
 
   return (
     <div className="flex items-center gap-2">
-      <code className="inline-flex items-center rounded-sm border border-border bg-muted px-2 py-1 font-mono text-caption text-muted-foreground">
+      <code className="inline-flex items-center rounded-sm border border-border bg-muted-surface px-2 py-1 font-mono text-caption text-muted-foreground">
         {revealed ? value : "••••••••"}
       </code>
       <div className="flex items-center gap-1">

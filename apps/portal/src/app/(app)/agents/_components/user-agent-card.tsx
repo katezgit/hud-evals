@@ -36,7 +36,7 @@ export function UserAgentCard({ agent }: { agent: UserAgent }) {
         <span className="min-w-0 flex-1 truncate font-mono text-body font-semibold text-foreground">
           {agent.name}
         </span>
-        <span className="inline-flex shrink-0 items-center gap-1 rounded bg-muted px-1.5 py-0.5 font-mono text-meta uppercase tracking-wide text-muted-foreground">
+        <span className="inline-flex shrink-0 items-center gap-1 rounded bg-muted-surface px-1.5 py-0.5 font-mono text-meta uppercase tracking-wide text-muted-foreground">
           <Icon aria-hidden="true" className="size-3" />
           {badgeLabel}
         </span>
