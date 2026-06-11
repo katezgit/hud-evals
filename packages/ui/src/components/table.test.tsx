@@ -1,3 +1,4 @@
+import { render } from "@testing-library/react"
 import {
   tableClass,
   tableHeaderClass,
@@ -8,6 +9,7 @@ import {
   tableRowVariants,
   tableCellVariants,
   tableEmptyCellClass,
+  Table,
 } from "./table"
 
 // ---------------------------------------------------------------------------
@@ -195,5 +197,31 @@ describe("tableEmptyCellClass", () => {
     expect(tableEmptyCellClass).toContain("py-8")
     expect(tableEmptyCellClass).toContain("text-center")
     expect(tableEmptyCellClass).toContain("text-muted-foreground")
+  })
+})
+
+// ---------------------------------------------------------------------------
+// Table — bordered prop
+// ---------------------------------------------------------------------------
+
+describe("Table bordered prop", () => {
+  it("adds border class to the wrapper when bordered=true", () => {
+    const { getByTestId } = render(
+      <Table totalCount={0} pageOffset={0} bordered data-testid="table-root" />
+    )
+    const wrapper = getByTestId("table-root")
+    expect(wrapper.className).toContain("border")
+    expect(wrapper.className).toContain("rounded-md")
+    expect(wrapper.className).toContain("overflow-hidden")
+  })
+
+  it("does NOT add border class when bordered is omitted", () => {
+    const { getByTestId } = render(
+      <Table totalCount={0} pageOffset={0} data-testid="table-root" />
+    )
+    const wrapper = getByTestId("table-root")
+    // Should have the base overflow-x-auto but not the bordered set
+    expect(wrapper.className).toContain("overflow-x-auto")
+    expect(wrapper.className).not.toContain("rounded-md")
   })
 })

@@ -14,7 +14,7 @@ import {
   TableErrorBand,
   TableSkeletonRow,
 } from "./table"
-import { Card } from "./card"
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "./card"
 import { Checkbox } from "./checkbox"
 import { IconButton } from "./icon-button"
 import { Button } from "./button"
@@ -393,6 +393,164 @@ export const InsideCard: Story = {
           ))}
         </TableBody>
       </Table>
+    </div>
+  ),
+}
+
+// ── Deployment Patterns ───────────────────────────────────────────────────────
+
+export const PatternA_PageSection: Story = {
+  name: "Pattern A — Page-section table (bordered)",
+  parameters: {
+    docs: {
+      description: {
+        story:
+          "Use `<Table bordered>` when the table IS the page section — no Card wrapper. " +
+          "The `bordered` prop adds `rounded-md border border-border overflow-hidden` to the outer wrapper, " +
+          "giving the table its own chrome. The last body row's `border-b-0` (applied by TableBody) " +
+          "ensures no doubled bottom edge inside the outer border.",
+      },
+    },
+  },
+  render: () => (
+    <div className="flex flex-col gap-3" style={{ width: 560 }}>
+      <div>
+        <h2 className="text-heading font-semibold text-foreground">API Keys</h2>
+        <p className="mt-1 text-body text-muted-foreground">
+          Keys are scoped to this workspace. Revoke any key at any time.
+        </p>
+      </div>
+      <Table totalCount={3} pageOffset={0} bordered>
+        <TableHeader>
+          <tr>
+            <TableHeaderCell label="Name" />
+            <TableHeaderCell label="Created" />
+            <TableHeaderCell label="Last used" />
+            <TableHeaderCell label="Scope" />
+          </tr>
+        </TableHeader>
+        <TableBody>
+          <TableRow>
+            <TableCell>prod-ci</TableCell>
+            <TableCell>2026-06-01</TableCell>
+            <TableCell>2026-06-10</TableCell>
+            <TableCell>read:write</TableCell>
+          </TableRow>
+          <TableRow>
+            <TableCell>staging</TableCell>
+            <TableCell>2026-05-14</TableCell>
+            <TableCell>2026-06-08</TableCell>
+            <TableCell>read:write</TableCell>
+          </TableRow>
+          <TableRow>
+            <TableCell>local-dev</TableCell>
+            <TableCell>2026-04-20</TableCell>
+            <TableCell>2026-06-09</TableCell>
+            <TableCell>read:write</TableCell>
+          </TableRow>
+        </TableBody>
+      </Table>
+    </div>
+  ),
+}
+
+export const PatternB_InsideCard: Story = {
+  name: "Pattern B — Card-contained table (no bordered)",
+  parameters: {
+    docs: {
+      description: {
+        story:
+          "Use plain `<Table>` (no `bordered`) when the table is one panel among others. " +
+          "The Card carries its own heading + subtitle and provides all outer chrome via `border` + `bg-panel`. " +
+          "The table adds no outer border — the Card IS the container. " +
+          "Use `overflow-hidden p-0` on the Card so the table flush-fills the card's rounded corners.",
+      },
+    },
+  },
+  render: () => (
+    <div style={{ width: 560 }}>
+      <Card className="overflow-hidden p-0">
+        <CardHeader className="px-4 pt-4 pb-3">
+          <CardTitle>Billing history</CardTitle>
+          <CardDescription>Invoices for the last 12 months.</CardDescription>
+        </CardHeader>
+        <CardContent className="p-0">
+          <Table totalCount={3} pageOffset={0}>
+            <TableHeader>
+              <tr>
+                <TableHeaderCell label="Invoice" />
+                <TableHeaderCell label="Date" />
+                <TableHeaderCell label="Amount" numeric />
+                <TableHeaderCell label="Status" />
+              </tr>
+            </TableHeader>
+            <TableBody>
+              <TableRow>
+                <TableCell variant="id">INV-0042</TableCell>
+                <TableCell>2026-06-01</TableCell>
+                <TableCell variant="numeric">$120.00</TableCell>
+                <TableCell>Paid</TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell variant="id">INV-0041</TableCell>
+                <TableCell>2026-05-01</TableCell>
+                <TableCell variant="numeric">$120.00</TableCell>
+                <TableCell>Paid</TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell variant="id">INV-0040</TableCell>
+                <TableCell>2026-04-01</TableCell>
+                <TableCell variant="numeric">$80.00</TableCell>
+                <TableCell>Paid</TableCell>
+              </TableRow>
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+    </div>
+  ),
+}
+
+export const Antipattern_DoubleChrome: Story = {
+  name: "Anti-pattern — Double chrome (do not copy)",
+  parameters: {
+    docs: {
+      description: {
+        story:
+          "DO NOT do this. `<Card><Table bordered>` stacks two sets of border + rounded corners. " +
+          "The Card border and the `bordered` Table border fight each other, producing doubled edges " +
+          "and mismatched radii. Use Pattern A (bordered, no Card) or Pattern B (Card, no bordered) — never both.",
+      },
+    },
+  },
+  render: () => (
+    <div className="flex flex-col gap-3" style={{ width: 560 }}>
+      <div className="flex items-center gap-2 rounded-md border border-state-errored-border bg-state-errored-subtle px-3 py-2">
+        <span className="text-label font-semibold text-state-errored-text">Anti-pattern</span>
+        <span className="text-label text-state-errored-text">
+          Don&apos;t do this — double border + double bg. Use Pattern A or Pattern B.
+        </span>
+      </div>
+      <Card className="overflow-hidden p-0">
+        <Table totalCount={3} pageOffset={0} bordered>
+          <TableHeader>
+            <tr>
+              <TableHeaderCell label="Job ID" />
+              <TableHeaderCell label="Status" />
+              <TableHeaderCell label="Reward" numeric />
+            </tr>
+          </TableHeader>
+          <TableBody>
+            {RUNS.slice(0, 3).map((row) => (
+              <TableRow key={row.id} outcome={row.status}>
+                <TableCell variant="id">{row.jobId}</TableCell>
+                <TableCell>{STATUS_LABEL[row.status]}</TableCell>
+                <TableCell variant="numeric">{row.reward != null ? row.reward.toFixed(3) : "—"}</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </Card>
     </div>
   ),
 }

@@ -72,10 +72,11 @@ export interface TableProps extends React.ComponentPropsWithoutRef<"div"> {
   density?: TableDensity
   totalCount: number
   pageOffset: number
+  bordered?: boolean
 }
 
 const Table = React.forwardRef<HTMLDivElement, TableProps>(
-  ({ className, density = "default", totalCount, pageOffset, children, ...props }, ref) => (
+  ({ className, density = "default", totalCount, pageOffset, bordered, children, ...props }, ref) => (
     <DensityContext.Provider value={density}>
       <div
         ref={ref}
@@ -83,7 +84,11 @@ const Table = React.forwardRef<HTMLDivElement, TableProps>(
         data-density={density}
         data-total-count={totalCount}
         data-page-offset={pageOffset}
-        className={cn("relative w-full overflow-x-auto", className)}
+        className={cn(
+          "relative w-full overflow-x-auto",
+          bordered && "rounded-md border border-border overflow-hidden",
+          className
+        )}
         {...props}
       >
         <table className="w-full border-collapse bg-background">
