@@ -493,9 +493,9 @@ function BuildSecretsSubsection({
 
       <div
         data-add-build-secret-form
-        className="flex flex-col gap-1.5 rounded-md border border-dashed border-border bg-muted/30 p-2.5"
+        className="flex flex-col gap-1.5 rounded-md border border-dashed border-border p-2.5"
       >
-        <div className="text-label font-medium text-muted-foreground">
+        <div className="text-label font-medium text-foreground">
           Add new build secret
         </div>
         <div className="flex items-start gap-1.5">
