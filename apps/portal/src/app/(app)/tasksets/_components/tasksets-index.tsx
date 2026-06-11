@@ -231,11 +231,12 @@ export default function TasksetsIndex({ tasksets }: TasksetsIndexProps) {
         // Sticky chrome — page header + tab bar pin to the top of the (app)
         // scroll container. pt-10 lives INSIDE the sticky element so its top
         // edge sits at scroll y=0; outer padding would push it down and cause
-        // visible creep before pin. z-10 lifts above in-page siblings; safe
-        // because outer wrap has `isolate` so the body-portaled overlays
-        // (Dialog, Select Popper, MultiSelect Popover) still paint above.
-        // See docs/conventions/position-sticky.md.
-        className="sticky top-0 z-10 bg-background pt-10"
+        // visible creep before pin. z-30 lifts above in-page siblings (filter
+        // row + SegmentedControl + grouped cards) whose nested utilities can
+        // raise effective stacking; safe because outer wrap has `isolate` so
+        // body-portaled overlays (Dialog, Select Popper, MultiSelect Popover)
+        // still paint above. See docs/conventions/position-sticky.md.
+        className="sticky top-0 z-30 bg-background pt-10"
       >
         <header className="flex items-start justify-between gap-6">
           <h1 className="text-display font-semibold text-foreground">
@@ -288,7 +289,6 @@ export default function TasksetsIndex({ tasksets }: TasksetsIndexProps) {
           {showOwnerFilter && (
             <div className="min-w-40">
               <MultiSelect
-                size="sm"
                 options={ownerOptions}
                 value={[...ownerFilter]}
                 onValueChange={(v) => setOwnerFilter(v)}
@@ -318,7 +318,7 @@ export default function TasksetsIndex({ tasksets }: TasksetsIndexProps) {
               updateParam("sort", v === "starred-first" ? null : v)
             }
           >
-            <SelectTrigger size="sm" aria-label="Sort tasksets" className="w-36">
+            <SelectTrigger aria-label="Sort tasksets" className="w-36">
               <SelectValue />
             </SelectTrigger>
             <SelectContent align="end">
@@ -335,7 +335,7 @@ export default function TasksetsIndex({ tasksets }: TasksetsIndexProps) {
               updateParam("group", v === "none" ? null : v)
             }
           >
-            <SelectTrigger size="sm" aria-label="Group by" className="w-36">
+            <SelectTrigger aria-label="Group by" className="w-36">
               <SelectValue placeholder="Group by" />
             </SelectTrigger>
             <SelectContent align="end">
