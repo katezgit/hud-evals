@@ -21,7 +21,11 @@
  * (not @theme inline) is required so the vars exist on :root. */
 @theme {
    /* wipe out tailwind colors */
-   --color-*: initial; 
+   --color-*: initial;
+
+  /* Functional literals — color is the intent, not the role. */
+  --color-white: var(--white);
+
   /* ═══════════════════════════════════════════════════════════════════════════
    * FOUNDATION — the canvas. Neutral surfaces, typography, structural borders.
    * ═══════════════════════════════════════════════════════════════════════════ */

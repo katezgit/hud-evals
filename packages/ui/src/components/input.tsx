@@ -46,6 +46,8 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
             formFieldBoxVariants({ size: "md" }),
             // focus-within: shell div is not focusable itself; only the inner input is.
             "focus-within:outline-none focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2",
+            // Lift bg off page canvas on focus — bg-background (#F6F8FA light) → bg-white (#FFFFFF). Functional literal, not a semantic role.
+            "focus-within:bg-white",
             "has-[[aria-invalid=true]]:border-state-errored",
             "has-[[aria-invalid=true]]:focus-within:ring-state-errored",
             className
@@ -76,7 +78,13 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
         ref={ref}
         type={type}
         data-slot="input"
-        className={cn(formFieldBoxVariants({ size: "md" }), ...inputBaseClasses, className)}
+        className={cn(
+          formFieldBoxVariants({ size: "md" }),
+          // Lift bg off page canvas on focus — bg-background (#F6F8FA light) → bg-white (#FFFFFF). Functional literal, not a semantic role.
+          "focus:bg-white",
+          ...inputBaseClasses,
+          className
+        )}
         {...props}
       />
     )
