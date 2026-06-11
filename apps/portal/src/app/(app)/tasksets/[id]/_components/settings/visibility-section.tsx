@@ -58,7 +58,7 @@ export default function VisibilitySection({
       </p>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent size="sm">
+        <DialogContent size="md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <TriangleAlertIcon
@@ -68,8 +68,8 @@ export default function VisibilitySection({
               Publish &lsquo;{tasksetName}&rsquo; to the Marketplace?
             </DialogTitle>
             <DialogDescription>
-              This Taskset and its leaderboard entries will be visible to other
-              orgs. Future Job runs on this Taskset will appear in the public
+              This Taskset and its leaderboard entries will be visible to
+              others. Future Job runs on this Taskset will appear in the public
               leaderboard.
             </DialogDescription>
           </DialogHeader>
