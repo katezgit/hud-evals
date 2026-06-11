@@ -1,8 +1,7 @@
 "use client";
 
 import type { Environment } from "../_data/types";
-import { BuildArgsSection } from "./settings/build-args-section";
-import { BuildSecretsSection } from "./settings/build-secrets-section";
+import { BuildConfigurationSection } from "./settings/build-configuration-section";
 import { DangerZoneSection } from "./settings/danger-zone-section";
 import { EnvInfoSection } from "./settings/env-info-section";
 import { EnvVarsSection } from "./settings/env-vars-section";
@@ -16,8 +15,7 @@ export function SettingsTab({ env }: { env: Environment }) {
       <EnvVarsSection vars={env.vars} />
       <PodConfigSection />
       <FileTrackingSection />
-      <BuildArgsSection />
-      <BuildSecretsSection />
+      <BuildConfigurationSection />
       <DangerZoneSection envName={env.name} />
     </div>
   );
