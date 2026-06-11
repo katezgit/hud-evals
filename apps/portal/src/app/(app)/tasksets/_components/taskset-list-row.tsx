@@ -16,6 +16,12 @@ interface TasksetListRowProps {
 
 const RANK_TINT = "bg-state-warning-subtle text-state-warning-text";
 
+// Shared grid template — row + column header must use the same string so cell
+// edges align. Tracks: identity | leaderboard (lg+) | star | tasks | models.
+// 4.5rem widths are the worst-case fit for 3-digit counts at text-caption.
+export const TASKSET_LIST_GRID =
+  "grid grid-cols-[minmax(0,3fr)_4.5rem_4.5rem_4.5rem] lg:grid-cols-[minmax(0,3fr)_minmax(0,4fr)_4.5rem_4.5rem_4.5rem]";
+
 function formatPct(value: number | null): string {
   if (value === null) return "—";
   return `${Math.round(value * 100)}%`;
@@ -43,10 +49,14 @@ export default function TasksetListRow({
   return (
     <Link
       href={`/tasksets/${taskset.id}`}
-      className="group flex flex-row items-center gap-6 rounded-lg border border-border bg-panel px-4 py-3 transition-colors duration-fast hover:border-border-strong hover:bg-hover"
+      className={cn(
+        TASKSET_LIST_GRID,
+        "group items-center gap-6 rounded-lg border border-border bg-panel px-4 py-3 transition-colors duration-fast hover:border-border-strong hover:bg-hover",
+      )}
     >
-      {/* Identity ~30% */}
-      <div className="flex min-w-0 flex-[3] items-center gap-2">
+      {/* Identity track — lock sits inline after the name so it visually hugs
+          the taskset name regardless of name length (no reserved slot). */}
+      <div className="flex min-w-0 items-center gap-2">
         <span className="inline-flex size-6 shrink-0 items-center justify-center rounded bg-secondary text-muted-foreground">
           <ListChecks aria-hidden="true" className="size-3.5" />
         </span>
@@ -62,18 +72,10 @@ export default function TasksetListRow({
           </span>
         </span>
         {tab === "team" && isPrivate && <VisibilityIcon visibility="private" />}
-        <StarCount
-          count={starCount}
-          pressed={isStarred}
-          onPressedChange={onToggleStar}
-          label={taskset.name}
-          size="sm"
-          className={cn(tab === "team" && "text-meta-foreground")}
-        />
       </div>
 
-      {/* Leader-only leaderboard ~45% */}
-      <div className="hidden min-w-0 flex-[4] items-center gap-2 lg:flex">
+      {/* Leaderboard track — lg only */}
+      <div className="hidden min-w-0 items-center gap-2 lg:flex">
         {leader ? (
           <>
             <span
@@ -104,23 +106,40 @@ export default function TasksetListRow({
         )}
       </div>
 
-      {/* Meta block ~25% */}
-      <div className="flex shrink-0 items-center gap-3 text-caption text-muted-foreground">
-        <span
-          aria-label={`${taskset.taskCount} tasks`}
-          className="inline-flex items-center gap-1 tabular-nums"
-        >
-          <ClipboardList aria-hidden="true" className="size-3.5" />
-          <span>{taskset.taskCount}</span>
-        </span>
-        <span
-          aria-label={`${taskset.modelCount} models`}
-          className="inline-flex items-center gap-1 tabular-nums"
-        >
-          <Bot aria-hidden="true" className="size-3.5" />
-          <span>{taskset.modelCount}</span>
-        </span>
+      {/* Star track — fixed-width cell stabilizes the icon's x-position across
+          rows. The count digit width varies inside StarCount, which is fine
+          because nothing right of it depends on the count's right edge. */}
+      <div className="flex items-center justify-start">
+        <StarCount
+          count={starCount}
+          pressed={isStarred}
+          onPressedChange={onToggleStar}
+          label={taskset.name}
+          size="sm"
+          className={cn(
+            "tabular-nums",
+            tab === "team" && "text-meta-foreground",
+          )}
+        />
       </div>
+
+      {/* Tasks track */}
+      <span
+        aria-label={`${taskset.taskCount} tasks`}
+        className="flex items-center justify-end gap-1 text-caption tabular-nums text-muted-foreground"
+      >
+        <ClipboardList aria-hidden="true" className="size-3.5" />
+        <span>{taskset.taskCount}</span>
+      </span>
+
+      {/* Models track */}
+      <span
+        aria-label={`${taskset.modelCount} models`}
+        className="flex items-center justify-end gap-1 text-caption tabular-nums text-muted-foreground"
+      >
+        <Bot aria-hidden="true" className="size-3.5" />
+        <span>{taskset.modelCount}</span>
+      </span>
     </Link>
   );
 }

@@ -25,10 +25,11 @@ import {
   SelectValue,
 } from "@repo/ui/components/select";
 import { Tabs, TabsList, TabsTrigger } from "@repo/ui/components/tabs";
+import { cn } from "@repo/ui/lib/cn";
 import type { Taskset } from "@/lib/mock/tasksets";
 import CreateTasksetDialog from "./create-taskset-dialog";
 import TasksetCard from "./taskset-card";
-import TasksetListRow from "./taskset-list-row";
+import TasksetListRow, { TASKSET_LIST_GRID } from "./taskset-list-row";
 
 type TabKey = "team" | "public";
 type ViewKey = "cards" | "list";
@@ -520,17 +521,18 @@ function ResultsBody({
         to follow. Acceptable margin here vs. brittle measurement. */}
       <div
         role="row"
-        className="sticky top-[7.75rem] z-[5] -mx-2 flex items-center gap-6 bg-background px-6 py-2 text-label uppercase tracking-wider text-muted-foreground"
+        className={cn(
+          TASKSET_LIST_GRID,
+          "sticky top-[7.75rem] z-[5] -mx-2 items-center gap-6 bg-background px-6 py-2 text-label uppercase tracking-wider text-muted-foreground",
+        )}
       >
-        <div className="flex min-w-0 flex-[3]">
-          <span className="truncate">Taskset</span>
+        <div className="min-w-0 truncate">Taskset</div>
+        <div className="hidden min-w-0 truncate lg:block">
+          Top models (Avg)
         </div>
-        <div className="hidden min-w-0 flex-[4] lg:block">
-          <span>Top models (Avg)</span>
-        </div>
-        <div className="flex shrink-0 items-center gap-3">
-          <span>Tasks · Models</span>
-        </div>
+        <div className="justify-self-start">Star</div>
+        <div className="justify-self-end">Tasks</div>
+        <div className="justify-self-end">Models</div>
       </div>
       <ul aria-label="Tasksets" className="flex flex-col gap-4">
         {visible.map((t) => {
