@@ -8,7 +8,7 @@ export type Session = {
 };
 
 const COOKIE_NAME = "portal_session";
-const COOKIE_MAX_AGE_SECONDS = 60 * 60 * 24 * 7; // 7 days
+const COOKIE_MAX_AGE_SECONDS = 60 * 60 * 24 * 7;
 
 function encode(session: Session): string {
   return Buffer.from(JSON.stringify(session), "utf8").toString("base64");
