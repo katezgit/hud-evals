@@ -26,6 +26,8 @@ export const tableHeadVariants = cva(
     "text-label font-medium tracking-[0.01em] uppercase",
     "text-muted-foreground",
     "border-b border-border",
+    // First/last inset aligns with surrounding container chrome (Card px-6, page-section px-6)
+    "first:pl-6 last:pr-6",
   ].join(" "),
   {
     variants: {
@@ -48,7 +50,11 @@ export const tableRowVariants = cva(
 )
 
 export const tableCellVariants = cva(
-  "align-middle text-body font-normal text-foreground whitespace-nowrap",
+  [
+    "align-middle text-body font-normal text-foreground whitespace-nowrap",
+    // First/last inset aligns with surrounding container chrome (Card px-6, page-section px-6)
+    "first:pl-6 last:pr-6",
+  ].join(" "),
   {
     variants: {
       density: { default: "py-2 px-4", compact: "py-1.5 px-3" },
@@ -234,22 +240,28 @@ export interface TableCellProps extends React.ComponentPropsWithoutRef<"td"> {
 }
 
 const TableCell = React.forwardRef<HTMLTableCellElement, TableCellProps>(
-  ({ className, sticky, variant = "default", ...props }, ref) => (
-    <td
-      ref={ref}
-      data-slot="table-cell"
-      className={cn(
-        "align-middle whitespace-nowrap text-body text-foreground",
-        variant === "id" && "px-4 font-mono font-semibold text-code z-table-col",
-        variant !== "id" && "px-4",
-        variant === "numeric" && "text-right font-mono text-code [font-feature-settings:'tnum'_1,'lnum'_1]",
-        variant === "status" && "",
-        sticky && "sticky left-0 bg-background",
-        className
-      )}
-      {...props}
-    />
-  )
+  ({ className, sticky, variant = "default", ...props }, ref) => {
+    const density = React.useContext(DensityContext)
+    // Map TableCell's variant prop to tableCellVariants' variant keys
+    const cvaVariant =
+      variant === "id" ? "mono" :
+      variant === "numeric" ? "mono" :
+      "default"
+    return (
+      <td
+        ref={ref}
+        data-slot="table-cell"
+        className={cn(
+          tableCellVariants({ density, variant: cvaVariant }),
+          variant === "id" && "font-semibold z-table-col",
+          variant === "numeric" && "text-right [font-feature-settings:'tnum'_1,'lnum'_1]",
+          sticky && "sticky left-0 bg-background",
+          className
+        )}
+        {...props}
+      />
+    )
+  }
 )
 TableCell.displayName = "TableCell"
 

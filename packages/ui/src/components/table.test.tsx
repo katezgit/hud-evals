@@ -202,6 +202,50 @@ describe("tableEmptyCellClass", () => {
 })
 
 // ---------------------------------------------------------------------------
+// First / last cell inset — pl-6 / pr-6
+// ---------------------------------------------------------------------------
+
+describe("tableHeadVariants — first:pl-6 last:pr-6 in base", () => {
+  it("includes first:pl-6 in base string (aligns first th with Card/section heading)", () => {
+    const cls = tableHeadVariants()
+    expect(cls).toContain("first:pl-6")
+  })
+
+  it("includes last:pr-6 in base string", () => {
+    const cls = tableHeadVariants()
+    expect(cls).toContain("last:pr-6")
+  })
+
+  it("first:pl-6 is present for both densities", () => {
+    expect(tableHeadVariants({ density: "default" })).toContain("first:pl-6")
+    expect(tableHeadVariants({ density: "compact" })).toContain("first:pl-6")
+  })
+})
+
+describe("tableCellVariants — first:pl-6 last:pr-6 in base", () => {
+  it("includes first:pl-6 in base string (aligns first td with Card/section heading)", () => {
+    const cls = tableCellVariants()
+    expect(cls).toContain("first:pl-6")
+  })
+
+  it("includes last:pr-6 in base string", () => {
+    const cls = tableCellVariants()
+    expect(cls).toContain("last:pr-6")
+  })
+
+  it("first:pl-6 is present for both densities", () => {
+    expect(tableCellVariants({ density: "default" })).toContain("first:pl-6")
+    expect(tableCellVariants({ density: "compact" })).toContain("first:pl-6")
+  })
+
+  it("first:pl-6 is present for all variants (mono, truncated, row-action)", () => {
+    expect(tableCellVariants({ variant: "mono" })).toContain("first:pl-6")
+    expect(tableCellVariants({ variant: "truncated" })).toContain("first:pl-6")
+    expect(tableCellVariants({ variant: "row-action" })).toContain("first:pl-6")
+  })
+})
+
+// ---------------------------------------------------------------------------
 // Table — bordered prop
 // ---------------------------------------------------------------------------
 

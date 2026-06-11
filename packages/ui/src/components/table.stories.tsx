@@ -105,7 +105,7 @@ export const DensityComparison: Story = {
   render: () => (
     <div className="flex flex-col gap-8" style={{ width: 680 }}>
       <div className="flex flex-col gap-2">
-        <p className="text-label text-muted-foreground">Default — 40px rows · header 32px in both</p>
+        <p className="text-label text-muted-foreground">Default — 40px rows · header 32px · first cell pl-6, last cell pr-6 in both densities</p>
         <Table totalCount={3} pageOffset={0} density="default">
           <TableHeader>
             <tr>
@@ -131,7 +131,7 @@ export const DensityComparison: Story = {
       </div>
 
       <div className="flex flex-col gap-2">
-        <p className="text-label text-muted-foreground">Compact — 36px rows · header 32px in both</p>
+        <p className="text-label text-muted-foreground">Compact — 36px rows · header 32px · first cell pl-6, last cell pr-6</p>
         <Table totalCount={3} pageOffset={0} density="compact">
           <TableHeader>
             <tr>
@@ -409,48 +409,55 @@ export const PatternA_PageSection: Story = {
           "The `bordered` prop adds `rounded-md border border-border overflow-hidden bg-card` to the outer wrapper, " +
           "so the table reads as a self-contained card-equivalent surface. " +
           "The `<thead>` carries `bg-muted` (#F0F2F6 light) against the `bg-card` (#FFFFFF light) body, giving a visible header band identical to Pattern B. " +
-          "The last body row's `border-b-0` (applied by TableBody) ensures no doubled bottom edge inside the outer border.",
+          "The last body row's `border-b-0` (applied by TableBody) ensures no doubled bottom edge inside the outer border. " +
+          "First-cell `pl-6` aligns the first column with the section heading's left edge when both share `px-6` indent.",
       },
     },
   },
   render: () => (
-    <div className="flex flex-col gap-3" style={{ width: 560 }}>
+    // Outer px-6 simulates the page-section horizontal indent shared by the heading + table.
+    // First-cell pl-6 keeps the "Name" column optically aligned with "API Keys" heading text.
+    <div className="flex flex-col gap-3 px-6" style={{ width: 612 }}>
       <div>
         <h2 className="text-heading font-semibold text-foreground">API Keys</h2>
         <p className="mt-1 text-body text-muted-foreground">
           Keys are scoped to this workspace. Revoke any key at any time.
         </p>
       </div>
-      <Table totalCount={3} pageOffset={0} bordered>
-        <TableHeader>
-          <tr>
-            <TableHeaderCell label="Name" />
-            <TableHeaderCell label="Created" />
-            <TableHeaderCell label="Last used" />
-            <TableHeaderCell label="Scope" />
-          </tr>
-        </TableHeader>
-        <TableBody>
-          <TableRow>
-            <TableCell>prod-ci</TableCell>
-            <TableCell>2026-06-01</TableCell>
-            <TableCell>2026-06-10</TableCell>
-            <TableCell>read:write</TableCell>
-          </TableRow>
-          <TableRow>
-            <TableCell>staging</TableCell>
-            <TableCell>2026-05-14</TableCell>
-            <TableCell>2026-06-08</TableCell>
-            <TableCell>read:write</TableCell>
-          </TableRow>
-          <TableRow>
-            <TableCell>local-dev</TableCell>
-            <TableCell>2026-04-20</TableCell>
-            <TableCell>2026-06-09</TableCell>
-            <TableCell>read:write</TableCell>
-          </TableRow>
-        </TableBody>
-      </Table>
+      {/* Table has no px — the outer div provides page-section indent. */}
+      {/* First cell gets pl-6 from first:pl-6 in tableHeadVariants / tableCellVariants. */}
+      <div style={{ marginLeft: "-1.5rem", marginRight: "-1.5rem" }}>
+        <Table totalCount={3} pageOffset={0} bordered>
+          <TableHeader>
+            <tr>
+              <TableHeaderCell label="Name" />
+              <TableHeaderCell label="Created" />
+              <TableHeaderCell label="Last used" />
+              <TableHeaderCell label="Scope" />
+            </tr>
+          </TableHeader>
+          <TableBody>
+            <TableRow>
+              <TableCell>prod-ci</TableCell>
+              <TableCell>2026-06-01</TableCell>
+              <TableCell>2026-06-10</TableCell>
+              <TableCell>read:write</TableCell>
+            </TableRow>
+            <TableRow>
+              <TableCell>staging</TableCell>
+              <TableCell>2026-05-14</TableCell>
+              <TableCell>2026-06-08</TableCell>
+              <TableCell>read:write</TableCell>
+            </TableRow>
+            <TableRow>
+              <TableCell>local-dev</TableCell>
+              <TableCell>2026-04-20</TableCell>
+              <TableCell>2026-06-09</TableCell>
+              <TableCell>read:write</TableCell>
+            </TableRow>
+          </TableBody>
+        </Table>
+      </div>
     </div>
   ),
 }
@@ -464,18 +471,22 @@ export const PatternB_InsideCard: Story = {
           "Use plain `<Table>` (no `bordered`) when the table is one panel among others. " +
           "The Card carries its own heading + subtitle and provides all outer chrome via `border` + `bg-panel`. " +
           "The table adds no outer border — the Card IS the container. " +
-          "Use `overflow-hidden p-0` on the Card so the table flush-fills the card's rounded corners.",
+          "Use `overflow-hidden p-0` on the Card so the table flush-fills the card's rounded corners. " +
+          "CardHeader uses `px-6` and the table's first cell gets `first:pl-6`, " +
+          "so the first column aligns with the card heading text.",
       },
     },
   },
   render: () => (
     <div style={{ width: 560 }}>
       <Card className="overflow-hidden p-0">
-        <CardHeader className="px-4 pt-4 pb-3">
+        {/* CardHeader px-6 = 24px — matches first:pl-6 on table cells, keeping column aligned with heading */}
+        <CardHeader className="px-6 pt-5 pb-4">
           <CardTitle>Billing history</CardTitle>
           <CardDescription>Invoices for the last 12 months.</CardDescription>
         </CardHeader>
         <CardContent className="p-0">
+          {/* First cell pl-6 aligns with CardHeader's px-6 — "Invoice" lines up with "Billing history" */}
           <Table totalCount={3} pageOffset={0}>
             <TableHeader>
               <tr>
