@@ -230,11 +230,11 @@ A single new semantic token `--color-grid-line` is declared in `packages/ui/src/
 ```css
 /* Grid backdrop — decorative hairline for the main scroll region.
  * Derivative of border-seed: same hue family as structural borders, alpha-only.
- * Light: 7% alpha dark seed over --surface-bg-light (#F6F8FA) → effective L≈0.95 OKLCH.
- * Dark:  5.5% alpha white seed over --surface-bg-dark (#0C1016) → effective L≈0.14 OKLCH. */
+ * Light: 2% alpha dark seed over --surface-bg-light (#F6F8FA) → effective L≈0.97 OKLCH.
+ * Dark:  1.5% alpha white seed over --surface-bg-dark (#0C1016) → effective L≈0.11 OKLCH. */
 --color-grid-line: light-dark(
-  rgb(var(--border-seed-light) / .07),
-  rgb(var(--border-seed-dark)  / .055)
+  rgb(var(--border-seed-light) / .02),
+  rgb(var(--border-seed-dark)  / .015)
 );
 ```
 
@@ -295,8 +295,8 @@ At ultrawide viewports (e.g. 3440px), the area beyond the 1536px content cap sho
 
 | Mode | Background (`--color-background`) | Grid line (`--color-grid-line`) | Effective line lightness |
 |---|---|---|---|
-| Light | `#F6F8FA` (OKLCH L≈0.98) | `rgb(20 30 25 / .07)` | OKLCH L≈0.95 — just above bg |
-| Dark | `#0C1016` (OKLCH L≈0.09) | `rgb(255 255 255 / .055)` | OKLCH L≈0.14 — barely above bg |
+| Light | `#F6F8FA` (OKLCH L≈0.98) | `rgb(20 30 25 / .02)` | OKLCH L≈0.97 — barely above bg |
+| Dark | `#0C1016` (OKLCH L≈0.09) | `rgb(255 255 255 / .015)` | OKLCH L≈0.11 — barely above bg |
 
 Both modes maintain equivalent perceptual contrast between line and ground (~3 OKLCH lightness points). The dark-mode value is slightly warmer in effect (white seed over near-black) but the alpha is low enough that the tint is negligible.
 
