@@ -71,11 +71,6 @@ function usePageScrolled(options?: UsePageScrolledOptions): boolean {
       target.removeEventListener("scroll", onScroll)
       if (rafId !== null) cancelAnimationFrame(rafId)
     }
-  // ref.current identity changes are intentionally excluded — callers are
-  // expected to pass a stable ref object. Re-running on ref object identity
-  // would be a no-op since the object reference itself doesn't change after
-  // the initial render.
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [threshold, ref])
 
   return scrolled
