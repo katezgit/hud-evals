@@ -11,6 +11,14 @@ import { cn } from "@repo/ui/lib/cn";
 
 interface ManageTableProps<TData> {
   table: Table<TData>;
+  /**
+   * Pattern A — page-section table with no surrounding Card. Wraps the
+   * scroller in `rounded-md border` so the table reads as a bounded section
+   * against the page background. Omit when the table sits inside a Card
+   * (Pattern B) — Card chrome IS the chrome; double containers are an anti-pattern.
+   * Mirrors the `bordered` prop on the DS `<Table />` primitive.
+   */
+  bordered?: boolean;
 }
 
 /**
@@ -27,9 +35,14 @@ interface ManageTableProps<TData> {
  * (e.g. `text-right`, `w-10`). Font / padding / muted-color defaults come from
  * `tableHeadVariants` / `tableCellVariants` and should not be re-stated.
  */
-export default function ManageTable<TData>({ table }: ManageTableProps<TData>) {
+export default function ManageTable<TData>({ table, bordered }: ManageTableProps<TData>) {
   return (
-    <div className="relative w-full overflow-x-auto">
+    <div
+      className={cn(
+        "relative w-full overflow-x-auto",
+        bordered && "overflow-hidden rounded-md border border-border",
+      )}
+    >
       <table className={tableClass}>
         <thead className={tableHeaderClass}>
           {table.getHeaderGroups().map((headerGroup) => (

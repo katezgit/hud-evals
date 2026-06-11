@@ -44,5 +44,5 @@ export function LimitsTable({ rows }: LimitsTableProps) {
     getCoreRowModel: getCoreRowModel(),
   });
 
-  return <ManageTable table={table} />;
+  return <ManageTable table={table} bordered />;
 }
