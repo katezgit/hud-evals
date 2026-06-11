@@ -37,13 +37,13 @@ function ToolCard({ tool }: { tool: Tool }) {
   return (
     <article className="flex w-full flex-col gap-2 rounded-lg border border-border bg-panel p-3">
       <header className="flex flex-col gap-1">
-        <h3 className="font-mono text-label font-semibold text-foreground">
+        <h3 className="font-mono text-label font-medium text-foreground">
           {tool.name}
         </h3>
         <p className="text-label text-muted-foreground">{tool.description}</p>
       </header>
       {tool.params.length > 0 && (
-        <ul className="flex flex-col gap-2">
+        <ul className="flex flex-col gap-2 border-t border-border pt-2">
           {tool.params.map((p) => (
             <ToolParamRow key={p.name} param={p} />
           ))}
@@ -55,12 +55,12 @@ function ToolCard({ tool }: { tool: Tool }) {
 
 function ToolParamRow({ param }: { param: ToolParam }) {
   return (
-    <li className="flex flex-col gap-0.5 border-t border-border pt-2 first:border-t-0 first:pt-0">
+    <li className="flex flex-col gap-0.5">
       <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
         <span className="font-mono text-meta font-semibold text-foreground">
           {param.name}
         </span>
-        <span className="font-mono text-meta text-muted-foreground">
+        <span className="font-mono text-meta text-meta-foreground">
           {param.type}
         </span>
         {param.required ? (
@@ -69,7 +69,7 @@ function ToolParamRow({ param }: { param: ToolParam }) {
           </span>
         ) : null}
         {param.default !== undefined && !param.required ? (
-          <span className={cn("font-mono text-meta text-muted-foreground")}>
+          <span className={cn("font-mono text-meta text-meta-foreground")}>
             default: {param.default}
           </span>
         ) : null}
