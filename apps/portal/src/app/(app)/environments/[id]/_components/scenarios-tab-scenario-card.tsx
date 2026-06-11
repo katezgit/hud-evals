@@ -32,7 +32,9 @@ import type { Scenario, ScenarioSchemaEntry } from "../_data/types";
  *    visual language matches OverviewScenarioCard.
  *  - Create Task remains enabled — authoring a Task definition is independent
  *    of whether the run drawer is open.
- *  - Card border switches to `border-foreground`, the canonical loaded token.
+ *  - Card frame mirrors OverviewScenarioCard's loaded treatment exactly:
+ *    `border-primary` + `bg-primary-glow` + teal title — so a card in either
+ *    surface reads identically when it's the active "loaded" target.
  *
  * Sibling: OverviewScenarioCard (orient-and-validate surface).
  */
@@ -63,13 +65,20 @@ export function ScenariosTabScenarioCard({
     <article
       aria-current={loaded ? "true" : undefined}
       className={cn(
-        "group/card flex h-full w-full flex-col gap-3 rounded-lg border bg-panel p-4",
-        "transition-shadow hover:shadow-(--shadow-card)",
-        loaded ? "border-foreground" : "border-border",
+        "group/card flex h-full w-full flex-col gap-3 rounded-lg border p-4",
+        "transition-[box-shadow,background-color,border-color]",
+        loaded
+          ? "border-primary bg-primary-glow"
+          : "border-border bg-panel hover:shadow-(--shadow-card)",
       )}
     >
       <header className="flex items-start justify-between gap-2">
-        <h3 className="font-mono text-body font-semibold text-foreground truncate">
+        <h3
+          className={cn(
+            "font-mono text-body font-semibold truncate",
+            loaded ? "text-primary" : "text-foreground",
+          )}
+        >
           {scenario.name}
         </h3>
         <div className="flex shrink-0 items-center gap-1">
