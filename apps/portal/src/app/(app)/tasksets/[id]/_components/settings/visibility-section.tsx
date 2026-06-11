@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Lock, TriangleAlertIcon } from "lucide-react";
 import { toast } from "sonner";
+import { Badge } from "@repo/ui/components/badge";
 import { Button } from "@repo/ui/components/button";
 import {
   Dialog,
@@ -37,15 +38,11 @@ export default function VisibilitySection({
     <section className="flex flex-col gap-3">
       <h3 className="text-body font-semibold text-foreground">Visibility</h3>
 
-      <div className="flex items-center gap-2">
-        <Lock aria-hidden="true" className="size-4 text-muted-foreground" />
-        <span className="text-body text-foreground">Private</span>
-      </div>
-      <p className="text-caption text-muted-foreground">
-        This Taskset is only visible to your org.
-      </p>
-
-      <div className="flex flex-col items-start gap-1.5">
+      <div className="flex items-center justify-between gap-3">
+        <Badge variant="neutral" size="sm">
+          <Lock aria-hidden="true" className="size-3" />
+          Private
+        </Badge>
         <Button
           type="button"
           variant="primary"
@@ -54,13 +51,14 @@ export default function VisibilitySection({
         >
           Publish
         </Button>
-        <p className="text-caption text-muted-foreground">
-          Make this Taskset visible in the public Marketplace.
-        </p>
       </div>
 
+      <p className="text-caption text-muted-foreground">
+        This Taskset is only visible to your org.
+      </p>
+
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent size="sm">
+        <DialogContent size="md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <TriangleAlertIcon
@@ -70,8 +68,8 @@ export default function VisibilitySection({
               Publish &lsquo;{tasksetName}&rsquo; to the Marketplace?
             </DialogTitle>
             <DialogDescription>
-              This Taskset and its leaderboard entries will be visible to other
-              orgs. Future Job runs on this Taskset will appear in the public
+              This Taskset and its leaderboard entries will be visible to
+              others. Future Job runs on this Taskset will appear in the public
               leaderboard.
             </DialogDescription>
           </DialogHeader>
