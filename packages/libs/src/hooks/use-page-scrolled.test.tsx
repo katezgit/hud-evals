@@ -3,8 +3,6 @@ import { renderHook, act } from "@testing-library/react"
 import { jest } from "@jest/globals"
 import { usePageScrolled } from "./use-page-scrolled"
 
-// ── Environment setup ─────────────────────────────────────────────────────────
-//
 // jsdom returns null for document.scrollingElement because it doesn't
 // implement the full CSSOM View spec. Patch it to return documentElement
 // (matching browser behavior) so the hook's window-scroll path is testable.
@@ -28,8 +26,6 @@ afterAll(() => {
   }
 })
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
-
 /** Sets document.scrollingElement.scrollTop (window scroll target in tests). */
 function setWindowScrollTop(px: number) {
   Object.defineProperty(document.documentElement, "scrollTop", {
@@ -46,8 +42,6 @@ async function flushRaf() {
   })
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-
 describe("usePageScrolled", () => {
   beforeEach(() => {
     jest.useFakeTimers()
@@ -57,8 +51,6 @@ describe("usePageScrolled", () => {
   afterEach(() => {
     jest.useRealTimers()
   })
-
-  // ── Initial state ──────────────────────────────────────────────────────────
 
   it("returns false on initial mount when window scrollTop is 0", () => {
     const { result } = renderHook(() => usePageScrolled())
@@ -72,8 +64,6 @@ describe("usePageScrolled", () => {
     expect(result.current).toBe(true)
   })
 
-  // ── Threshold boundary ─────────────────────────────────────────────────────
-
   it("returns false when scrollTop equals threshold (strict > not >=)", () => {
     setWindowScrollTop(8) // exactly at default threshold, not past it
     const { result } = renderHook(() => usePageScrolled())
@@ -86,8 +76,6 @@ describe("usePageScrolled", () => {
     expect(result.current).toBe(true)
   })
 
-  // ── Custom threshold ───────────────────────────────────────────────────────
-
   it("returns false with custom threshold when scrollTop is below it", () => {
     setWindowScrollTop(50)
     const { result } = renderHook(() => usePageScrolled({ threshold: 100 }))
@@ -99,8 +87,6 @@ describe("usePageScrolled", () => {
     const { result } = renderHook(() => usePageScrolled({ threshold: 100 }))
     expect(result.current).toBe(true)
   })
-
-  // ── Scroll events via window ───────────────────────────────────────────────
 
   it("transitions false → true after a scroll event drives scrollTop past threshold", async () => {
     const { result } = renderHook(() => usePageScrolled())
@@ -127,8 +113,6 @@ describe("usePageScrolled", () => {
     expect(result.current).toBe(false)
   })
 
-  // ── RAF coalescing ─────────────────────────────────────────────────────────
-
   it("coalesces 5 synchronous scroll events into one React render per RAF tick", async () => {
     let renderCount = 0
     const { result } = renderHook(() => {
@@ -153,16 +137,12 @@ describe("usePageScrolled", () => {
     expect(result.current).toBe(true)
   })
 
-  // ── Window fallback (no ref) ───────────────────────────────────────────────
-
   it("attaches the scroll listener to window when no ref is provided", () => {
     const addSpy = jest.spyOn(window, "addEventListener")
     renderHook(() => usePageScrolled())
     expect(addSpy).toHaveBeenCalledWith("scroll", expect.any(Function), { passive: true })
     addSpy.mockRestore()
   })
-
-  // ── Ref-based scroll target ───────────────────────────────────────────────
 
   it("attaches the listener to the scrollable ancestor of the ref element, not window", () => {
     const container = document.createElement("div")
@@ -204,8 +184,6 @@ describe("usePageScrolled", () => {
 
     document.body.removeChild(container)
   })
-
-  // ── Cleanup on unmount ────────────────────────────────────────────────────
 
   it("removes the scroll listener from window on unmount", () => {
     const removeSpy = jest.spyOn(window, "removeEventListener")
