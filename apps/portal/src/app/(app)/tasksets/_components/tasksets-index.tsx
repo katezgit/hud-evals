@@ -523,7 +523,7 @@ function ResultsBody({
         role="row"
         className={cn(
           TASKSET_LIST_GRID,
-          "sticky top-[7.75rem] z-[5] -mx-2 items-center gap-6 bg-background px-6 py-2 text-label uppercase tracking-wider text-muted-foreground",
+          "sticky top-[7.75rem] z-[5] -mx-2 items-center gap-6 bg-background px-6 py-2 text-label text-muted-foreground",
         )}
       >
         <div className="min-w-0 truncate">Taskset</div>

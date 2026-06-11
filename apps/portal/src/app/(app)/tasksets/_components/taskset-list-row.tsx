@@ -92,7 +92,7 @@ export default function TasksetListRow({
             </span>
             <span
               className={cn(
-                "ml-auto font-mono text-caption tabular-nums",
+                "shrink-0 font-mono text-caption tabular-nums",
                 tone(leader.average),
               )}
             >
