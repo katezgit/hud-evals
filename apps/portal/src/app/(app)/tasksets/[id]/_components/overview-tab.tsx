@@ -120,7 +120,12 @@ export default function OverviewTab({ taskset }: OverviewTabProps) {
   }, [taskset.leaderboard, sort, stepsFilter]);
 
   if (taskset.leaderboard.length === 0) {
-    return <OverviewEmptyState taskset={taskset} />;
+    return (
+      <div className="flex flex-col gap-4 pb-4">
+        <LastModifiedLine taskset={taskset} />
+        <OverviewEmptyState taskset={taskset} />
+      </div>
+    );
   }
 
   const topAverage = taskset.leaderboard
@@ -131,66 +136,84 @@ export default function OverviewTab({ taskset }: OverviewTabProps) {
   const stepsFilterActive = stepsFilter !== "unlimited";
 
   return (
-    <div className="grid grid-cols-1 gap-6 pb-4 lg:grid-cols-[1fr_360px]">
-      <div className="overflow-hidden rounded-lg border border-border bg-card">
-        <table className={tableClass}>
-          <thead className={tableHeaderClass}>
-            <tr>
-              <th
-                scope="col"
-                className={cn(
-                  tableHeadVariants({ density: "compact" }),
-                  "normal-case tracking-normal",
-                )}
-              >
-                <span className="text-label font-medium text-muted-foreground">
-                  Agent
-                </span>
-              </th>
-              {METRIC_COLUMNS.map((col) => (
-                <SortableHeaderCell
-                  key={col.key}
-                  column={col}
-                  sort={sort}
-                  onSort={() => setSort((s) => nextSortState(s, col.key))}
-                  filterSlot={
-                    col.key === "steps" ? (
-                      <StepsFilterMenu
-                        value={stepsFilter}
-                        onChange={setStepsFilter}
-                        active={stepsFilterActive}
-                      />
-                    ) : null
-                  }
+    <div className="flex flex-col gap-4 pb-4">
+      <LastModifiedLine taskset={taskset} />
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_360px]">
+        <div className="overflow-hidden rounded-lg border border-border bg-card">
+          <table className={tableClass}>
+            <thead className={tableHeaderClass}>
+              <tr>
+                <th
+                  scope="col"
+                  className={cn(
+                    tableHeadVariants({ density: "compact" }),
+                    "normal-case tracking-normal",
+                  )}
+                >
+                  <span className="text-label font-medium text-muted-foreground">
+                    Agent
+                  </span>
+                </th>
+                {METRIC_COLUMNS.map((col) => (
+                  <SortableHeaderCell
+                    key={col.key}
+                    column={col}
+                    sort={sort}
+                    onSort={() => setSort((s) => nextSortState(s, col.key))}
+                    filterSlot={
+                      col.key === "steps" ? (
+                        <StepsFilterMenu
+                          value={stepsFilter}
+                          onChange={setStepsFilter}
+                          active={stepsFilterActive}
+                        />
+                      ) : null
+                    }
+                  />
+                ))}
+                <th
+                  scope="col"
+                  className={cn(
+                    tableHeadVariants({ density: "compact" }),
+                    "w-12 normal-case tracking-normal",
+                  )}
+                >
+                  <span className="sr-only">Actions</span>
+                </th>
+              </tr>
+            </thead>
+            <tbody className={tableBodyClass}>
+              {visibleRows.map((row, i) => (
+                <LeaderboardRow
+                  key={`${row.rank}-${row.agentName}`}
+                  row={row}
+                  displayRank={i + 1}
+                  topAverage={topAverage}
+                  tasksetId={taskset.id}
                 />
               ))}
-              <th
-                scope="col"
-                className={cn(
-                  tableHeadVariants({ density: "compact" }),
-                  "w-12 normal-case tracking-normal",
-                )}
-              >
-                <span className="sr-only">Actions</span>
-              </th>
-            </tr>
-          </thead>
-          <tbody className={tableBodyClass}>
-            {visibleRows.map((row, i) => (
-              <LeaderboardRow
-                key={`${row.rank}-${row.agentName}`}
-                row={row}
-                displayRank={i + 1}
-                topAverage={topAverage}
-                tasksetId={taskset.id}
-              />
-            ))}
-          </tbody>
-        </table>
-      </div>
+            </tbody>
+          </table>
+        </div>
 
-      <TopPerformersCard rows={visibleRows} />
+        <TopPerformersCard rows={visibleRows} />
+      </div>
     </div>
+  );
+}
+
+const LAST_MODIFIED_DATE = "2026-05-12";
+const LAST_MODIFIED_FORMATTER = new Intl.DateTimeFormat("en-US", {
+  dateStyle: "medium",
+});
+
+function LastModifiedLine({ taskset }: { taskset: Taskset }) {
+  const handle = `@${taskset.ownerName.toLowerCase().replace(/\s+/g, "-")}`;
+  const formatted = LAST_MODIFIED_FORMATTER.format(new Date(LAST_MODIFIED_DATE));
+  return (
+    <p className="text-caption text-meta-foreground">
+      Last modified {formatted} by {handle}
+    </p>
   );
 }
 
