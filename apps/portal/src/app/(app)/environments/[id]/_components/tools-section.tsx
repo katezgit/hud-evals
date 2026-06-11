@@ -37,10 +37,10 @@ function ToolCard({ tool }: { tool: Tool }) {
   return (
     <article className="flex w-full flex-col gap-2 rounded-lg border border-border bg-panel p-3">
       <header className="flex flex-col gap-1">
-        <h3 className="font-mono text-label font-medium text-foreground">
+        <h3 className="font-mono text-body font-bold text-foreground">
           {tool.name}
         </h3>
-        <p className="text-label text-muted-foreground">{tool.description}</p>
+        <p className="text-body text-muted-foreground">{tool.description}</p>
       </header>
       {tool.params.length > 0 && (
         <ul className="flex flex-col gap-2 border-t border-border pt-2">
@@ -75,7 +75,7 @@ function ToolParamRow({ param }: { param: ToolParam }) {
         ) : null}
       </div>
       {param.description ? (
-        <p className="text-meta text-muted-foreground">{param.description}</p>
+        <p className="text-body text-muted-foreground">{param.description}</p>
       ) : null}
       {param.values && param.values.length > 0 ? (
         <p className="font-mono text-meta text-meta-foreground">
