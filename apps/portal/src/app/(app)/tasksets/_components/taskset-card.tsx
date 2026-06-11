@@ -40,7 +40,7 @@ export default function TasksetCard({
         <span className="inline-flex size-6 shrink-0 items-center justify-center rounded bg-secondary text-muted-foreground">
           <ListChecks aria-hidden="true" className="size-3.5" />
         </span>
-        <span className="flex min-w-0 flex-1 items-baseline gap-1.5 font-mono text-body">
+        <span className="flex min-w-0 items-baseline gap-1.5 font-mono text-body">
           <span className="truncate text-muted-foreground">
             {taskset.ownerName}
           </span>
@@ -58,7 +58,7 @@ export default function TasksetCard({
           onPressedChange={onToggleStar}
           label={taskset.name}
           size="sm"
-          className={cn(tab === "team" && "text-meta-foreground")}
+          className={cn("ml-auto", tab === "team" && "text-meta-foreground")}
         />
       </div>
 
