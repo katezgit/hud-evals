@@ -85,7 +85,7 @@ const Table = React.forwardRef<HTMLDivElement, TableProps>(
         data-page-offset={pageOffset}
         className={cn(
           "relative w-full overflow-x-auto",
-          bordered && "rounded-md border border-border overflow-hidden bg-elevated",
+          bordered && "rounded-md border border-border overflow-hidden bg-card",
           className
         )}
         {...props}

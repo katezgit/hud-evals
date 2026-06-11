@@ -406,9 +406,9 @@ export const PatternA_PageSection: Story = {
       description: {
         story:
           "Use `<Table bordered>` when the table IS the page section — no Card wrapper. " +
-          "The `bordered` prop adds `rounded-md border border-border overflow-hidden bg-elevated` to the outer wrapper, " +
-          "so the table reads as a content surface lifted off the page background rather than a transparent section. " +
-          "The `<thead>` carries `bg-muted` to differentiate the label row from data rows. " +
+          "The `bordered` prop adds `rounded-md border border-border overflow-hidden bg-card` to the outer wrapper, " +
+          "so the table reads as a self-contained card-equivalent surface. " +
+          "The `<thead>` carries `bg-muted` (#F0F2F6 light) against the `bg-card` (#FFFFFF light) body, giving a visible header band identical to Pattern B. " +
           "The last body row's `border-b-0` (applied by TableBody) ensures no doubled bottom edge inside the outer border.",
       },
     },

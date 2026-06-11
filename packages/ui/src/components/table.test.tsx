@@ -206,7 +206,7 @@ describe("tableEmptyCellClass", () => {
 // ---------------------------------------------------------------------------
 
 describe("Table bordered prop", () => {
-  it("adds border + bg-elevated to the wrapper when bordered=true", () => {
+  it("adds border + bg-card to the wrapper when bordered=true", () => {
     const { getByTestId } = render(
       <Table totalCount={0} pageOffset={0} bordered data-testid="table-root" />
     )
@@ -214,7 +214,7 @@ describe("Table bordered prop", () => {
     expect(wrapper.className).toContain("border")
     expect(wrapper.className).toContain("rounded-md")
     expect(wrapper.className).toContain("overflow-hidden")
-    expect(wrapper.className).toContain("bg-elevated")
+    expect(wrapper.className).toContain("bg-card")
   })
 
   it("does NOT add border class when bordered is omitted", () => {
