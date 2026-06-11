@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 
 export default function ModelsPage() {
   return (
-    <div className="flex flex-col gap-2 px-8 py-6">
+    <div className="flex flex-col gap-2 px-4 md:px-8 py-6">
       <header className="flex flex-col gap-1">
         <div className="flex items-center gap-2">
           <h1 className="text-display font-semibold text-foreground">Models</h1>

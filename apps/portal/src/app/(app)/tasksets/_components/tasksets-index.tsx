@@ -276,7 +276,7 @@ export default function TasksetsIndex({ tasksets }: TasksetsIndexProps) {
     // Drives the list-view column header's pinned top so the two stickies sit
     // flush with no overlap/gap jump. Update both together if chrome shape changes.
     <div
-      className="isolate flex flex-col px-8 pb-10 [--chrome-h:7.875rem]"
+      className="isolate flex flex-col px-4 md:px-8 pb-10 [--chrome-h:7.875rem]"
     >
       <div
         ref={stickyRef}
@@ -299,7 +299,7 @@ export default function TasksetsIndex({ tasksets }: TasksetsIndexProps) {
           "transition-[border-color,box-shadow] prop-(--motion-state-change)",
         )}
       >
-        <header className="flex items-start justify-between gap-6">
+        <header className="flex items-center justify-between gap-3 md:gap-6">
           <h1 className="text-display font-semibold text-foreground">
             {/* TODO: docs icon `[?]` per wireframe §2 — URL contract unconfirmed. */}
             Tasksets

@@ -21,16 +21,6 @@ const ENV_TYPE_LABEL: Record<EnvType, string> = {
   custom: "Custom",
 };
 
-/**
- * Sticky page header for the env detail surface — two-altitude pattern
- * shared with model-detail and taskset-detail. Breadcrumb · title row ·
- * descriptor strip. The descriptor strip is the single metadata source
- * (slug, source, created-at); the Overview body intentionally repeats
- * none of it.
- *
- * Anchor sections in the body must use `scroll-mt-32` (~96px) so deep-link
- * jumps land below the combined sticky header + tab strip.
- */
 export interface EnvDetailHeaderProps {
   name: string;
   type: EnvType;
