@@ -88,8 +88,8 @@ function DropdownMenuItem({
         "text-body text-popover-foreground outline-hidden",
         // data-[highlighted] fires on both pointer hover + keyboard nav — sidesteps the
         // Tailwind v4 :hover/:focus cascade issue. No font-medium (weight shift jitters glyphs).
-        "data-[highlighted]:bg-highlight",
-        // Suppress global *:focus-visible ring — bg-highlight is the sole active-option indicator.
+        "data-[highlighted]:bg-highlight-surface",
+        // Suppress global *:focus-visible ring — bg-highlight-surface is the sole active-option indicator.
         // Forced-colors fallback restores a visible outline in Windows HC mode.
         "focus-visible:shadow-none focus-visible:outline-none",
         "forced-colors:focus-visible:outline-2 forced-colors:focus-visible:outline-current",
@@ -123,8 +123,8 @@ function DropdownMenuCheckboxItem({
         "relative flex cursor-default select-none items-center gap-2 rounded-md py-1.5 pr-2 pl-8",
         "text-body text-popover-foreground outline-hidden",
         // data-[highlighted] fires on both pointer + keyboard; no font-medium (weight shift jitters glyphs).
-        "data-[highlighted]:bg-highlight",
-        // Suppress global *:focus-visible ring — bg-highlight is the sole active-option indicator.
+        "data-[highlighted]:bg-highlight-surface",
+        // Suppress global *:focus-visible ring — bg-highlight-surface is the sole active-option indicator.
         // Forced-colors fallback restores a visible outline in Windows HC mode.
         "focus-visible:shadow-none focus-visible:outline-none",
         "forced-colors:focus-visible:outline-2 forced-colors:focus-visible:outline-current",
@@ -169,8 +169,8 @@ function DropdownMenuRadioItem({
         "relative flex cursor-default select-none items-center gap-2 rounded-md py-1.5 pr-2 pl-8",
         "text-body text-popover-foreground outline-hidden",
         // data-[highlighted] fires on both pointer + keyboard; no font-medium (weight shift jitters glyphs).
-        "data-[highlighted]:bg-highlight",
-        // Suppress global *:focus-visible ring — bg-highlight is the sole active-option indicator.
+        "data-[highlighted]:bg-highlight-surface",
+        // Suppress global *:focus-visible ring — bg-highlight-surface is the sole active-option indicator.
         // Forced-colors fallback restores a visible outline in Windows HC mode.
         "focus-visible:shadow-none focus-visible:outline-none",
         "forced-colors:focus-visible:outline-2 forced-colors:focus-visible:outline-current",
@@ -262,8 +262,8 @@ function DropdownMenuSubTrigger({
         "flex cursor-default select-none items-center gap-2 rounded-md px-2 py-1.5",
         "text-body text-popover-foreground outline-hidden",
         // data-[highlighted] fires on both pointer + keyboard; no font-medium (weight shift jitters glyphs).
-        "data-[highlighted]:bg-highlight",
-        // Suppress global *:focus-visible ring — bg-highlight is the sole active-option indicator.
+        "data-[highlighted]:bg-highlight-surface",
+        // Suppress global *:focus-visible ring — bg-highlight-surface is the sole active-option indicator.
         // Forced-colors fallback restores a visible outline in Windows HC mode.
         "focus-visible:shadow-none focus-visible:outline-none",
         "forced-colors:focus-visible:outline-2 forced-colors:focus-visible:outline-current",

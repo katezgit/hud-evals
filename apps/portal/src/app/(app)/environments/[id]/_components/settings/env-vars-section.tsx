@@ -266,7 +266,7 @@ export function EnvVarsSection({ vars }: EnvVarsSectionProps) {
 
           <p className="text-label text-meta-foreground">
             Or set via{" "}
-            <code className="font-mono text-meta rounded bg-muted px-1 py-0.5 text-foreground">
+            <code className="font-mono text-meta rounded bg-muted-surface px-1 py-0.5 text-foreground">
               hud deploy -e KEY=value
             </code>
           </p>
@@ -375,7 +375,7 @@ function AddVarForm({
   return (
     <div
       data-add-env-var-form
-      className="flex flex-col gap-1.5 rounded-md border border-dashed border-border bg-muted/30 p-2.5"
+      className="flex flex-col gap-1.5 rounded-md border border-dashed border-border bg-muted-surface/30 p-2.5"
     >
       <div className="text-label font-medium text-muted-foreground">
         Add new variable

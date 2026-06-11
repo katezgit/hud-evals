@@ -26,7 +26,7 @@ export function EmptyState() {
     <div className="flex flex-col items-center gap-4 px-6 py-10 text-center">
       <span
         aria-hidden="true"
-        className="inline-flex size-12 items-center justify-center rounded-full bg-muted text-muted-foreground"
+        className="inline-flex size-12 items-center justify-center rounded-full bg-muted-surface text-muted-foreground"
       >
         <ListChecks className="size-6" />
       </span>

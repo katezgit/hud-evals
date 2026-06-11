@@ -21,7 +21,7 @@ function Textarea({ className, ...props }: React.ComponentProps<"textarea">) {
         "transition-[color,box-shadow,outline]",
         "disabled:cursor-not-allowed disabled:pointer-events-none",
         // disabled: Family 3 — value text uses --muted-foreground (not --text-disabled, which is too light for content)
-        "disabled:bg-muted disabled:border-border disabled:text-muted-foreground",
+        "disabled:bg-muted-surface disabled:border-border disabled:text-muted-foreground",
         "disabled:placeholder:text-muted-foreground/70",
         "aria-invalid:border-state-errored",
         className

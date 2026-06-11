@@ -10,7 +10,7 @@ interface LeaderboardPreviewProps {
 
 const RANK_TINT: Record<number, string> = {
   1: "bg-state-warning-subtle text-state-warning-text",
-  2: "bg-secondary text-secondary-foreground",
+  2: "bg-secondary-surface text-secondary-foreground",
   3: "bg-state-scored-subtle text-state-scored-text",
 };
 
@@ -53,7 +53,7 @@ export default function LeaderboardPreview({
       </div>
       <ul className="flex flex-col">
         {visible.map((row) => {
-          const tint = RANK_TINT[row.rank] ?? "bg-muted text-muted-foreground";
+          const tint = RANK_TINT[row.rank] ?? "bg-muted-surface text-muted-foreground";
           return (
             <li
               key={row.rank}

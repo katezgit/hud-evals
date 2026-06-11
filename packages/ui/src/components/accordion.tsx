@@ -14,10 +14,10 @@ const stepIconVariants = cva(
   {
     variants: {
       stepState: {
-        default:   "border border-border bg-muted",
+        default:   "border border-border bg-muted-surface",
         active:    "bg-foreground",
         completed: "bg-state-scored-subtle",
-        locked:    "border border-border bg-muted",
+        locked:    "border border-border bg-muted-surface",
       },
     },
     defaultVariants: {

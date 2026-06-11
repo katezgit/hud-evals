@@ -45,7 +45,7 @@ export function EnvCard({ env, isStarred, starCount }: EnvCardProps) {
     // `isolate`, those z-10 nodes escape into the page-level stacking context
     // and tie with the sticky page chrome (also z-10), letting card content
     // visibly bleed through the pinned header on scroll.
-    <article className="group relative isolate flex h-full flex-col gap-3 rounded-lg border border-border bg-panel p-4 transition-colors duration-fast hover:border-border-strong hover:bg-hover focus-within:border-border-strong">
+    <article className="group relative isolate flex h-full flex-col gap-3 rounded-lg border border-border bg-panel p-4 transition-colors duration-fast hover:border-border-strong hover:bg-hover-surface focus-within:border-border-strong">
       <div className="flex flex-col gap-0.5">
         <div className="flex items-center gap-2">
           <EnvTypeIcon type={env.type} />

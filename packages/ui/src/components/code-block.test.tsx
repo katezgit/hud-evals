@@ -241,7 +241,7 @@ describe("CodeBlock", () => {
       render(<CodeBlock code="hello" className="my-class" />)
       const el = document.querySelector("[data-slot='code-block']")
       expect(el).toHaveClass("my-class")
-      expect(el?.className).toContain("bg-muted")
+      expect(el?.className).toContain("bg-muted-surface")
     })
   })
 

@@ -15,7 +15,7 @@ export default function ModelRow({ model, selected, onToggle }: ModelRowProps) {
     <label
       className={cn(
         "flex cursor-pointer items-center gap-2 py-1 pr-2.5 pl-7",
-        "hover:bg-hover",
+        "hover:bg-hover-surface",
         selected && "bg-primary-soft hover:bg-primary-soft",
       )}
     >

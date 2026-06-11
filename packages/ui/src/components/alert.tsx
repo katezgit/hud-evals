@@ -23,7 +23,7 @@ const alertVariants = cva(
          * Neutral — no semantic tint. Uses page-card surface and standard border.
          */
         default:
-          "bg-muted border-border text-foreground [&>svg]:text-muted-foreground", // explicit — no base fallback
+          "bg-muted-surface border-border text-foreground [&>svg]:text-muted-foreground", // explicit — no base fallback
 
         /**
          * Error / danger. Tinted red surface + red title + red icon.

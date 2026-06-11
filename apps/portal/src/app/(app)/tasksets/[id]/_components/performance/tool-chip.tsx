@@ -10,7 +10,7 @@ export default function ToolChip({
   return (
     <code
       className={cn(
-        "inline-flex items-center rounded-sm bg-muted px-1.5 py-0.5 font-mono text-meta text-foreground",
+        "inline-flex items-center rounded-sm bg-muted-surface px-1.5 py-0.5 font-mono text-meta text-foreground",
         className,
       )}
     >

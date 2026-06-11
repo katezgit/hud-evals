@@ -132,7 +132,7 @@ const TriggerInput = React.forwardRef<HTMLInputElement, TriggerInputProps>(
             "aria-invalid:border-state-errored",
             "text-body text-foreground placeholder:text-meta-foreground",
             // Open state: chevron rotation is the only open feedback. Keyboard nav gets the global ring via base.css.
-            "disabled:cursor-not-allowed disabled:bg-muted disabled:border-border disabled:text-muted-foreground",
+            "disabled:cursor-not-allowed disabled:bg-muted-surface disabled:border-border disabled:text-muted-foreground",
             "transition-[background-color,border-color,box-shadow] duration-fast ease-out-standard",
           )}
           {...rest}

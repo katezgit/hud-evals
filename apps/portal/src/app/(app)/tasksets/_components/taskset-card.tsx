@@ -34,10 +34,10 @@ export default function TasksetCard({
   return (
     <Link
       href={`/tasksets/${taskset.id}`}
-      className="group flex h-full flex-col gap-3 rounded-lg border border-border bg-panel p-4 transition-colors duration-fast hover:border-border-strong hover:bg-hover"
+      className="group flex h-full flex-col gap-3 rounded-lg border border-border bg-panel p-4 transition-colors duration-fast hover:border-border-strong hover:bg-hover-surface"
     >
       <div className="flex items-center gap-2">
-        <span className="inline-flex size-6 shrink-0 items-center justify-center rounded bg-secondary text-muted-foreground">
+        <span className="inline-flex size-6 shrink-0 items-center justify-center rounded bg-secondary-surface text-muted-foreground">
           <ListChecks aria-hidden="true" className="size-3.5" />
         </span>
         <span className="flex min-w-0 items-baseline gap-0.5 font-mono text-body">

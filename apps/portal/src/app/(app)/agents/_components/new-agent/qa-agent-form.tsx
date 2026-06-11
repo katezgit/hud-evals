@@ -137,7 +137,7 @@ export function QaAgentForm({
 
 function PerTraceBadge() {
   return (
-    <span className="inline-flex shrink-0 items-center rounded border border-border bg-muted px-1.5 py-0.5 text-meta font-semibold uppercase tracking-wide text-muted-foreground">
+    <span className="inline-flex shrink-0 items-center rounded border border-border bg-muted-surface px-1.5 py-0.5 text-meta font-semibold uppercase tracking-wide text-muted-foreground">
       Per Trace
     </span>
   );
@@ -236,7 +236,7 @@ function ScenarioRadioGroup({
                 "flex flex-col gap-1 rounded-lg border bg-panel p-3 text-left",
                 "cursor-pointer transition-colors duration-fast",
                 selected
-                  ? "border-foreground bg-hover"
+                  ? "border-foreground bg-hover-surface"
                   : "border-border hover:border-border-strong",
                 "focus-visible:shadow-focus-ring outline-hidden",
               )}

@@ -99,7 +99,7 @@ function TracesTabClient({ modelId }: TracesTabProps) {
           view={view}
           onViewChange={setView}
         />
-        <div className="mt-6 h-40 animate-pulse rounded-surface bg-muted" />
+        <div className="mt-6 h-40 animate-pulse rounded-surface bg-muted-surface" />
       </div>
     );
   }
@@ -245,7 +245,7 @@ function TraceThumbnail({ trace }: { trace: Trace }) {
     <div
       className={cn(
         "relative aspect-[4/3] w-full border-b border-border",
-        "bg-muted",
+        "bg-muted-surface",
       )}
       style={{ backgroundColor: tint }}
       aria-hidden="true"

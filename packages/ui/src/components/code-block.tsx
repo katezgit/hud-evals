@@ -41,7 +41,7 @@ const codeBlockVariants = cva(
       variant: {
         // Inline: single-line, elevated muted background
         inline: [
-          "bg-muted text-foreground",
+          "bg-muted-surface text-foreground",
           "border border-border",
           "px-3 py-2",
           "pr-9",          // right padding reserves space for the copy icon
@@ -117,7 +117,7 @@ function CopyButton({ value, surface, className }: CopyButtonProps) {
     // Focus ring — *:focus-visible in base.css (WCAG 2.4.11). outline-none removed; base layer owns it.
     "disabled:pointer-events-none",
     isLight
-      ? "text-muted-foreground hover:text-foreground hover:bg-hover"
+      ? "text-muted-foreground hover:text-foreground hover:bg-hover-surface"
       : "text-foreground hover:bg-white/10",
     className,
   )

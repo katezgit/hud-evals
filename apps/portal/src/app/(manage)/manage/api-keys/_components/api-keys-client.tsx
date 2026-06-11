@@ -80,7 +80,7 @@ export function ApiKeysClient({ initialKeys }: ApiKeysClientProps) {
       columnHelper.accessor("masked", {
         header: "Key",
         cell: (info) => (
-          <code className="inline-flex items-center rounded-sm border border-border bg-muted px-2 py-1 font-mono text-caption text-muted-foreground">
+          <code className="inline-flex items-center rounded-sm border border-border bg-muted-surface px-2 py-1 font-mono text-caption text-muted-foreground">
             {info.getValue()}
           </code>
         ),

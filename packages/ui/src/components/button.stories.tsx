@@ -107,7 +107,7 @@ export const ToolbarAlignment: Story = {
           {["frontier-reasoning-v1", "env-8xkp3-baseline", "rl-train-2026-06-07"].map((name) => (
             <div
               key={name}
-              className="flex items-center justify-between h-10 px-3 border-b border-border last:border-b-0 hover:bg-hover"
+              className="flex items-center justify-between h-10 px-3 border-b border-border last:border-b-0 hover:bg-hover-surface"
             >
               <span className="text-body text-foreground font-mono">{name}</span>
               <div className="flex items-center gap-1">

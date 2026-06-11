@@ -24,7 +24,7 @@ function TinkerMark() {
     <span
       className={cn(
         "inline-flex size-4 shrink-0 items-center justify-center rounded-sm",
-        "bg-muted font-mono text-meta font-semibold leading-none text-muted-foreground",
+        "bg-muted-surface font-mono text-meta font-semibold leading-none text-muted-foreground",
       )}
     >
       T

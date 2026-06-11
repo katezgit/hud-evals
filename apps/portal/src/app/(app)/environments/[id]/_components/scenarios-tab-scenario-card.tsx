@@ -65,7 +65,7 @@ export function ScenariosTabScenarioCard({
                 aria-label={schemaOpen ? "Hide schema" : "Show schema"}
                 disabled={schemaDisabled}
                 onClick={() => setSchemaOpen((prev) => !prev)}
-                className={cn(schemaOpen && "bg-selected text-foreground")}
+                className={cn(schemaOpen && "bg-selected-surface text-foreground")}
               >
                 <Braces aria-hidden="true" />
               </IconButton>
@@ -83,7 +83,7 @@ export function ScenariosTabScenarioCard({
                 aria-pressed={sourceOpen}
                 aria-label={sourceOpen ? "Hide source code" : "Show source code"}
                 onClick={() => setSourceOpen((prev) => !prev)}
-                className={cn(sourceOpen && "bg-selected text-foreground")}
+                className={cn(sourceOpen && "bg-selected-surface text-foreground")}
               >
                 <Code2 aria-hidden="true" />
               </IconButton>

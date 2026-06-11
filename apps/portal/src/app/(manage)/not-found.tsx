@@ -17,7 +17,7 @@ export default function NotFound() {
   return (
     <div className="flex min-h-screen w-full items-center justify-center">
       <div className="flex max-w-[480px] flex-col items-center gap-6 px-6 text-center">
-        <span className="inline-flex items-center rounded-md border border-border bg-muted px-3 py-1.5 font-mono text-label font-medium text-muted-foreground">
+        <span className="inline-flex items-center rounded-md border border-border bg-muted-surface px-3 py-1.5 font-mono text-label font-medium text-muted-foreground">
           404
         </span>
 

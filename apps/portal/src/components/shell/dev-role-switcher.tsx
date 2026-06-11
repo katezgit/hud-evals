@@ -50,8 +50,8 @@ function RoleSwitcherChrome() {
             className={cn(
               "rounded-sm px-2 py-1 text-caption font-medium transition-colors duration-fast ease-out-standard",
               isActive
-                ? "bg-selected text-foreground"
-                : "text-muted-foreground hover:bg-hover hover:text-foreground",
+                ? "bg-selected-surface text-foreground"
+                : "text-muted-foreground hover:bg-hover-surface hover:text-foreground",
             )}
           >
             {value}

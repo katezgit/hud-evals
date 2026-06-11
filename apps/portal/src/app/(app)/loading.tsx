@@ -4,9 +4,9 @@
 export default function AppLoading() {
   return (
     <div role="status" aria-label="Loading" className="flex flex-col gap-4">
-      <div className="h-8 w-48 animate-pulse rounded-control bg-muted" />
-      <div className="h-4 w-full animate-pulse rounded-control bg-muted" />
-      <div className="h-4 w-3/4 animate-pulse rounded-control bg-muted" />
+      <div className="h-8 w-48 animate-pulse rounded-control bg-muted-surface" />
+      <div className="h-4 w-full animate-pulse rounded-control bg-muted-surface" />
+      <div className="h-4 w-3/4 animate-pulse rounded-control bg-muted-surface" />
     </div>
   );
 }

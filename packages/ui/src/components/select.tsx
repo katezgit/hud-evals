@@ -151,8 +151,8 @@ function SelectItem({
         // Radix's data-[highlighted] fires on both pointer hover + keyboard nav — sidesteps the
         // Tailwind v4 :hover/:focus cascade where focus: always wins. No font-medium on highlight
         // or selected (weight shift jitters glyphs across rows; selection is signaled by indicator).
-        "data-[highlighted]:bg-highlight",
-        // Suppress global *:focus-visible ring — bg-highlight is the sole active-option indicator
+        "data-[highlighted]:bg-highlight-surface",
+        // Suppress global *:focus-visible ring — bg-highlight-surface is the sole active-option indicator
         // (operator direction B). Forced-colors fallback restores a visible outline in Windows HC mode.
         "focus-visible:shadow-none focus-visible:outline-none",
         "forced-colors:focus-visible:outline-2 forced-colors:focus-visible:outline-current",

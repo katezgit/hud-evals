@@ -91,7 +91,7 @@ function AvatarMenuShell({ user, currentOrg, orgs, renderTrigger }: AvatarMenuSh
           </div>
         </div>
 
-        <div className="flex items-center gap-2.5 border-b border-border bg-muted px-3.5 py-2.5">
+        <div className="flex items-center gap-2.5 border-b border-border bg-muted-surface px-3.5 py-2.5">
           <Avatar size="xs" shape="square">
             <AvatarFallback>{currentOrg.avatarInitial}</AvatarFallback>
           </Avatar>
@@ -157,8 +157,8 @@ const AvatarTriggerCollapsed = forwardRef<HTMLButtonElement, AvatarTriggerCollap
         aria-expanded={open}
         onClick={onClick}
         className={cn(
-          "flex h-9 items-center justify-center rounded-md hover:bg-hover",
-          open && "bg-secondary",
+          "flex h-9 items-center justify-center rounded-md hover:bg-hover-surface",
+          open && "bg-secondary-surface",
         )}
       >
         <Avatar size="xs">
@@ -180,7 +180,7 @@ function MenuItem({ icon, children, onClick }: MenuItemProps) {
     <button
       type="button"
       onClick={onClick}
-      className="flex w-full items-center gap-2.5 px-3.5 py-2 text-label text-muted-foreground hover:bg-hover hover:text-foreground"
+      className="flex w-full items-center gap-2.5 px-3.5 py-2 text-label text-muted-foreground hover:bg-hover-surface hover:text-foreground"
     >
       <span aria-hidden="true" className="text-meta-foreground">
         {icon}
@@ -203,7 +203,7 @@ function MenuLink({ href, icon, trailing, children, onSelect }: MenuLinkProps) {
     <Link
       href={href}
       onClick={onSelect}
-      className="flex w-full items-center gap-2.5 px-3.5 py-2 text-label text-muted-foreground hover:bg-hover hover:text-foreground"
+      className="flex w-full items-center gap-2.5 px-3.5 py-2 text-label text-muted-foreground hover:bg-hover-surface hover:text-foreground"
     >
       <span aria-hidden="true" className="text-meta-foreground">
         {icon}
@@ -228,7 +228,7 @@ function OrgSwitcher({ open, onToggle, orgs, activeOrgId }: OrgSwitcherProps) {
         type="button"
         aria-expanded={open}
         onClick={onToggle}
-        className="flex w-full items-center gap-2.5 px-3.5 py-2 text-label text-muted-foreground hover:bg-hover hover:text-foreground"
+        className="flex w-full items-center gap-2.5 px-3.5 py-2 text-label text-muted-foreground hover:bg-hover-surface hover:text-foreground"
       >
         <Repeat2 aria-hidden="true" className="size-3.5 text-meta-foreground" />
         <span className="flex-1 text-left">Switch organization</span>
@@ -249,7 +249,7 @@ function OrgSwitcher({ open, onToggle, orgs, activeOrgId }: OrgSwitcherProps) {
                 key={org.id}
                 type="button"
                 className={cn(
-                  "flex w-full items-center gap-2.5 py-1.5 pr-3.5 pl-5 text-label text-muted-foreground hover:bg-hover hover:text-foreground",
+                  "flex w-full items-center gap-2.5 py-1.5 pr-3.5 pl-5 text-label text-muted-foreground hover:bg-hover-surface hover:text-foreground",
                   isActive && "text-foreground",
                 )}
               >
