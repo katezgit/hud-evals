@@ -127,12 +127,12 @@ const TriggerInput = React.forwardRef<HTMLInputElement, TriggerInputProps>(
             size === "md" ? "h-8 px-2.5 rounded-lg" : "h-7 px-2 rounded-md",
             size === "sm" ? "pr-7" : "pr-8",
             "border border-border bg-background",
-            // Lift bg off page canvas on focus / when open — bg-background (#F6F8FA light) → bg-white (#FFFFFF). Functional literal, not a semantic role.
-            "focus:bg-white data-[state=open]:bg-white",
+            // Lift to form-field surface on focus — light: #FFFFFF, dark: #11161F. Tracks --color-panel.
+            "focus:bg-form-field-surface data-[state=open]:bg-form-field-surface",
             "aria-invalid:border-state-errored",
             "text-body text-foreground placeholder:text-meta-foreground",
             // Open state: chevron rotation is the only open feedback. Keyboard nav gets the global ring via base.css.
-            "disabled:cursor-not-allowed disabled:bg-muted disabled:border-border disabled:text-muted-foreground",
+            "disabled:cursor-not-allowed disabled:bg-muted-surface disabled:border-border disabled:text-muted-foreground",
             "transition-[background-color,border-color,box-shadow] duration-fast ease-out-standard",
           )}
           {...rest}

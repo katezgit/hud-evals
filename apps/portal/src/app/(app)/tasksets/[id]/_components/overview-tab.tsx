@@ -75,9 +75,9 @@ function formatMetric(value: number | null, format: MetricColumn["format"]): str
 
 function rankPillClass(rank: number): string {
   if (rank === 1) return "bg-state-warning-subtle text-state-warning-text";
-  if (rank === 2) return "bg-secondary text-secondary-foreground";
+  if (rank === 2) return "bg-secondary-surface text-secondary-foreground";
   if (rank === 3) return "bg-state-scored-subtle text-state-scored-text";
-  return "bg-muted text-muted-foreground";
+  return "bg-muted-surface text-muted-foreground";
 }
 
 function nextSortState(current: SortState, column: MetricKey): SortState {
@@ -378,7 +378,7 @@ function LeaderboardRow({
         <Link
           href={tracesHref}
           aria-label={`View Traces for ${row.agentName} on this Taskset`}
-          className="inline-flex size-7 items-center justify-center rounded-md text-muted-foreground hover:bg-hover hover:text-foreground"
+          className="inline-flex size-7 items-center justify-center rounded-md text-muted-foreground hover:bg-hover-surface hover:text-foreground"
         >
           <Network aria-hidden="true" className="size-3.5" />
         </Link>

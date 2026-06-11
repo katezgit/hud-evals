@@ -35,7 +35,7 @@ export function SidebarNavLink({ href, label, icon, count, live }: SidebarNavLin
         collapsed ? "justify-center px-0" : "px-2",
         isActive
           ? "bg-primary-glow text-primary font-medium before:absolute before:left-0 before:top-1 before:bottom-1 before:w-0.5 before:rounded-full before:bg-primary"
-          : "hover:bg-hover hover:text-foreground",
+          : "hover:bg-hover-surface hover:text-foreground",
       )}
     >
       <span

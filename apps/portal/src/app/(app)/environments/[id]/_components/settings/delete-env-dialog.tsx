@@ -78,7 +78,7 @@ export function DeleteEnvironmentDialog({
           <DialogDescription>
             This action cannot be undone. All builds, scenarios, runs, and
             associated configuration for{" "}
-            <code className="font-mono text-meta rounded bg-muted px-1 py-0.5 text-foreground">
+            <code className="font-mono text-meta rounded bg-muted-surface px-1 py-0.5 text-foreground">
               {envName}
             </code>{" "}
             will be permanently deleted.
@@ -90,7 +90,7 @@ export function DeleteEnvironmentDialog({
             label={
               <>
                 Type{" "}
-                <code className="font-mono text-meta rounded bg-muted px-1 py-0.5 text-foreground">
+                <code className="font-mono text-meta rounded bg-muted-surface px-1 py-0.5 text-foreground">
                   {envName}
                 </code>{" "}
                 to confirm

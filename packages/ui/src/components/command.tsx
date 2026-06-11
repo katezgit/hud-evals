@@ -181,9 +181,9 @@ function CommandItem({
         "text-body text-foreground",
         "outline-none",
         // cmdk unifies keyboard + pointer cursor into data-[selected=true] — no hover: variant needed.
-        // bg-highlight matches Select's data-[highlighted] — see --color-highlight in theme.css; no font-medium (weight shift jitters glyphs).
-        "data-[selected=true]:bg-highlight",
-        // Suppress global *:focus-visible ring — bg-highlight is the sole active-option indicator.
+        // bg-highlight-surface matches Select's data-[highlighted] — see --color-highlight in theme.css; no font-medium (weight shift jitters glyphs).
+        "data-[selected=true]:bg-highlight-surface",
+        // Suppress global *:focus-visible ring — bg-highlight-surface is the sole active-option indicator.
         // cmdk uses aria-activedescendant so focus-visible is a no-op in practice, but added for
         // defensive parity in case cmdk's internal model changes. Forced-colors fallback for Windows HC.
         "focus-visible:shadow-none focus-visible:outline-none",

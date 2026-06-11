@@ -28,23 +28,23 @@ const cardVariants = cva(
 
         /**
          * Interactive: clickable/hoverable tile.
-         * Full-surface bg-hover fill on hover — no shadow escalation.
+         * Full-surface bg-hover-surface fill on hover — no shadow escalation.
          */
         interactive: [
           "bg-panel",
           "cursor-pointer",
           "transition-colors duration-150",
-          "hover:bg-hover",
+          "hover:bg-hover-surface",
           // Focus ring — *:focus-visible in base.css (WCAG 2.4.11). No per-component override needed.
         ],
 
         /**
          * Selected: stable selection state (multi-select taskset scenarios).
          * Darker warm-grey fill + elevated border step signals "chosen".
-         * bg-panel is NOT in base — ensures bg-selected wins without merge fights.
+         * bg-panel is NOT in base — ensures bg-selected-surface wins without merge fights.
          */
         selected: [
-          "bg-selected border-border-strong",
+          "bg-selected-surface border-border-strong",
         ],
       },
     },

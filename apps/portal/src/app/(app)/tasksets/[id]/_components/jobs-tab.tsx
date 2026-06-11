@@ -238,7 +238,7 @@ export default function JobsTab({ taskset }: JobsTabProps) {
           className="w-72 shrink-0"
           onLiveChange={setSearch}
           trailing={
-            <kbd className="text-meta-foreground bg-elevated border-border rounded border px-1.5 font-mono text-meta">
+            <kbd className="text-meta-foreground bg-elevated-surface border-border rounded border px-1.5 font-mono text-meta">
               /
             </kbd>
           }
@@ -301,7 +301,7 @@ export default function JobsTab({ taskset }: JobsTabProps) {
 
       <div className="bg-panel border-border rounded-xl border">
         <div>
-          <div className="bg-elevated border-border text-meta-foreground rounded-t-xl border-b px-4 py-2.5 font-mono text-meta uppercase">
+          <div className="bg-elevated-surface border-border text-meta-foreground rounded-t-xl border-b px-4 py-2.5 font-mono text-meta uppercase">
             <div className={GRID_COLS}>
               <div>Status</div>
               <div>Job</div>

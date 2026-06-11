@@ -49,7 +49,7 @@ export default function ModelPicker({
       </Label>
 
       <div className="flex max-h-72 flex-col overflow-hidden rounded-md border border-border">
-        <div className="sticky top-0 z-20 border-b border-border bg-elevated p-2">
+        <div className="sticky top-0 z-20 border-b border-border bg-elevated-surface p-2">
           <SearchInput
             id="run-taskset-model-search"
             size="sm"

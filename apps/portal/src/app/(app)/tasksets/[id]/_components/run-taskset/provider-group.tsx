@@ -34,7 +34,7 @@ export default function ProviderGroup({
   return (
     <div>
       <div
-        className="sticky top-0 z-10 flex items-center gap-2 border-b border-border bg-elevated py-1 pr-2.5 pl-2"
+        className="sticky top-0 z-10 flex items-center gap-2 border-b border-border bg-elevated-surface py-1 pr-2.5 pl-2"
       >
         <Checkbox
           size="sm"

@@ -102,7 +102,7 @@ export function EnvInfoSection({ envId, displayName }: EnvInfoSectionProps) {
             helper={
               <>
                 Link via{" "}
-                <code className="font-mono text-meta rounded bg-muted px-1 py-0.5 text-foreground">
+                <code className="font-mono text-meta rounded bg-muted-surface px-1 py-0.5 text-foreground">
                   hud link --id {envId}
                 </code>
               </>

@@ -102,7 +102,7 @@ function PhaseBarRow({ bar }: { bar: PhaseBar }) {
       {bar.segments.map((seg, i) => {
         const widthPct = (seg.count / total) * 100;
         if (widthPct === 0) return null;
-        const color = TOOL_COLORS[seg.tool] ?? "bg-muted";
+        const color = TOOL_COLORS[seg.tool] ?? "bg-muted-surface";
         return (
           <div
             key={`${seg.tool}-${i}`}
@@ -120,7 +120,7 @@ function ToolLegend({ tools }: { tools: ReadonlyArray<string> }) {
   return (
     <div className="flex flex-wrap items-center gap-3 text-caption text-muted-foreground">
       {tools.map((t) => {
-        const color = TOOL_COLORS[t] ?? "bg-muted";
+        const color = TOOL_COLORS[t] ?? "bg-muted-surface";
         return (
           <span key={t} className="inline-flex items-center gap-1.5">
             <span

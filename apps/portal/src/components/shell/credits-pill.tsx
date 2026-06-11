@@ -24,7 +24,7 @@ const ADD_CREDITS_HREF = "/manage/billing";
  * Clickable sidebar credits section — opens the in-shell Usage view.
  * Branches on `state.balance === 0`: the zero-balance variant uses the
  * destructive-tinted StatusBlock surface; the healthy variant uses a
- * bg-muted/60 panel for containment off the nav stack. Both share the
+ * bg-muted-surface/60 panel for containment off the nav stack. Both share the
  * mx-2 mb-2 rounded-md inset to read as a discrete status surface.
  */
 export function CreditsPill({ state }: CreditsPillProps) {
@@ -75,13 +75,13 @@ export function CreditsPill({ state }: CreditsPillProps) {
   const percentRemaining = Math.round((state.balance / state.total) * 100);
 
   return (
-    <div className="mx-2 mb-2 rounded-md bg-muted/60">
+    <div className="mx-2 mb-2 rounded-md bg-muted-surface/60">
       <Link
         href="/manage/usage"
         aria-label={`Credits: ${balance} of ${total}. Click to view usage.`}
         className={cn(
-          "group/credits block rounded-md px-3 py-2.5 transition-colors duration-fast ease-out-standard hover:bg-hover",
-          isActive && "bg-selected",
+          "group/credits block rounded-md px-3 py-2.5 transition-colors duration-fast ease-out-standard hover:bg-hover-surface",
+          isActive && "bg-selected-surface",
         )}
       >
         <div className="flex items-baseline justify-between gap-2 font-mono text-label">
@@ -128,8 +128,8 @@ export function CreditsIconButton({ state }: CreditsPillProps) {
               "flex h-7 w-full items-center justify-center rounded-md",
               isZero
                 ? "text-destructive hover:bg-destructive/10"
-                : "text-meta-foreground hover:bg-hover hover:text-foreground",
-              isActive && !isZero && "bg-selected text-foreground",
+                : "text-meta-foreground hover:bg-hover-surface hover:text-foreground",
+              isActive && !isZero && "bg-selected-surface text-foreground",
               isActive && isZero && "bg-destructive/10",
             )}
           >

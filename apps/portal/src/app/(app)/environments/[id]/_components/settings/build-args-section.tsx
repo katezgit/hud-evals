@@ -76,7 +76,7 @@ export function BuildArgsSection() {
         <CardDescription>
           Build-time ARGs passed to the Dockerfile. Not available at runtime.
           Set via{" "}
-          <code className="font-mono text-meta rounded bg-muted px-1 py-0.5 text-foreground">
+          <code className="font-mono text-meta rounded bg-muted-surface px-1 py-0.5 text-foreground">
             hud deploy --build-arg
           </code>
           .

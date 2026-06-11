@@ -65,7 +65,7 @@ function ReadOnlyConfigurationPanel({ model }: { model: Model }) {
             value={model.displayName}
             autoComplete="off"
             spellCheck={false}
-            className="bg-muted"
+            className="bg-muted-surface"
           />
         </FormField>
 
@@ -182,7 +182,7 @@ function ReadOnlyTagsField({
         }
         className={cn(
           "flex w-full flex-wrap items-center gap-1.5",
-          "h-auto min-h-8 px-2.5 py-1 rounded-lg border border-border bg-muted",
+          "h-auto min-h-8 px-2.5 py-1 rounded-lg border border-border bg-muted-surface",
           "transition-[color,box-shadow,outline]",
         )}
       >
@@ -260,7 +260,7 @@ function EditableTagsField({
             key={tag}
             className={cn(
               "inline-flex items-center gap-1",
-              "rounded-badge border border-border bg-muted px-2 py-0.5",
+              "rounded-badge border border-border bg-muted-surface px-2 py-0.5",
               "text-label font-mono text-foreground",
             )}
           >

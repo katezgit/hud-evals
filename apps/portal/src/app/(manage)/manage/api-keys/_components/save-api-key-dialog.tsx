@@ -32,7 +32,7 @@ export function SaveApiKeyDialog({ open, onOpenChange, apiKey }: SaveApiKeyDialo
         </DialogHeader>
         <DialogBody>
           <div className="flex items-center gap-2">
-            <code className="flex-1 overflow-x-auto rounded-md border border-border bg-muted px-3 py-2 font-mono text-body text-foreground">
+            <code className="flex-1 overflow-x-auto rounded-md border border-border bg-muted-surface px-3 py-2 font-mono text-body text-foreground">
               {apiKey}
             </code>
             <CopyButton

@@ -17,7 +17,7 @@ export function EnvRow({ env, isStarred, starCount }: EnvRowProps) {
     // `isolate` traps the row's internal stacking context — see EnvCard for
     // the full explanation. Without it the inner `relative z-10` nodes tie
     // with the page-level sticky chrome and bleed through on scroll.
-    <article className="relative isolate rounded-lg border border-border bg-panel p-4 transition-colors duration-fast hover:border-border-strong hover:bg-hover">
+    <article className="relative isolate rounded-lg border border-border bg-panel p-4 transition-colors duration-fast hover:border-border-strong hover:bg-hover-surface">
       {/* Mobile layout — 3 rows, wireframe §13b. */}
       <div className="flex flex-col gap-1 md:hidden">
         <div className="flex min-w-0 items-center gap-2">

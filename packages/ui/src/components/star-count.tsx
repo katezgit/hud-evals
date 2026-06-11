@@ -19,8 +19,8 @@ const starToggleVariants = cva(
     "rounded-md",
     "bg-transparent",
     // Ghost hover / active surfaces — matches IconButton ghost
-    "hover:bg-hover",
-    "active:bg-selected",
+    "hover:bg-hover-surface",
+    "active:bg-selected-surface",
     // Disabled
     "disabled:pointer-events-none disabled:opacity-50",
     // Cursor

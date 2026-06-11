@@ -167,7 +167,7 @@ interface MobileTopBarProps {
 
 function MobileTopBar({ drawerOpen, onOpenDrawer }: MobileTopBarProps) {
   return (
-    <header className="flex h-12 shrink-0 items-center justify-between border-b border-border bg-muted px-3 md:hidden">
+    <header className="flex h-12 shrink-0 items-center justify-between border-b border-border bg-muted-surface px-3 md:hidden">
       <div className="flex items-center gap-1">
         <IconButton
           variant="ghost"

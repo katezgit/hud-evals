@@ -196,7 +196,7 @@ export function BuildSecretsSection() {
 
           <div
             data-add-build-secret-form
-            className="flex flex-col gap-1.5 rounded-md border border-dashed border-border bg-muted/30 p-2.5"
+            className="flex flex-col gap-1.5 rounded-md border border-dashed border-border bg-muted-surface/30 p-2.5"
           >
             <div className="text-label font-medium text-muted-foreground">
               Add new build secret

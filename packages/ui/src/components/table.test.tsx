@@ -30,8 +30,8 @@ describe("tableClass", () => {
 // ---------------------------------------------------------------------------
 
 describe("tableHeaderClass", () => {
-  it("contains bg-muted", () => {
-    expect(tableHeaderClass).toContain("bg-muted")
+  it("contains bg-muted-surface", () => {
+    expect(tableHeaderClass).toContain("bg-muted-surface")
   })
 })
 
@@ -50,9 +50,9 @@ describe("tableBodyClass", () => {
 // ---------------------------------------------------------------------------
 
 describe("tableFooterClass", () => {
-  it("contains border-t bg-muted font-medium", () => {
+  it("contains border-t bg-muted-surface font-medium", () => {
     expect(tableFooterClass).toContain("border-t")
-    expect(tableFooterClass).toContain("bg-muted")
+    expect(tableFooterClass).toContain("bg-muted-surface")
     expect(tableFooterClass).toContain("font-medium")
   })
 })
@@ -112,9 +112,9 @@ describe("tableRowVariants", () => {
     expect(typeof tableRowVariants()).toBe("string")
   })
 
-  it("includes hover bg-hover and border-b border-border", () => {
+  it("includes hover bg-hover-surface and border-b border-border", () => {
     const cls = tableRowVariants()
-    expect(cls).toContain("hover:bg-hover")
+    expect(cls).toContain("hover:bg-hover-surface")
     expect(cls).toContain("border-b")
     expect(cls).toContain("border-border")
   })
@@ -273,11 +273,11 @@ describe("Table bordered prop", () => {
 })
 
 // ---------------------------------------------------------------------------
-// TableHeader — bg-muted structural band
+// TableHeader — bg-muted-surface structural band
 // ---------------------------------------------------------------------------
 
 describe("TableHeader", () => {
-  it("renders with bg-muted regardless of bordered context", () => {
+  it("renders with bg-muted-surface regardless of bordered context", () => {
     const { container } = render(
       <table>
         <TableHeader data-testid="thead">
@@ -286,6 +286,6 @@ describe("TableHeader", () => {
       </table>
     )
     const thead = container.querySelector("thead")
-    expect(thead?.className).toContain("bg-muted")
+    expect(thead?.className).toContain("bg-muted-surface")
   })
 })

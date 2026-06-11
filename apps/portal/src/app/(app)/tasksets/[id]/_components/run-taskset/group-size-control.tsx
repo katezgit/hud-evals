@@ -53,7 +53,7 @@ export default function GroupSizeControl({ value, onValueChange }: GroupSizeCont
           Margin of error
         </span>
         <div className="flex items-center gap-2">
-          <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-secondary">
+          <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-secondary-surface">
             <div
               className="h-full rounded-full bg-state-warning"
               style={{ width: `${fillPct}%` }}

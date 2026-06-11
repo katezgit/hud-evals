@@ -41,7 +41,7 @@ function renderTokens(text: string) {
       out.push(
         <code
           key={key++}
-          className="font-mono text-label bg-muted text-foreground rounded-sm px-1"
+          className="font-mono text-label bg-muted-surface text-foreground rounded-sm px-1"
         >
           {inner}
         </code>,

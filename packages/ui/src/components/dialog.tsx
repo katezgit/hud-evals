@@ -138,7 +138,7 @@ function DialogContent({
               "absolute top-[18px] right-4",
               "size-6",
               "inline-flex items-center justify-center shrink-0",
-              "bg-transparent hover:bg-hover",
+              "bg-transparent hover:bg-hover-surface",
               "text-muted-foreground",
               "rounded-md",
               "transition-colors prop-(--motion-state-change)",

@@ -51,7 +51,7 @@ export const Disabled: Story = {
         <input
           id="disabled-input"
           disabled
-          className="peer rounded border border-border bg-muted px-3 py-2 text-body text-foreground"
+          className="peer rounded border border-border bg-muted-surface px-3 py-2 text-body text-foreground"
           placeholder="disabled input"
         />
         <Label htmlFor="disabled-input" className="peer-disabled:cursor-not-allowed peer-disabled:opacity-50">
@@ -77,13 +77,13 @@ export const Section: Story = {
       <div className="flex flex-col gap-1">
         <Label variant="section">Workspace</Label>
         <nav className="flex flex-col gap-0.5">
-          <a href="#" className="rounded px-2 py-1.5 text-body text-foreground hover:bg-muted">
+          <a href="#" className="rounded px-2 py-1.5 text-body text-foreground hover:bg-muted-surface">
             Overview
           </a>
-          <a href="#" className="rounded px-2 py-1.5 text-body text-foreground hover:bg-muted">
+          <a href="#" className="rounded px-2 py-1.5 text-body text-foreground hover:bg-muted-surface">
             Runs
           </a>
-          <a href="#" className="rounded px-2 py-1.5 text-body text-foreground hover:bg-muted">
+          <a href="#" className="rounded px-2 py-1.5 text-body text-foreground hover:bg-muted-surface">
             Evals
           </a>
         </nav>
@@ -93,13 +93,13 @@ export const Section: Story = {
       <div className="flex flex-col gap-1">
         <Label variant="section">Manage</Label>
         <nav className="flex flex-col gap-0.5">
-          <a href="#" className="rounded px-2 py-1.5 text-body text-foreground hover:bg-muted">
+          <a href="#" className="rounded px-2 py-1.5 text-body text-foreground hover:bg-muted-surface">
             Team
           </a>
-          <a href="#" className="rounded px-2 py-1.5 text-body text-foreground hover:bg-muted">
+          <a href="#" className="rounded px-2 py-1.5 text-body text-foreground hover:bg-muted-surface">
             API Keys
           </a>
-          <a href="#" className="rounded px-2 py-1.5 text-body text-foreground hover:bg-muted">
+          <a href="#" className="rounded px-2 py-1.5 text-body text-foreground hover:bg-muted-surface">
             Billing
           </a>
         </nav>

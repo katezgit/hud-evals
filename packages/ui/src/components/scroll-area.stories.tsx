@@ -81,7 +81,7 @@ export const Variants: Story = {
             {EVAL_NAMES.slice(0, 6).map((name) => (
               <div
                 key={name}
-                className="shrink-0 rounded-md border border-border bg-muted px-3 py-2 text-sm font-mono text-foreground"
+                className="shrink-0 rounded-md border border-border bg-muted-surface px-3 py-2 text-sm font-mono text-foreground"
               >
                 {name}
               </div>

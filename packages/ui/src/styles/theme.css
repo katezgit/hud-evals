@@ -31,14 +31,14 @@
    * ═══════════════════════════════════════════════════════════════════════════ */
 
   /* Surfaces — vertical depth hierarchy.
-   *   background: app body backdrop
-   *   panel:      raised content (cards, sheets, popovers)
-   *   page:       deepest recess (rail edges, frame backdrop)
-   *   elevated:   subtle lift above background (hovered rows, inset wells) */
-  --color-background: light-dark(var(--surface-bg-light),       var(--surface-bg-dark));
-  --color-panel:      light-dark(var(--surface-panel-light),    var(--surface-panel-dark));
-  --color-page:       light-dark(var(--surface-page-light),     var(--surface-page-dark));
-  --color-elevated:   light-dark(var(--surface-elevated-light), var(--surface-elevated-dark));
+   *   background:        app body backdrop
+   *   panel:             raised content (cards, sheets, popovers)
+   *   page:              deepest recess (rail edges, frame backdrop)
+   *   elevated-surface:  subtle lift above background (hovered rows, inset wells) */
+  --color-background:        light-dark(var(--surface-bg-light),       var(--surface-bg-dark));
+  --color-panel:             light-dark(var(--surface-panel-light),    var(--surface-panel-dark));
+  --color-page:              light-dark(var(--surface-page-light),     var(--surface-page-dark));
+  --color-elevated-surface:  light-dark(var(--surface-elevated-light), var(--surface-elevated-dark));
 
   /* Typography — 3-tier reading hierarchy.
    *   foreground:       PRIMARY — body, headings, main values.
@@ -56,10 +56,10 @@
   --color-text-disabled:     light-dark(var(--ink-400), var(--ink-500));
 
   /* Muted / Secondary surfaces — neutral fills.
-   *   muted:     low-contrast block (sidebar, inert chip)
-   *   secondary: stronger neutral (secondary button, selected row) */
-  --color-muted:                light-dark(var(--surface-muted-light),     var(--surface-muted-dark));
-  --color-secondary:            light-dark(var(--surface-secondary-light), var(--surface-secondary-dark));
+   *   muted-surface:     low-contrast block (sidebar, inert chip)
+   *   secondary-surface: stronger neutral (secondary button, selected row) */
+  --color-muted-surface:        light-dark(var(--surface-muted-light),     var(--surface-muted-dark));
+  --color-secondary-surface:    light-dark(var(--surface-secondary-light), var(--surface-secondary-dark));
   --color-secondary-foreground: light-dark(var(--ink-900),                 var(--ink-50));
 
   /* Borders — alpha-tinted hairlines, compose on any surface.
@@ -77,7 +77,7 @@
   /* Highlighted option — select-kind components (Select, Command, DropdownMenu, Combobox, MultiSelect).
    * References --surface-elevated primitive directly: subtle visible lift on panel/bg surfaces,
    * no magic alpha values. Light #F0F2F6 (~6% gray on white panel) / dark #161D28 (clear lift from #11161F panel). */
-  --color-highlight:     light-dark(var(--surface-elevated-light), var(--surface-elevated-dark));
+  --color-highlight-surface: light-dark(var(--surface-elevated-light), var(--surface-elevated-dark));
 
   /* ═══════════════════════════════════════════════════════════════════════════
    * IDENTITY — brand-meaningful hues. Sparse usage.
@@ -122,12 +122,12 @@
   --color-primary-disabled: light-dark(#9BBFBA, #1B5E55); /* PINNED — desaturated teal steps; not in palette ramp */
   --color-border-disabled:  light-dark(#C8CDD6, #3A4455); /* PINNED — neutral-adjacent; not in palette ramp */
 
-  /* Interaction surfaces. hover / surface-hover currently match; kept separate
-   * for future role divergence. */
-  --color-surface-hover:  light-dark(var(--surface-elevated-light),  var(--surface-elevated-dark));
-  --color-selected:       light-dark(var(--surface-secondary-light), var(--surface-secondary-dark));
-  --color-hover:          light-dark(var(--surface-elevated-light),  var(--surface-elevated-dark));
-  --color-control-raised: light-dark(var(--surface-panel-light),     var(--surface-elevated-dark));
+  /* Interaction surface — single token for hovered rows / interactive backdrops.
+   * Previously split as --color-hover + --color-surface-hover with identical values;
+   * unified here to remove the duplication. */
+  --color-hover-surface:    light-dark(var(--surface-elevated-light),  var(--surface-elevated-dark));
+  --color-selected-surface: light-dark(var(--surface-secondary-light), var(--surface-secondary-dark));
+  --color-control-raised:   light-dark(var(--surface-panel-light),     var(--surface-elevated-dark));
 
   /* Focus ring + glow. */
   --color-ring:      light-dark(var(--teal-700), var(--teal-500));
@@ -208,6 +208,12 @@
   /* Popover — same surface role as card. */
   --color-popover:            var(--color-panel);
   --color-popover-foreground: var(--color-foreground);
+
+  /* Form-field surface — raised background when a form field (Input, Textarea,
+   * Select, Combobox, MultiSelect) is focused or open. Tracks --color-panel so it
+   * stays at the same elevation as cards/popovers; named separately so the
+   * focus-lift intent is explicit at each call site. */
+  --color-form-field-surface: var(--color-panel);
 }
 
 /* ─── Overlay roles ──────────────────────────────────────────────────────────

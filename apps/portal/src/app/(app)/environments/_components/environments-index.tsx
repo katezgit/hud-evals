@@ -329,7 +329,7 @@ export function EnvironmentsIndex({
           variant="secondary"
           className={cn(
             "w-full justify-between",
-            mobileFiltersActiveCount > 0 && "bg-selected",
+            mobileFiltersActiveCount > 0 && "bg-selected-surface",
           )}
           aria-label={
             mobileFiltersActiveCount > 0
@@ -426,7 +426,7 @@ export function EnvironmentsIndex({
               <Button
                 variant="secondary"
                 aria-label="Group by"
-                className={cn(groupKey !== "none" && "bg-selected")}
+                className={cn(groupKey !== "none" && "bg-selected-surface")}
               >
                 Group by {groupLabel}
               </Button>

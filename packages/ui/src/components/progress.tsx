@@ -9,7 +9,7 @@ import { cn } from "@repo/ui/lib/cn"
 
 const progressTrackVariants = cva(
   // base: track — 3px radius per v1 mockup (explicit, not rounded-full)
-  "relative w-full overflow-hidden rounded-[3px] bg-muted", // eslint-disable-line no-restricted-syntax -- 3px radius is intentional design spec; no token exists between radius-none(0) and radius-sm(4px)
+  "relative w-full overflow-hidden rounded-[3px] bg-muted-surface", // eslint-disable-line no-restricted-syntax -- 3px radius is intentional design spec; no token exists between radius-none(0) and radius-sm(4px)
   {
     variants: {
       size: {
