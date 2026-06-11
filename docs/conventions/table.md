@@ -6,6 +6,10 @@ status: Active
 
 # Table Conventions
 
+**Design spec:** [`docs/design/components/table/spec.md`](../design/components/table/spec.md) — tokens, anatomy, row states, density math, ASCII diagrams.
+
+**Composition patterns:** [`docs/design/components/table/patterns.md`](../design/components/table/patterns.md) — non-layout patterns (expandable rows, etc.).
+
 This codebase has two consumption modes for tables. They share the same underlying tokens and render identically; the split is a API boundary, not a visual one.
 
 ## The split
