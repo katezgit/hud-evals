@@ -1,0 +1,100 @@
+import Link from "next/link";
+import type { Model } from "../_data/types";
+
+/**
+ * Subtitle line under the title.
+ *
+ * Two compositions, not one component with a flag:
+ *   - `<BaseModelSubtitle>`         — checkpointCount === 0
+ *   - `<UserTrainedModelSubtitle>`  — checkpointCount ≥ 1
+ *
+ * The page picks which to render. Each has only the props it needs.
+ *
+ * Layout: `flex items-center gap-2 flex-wrap` on the wrapper. The `·`
+ * separators are plain flex children so the 8px inline gap is owned by the
+ * parent — not duplicated via `mx-2` on each separator.
+ */
+
+interface BaseModelSubtitleProps {
+  apiName: string;
+  provider: string;
+}
+
+export function BaseModelSubtitle({ apiName, provider }: BaseModelSubtitleProps) {
+  return (
+    <div className="flex flex-wrap items-center gap-1.5 text-body text-muted-foreground">
+      <span>{provider}</span>
+      <Separator />
+      <span>Base model</span>
+      <Separator />
+      <span className="font-mono">{apiName}</span>
+    </div>
+  );
+}
+
+interface UserTrainedModelSubtitleProps {
+  apiName: string;
+  provider: string;
+  forkedFromApiName: string;
+  forkedFromModelId: string;
+  activeCheckpointId: string;
+  activeCheckpointStep: number;
+}
+
+export function UserTrainedModelSubtitle({
+  apiName,
+  provider,
+  forkedFromApiName,
+  forkedFromModelId,
+  activeCheckpointId,
+  activeCheckpointStep,
+}: UserTrainedModelSubtitleProps) {
+  return (
+    <div className="flex flex-wrap items-center gap-1.5 text-body text-muted-foreground">
+      <span>{provider}</span>
+      <Separator />
+      <span>
+        forked from{" "}
+        <Link
+          href={`/models/${forkedFromModelId}`}
+          className="font-mono text-primary hover:underline"
+        >
+          {forkedFromApiName}
+        </Link>
+      </span>
+      <Separator />
+      <span>
+        Active checkpoint:{" "}
+        <span className="font-mono text-foreground">{activeCheckpointId}</span>
+        <span className="text-muted-foreground"> (step {activeCheckpointStep})</span>
+      </span>
+      <Separator />
+      <span className="font-mono">{apiName}</span>
+    </div>
+  );
+}
+
+export function HeaderSubtitle({ model }: { model: Model }) {
+  if (
+    model.checkpointCount >= 1 &&
+    model.forkedFrom !== null &&
+    model.activeCheckpointId !== null &&
+    model.activeCheckpointStep !== null
+  ) {
+    return (
+      <UserTrainedModelSubtitle
+        apiName={model.apiName}
+        provider={model.provider}
+        forkedFromApiName={model.forkedFrom.apiName}
+        forkedFromModelId={model.forkedFrom.modelId}
+        activeCheckpointId={model.activeCheckpointId}
+        activeCheckpointStep={model.activeCheckpointStep}
+      />
+    );
+  }
+  return <BaseModelSubtitle apiName={model.apiName} provider={model.provider} />;
+}
+
+function Separator() {
+  return <span aria-hidden="true" className="text-meta-foreground">·</span>;
+}
