@@ -124,19 +124,19 @@ function InstanceStatusBadge({ status }: { status: InstanceStatus }) {
   switch (status) {
     case "running":
       return (
-        <Badge variant="running" size="default" showDot>
+        <Badge variant="running" size="sm" showDot>
           RUNNING
         </Badge>
       );
     case "idle":
       return (
-        <Badge variant="warning" size="default" showDot>
+        <Badge variant="warning" size="sm" showDot>
           IDLE
         </Badge>
       );
     case "terminated":
       return (
-        <Badge variant="neutral" size="default">
+        <Badge variant="neutral" size="sm">
           TERMINATED
         </Badge>
       );
