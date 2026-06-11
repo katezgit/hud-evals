@@ -231,7 +231,11 @@ export function EnvironmentsIndex({
           can appear when scrolling causes the sticky element to repaint
           against the cards underneath. */}
       <div className="sticky top-0 z-sticky bg-background pt-6 md:pt-10 will-change-transform">
-        <header className="flex items-start justify-between gap-3 md:gap-6">
+        {/* Header row holds ONLY H1 + docs icon + CTA (mobile icon-only or
+            desktop labeled). `items-center` aligns the `+` button vertically
+            with the H1 row — never with the composite header block. The
+            activity bar below is a sibling, not a child of this flex row. */}
+        <header className="flex items-center justify-between gap-3 md:gap-6">
           <div className="flex items-center gap-2">
             <h1 className="text-display font-semibold text-foreground">
               Environments
@@ -457,13 +461,9 @@ export function EnvironmentsIndex({
   );
 }
 
-/**
- * matchMedia-backed hook returning `true` for viewports below the `md`
- * breakpoint (matches the app-shell mobile top bar threshold). Uses
- * `useSyncExternalStore` so SSR + the client first paint agree (server
- * snapshot returns `false`, matching the desktop-default render) and the
- * value flips on the first client commit if the actual viewport is mobile.
- */
+// SSR-safe via useSyncExternalStore: server snapshot returns false so the
+// server HTML and the client first paint agree; flips on the first client
+// commit if the viewport is actually below md.
 function useIsMobileViewport(): boolean {
   return useSyncExternalStore(
     subscribeMobileMedia,

@@ -12,111 +12,120 @@ interface EnvRowProps {
   starCount: number;
 }
 
-/**
- * Single-row List-view representation of an Environment.
- *
- * Minimal first pass per brief — single-column denser row, same data shape as
- * the grid card. Pixel-final three-column meta layout (spec §5) is deferred
- * to a follow-up. Uses the same overlay-link pattern as `EnvCard` so star +
- * URL link sit above the navigation overlay.
- */
 export function EnvRow({ env, isStarred, starCount }: EnvRowProps) {
   return (
     // `isolate` traps the row's internal stacking context — see EnvCard for
     // the full explanation. Without it the inner `relative z-10` nodes tie
     // with the page-level sticky chrome and bleed through on scroll.
-    //
-    // Mobile (<md): items-start so the type icon aligns with the org prefix
-    // line (row 1 of the stacked identity). Tablet+ flips to items-center
-    // alongside the single-line `org / name`.
-    <article className="relative isolate flex items-start gap-3 rounded-lg border border-border bg-panel p-4 transition-colors duration-fast hover:border-border-strong hover:bg-hover md:items-center md:gap-4">
-      <EnvTypeIcon type={env.type} />
+    <article className="relative isolate rounded-lg border border-border bg-panel p-4 transition-colors duration-fast hover:border-border-strong hover:bg-hover">
+      {/* Mobile layout — 3 rows, wireframe §13b. */}
+      <div className="flex flex-col gap-1 md:hidden">
+        <div className="flex min-w-0 items-center gap-2">
+          <EnvTypeIcon type={env.type} />
+          <span className="min-w-0 flex-1 truncate font-mono text-body text-muted-foreground">
+            {env.organization}
+          </span>
+          <span className="relative z-10">
+            <StarCount
+              count={starCount}
+              pressed={isStarred}
+              onPressedChange={noopStarToggle}
+              label={env.name}
+              size="sm"
+            />
+          </span>
+        </div>
+        <Link
+          href={`/environments/${env.id}`}
+          className="block min-w-0 truncate font-mono text-body font-semibold text-foreground outline-none after:absolute after:inset-0 after:rounded-lg after:content-[''] focus-visible:underline focus-visible:underline-offset-4"
+        >
+          {env.name}
+        </Link>
+        <div className="flex items-center justify-between gap-3 font-mono text-meta">
+          <div className="flex items-center gap-3 text-meta-foreground">
+            <BareMetric
+              icon={<ClipboardList aria-hidden="true" className="size-3.5" />}
+              count={env.scenarios.length}
+              label="scenarios"
+            />
+            <BareMetric
+              icon={<Wrench aria-hidden="true" className="size-3.5" />}
+              count={env.tools.length}
+              label="tools"
+            />
+          </div>
+          <span
+            aria-live="polite"
+            className="tabular-nums text-muted-foreground"
+          >
+            {env.runsLast24h > 0
+              ? `${env.runsLast24h} runs/24h`
+              : "0 runs/24h"}
+          </span>
+        </div>
+      </div>
 
-      <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-        {/* Mobile identity: two-line stack (org row + name+star row).
-            Tablet+ collapses to one line `org / name … star` as before.
-            Spec §13 mobile decision 5: no `/` separator at mobile. */}
-        <div className="flex min-w-0 flex-col gap-0.5 font-mono text-body md:flex-row md:items-baseline md:gap-1">
-          <span className="flex min-w-0 items-baseline gap-2 md:contents">
-            <span className="min-w-0 flex-1 truncate text-muted-foreground md:flex-none">
+      <div className="hidden items-center gap-4 md:flex">
+        <EnvTypeIcon type={env.type} />
+
+        <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+          <div className="flex min-w-0 items-baseline gap-1 font-mono text-body">
+            <span className="truncate text-muted-foreground">
               {env.organization}
             </span>
-            {/* Star inline with the org row on mobile so the name row stays
-                clean; on tablet+ the star sits at the row's trailing end
-                (rendered separately below to keep the truncating name in
-                the same flex line). */}
-            <span className="relative z-10 md:hidden">
-              <StarCount
-                count={starCount}
-                pressed={isStarred}
-                onPressedChange={noopStarToggle}
-                label={env.name}
-                size="sm"
-              />
+            <span aria-hidden="true" className="text-muted-foreground">
+              /
             </span>
-          </span>
-          <span
-            aria-hidden="true"
-            className="hidden text-muted-foreground md:inline"
+            <Link
+              href={`/environments/${env.id}`}
+              className="min-w-0 truncate font-semibold text-foreground outline-none after:absolute after:inset-0 after:rounded-lg after:content-[''] focus-visible:underline focus-visible:underline-offset-4"
+            >
+              {env.name}
+            </Link>
+          </div>
+          <p
+            aria-live="polite"
+            className="font-mono text-meta tabular-nums text-muted-foreground"
           >
-            /
-          </span>
-          <Link
-            href={`/environments/${env.id}`}
-            className="min-w-0 truncate font-semibold text-foreground outline-none after:absolute after:inset-0 after:rounded-lg after:content-[''] focus-visible:underline focus-visible:underline-offset-4"
-          >
-            {env.name}
-          </Link>
+            {env.runsLast24h > 0
+              ? `${env.runsLast24h} runs/24 hours`
+              : "0 runs/24 hours"}
+          </p>
+          <div className="relative z-10 mt-0.5 max-w-2xl">
+            <DescriptionWithLinks text={env.description} />
+          </div>
         </div>
-        <p
-          aria-live="polite"
-          className="font-mono text-meta tabular-nums text-muted-foreground"
-        >
-          {env.runsLast24h > 0
-            ? `${env.runsLast24h} runs/24 hours`
-            : "0 runs/24 hours"}
-        </p>
-        {/* Description hidden at mobile per spec §13 — recoverable from the
-            detail page. Tablet+ keeps the truncated description inline. */}
-        <div className="relative z-10 mt-0.5 hidden max-w-2xl md:block">
-          <DescriptionWithLinks text={env.description} />
+
+        <div className="flex shrink-0 items-center gap-3 font-mono text-meta text-meta-foreground">
+          <LabeledMetric
+            icon={<ClipboardList aria-hidden="true" className="size-3.5" />}
+            count={env.scenarios.length}
+            label="scenarios"
+          />
+          <LabeledMetric
+            icon={<Wrench aria-hidden="true" className="size-3.5" />}
+            count={env.tools.length}
+            label="tools"
+          />
         </div>
-      </div>
 
-      {/* Bi-metric strip.
-          Mobile (<md): icon + count only, no labels, label on aria-label.
-          Tablet+: icon + count + visible label as today. */}
-      <div className="flex shrink-0 items-center gap-3 font-mono text-meta text-meta-foreground">
-        <RowMetric
-          icon={<ClipboardList aria-hidden="true" className="size-3.5" />}
-          count={env.scenarios.length}
-          label="scenarios"
-        />
-        <RowMetric
-          icon={<Wrench aria-hidden="true" className="size-3.5" />}
-          count={env.tools.length}
-          label="tools"
-        />
+        <span className="relative z-10 inline-flex">
+          <StarCount
+            count={starCount}
+            pressed={isStarred}
+            onPressedChange={noopStarToggle}
+            label={env.name}
+            size="sm"
+          />
+        </span>
       </div>
-
-      {/* Star at row trailing end — tablet+ only. Mobile renders the star
-          inline with the org row above. */}
-      <span className="relative z-10 hidden md:inline-flex">
-        <StarCount
-          count={starCount}
-          pressed={isStarred}
-          onPressedChange={noopStarToggle}
-          label={env.name}
-          size="sm"
-        />
-      </span>
     </article>
   );
 }
 
 function noopStarToggle() {}
 
-function RowMetric({
+function BareMetric({
   icon,
   count,
   label,
@@ -136,9 +145,30 @@ function RowMetric({
     >
       {icon}
       <span aria-hidden="true">{count}</span>
-      <span aria-hidden="true" className="hidden md:inline">
-        {label}
-      </span>
+    </span>
+  );
+}
+
+function LabeledMetric({
+  icon,
+  count,
+  label,
+}: {
+  icon: React.ReactNode;
+  count: number;
+  label: string;
+}) {
+  const isZero = count === 0;
+  return (
+    <span
+      className={cn(
+        "inline-flex items-center gap-1 tabular-nums",
+        isZero && "opacity-mid",
+      )}
+    >
+      {icon}
+      <span>{count}</span>
+      <span>{label}</span>
     </span>
   );
 }
