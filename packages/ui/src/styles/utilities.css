@@ -14,14 +14,14 @@
 
 /* ─── Layout backdrop utilities ─────────────────────────────────────────────
  * Multi-property recipes that cannot be expressed as a single @theme utility.
- * bg-grid-backdrop: 80px × 80px hairline grid for the AppShell main scroll region.
+ * bg-grid-backdrop: 56px × 56px hairline grid for the AppShell main scroll region.
  *   - background-attachment: fixed is intentionally OMITTED (perf: trace/table scroll). */
 @utility bg-grid-backdrop {
   background-color: var(--color-background);
   background-image:
     linear-gradient(to right,  var(--color-grid-line) 1px, transparent 1px),
     linear-gradient(to bottom, var(--color-grid-line) 1px, transparent 1px);
-  background-size: 80px 80px;
+  background-size: 56px 56px;
 }
 
 /* ─── Typography composites ──────────────────────────────────────────────────
