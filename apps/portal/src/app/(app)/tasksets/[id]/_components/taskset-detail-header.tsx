@@ -40,7 +40,7 @@ export default function TasksetDetailHeader({ taskset }: TasksetDetailHeaderProp
   };
 
   return (
-    <header className="flex flex-col gap-3 pt-2 pb-4">
+    <header className="flex flex-col gap-3 pt-2 pb-6">
       <nav
         aria-label="Breadcrumb"
         className="flex items-center gap-1 text-label tracking-normal normal-case text-muted-foreground"
@@ -57,7 +57,7 @@ export default function TasksetDetailHeader({ taskset }: TasksetDetailHeaderProp
         </span>
       </nav>
       <div className="flex items-start justify-between gap-6">
-        <div className="flex min-w-0 flex-col gap-0.5">
+        <div className="flex min-w-0 flex-col gap-1.5">
           <div className="flex items-center gap-2">
             <h1 className="truncate text-display font-semibold text-foreground">
               {taskset.name}
@@ -81,7 +81,21 @@ export default function TasksetDetailHeader({ taskset }: TasksetDetailHeaderProp
         </div>
 
         <div className="flex shrink-0 items-center gap-2">
-          <Button variant="primary" size="sm" onClick={openRunDialog}>
+          <IconButton
+            variant="primary"
+            size="sm"
+            aria-label="Run Taskset"
+            className="md:hidden"
+            onClick={openRunDialog}
+          >
+            <Play aria-hidden="true" />
+          </IconButton>
+          <Button
+            variant="primary"
+            size="sm"
+            className="hidden md:inline-flex"
+            onClick={openRunDialog}
+          >
             <Play aria-hidden="true" />
             Run Taskset
           </Button>

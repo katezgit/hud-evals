@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import {
   Tabs,
   TabsContent,
@@ -9,6 +9,7 @@ import {
   TabsTrigger,
 } from "@repo/ui/components/tabs";
 import { cn } from "@repo/ui/lib/cn";
+import { usePageScrolled } from "@repo/libs/hooks";
 import type { Environment, Scenario } from "../_data/types";
 import { BuildsTab } from "./builds-tab";
 import { EnvDetailHeader } from "./env-detail-header";
@@ -44,6 +45,9 @@ export function EnvDetailShell({ env }: { env: Environment }) {
   // doubles as "closed" — no parallel `open` boolean.
   const [openScenario, setOpenScenario] = useState<Scenario | null>(null);
 
+  const stickyRef = useRef<HTMLDivElement>(null);
+  const scrolled = usePageScrolled({ ref: stickyRef });
+
   function setActiveTab(next: TabKey) {
     const params = new URLSearchParams(searchParams.toString());
     if (next === "overview") params.delete("tab");
@@ -57,28 +61,37 @@ export function EnvDetailShell({ env }: { env: Environment }) {
 
   return (
     <EnvVarsStoreProvider vars={env.vars}>
-      <div className="flex min-h-full flex-col px-8">
+      <div className="flex min-h-full flex-col px-4 md:px-8">
         <Tabs
           value={activeTab}
           onValueChange={(next) => setActiveTab(next as TabKey)}
           className="flex flex-1 min-w-0 flex-col gap-0"
         >
           <div
+            ref={stickyRef}
             // Sticky block (breadcrumb · name+actions · tab strip) pinned to the
             // top of the (app) scroll container. The tab strip's underline
-            // lives on `TabsList` itself (which is `w-fit`), so no wrapper
-            // border here.
+            // lives on `TabsList` itself (which is `w-fit`), so the scroll-cue
+            // border-b on this wrapper paints at the bottom of the whole band.
             //
             // pt-6 lives INSIDE the sticky element (not on the page wrap) so
             // the sticky's natural top edge sits at scroll y=0; otherwise the
             // 24px outer padding would push the sticky element to y=24 and it
             // would visibly creep upward during scroll 0→24 before pinning.
             //
-            // `z-sticky` paints above tab-content content and any raw
-            // `z-10`/`z-20` inside tab panels (e.g. `Card` descendants with
-            // `position: relative`), and below all overlays. Portaled
-            // dialogs/drawers still win.
-            className={cn("sticky top-0 z-sticky bg-background pt-6")}
+            // `z-page-chrome` (=20) paints above tab-content stickies
+            // (`z-sticky`=10) and any raw `z-10`/`z-20` inside tab panels
+            // (e.g. `Card` descendants with `position: relative`), and below
+            // all overlays. Portaled dialogs/drawers still win.
+            className={cn(
+              "sticky top-0 z-page-chrome bg-background pt-6",
+              // Scroll-cue: border slot is always occupied (border-b) so
+              // flipping border-color does not shift layout. Mirrors DialogHeader.
+              "border-b",
+              scrolled ? "border-border" : "border-transparent",
+              scrolled ? "shadow-scroll-cue" : "shadow-none",
+              "transition-[border-color,box-shadow] prop-(--motion-state-change)",
+            )}
           >
             <EnvDetailHeader
               name={env.name}

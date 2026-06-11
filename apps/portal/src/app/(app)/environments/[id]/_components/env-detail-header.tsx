@@ -21,16 +21,6 @@ const ENV_TYPE_LABEL: Record<EnvType, string> = {
   custom: "Custom",
 };
 
-/**
- * Sticky page header for the env detail surface — two-altitude pattern
- * shared with model-detail and taskset-detail. Breadcrumb · title row ·
- * descriptor strip. The descriptor strip is the single metadata source
- * (slug, source, created-at); the Overview body intentionally repeats
- * none of it.
- *
- * Anchor sections in the body must use `scroll-mt-32` (~96px) so deep-link
- * jumps land below the combined sticky header + tab strip.
- */
 export interface EnvDetailHeaderProps {
   name: string;
   type: EnvType;
@@ -47,7 +37,7 @@ export function EnvDetailHeader({
   visibility,
 }: EnvDetailHeaderProps) {
   return (
-    <header className="flex flex-col gap-3 pt-2 pb-4">
+    <header className="flex flex-col gap-3 pt-2 pb-6">
       <nav
         aria-label="Breadcrumb"
         className="flex items-center gap-1 text-label tracking-normal normal-case text-muted-foreground"
@@ -69,8 +59,8 @@ export function EnvDetailHeader({
 
       <div className="flex items-start justify-between gap-6">
         <div className="flex min-w-0 flex-col gap-1.5">
-          <div className="flex min-w-0 items-center gap-3">
-            <h1 className="truncate text-display font-semibold text-foreground leading-none">
+          <div className="flex min-w-0 items-center gap-2">
+            <h1 className="truncate text-display font-semibold text-foreground">
               {name}
             </h1>
             <VisibilityIcon visibility={ENV_VISIBILITY_TO_ICON[visibility]} />

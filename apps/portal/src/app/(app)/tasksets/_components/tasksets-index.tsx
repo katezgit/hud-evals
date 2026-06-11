@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
@@ -39,6 +39,7 @@ import {
 } from "@repo/ui/components/select";
 import { Tabs, TabsList, TabsTrigger } from "@repo/ui/components/tabs";
 import { cn } from "@repo/ui/lib/cn";
+import { usePageScrolled } from "@repo/libs/hooks";
 import type { Taskset } from "@/lib/mock/tasksets";
 import CreateTasksetDialog from "./create-taskset-dialog";
 import TasksetCard from "./taskset-card";
@@ -136,6 +137,9 @@ export default function TasksetsIndex({ tasksets }: TasksetsIndexProps) {
     mq.addEventListener("change", apply);
     return () => mq.removeEventListener("change", apply);
   }, []);
+
+  const stickyRef = useRef<HTMLDivElement>(null);
+  const scrolled = usePageScrolled({ ref: stickyRef });
 
   const toggleStar = (id: string) => {
     setToggledStars((prev) => {
@@ -272,22 +276,30 @@ export default function TasksetsIndex({ tasksets }: TasksetsIndexProps) {
     // Drives the list-view column header's pinned top so the two stickies sit
     // flush with no overlap/gap jump. Update both together if chrome shape changes.
     <div
-      className="isolate flex flex-col px-8 pb-10 [--chrome-h:7.875rem]"
+      className="isolate flex flex-col px-4 md:px-8 pb-10 [--chrome-h:7.875rem]"
     >
       <div
+        ref={stickyRef}
         // Sticky chrome — page header + tab bar pin to the top of the (app)
-        // scroll container. pt-10 lives INSIDE the sticky element so its top
+        // scroll container. pt-* lives INSIDE the sticky element so its top
         // edge sits at scroll y=0; outer padding would push it down and cause
-        // visible creep before pin. border-b is the wireframe §2 separator so
-        // the filter row scrolling underneath reads as content-below-chrome,
-        // not a cropped glitch. z-30 lifts above in-page siblings (filter row
-        // + SegmentedControl + grouped cards) whose nested utilities can raise
-        // effective stacking; safe because outer wrap has `isolate` so body-
-        // portaled overlays (Dialog, Select Popper, MultiSelect Popover) still
-        // paint above. See docs/conventions/position-sticky.md.
-        className="sticky top-0 z-30 border-b border-border bg-background pt-10"
+        // visible creep before pin. z-page-chrome (=20) lifts above in-page
+        // siblings (filter row + SegmentedControl + grouped cards) whose
+        // nested utilities can raise effective stacking; safe because outer
+        // wrap has `isolate` so body-portaled overlays (Dialog, Select Popper,
+        // MultiSelect Popover) still paint above. See
+        // docs/conventions/position-sticky.md.
+        className={cn(
+          "sticky top-0 z-page-chrome bg-background pt-6 md:pt-10",
+          // Scroll-cue: border slot is always occupied (border-b) so flipping
+          // border-color does not shift layout. Mirrors DialogHeader.
+          "border-b",
+          scrolled ? "border-border" : "border-transparent",
+          scrolled ? "shadow-scroll-cue" : "shadow-none",
+          "transition-[border-color,box-shadow] prop-(--motion-state-change)",
+        )}
       >
-        <header className="flex items-start justify-between gap-6">
+        <header className="flex items-center justify-between gap-3 md:gap-6">
           <h1 className="text-display font-semibold text-foreground">
             {/* TODO: docs icon `[?]` per wireframe §2 — URL contract unconfirmed. */}
             Tasksets
