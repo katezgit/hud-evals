@@ -42,7 +42,12 @@ import type {
 } from "./environments-index-types";
 import { MobileFiltersSheet } from "./mobile-filters-sheet";
 
+// My Team default sort. "Last active" is timestamp-based (lastActiveAt) and
+// communicates operational state at team scale; sortable as a control alongside
+// the rest. Explore uses an ambient "Most active" pill that maps to the
+// existing runsLast24h-descending behaviour and does not surface as a dropdown.
 const SORT_OPTIONS: ReadonlyArray<{ value: SortKey; label: string }> = [
+  { value: "last-active", label: "Last active" },
   { value: "starred-first", label: "Starred first" },
   { value: "newest", label: "Newest first" },
   { value: "oldest", label: "Oldest first" },
@@ -71,6 +76,15 @@ const ALL_TYPE_VALUES: ReadonlyArray<EnvType> = TYPE_OPTIONS.map((o) => o.value)
 
 const VIEW_STORAGE_KEY = "hud.environments.view";
 
+// Per-tab default sort. Explore has no surface for the user to change sort —
+// the ambient "Most active" pill is read-only — so its key maps onto the
+// existing runsLast24h-descending behaviour ("last-activity"). My Team
+// defaults to timestamp-based "last-active" (the new key).
+const DEFAULT_SORT_BY_TAB: Record<TabKey, SortKey> = {
+  explore: "last-activity",
+  team: "last-active",
+};
+
 interface EnvironmentsIndexProps {
   environments: ReadonlyArray<Environment>;
   activity: EnvActivity;
@@ -85,15 +99,31 @@ export function EnvironmentsIndex({
   // the client so a returning user lands on their last choice without a
   // hydration mismatch warning.
   const [view, setView] = useState<ViewKey>("grid");
-  const [sortKey, setSortKey] = useState<SortKey>("starred-first");
+  const [sortKey, setSortKey] = useState<SortKey>(
+    DEFAULT_SORT_BY_TAB.explore,
+  );
   const [groupKey, setGroupKey] = useState<GroupKey>("none");
   const [typeFilter, setTypeFilter] =
     useState<ReadonlyArray<EnvType>>(ALL_TYPE_VALUES);
+  const [ownerFilter, setOwnerFilter] = useState<ReadonlyArray<string>>([]);
   const [debouncedQuery, setDebouncedQuery] = useState("");
   const [collapsedGroups, setCollapsedGroups] = useState<ReadonlySet<string>>(
     () => new Set(),
   );
   const [filtersSheetOpen, setFiltersSheetOpen] = useState(false);
+
+  // Tab-aware filter bar: state does not survive a tab switch (Explore has no
+  // Type/Owner controls, so carrying Team selections onto Explore would mean
+  // the user sees a filtered set with no UI to clear it). Reset to the
+  // per-tab defaults whenever activeTab changes; the search query is shared
+  // (both bars expose it) so it survives.
+  const handleTabChange = (next: TabKey) => {
+    setActiveTab(next);
+    setSortKey(DEFAULT_SORT_BY_TAB[next]);
+    setGroupKey("none");
+    setTypeFilter(ALL_TYPE_VALUES);
+    setOwnerFilter([]);
+  };
 
   // matchMedia-driven mobile flag. Justified despite the no-single-use-hook
   // rule because the forced-list branch at mobile drives different JSX (no
@@ -150,6 +180,10 @@ export function EnvironmentsIndex({
   const visible = useMemo(() => {
     const q = debouncedQuery.trim().toLowerCase();
     const typeSet = new Set(typeFilter);
+    // Owner filter only exists on the Team tab. An empty selection means
+    // "no owner filter applied" — the same convention the Type filter uses
+    // when the array is the full set.
+    const ownerSet = new Set(ownerFilter);
     let rows = tabScope.filter((env) => {
       if (q) {
         const haystack =
@@ -157,6 +191,7 @@ export function EnvironmentsIndex({
         if (!haystack.includes(q)) return false;
       }
       if (typeSet.size > 0 && !typeSet.has(env.type)) return false;
+      if (ownerSet.size > 0 && !ownerSet.has(env.owner)) return false;
       return true;
     });
 
@@ -172,6 +207,8 @@ export function EnvironmentsIndex({
           return b.name.localeCompare(a.name);
         case "oldest":
           return a.name.localeCompare(b.name);
+        case "last-active":
+          return b.lastActiveAt - a.lastActiveAt;
         case "last-activity":
           return b.runsLast24h - a.runsLast24h;
         case "name-asc":
@@ -188,7 +225,28 @@ export function EnvironmentsIndex({
     });
 
     return rows;
-  }, [tabScope, debouncedQuery, typeFilter, sortKey]);
+  }, [tabScope, debouncedQuery, typeFilter, ownerFilter, sortKey]);
+
+  // Owner options come from the team-tab scope so the dropdown only lists
+  // owners that actually have envs in the visible catalog. Deduped + ordered
+  // by appearance to match the canonical TEAM_OWNERS ordering when present.
+  const ownerOptions = useMemo(() => {
+    const teamScope = environments.filter((e) => e.visibility === "team");
+    const seen = new Set<string>();
+    const ordered: Array<string> = [];
+    for (const env of teamScope) {
+      if (!seen.has(env.owner)) {
+        seen.add(env.owner);
+        ordered.push(env.owner);
+      }
+    }
+    return ordered.map((value) => ({ value, label: value }));
+  }, [environments]);
+
+  const allOwnerValues = useMemo(
+    () => ownerOptions.map((o) => o.value),
+    [ownerOptions],
+  );
 
   // Activity total reflects the currently-visible set so the header bar
   // narrows alongside the user's filters (Alex monitoring "Browser envs"
@@ -203,7 +261,7 @@ export function EnvironmentsIndex({
   const searchPlaceholder =
     activeTab === "explore"
       ? "Search public Environments…"
-      : "Search team Environments…";
+      : "Search your team's Environments…";
 
   const sortLabel =
     SORT_OPTIONS.find((opt) => opt.value === sortKey)?.label ?? "Sort";
@@ -211,12 +269,15 @@ export function EnvironmentsIndex({
     GROUP_OPTIONS.find((opt) => opt.value === groupKey)?.label ?? "None";
   const typeFilterLabel = formatTypeFilterLabel(typeFilter);
 
-  // Mobile-only badge count: non-default control states. Owner filter not
-  // implemented yet (spec §13 + brief: "skip until owner filter exists").
+  // Mobile-only badge count: non-default control states. Compared to the
+  // per-tab default sort because My Team now defaults to last-active rather
+  // than starred-first. Owner filter is reflected on the team tab only.
+  const tabDefaultSort = DEFAULT_SORT_BY_TAB[activeTab];
   const mobileFiltersActiveCount =
     (typeFilter.length !== ALL_TYPE_VALUES.length ? 1 : 0) +
-    (sortKey !== "starred-first" ? 1 : 0) +
-    (groupKey !== "none" ? 1 : 0);
+    (sortKey !== tabDefaultSort ? 1 : 0) +
+    (groupKey !== "none" ? 1 : 0) +
+    (activeTab === "team" && ownerFilter.length > 0 ? 1 : 0);
 
   // List view is forced at mobile. Spec §13: the toggle is not a preference
   // the user adjusts on mobile; storage is preserved so resizing up restores
@@ -294,7 +355,7 @@ export function EnvironmentsIndex({
 
         <Tabs
           value={activeTab}
-          onValueChange={(v) => setActiveTab(v as TabKey)}
+          onValueChange={(v) => handleTabChange(v as TabKey)}
           className="mt-4 gap-0"
         >
           <TabsList variant="underline">
@@ -356,96 +417,43 @@ export function EnvironmentsIndex({
         </Button>
       </div>
 
-      {/* Desktop / tablet filter row. View toggle, type filter, sort, group by
-          all visible here. Hidden at mobile in favor of the bottom-sheet
-          trigger above. */}
-      <div className="isolate mt-6 hidden flex-wrap items-center gap-3 md:flex">
-        <div className="min-w-40 flex-1">
-          <SearchInput
-            defaultValue=""
-            onValueChange={setDebouncedQuery}
-            placeholder={searchPlaceholder}
-            aria-label={searchPlaceholder}
-          />
-        </div>
-
-        <div className="flex items-center gap-2">
-          <div className="w-40">
-            <MultiSelect
-              options={TYPE_OPTIONS.map((o) => ({
-                value: o.value,
-                label: o.label,
-              }))}
-              value={[...typeFilter]}
-              onValueChange={(v) =>
-                setTypeFilter(v as ReadonlyArray<EnvType>)
-              }
-              placeholder={typeFilterLabel}
-              searchPlaceholder="Filter types…"
-              selectAllLabel="All types"
-              clearLabel="Clear"
-            />
-          </div>
-
-          <SegmentedControl
-            aria-label="View"
-            value={view}
-            onValueChange={(v) => updateView(v as ViewKey)}
-          >
-            <SegmentedControl.Item value="grid" aria-label="Grid view">
-              <LayoutGrid aria-hidden="true" className="size-3.5" />
-            </SegmentedControl.Item>
-            <SegmentedControl.Item value="list" aria-label="List view">
-              <List aria-hidden="true" className="size-3.5" />
-            </SegmentedControl.Item>
-          </SegmentedControl>
-
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="secondary" aria-label="Sort">
-                <SortGlyph />
-                {sortLabel}
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuRadioGroup
-                value={sortKey}
-                onValueChange={(v) => setSortKey(v as SortKey)}
-              >
-                {SORT_OPTIONS.map((opt) => (
-                  <DropdownMenuRadioItem key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </DropdownMenuRadioItem>
-                ))}
-              </DropdownMenuRadioGroup>
-            </DropdownMenuContent>
-          </DropdownMenu>
-
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="secondary"
-                aria-label="Group by"
-                className={cn(groupKey !== "none" && "bg-selected")}
-              >
-                Group by {groupLabel}
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuRadioGroup
-                value={groupKey}
-                onValueChange={(v) => setGroupKey(v as GroupKey)}
-              >
-                {GROUP_OPTIONS.map((opt) => (
-                  <DropdownMenuRadioItem key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </DropdownMenuRadioItem>
-                ))}
-              </DropdownMenuRadioGroup>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      </div>
+      {/* Desktop / tablet filter row — tab-aware. Each tab gets its own bar:
+          Explore renders search + ambient "Most active" pill + view toggle
+          (no type/group/sort dropdowns — see refinement HTML, n=9 makes them
+          noise). My Team renders the full control set including the Owner
+          filter, with the default sort flipped to "Last active". State is
+          parent-owned so the bar components stay presentational. */}
+      {activeTab === "explore" ? (
+        <ExploreFilterBar
+          searchPlaceholder={searchPlaceholder}
+          onSearchChange={setDebouncedQuery}
+          view={view}
+          onViewChange={updateView}
+        />
+      ) : (
+        <TeamFilterBar
+          searchPlaceholder={searchPlaceholder}
+          onSearchChange={setDebouncedQuery}
+          view={view}
+          onViewChange={updateView}
+          typeFilter={typeFilter}
+          onTypeFilterChange={setTypeFilter}
+          typeFilterLabel={typeFilterLabel}
+          ownerOptions={ownerOptions}
+          ownerFilter={ownerFilter}
+          onOwnerFilterChange={setOwnerFilter}
+          ownerFilterLabel={formatOwnerFilterLabel(
+            ownerFilter,
+            allOwnerValues.length,
+          )}
+          sortKey={sortKey}
+          onSortKeyChange={setSortKey}
+          sortLabel={sortLabel}
+          groupKey={groupKey}
+          onGroupKeyChange={setGroupKey}
+          groupLabel={groupLabel}
+        />
+      )}
 
       <div className="mt-4 md:mt-6">
         <Results
@@ -517,6 +525,215 @@ function formatTypeFilterLabel(types: ReadonlyArray<EnvType>): string {
     return opt ? opt.label : "1 type";
   }
   return `${types.length} types`;
+}
+
+function formatOwnerFilterLabel(
+  owners: ReadonlyArray<string>,
+  totalOwners: number,
+): string {
+  if (owners.length === 0 || owners.length === totalOwners) return "All owners";
+  if (owners.length === 1) return owners[0] ?? "1 owner";
+  return `${owners.length} owners`;
+}
+
+// ── Tab-aware desktop filter bars ───────────────────────────────────────────
+// Two flavours of the same control row, split by composition rather than
+// configuration. State lives in the parent — these are presentational shells.
+
+interface CommonBarProps {
+  searchPlaceholder: string;
+  onSearchChange: (q: string) => void;
+  view: ViewKey;
+  onViewChange: (v: ViewKey) => void;
+}
+
+function ExploreFilterBar({
+  searchPlaceholder,
+  onSearchChange,
+  view,
+  onViewChange,
+}: CommonBarProps) {
+  return (
+    <div className="isolate mt-6 hidden flex-wrap items-center gap-3 md:flex">
+      <div className="min-w-40 flex-1">
+        <SearchInput
+          defaultValue=""
+          onValueChange={onSearchChange}
+          placeholder={searchPlaceholder}
+          aria-label={searchPlaceholder}
+        />
+      </div>
+
+      <div className="flex items-center gap-2">
+        {/* Ambient sort label — communicates the default ordering, not a
+            control. Discovery on n=9 has one correct order; a dropdown with 8
+            options reads as a decision the user does not have. */}
+        <div
+          aria-hidden="true"
+          className={cn(
+            "inline-flex h-8 items-center rounded-md px-2.5",
+            "border border-border bg-muted",
+            "font-mono text-meta text-meta-foreground",
+          )}
+        >
+          Most active
+        </div>
+
+        <SegmentedControl
+          aria-label="View"
+          value={view}
+          onValueChange={(v) => onViewChange(v as ViewKey)}
+        >
+          <SegmentedControl.Item value="grid" aria-label="Grid view">
+            <LayoutGrid aria-hidden="true" className="size-3.5" />
+          </SegmentedControl.Item>
+          <SegmentedControl.Item value="list" aria-label="List view">
+            <List aria-hidden="true" className="size-3.5" />
+          </SegmentedControl.Item>
+        </SegmentedControl>
+      </div>
+    </div>
+  );
+}
+
+interface TeamFilterBarProps extends CommonBarProps {
+  typeFilter: ReadonlyArray<EnvType>;
+  onTypeFilterChange: (v: ReadonlyArray<EnvType>) => void;
+  typeFilterLabel: string;
+  ownerOptions: ReadonlyArray<{ value: string; label: string }>;
+  ownerFilter: ReadonlyArray<string>;
+  onOwnerFilterChange: (v: ReadonlyArray<string>) => void;
+  ownerFilterLabel: string;
+  sortKey: SortKey;
+  onSortKeyChange: (v: SortKey) => void;
+  sortLabel: string;
+  groupKey: GroupKey;
+  onGroupKeyChange: (v: GroupKey) => void;
+  groupLabel: string;
+}
+
+function TeamFilterBar({
+  searchPlaceholder,
+  onSearchChange,
+  view,
+  onViewChange,
+  typeFilter,
+  onTypeFilterChange,
+  typeFilterLabel,
+  ownerOptions,
+  ownerFilter,
+  onOwnerFilterChange,
+  ownerFilterLabel,
+  sortKey,
+  onSortKeyChange,
+  sortLabel,
+  groupKey,
+  onGroupKeyChange,
+  groupLabel,
+}: TeamFilterBarProps) {
+  return (
+    <div className="isolate mt-6 hidden flex-wrap items-center gap-3 md:flex">
+      <div className="min-w-40 flex-1">
+        <SearchInput
+          defaultValue=""
+          onValueChange={onSearchChange}
+          placeholder={searchPlaceholder}
+          aria-label={searchPlaceholder}
+        />
+      </div>
+
+      <div className="flex items-center gap-2">
+        <div className="w-40">
+          <MultiSelect
+            options={TYPE_OPTIONS.map((o) => ({
+              value: o.value,
+              label: o.label,
+            }))}
+            value={[...typeFilter]}
+            onValueChange={(v) =>
+              onTypeFilterChange(v as ReadonlyArray<EnvType>)
+            }
+            placeholder={typeFilterLabel}
+            searchPlaceholder="Filter types…"
+            selectAllLabel="All types"
+            clearLabel="Clear"
+          />
+        </div>
+
+        <div className="w-44">
+          <MultiSelect
+            options={ownerOptions.map((o) => ({ value: o.value, label: o.label }))}
+            value={[...ownerFilter]}
+            onValueChange={(v) =>
+              onOwnerFilterChange(v as ReadonlyArray<string>)
+            }
+            placeholder={ownerFilterLabel}
+            searchPlaceholder="Filter owners…"
+            selectAllLabel="All owners"
+            clearLabel="Clear"
+          />
+        </div>
+
+        <SegmentedControl
+          aria-label="View"
+          value={view}
+          onValueChange={(v) => onViewChange(v as ViewKey)}
+        >
+          <SegmentedControl.Item value="grid" aria-label="Grid view">
+            <LayoutGrid aria-hidden="true" className="size-3.5" />
+          </SegmentedControl.Item>
+          <SegmentedControl.Item value="list" aria-label="List view">
+            <List aria-hidden="true" className="size-3.5" />
+          </SegmentedControl.Item>
+        </SegmentedControl>
+
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="secondary" aria-label="Sort">
+              <SortGlyph />
+              {sortLabel}
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuRadioGroup
+              value={sortKey}
+              onValueChange={(v) => onSortKeyChange(v as SortKey)}
+            >
+              {SORT_OPTIONS.map((opt) => (
+                <DropdownMenuRadioItem key={opt.value} value={opt.value}>
+                  {opt.label}
+                </DropdownMenuRadioItem>
+              ))}
+            </DropdownMenuRadioGroup>
+          </DropdownMenuContent>
+        </DropdownMenu>
+
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="secondary"
+              aria-label="Group by"
+              className={cn(groupKey !== "none" && "bg-selected")}
+            >
+              Group by {groupLabel}
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuRadioGroup
+              value={groupKey}
+              onValueChange={(v) => onGroupKeyChange(v as GroupKey)}
+            >
+              {GROUP_OPTIONS.map((opt) => (
+                <DropdownMenuRadioItem key={opt.value} value={opt.value}>
+                  {opt.label}
+                </DropdownMenuRadioItem>
+              ))}
+            </DropdownMenuRadioGroup>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+    </div>
+  );
 }
 
 function ActivityBar({

@@ -4,6 +4,7 @@ export type SortKey =
   | "starred-first"
   | "newest"
   | "oldest"
+  | "last-active"
   | "last-activity"
   | "name-asc"
   | "name-desc"
