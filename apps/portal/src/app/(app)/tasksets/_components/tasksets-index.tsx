@@ -276,7 +276,7 @@ export default function TasksetsIndex({ tasksets }: TasksetsIndexProps) {
     // Drives the list-view column header's pinned top so the two stickies sit
     // flush with no overlap/gap jump. Update both together if chrome shape changes.
     <div
-      className="isolate flex flex-col px-4 md:px-8 pb-10 [--chrome-h:7.875rem]"
+      className="isolate flex flex-col pb-10 [--chrome-h:7.875rem]"
     >
       <div
         ref={stickyRef}
@@ -289,6 +289,10 @@ export default function TasksetsIndex({ tasksets }: TasksetsIndexProps) {
         // wrap has `isolate` so body-portaled overlays (Dialog, Select Popper,
         // MultiSelect Popover) still paint above. See
         // docs/conventions/position-sticky.md.
+        //
+        // Chrome (bg + border + shadow) is FULL-BLEED across <main>; only the
+        // visible header content is capped at 1536 via the inner wrapper. See
+        // docs/design/guidelines/app-shell-layout.md §2.
         className={cn(
           "sticky top-0 z-page-chrome bg-background pt-6 md:pt-10",
           // Scroll-cue: border slot is always occupied (border-b) so flipping
@@ -299,51 +303,53 @@ export default function TasksetsIndex({ tasksets }: TasksetsIndexProps) {
           "transition-[border-color,box-shadow] prop-(--motion-state-change)",
         )}
       >
-        <header className="flex items-center justify-between gap-3 md:gap-6">
-          <h1 className="text-display font-semibold text-foreground">
-            {/* TODO: docs icon `[?]` per wireframe §2 — URL contract unconfirmed. */}
-            Tasksets
-          </h1>
-          <CreateTasksetDialog
-            trigger={
-              isMobile ? (
-                <IconButton aria-label="New Taskset">
-                  <Plus aria-hidden="true" />
-                </IconButton>
-              ) : undefined
-            }
-          />
-        </header>
+        <div className="mx-auto w-full max-w-[1536px] px-4 md:px-6 lg:px-8">
+          <header className="flex items-center justify-between gap-3 md:gap-6">
+            <h1 className="text-display font-semibold text-foreground">
+              {/* TODO: docs icon `[?]` per wireframe §2 — URL contract unconfirmed. */}
+              Tasksets
+            </h1>
+            <CreateTasksetDialog
+              trigger={
+                isMobile ? (
+                  <IconButton aria-label="New Taskset">
+                    <Plus aria-hidden="true" />
+                  </IconButton>
+                ) : undefined
+              }
+            />
+          </header>
 
-        <Tabs
-          value={activeTab}
-          onValueChange={(v) => updateParam("tab", v === "team" ? null : v)}
-          className="mt-4 gap-0"
-        >
-          <TabsList variant="underline">
-            <TabsTrigger value="public">
-              Public
-              <span className="ml-1.5 font-mono text-caption tabular-nums text-muted-foreground">
-                {tabCounts.public}
-              </span>
-              <span className="sr-only"> items</span>
-            </TabsTrigger>
-            <TabsTrigger value="team">
-              My Team
-              <span className="ml-1.5 font-mono text-caption tabular-nums text-muted-foreground">
-                {tabCounts.team}
-              </span>
-              <span className="sr-only"> items</span>
-            </TabsTrigger>
-          </TabsList>
-        </Tabs>
+          <Tabs
+            value={activeTab}
+            onValueChange={(v) => updateParam("tab", v === "team" ? null : v)}
+            className="mt-4 gap-0"
+          >
+            <TabsList variant="underline">
+              <TabsTrigger value="public">
+                Public
+                <span className="ml-1.5 font-mono text-caption tabular-nums text-muted-foreground">
+                  {tabCounts.public}
+                </span>
+                <span className="sr-only"> items</span>
+              </TabsTrigger>
+              <TabsTrigger value="team">
+                My Team
+                <span className="ml-1.5 font-mono text-caption tabular-nums text-muted-foreground">
+                  {tabCounts.team}
+                </span>
+                <span className="sr-only"> items</span>
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
+        </div>
       </div>
 
       {/* Mobile (<md): search takes its own full-width row, then a single
         bottom-sheet trigger below. Desktop (md+): inline filter row matching
         the original layout. Selections written via updateParam in both modes
         — the sheet is a presentation switch, not a separate data flow. */}
-      <div className="mt-6 flex flex-col gap-3 md:flex-row md:flex-wrap md:items-center">
+      <div className="mx-auto w-full max-w-[1536px] px-4 md:px-6 lg:px-8 mt-6 flex flex-col gap-3 md:flex-row md:flex-wrap md:items-center">
         <div className="w-full md:min-w-40 md:flex-1 md:max-w-xs">
           <SearchInput
             key={searchInputKey}
@@ -471,7 +477,7 @@ export default function TasksetsIndex({ tasksets }: TasksetsIndexProps) {
       </div>
 
       {/* TODO: pagination per wireframe §9 — mock data fits in one page. */}
-      <div className="mt-4">
+      <div className="mx-auto w-full max-w-[1536px] px-4 md:px-6 lg:px-8 mt-4">
         <Results
           visible={visible}
           view={effectiveView}

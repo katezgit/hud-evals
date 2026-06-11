@@ -285,7 +285,7 @@ export function EnvironmentsIndex({
   const effectiveView: ViewKey = isMobile ? "list" : view;
 
   return (
-    <div className="isolate flex flex-col px-4 pb-10 md:px-8">
+    <div className="isolate flex flex-col pb-10">
       {/* Sticky chrome — pt-10 lives inside the sticky element so its natural
           top sits at scroll y=0. The single sticky container holds page header
           + activity bar + tab strip so they pin as one band (no second offset
@@ -294,7 +294,11 @@ export function EnvironmentsIndex({
           painting on top. z-page-chrome (=20) matches env-detail-shell so the
           pinned chrome paints above tab-content stickies (z-sticky=10) and any
           raw z-10/z-20 inside scrolling siblings; body-portaled popovers /
-          dialogs / toasts use higher tiers (z-overlay=50) and still win. */}
+          dialogs / toasts use higher tiers (z-overlay=50) and still win.
+
+          Chrome (bg + border + shadow) is FULL-BLEED across <main>; only the
+          visible header content is capped at 1536 via the inner wrapper. See
+          docs/design/guidelines/app-shell-layout.md §2. */}
       {/* `will-change:transform` promotes the sticky band to its own
           compositor layer in Chromium, eliminating the subpixel jitter that
           can appear when scrolling causes the sticky element to repaint
@@ -311,6 +315,7 @@ export function EnvironmentsIndex({
           "transition-[border-color,box-shadow] prop-(--motion-state-change)",
         )}
       >
+        <div className="mx-auto w-full max-w-[1536px] px-4 md:px-6 lg:px-8">
         {/* Header row holds ONLY H1 + docs icon + CTA (mobile icon-only or
             desktop labeled). `items-center` aligns the `+` button vertically
             with the H1 row — never with the composite header block. The
@@ -375,11 +380,12 @@ export function EnvironmentsIndex({
             </TabsTrigger>
           </TabsList>
         </Tabs>
+        </div>
       </div>
 
       {/* Mobile filter row — search (row A) + `[⚙ Filters]` trigger (row B).
           Stacks full-width, scrolls with content per spec §13. */}
-      <div className="mt-4 flex flex-col gap-2 md:hidden">
+      <div className="mx-auto w-full max-w-[1536px] px-4 md:px-6 lg:px-8 mt-4 flex flex-col gap-2 md:hidden">
         <SearchInput
           defaultValue=""
           onValueChange={setDebouncedQuery}
@@ -423,6 +429,7 @@ export function EnvironmentsIndex({
           noise). My Team renders the full control set including the Owner
           filter, with the default sort flipped to "Last active". State is
           parent-owned so the bar components stay presentational. */}
+      <div className="mx-auto w-full max-w-[1536px] px-4 md:px-6 lg:px-8">
       {activeTab === "explore" ? (
         <ExploreFilterBar
           searchPlaceholder={searchPlaceholder}
@@ -454,8 +461,9 @@ export function EnvironmentsIndex({
           groupLabel={groupLabel}
         />
       )}
+      </div>
 
-      <div className="mt-4 md:mt-6">
+      <div className="mx-auto w-full max-w-[1536px] px-4 md:px-6 lg:px-8 mt-4 md:mt-6">
         <Results
           visible={visible}
           view={effectiveView}

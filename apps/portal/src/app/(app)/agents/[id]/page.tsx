@@ -10,5 +10,9 @@ export default async function AgentDetailPage({
   params: Promise<{ id: string }>;
 }) {
   await params;
-  return <h1>/agents/[id]</h1>;
+  return (
+    <div className="mx-auto w-full max-w-[1536px] px-4 md:px-6 lg:px-8 py-6">
+      <h1>/agents/[id]</h1>
+    </div>
+  );
 }
