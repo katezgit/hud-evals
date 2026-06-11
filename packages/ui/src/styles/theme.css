@@ -233,8 +233,8 @@
 @theme {
   /* Symmetric scroll-cue pair — header (downward) + footer (upward). Both pair with a border-color
    * toggle; border carries the bulk of the signal, shadow adds depth. */
-  --shadow-scroll-cue:          0  2px 3px light-dark(rgba(28,32,36,.05), rgba(0,0,0,.22));
-  --shadow-scroll-cue-inverted: 0 -2px 3px light-dark(rgba(28,32,36,.05), rgba(0,0,0,.22));
+  --shadow-scroll-cue:          0  3px 3px -2px light-dark(rgba(28,32,36,.05), rgba(0,0,0,.22));
+  --shadow-scroll-cue-inverted: 0 -3px 3px -2px light-dark(rgba(28,32,36,.05), rgba(0,0,0,.22));
   /* Stepped above --shadow-chip — Switch off-state is the only surface where shadow is the sole separation cue. */
   --shadow-sw-thumb-off: 0 1px 2px light-dark(rgba(28,32,36,.30), rgba(0,0,0,.60)),
                          0 2px 6px  light-dark(rgba(28,32,36,.18), rgba(0,0,0,.44));
