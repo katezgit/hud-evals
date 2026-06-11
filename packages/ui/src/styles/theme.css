@@ -208,6 +208,12 @@
   /* Popover — same surface role as card. */
   --color-popover:            var(--color-panel);
   --color-popover-foreground: var(--color-foreground);
+
+  /* Form-field surface — raised background when a form field (Input, Textarea,
+   * Select, Combobox, MultiSelect) is focused or open. Tracks --color-panel so it
+   * stays at the same elevation as cards/popovers; named separately so the
+   * focus-lift intent is explicit at each call site. */
+  --color-form-field-surface: var(--color-panel);
 }
 
 /* ─── Overlay roles ──────────────────────────────────────────────────────────
