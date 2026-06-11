@@ -135,7 +135,7 @@ export function PodConfigSection() {
               value={draft.tier}
               onValueChange={(value) => setDraft((d) => ({ ...d, tier: value }))}
             >
-              <SelectTrigger id={tierId} size="sm" className="w-full" aria-label="Resource Tier">
+              <SelectTrigger id={tierId} className="w-full" aria-label="Resource Tier">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -157,7 +157,6 @@ export function PodConfigSection() {
             >
               <SelectTrigger
                 id={timeoutId}
-                size="sm"
                 className="w-full"
                 aria-label="Request Timeout"
               >
@@ -186,7 +185,6 @@ export function PodConfigSection() {
             >
               <SelectTrigger
                 id={durationId}
-                size="sm"
                 className="w-full"
                 aria-label="Session Duration Limit"
               >
@@ -208,9 +206,7 @@ export function PodConfigSection() {
           <div className="flex items-center justify-end gap-2">
             <Button
               type="button"
-              variant="secondary"
-              size="sm"
-              onClick={handleCancel}
+              variant="secondary"              onClick={handleCancel}
               aria-hidden={cancelHidden}
               tabIndex={cancelHidden ? -1 : undefined}
               className={cn(cancelHidden && "pointer-events-none opacity-0")}
@@ -219,9 +215,7 @@ export function PodConfigSection() {
             </Button>
             <Button
               type="button"
-              variant="primary"
-              size="sm"
-              disabled={saveState === "saving" || saveState === "saved"}
+              variant="primary"              disabled={saveState === "saving" || saveState === "saved"}
               onClick={handleSave}
               aria-busy={saveState === "saving"}
             >

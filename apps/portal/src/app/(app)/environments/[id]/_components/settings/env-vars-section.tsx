@@ -240,7 +240,6 @@ export function EnvVarsSection({ vars }: EnvVarsSectionProps) {
                     <IconButton
                       type="button"
                       variant="ghost"
-                      size="sm"
                       aria-label={`Remove ${spec.key}`}
                       onClick={() => handleRemoveAdded(added.uid)}
                       className="mt-2"
@@ -280,7 +279,6 @@ export function EnvVarsSection({ vars }: EnvVarsSectionProps) {
               <Button
                 type="button"
                 variant="secondary"
-                size="sm"
                 disabled={saveState === "saving"}
                 onClick={handleCancel}
               >
@@ -290,7 +288,6 @@ export function EnvVarsSection({ vars }: EnvVarsSectionProps) {
             <Button
               type="button"
               variant="primary"
-              size="sm"
               disabled={saveState === "saving" || saveState === "saved" || !dirty}
               onClick={handleSave}
               aria-busy={saveState === "saving"}
@@ -389,7 +386,6 @@ function AddVarForm({
           value={newKey}
           onChange={(event) => onKeyChange(event.target.value)}
           placeholder="KEY"
-          size="sm"
           aria-label="New variable key"
           aria-invalid={error ? true : undefined}
           autoComplete="off"
@@ -400,7 +396,6 @@ function AddVarForm({
           value={newValue}
           onChange={(event) => onValueChange(event.target.value)}
           placeholder="value"
-          size="sm"
           aria-label="New variable value"
           autoComplete="off"
           spellCheck={false}
@@ -409,7 +404,6 @@ function AddVarForm({
         <Button
           type="button"
           variant="secondary"
-          size="sm"
           onClick={onAdd}
           disabled={newKey.trim() === ""}
         >

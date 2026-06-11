@@ -67,9 +67,7 @@ export function DeleteEnvironmentDialog({
       <DialogTrigger asChild>
         <Button
           type="button"
-          variant="destructive"
-          size="sm"
-          aria-describedby={ariaDescribedBy}
+          variant="destructive"          aria-describedby={ariaDescribedBy}
         >
           Delete Environment
         </Button>

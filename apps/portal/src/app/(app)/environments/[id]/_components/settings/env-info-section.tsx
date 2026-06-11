@@ -126,7 +126,6 @@ export function EnvInfoSection({ envId, displayName }: EnvInfoSectionProps) {
             <Button
               type="button"
               variant="secondary"
-              size="sm"
               onClick={handleCancel}
               aria-hidden={cancelHidden}
               tabIndex={cancelHidden ? -1 : undefined}
@@ -137,7 +136,6 @@ export function EnvInfoSection({ envId, displayName }: EnvInfoSectionProps) {
             <Button
               type="button"
               variant="primary"
-              size="sm"
               disabled={saveState === "saving" || saveState === "saved"}
               onClick={handleSave}
               aria-busy={saveState === "saving"}

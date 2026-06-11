@@ -5,7 +5,7 @@ import Link from "next/link";
 import {
   ChevronDown,
   ChevronRight,
-  CircleHelp,
+  BookOpen,
   LayoutGrid,
   List,
   Plus,
@@ -66,6 +66,8 @@ const TYPE_OPTIONS: ReadonlyArray<{ value: EnvType; label: string }> = [
   { value: "custom", label: "Custom" },
 ];
 
+const ALL_TYPE_VALUES: ReadonlyArray<EnvType> = TYPE_OPTIONS.map((o) => o.value);
+
 const VIEW_STORAGE_KEY = "hud.environments.view";
 
 interface EnvironmentsIndexProps {
@@ -84,7 +86,8 @@ export function EnvironmentsIndex({
   const [view, setView] = useState<ViewKey>("grid");
   const [sortKey, setSortKey] = useState<SortKey>("starred-first");
   const [groupKey, setGroupKey] = useState<GroupKey>("none");
-  const [typeFilter, setTypeFilter] = useState<ReadonlyArray<EnvType>>([]);
+  const [typeFilter, setTypeFilter] =
+    useState<ReadonlyArray<EnvType>>(ALL_TYPE_VALUES);
   const [debouncedQuery, setDebouncedQuery] = useState("");
   const [collapsedGroups, setCollapsedGroups] = useState<ReadonlySet<string>>(
     () => new Set(),
@@ -207,7 +210,7 @@ export function EnvironmentsIndex({
   // Mobile-only badge count: non-default control states. Owner filter not
   // implemented yet (spec §13 + brief: "skip until owner filter exists").
   const mobileFiltersActiveCount =
-    (typeFilter.length > 0 ? 1 : 0) +
+    (typeFilter.length !== ALL_TYPE_VALUES.length ? 1 : 0) +
     (sortKey !== "starred-first" ? 1 : 0) +
     (groupKey !== "none" ? 1 : 0);
 
@@ -223,14 +226,15 @@ export function EnvironmentsIndex({
           + activity bar + tab strip so they pin as one band (no second offset
           to compute). The TabsList's own `w-fit` underline (variant=underline)
           carries the lower-edge separation with the active-tab indicator
-          painting on top. z-sticky matches env-detail-shell so the pinned
-          chrome paints above scrolling siblings; body-portaled popovers /
-          dialogs / toasts use higher tiers and still win. */}
+          painting on top. z-page-chrome (=20) matches env-detail-shell so the
+          pinned chrome paints above tab-content stickies (z-sticky=10) and any
+          raw z-10/z-20 inside scrolling siblings; body-portaled popovers /
+          dialogs / toasts use higher tiers (z-overlay=50) and still win. */}
       {/* `will-change:transform` promotes the sticky band to its own
           compositor layer in Chromium, eliminating the subpixel jitter that
           can appear when scrolling causes the sticky element to repaint
           against the cards underneath. */}
-      <div className="sticky top-0 z-sticky bg-background pt-6 md:pt-10 will-change-transform">
+      <div className="sticky top-0 z-page-chrome bg-background pt-6 md:pt-10 will-change-transform">
         {/* Header row holds ONLY H1 + docs icon + CTA (mobile icon-only or
             desktop labeled). `items-center` aligns the `+` button vertically
             with the H1 row — never with the composite header block. The
@@ -241,13 +245,13 @@ export function EnvironmentsIndex({
               Environments
             </h1>
             <Link
-              href="https://docs.hud.ai/concepts/environments"
+              href="https://docs.hud.ai/platform/environments"
               target="_blank"
               rel="noopener noreferrer"
               aria-label="Environments documentation, opens in new tab"
-              className="inline-flex size-7 items-center justify-center rounded-md text-muted-foreground transition-colors duration-fast hover:bg-hover hover:text-foreground"
+              className="inline-flex items-center justify-center rounded-sm text-muted-foreground hover:text-foreground focus-visible:shadow-focus-ring outline-hidden"
             >
-              <CircleHelp aria-hidden="true" className="size-4" />
+              <BookOpen aria-hidden="true" className="size-3.5" />
             </Link>
           </div>
           {/* Mobile: icon-only `+` (spec §13 decision 1). Tablet+ keeps the
@@ -436,9 +440,9 @@ export function EnvironmentsIndex({
           collapsedGroups={collapsedGroups}
           onToggleGroup={toggleGroup}
           query={debouncedQuery}
-          hasTypeFilter={typeFilter.length > 0}
+          hasTypeFilter={typeFilter.length !== ALL_TYPE_VALUES.length}
           onClearSearch={() => setDebouncedQuery("")}
-          onClearTypeFilter={() => setTypeFilter([])}
+          onClearTypeFilter={() => setTypeFilter(ALL_TYPE_VALUES)}
         />
       </div>
 
@@ -491,7 +495,8 @@ function getMobileMediaServerSnapshot(): boolean {
 }
 
 function formatTypeFilterLabel(types: ReadonlyArray<EnvType>): string {
-  if (types.length === 0) return "All types";
+  if (types.length === ALL_TYPE_VALUES.length) return "All types";
+  if (types.length === 0) return "No types";
   if (types.length === 1) {
     const opt = TYPE_OPTIONS.find((o) => o.value === types[0]);
     return opt ? opt.label : "1 type";

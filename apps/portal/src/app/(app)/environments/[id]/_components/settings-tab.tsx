@@ -13,9 +13,9 @@ export function SettingsTab({ env }: { env: Environment }) {
   return (
     <div className="flex w-full max-w-2xl flex-col gap-4">
       <EnvInfoSection envId={env.id} displayName={env.name} />
+      <EnvVarsSection vars={env.vars} />
       <PodConfigSection />
       <FileTrackingSection />
-      <EnvVarsSection vars={env.vars} />
       <BuildArgsSection />
       <BuildSecretsSection />
       <DangerZoneSection envName={env.name} />

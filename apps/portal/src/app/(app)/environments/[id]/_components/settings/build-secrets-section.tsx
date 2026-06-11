@@ -183,8 +183,7 @@ export function BuildSecretsSection() {
                   <IconButton
                     type="button"
                     variant="ghost"
-                    size="sm"
-                    aria-label={`Remove ${row.key}`}
+                        aria-label={`Remove ${row.key}`}
                     onClick={() => handleRemove(row.uid, row.key)}
                     className="mt-2"
                   >
@@ -210,7 +209,6 @@ export function BuildSecretsSection() {
                   if (addError) setAddError(null);
                 }}
                 placeholder="SECRET_KEY"
-                size="sm"
                 aria-label="New build secret key"
                 aria-invalid={addError ? true : undefined}
                 autoComplete="off"
@@ -222,7 +220,6 @@ export function BuildSecretsSection() {
                 onChange={(event) => setNewValue(event.target.value)}
                 type="password"
                 placeholder="value"
-                size="sm"
                 aria-label="New build secret value"
                 autoComplete="off"
                 spellCheck={false}
@@ -231,7 +228,6 @@ export function BuildSecretsSection() {
               <Button
                 type="button"
                 variant="secondary"
-                size="sm"
                 onClick={handleAdd}
                 disabled={newKey.trim() === ""}
               >
@@ -252,7 +248,6 @@ export function BuildSecretsSection() {
               <Button
                 type="button"
                 variant="secondary"
-                size="sm"
                 disabled={saveState === "saving"}
                 onClick={handleCancel}
               >
@@ -262,7 +257,6 @@ export function BuildSecretsSection() {
             <Button
               type="button"
               variant="primary"
-              size="sm"
               disabled={saveState === "saving" || saveState === "saved" || !dirty}
               onClick={handleSave}
               aria-busy={saveState === "saving"}
