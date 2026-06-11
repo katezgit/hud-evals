@@ -47,7 +47,7 @@ export function AppearanceForm() {
                 onClick={() => setTheme(option.value)}
                 className={cn(
                   "group flex cursor-pointer flex-col gap-2 rounded-md border border-border bg-card p-2 text-left transition-colors duration-fast ease-out-standard hover:border-border-strong",
-                  isActive && "border-2 border-foreground shadow-card",
+                  isActive && "border-primary bg-primary-glow",
                 )}
               >
                 <span
@@ -55,7 +55,14 @@ export function AppearanceForm() {
                   className="block h-12 w-full rounded-sm border border-border"
                   style={option.previewStyle}
                 />
-                <span className="text-center text-label font-semibold text-foreground">{option.label}</span>
+                <span
+                  className={cn(
+                    "text-center text-label font-semibold",
+                    isActive ? "text-primary" : "text-foreground",
+                  )}
+                >
+                  {option.label}
+                </span>
               </button>
             );
           })}
