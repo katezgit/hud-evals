@@ -14,6 +14,7 @@ import {
   TableErrorBand,
   TableSkeletonRow,
 } from "./table"
+import { Card } from "./card"
 import { Checkbox } from "./checkbox"
 import { IconButton } from "./icon-button"
 import { Button } from "./button"
@@ -104,7 +105,7 @@ export const DensityComparison: Story = {
   render: () => (
     <div className="flex flex-col gap-8" style={{ width: 680 }}>
       <div className="flex flex-col gap-2">
-        <p className="text-label text-muted-foreground">Default — 40px rows (min-h)</p>
+        <p className="text-label text-muted-foreground">Default — 40px rows · header 32px in both</p>
         <Table totalCount={3} pageOffset={0} density="default">
           <TableHeader>
             <tr>
@@ -130,7 +131,7 @@ export const DensityComparison: Story = {
       </div>
 
       <div className="flex flex-col gap-2">
-        <p className="text-label text-muted-foreground">Compact — 36px rows (min-h, scan-mode only, no inline editing)</p>
+        <p className="text-label text-muted-foreground">Compact — 36px rows · header 32px in both</p>
         <Table totalCount={3} pageOffset={0} density="compact">
           <TableHeader>
             <tr>
@@ -338,6 +339,60 @@ export const EmptyLoadingError: Story = {
           </TableBody>
         </Table>
       </div>
+    </div>
+  ),
+}
+
+// ── Inside Card ───────────────────────────────────────────────────────────────
+
+export const InsideCard: Story = {
+  name: "Inside Card (header bg vs card bg)",
+  render: () => (
+    <div className="flex flex-col gap-6" style={{ width: 560 }}>
+      <p className="text-label text-muted-foreground">
+        Header inherits bg-background — no elevated band competing with the Card container.
+      </p>
+      <Card className="overflow-hidden p-0">
+        <Table totalCount={3} pageOffset={0}>
+          <TableHeader>
+            <tr>
+              <TableHeaderCell label="Job ID" sticky="left" />
+              <TableHeaderCell label="Status" />
+              <TableHeaderCell label="Reward" numeric />
+            </tr>
+          </TableHeader>
+          <TableBody>
+            {RUNS.slice(0, 3).map((row) => (
+              <TableRow key={row.id} outcome={row.status}>
+                <TableCell variant="id" sticky>{row.jobId}</TableCell>
+                <TableCell>{STATUS_LABEL[row.status]}</TableCell>
+                <TableCell variant="numeric">{row.reward != null ? row.reward.toFixed(3) : "—"}</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </Card>
+      <p className="text-label text-muted-foreground">
+        Freestanding on page bg — same header bg, reads cleanly.
+      </p>
+      <Table totalCount={3} pageOffset={0}>
+        <TableHeader>
+          <tr>
+            <TableHeaderCell label="Job ID" sticky="left" />
+            <TableHeaderCell label="Status" />
+            <TableHeaderCell label="Reward" numeric />
+          </tr>
+        </TableHeader>
+        <TableBody>
+          {RUNS.slice(0, 3).map((row) => (
+            <TableRow key={row.id} outcome={row.status}>
+              <TableCell variant="id" sticky>{row.jobId}</TableCell>
+              <TableCell>{STATUS_LABEL[row.status]}</TableCell>
+              <TableCell variant="numeric">{row.reward != null ? row.reward.toFixed(3) : "—"}</TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
     </div>
   ),
 }

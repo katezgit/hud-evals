@@ -30,7 +30,7 @@ export const tableHeadVariants = cva(
   ].join(" "),
   {
     variants: {
-      density: { default: "min-h-9 py-2.5 px-3", compact: "min-h-8 py-2 px-3" },
+      density: { default: "min-h-8 py-2 px-3", compact: "min-h-8 py-2 px-3" },
       numeric: { true: "text-right", false: "" },
     },
     defaultVariants: { density: "default", numeric: false },
@@ -106,7 +106,7 @@ const TableHeader = React.forwardRef<HTMLTableSectionElement, TableHeaderProps>(
     <thead
       ref={ref}
       data-slot="table-header"
-      className={cn("bg-elevated", className)}
+      className={cn(className)}
       {...props}
     />
   )
@@ -132,7 +132,7 @@ const TableHeaderCell = React.forwardRef<HTMLTableCellElement, TableHeaderCellPr
         scope="col"
         className={cn(
           tableHeadVariants({ density, numeric: !!numeric }),
-          "bg-elevated",
+          (isLeft || isRight) && "bg-elevated",
           isLeft && "left-0 z-table-corner",
           isRight && "right-0 z-table-corner",
           !isLeft && !isRight && "z-table-header",

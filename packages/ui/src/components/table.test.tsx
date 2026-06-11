@@ -92,10 +92,10 @@ describe("tableHeadVariants", () => {
     expect(cls).toContain("px-3")
   })
 
-  it("default density includes min-h-9 py-2.5 px-3", () => {
+  it("default density includes min-h-8 py-2 px-3 (density-invariant 32px header)", () => {
     const cls = tableHeadVariants({ density: "default" })
-    expect(cls).toContain("min-h-9")
-    expect(cls).toContain("py-2.5")
+    expect(cls).toContain("min-h-8")
+    expect(cls).toContain("py-2")
     expect(cls).toContain("px-3")
   })
 })
