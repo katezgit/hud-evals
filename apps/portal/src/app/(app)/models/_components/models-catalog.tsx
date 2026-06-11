@@ -859,7 +859,7 @@ export default function ModelsCatalog() {
                           key={header.id}
                           style={getPinningStyles(header.column, true)}
                           className={cn(
-                            tableHeadVariants({ density: "compact" }),
+                            tableHeadVariants(),
                             // Cancel per-<th> sticky — sticky lives on <thead>
                             // now. `static` overrides `sticky` via twMerge's
                             // position group.
@@ -908,7 +908,7 @@ export default function ModelsCatalog() {
                   table.getRowModel().rows.map((row) => (
                     <tr
                       key={row.id}
-                      className={tableRowVariants({ density: "compact" })}
+                      className={tableRowVariants()}
                     >
                       {row.getVisibleCells().map((cell) => {
                         const meta = cell.column.columnDef.meta as
@@ -920,7 +920,7 @@ export default function ModelsCatalog() {
                             key={cell.id}
                             style={getPinningStyles(cell.column, false)}
                             className={cn(
-                              tableCellVariants({ density: "compact" }),
+                              tableCellVariants(),
                               "py-2",
                               // bg only when actually pinned — keeps row hover
                               // visible on desktop where the column isn't sticky.

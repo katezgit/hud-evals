@@ -1,3 +1,11 @@
+import {
+  tableBodyClass,
+  tableCellVariants,
+  tableClass,
+  tableHeaderClass,
+  tableHeadVariants,
+  tableRowVariants,
+} from "@repo/ui/components/table";
 import { cn } from "@repo/ui/lib/cn";
 import type {
   DistributionRow,
@@ -11,6 +19,16 @@ interface DistributionTableProps {
   configs: ReadonlyArray<PerformanceConfig>;
   rows: ReadonlyArray<DistributionRow>;
 }
+
+const HEADERS: ReadonlyArray<{ label: string; numeric: boolean; width?: string }> = [
+  { label: "Tool", numeric: false },
+  { label: "", numeric: false, width: "w-32" },
+  { label: "Avg/Tr", numeric: true },
+  { label: "Pass rate", numeric: true },
+  { label: "R²", numeric: true },
+  { label: "Empty%", numeric: true },
+  { label: "Avg out", numeric: true },
+];
 
 export default function DistributionTable({
   configs,
@@ -27,33 +45,24 @@ export default function DistributionTable({
     <div className="flex flex-col gap-3">
       <h3 className="text-body font-semibold text-foreground">Distribution</h3>
       <div className="overflow-x-auto rounded-md border border-border bg-card">
-        <table className="w-full text-body">
-          <thead className="border-b border-border bg-muted/30">
+        <table className={tableClass}>
+          <thead className={tableHeaderClass}>
             <tr>
-              {[
-                "TOOL",
-                "",
-                "AVG/TR",
-                "PASS RATE",
-                "R²",
-                "EMPTY%",
-                "AVG OUT",
-              ].map((label, idx) => (
+              {HEADERS.map((h, idx) => (
                 <th
-                  key={`${label}-${idx}`}
+                  key={`${h.label}-${idx}`}
                   scope="col"
                   className={cn(
-                    "whitespace-nowrap px-3 py-2 text-meta font-medium uppercase tracking-wider text-muted-foreground",
-                    idx === 0 ? "text-left" : "text-right",
-                    idx === 1 && "w-32",
+                    tableHeadVariants({ density: "compact", numeric: h.numeric }),
+                    h.width,
                   )}
                 >
-                  {label}
+                  {h.label}
                 </th>
               ))}
             </tr>
           </thead>
-          <tbody>
+          <tbody className={tableBodyClass}>
             {rows.map((row) => (
               <ToolRows
                 key={row.tool}
@@ -124,14 +133,14 @@ function ConfigStatsRow({
   return (
     <tr
       className={cn(
-        "border-b border-border last:border-b-0",
+        tableRowVariants({ density: "compact" }),
         isSecond && "border-b-2",
       )}
     >
-      <td className="px-3 py-1.5 font-mono text-foreground">
+      <td className={cn(tableCellVariants({ density: "compact", variant: "mono" }))}>
         {showTool ? tool : ""}
       </td>
-      <td className="px-3 py-1.5">
+      <td className={tableCellVariants({ density: "compact" })}>
         <div className="flex items-center gap-2">
           <span
             aria-hidden="true"
@@ -148,21 +157,21 @@ function ConfigStatsRow({
           </div>
         </div>
       </td>
-      <td className="px-3 py-1.5 text-right font-mono tabular-nums text-foreground">
+      <td className={cn(tableCellVariants({ density: "compact", variant: "mono" }), "text-right")}>
         {stats.avgPerTrace.toFixed(2)}
       </td>
-      <td className="px-3 py-1.5 text-right font-mono tabular-nums text-foreground">
+      <td className={cn(tableCellVariants({ density: "compact", variant: "mono" }), "text-right")}>
         {formatPct(stats.passRate)}
       </td>
-      <td className="px-3 py-1.5 text-right font-mono tabular-nums text-foreground">
+      <td className={cn(tableCellVariants({ density: "compact", variant: "mono" }), "text-right")}>
         {stats.rSquared === null
           ? "—"
           : `${stats.rSquared > 0 ? "+" : ""}${stats.rSquared.toFixed(2)}`}
       </td>
-      <td className="px-3 py-1.5 text-right font-mono tabular-nums text-foreground">
+      <td className={cn(tableCellVariants({ density: "compact", variant: "mono" }), "text-right")}>
         {stats.emptyPct}%
       </td>
-      <td className="px-3 py-1.5 text-right font-mono tabular-nums text-foreground">
+      <td className={cn(tableCellVariants({ density: "compact", variant: "mono" }), "text-right")}>
         {stats.avgOut === null ? "—" : stats.avgOut}
       </td>
     </tr>

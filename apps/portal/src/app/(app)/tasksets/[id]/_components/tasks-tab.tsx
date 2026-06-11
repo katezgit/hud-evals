@@ -164,7 +164,7 @@ export default function TasksTab({ taskset }: TasksTabProps) {
                       key={header.id}
                       scope="col"
                       className={cn(
-                        tableHeadVariants({ density: "compact" }),
+                        tableHeadVariants(),
                         "normal-case tracking-normal",
                         meta?.headerClassName,
                       )}
@@ -183,10 +183,7 @@ export default function TasksTab({ taskset }: TasksTabProps) {
           </thead>
           <tbody className={tableBodyClass}>
             {table.getRowModel().rows.map((row) => (
-              <tr
-                key={row.id}
-                className={tableRowVariants({ density: "compact" })}
-              >
+              <tr key={row.id} className={tableRowVariants()}>
                 {row.getVisibleCells().map((cell) => {
                   const meta = cell.column.columnDef.meta as
                     | { cellClassName?: string }
@@ -194,10 +191,7 @@ export default function TasksTab({ taskset }: TasksTabProps) {
                   return (
                     <td
                       key={cell.id}
-                      className={cn(
-                        tableCellVariants({ density: "compact" }),
-                        meta?.cellClassName,
-                      )}
+                      className={cn(tableCellVariants(), meta?.cellClassName)}
                     >
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
                     </td>

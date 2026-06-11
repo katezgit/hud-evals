@@ -35,47 +35,23 @@ export function BuildsTab({ builds }: BuildsTabProps) {
       <table className={tableClass}>
         <thead className={tableHeaderClass}>
           <tr>
-            <th
-              scope="col"
-              className={cn(
-                tableHeadVariants({ density: "compact" }),
-                "normal-case tracking-normal",
-              )}
-            >
+            <th scope="col" className={tableHeadVariants({ density: "compact" })}>
               Version
             </th>
-            <th
-              scope="col"
-              className={cn(
-                tableHeadVariants({ density: "compact" }),
-                "normal-case tracking-normal",
-              )}
-            >
+            <th scope="col" className={tableHeadVariants({ density: "compact" })}>
               Status
             </th>
-            <th
-              scope="col"
-              className={cn(
-                tableHeadVariants({ density: "compact" }),
-                "normal-case tracking-normal",
-              )}
-            >
+            <th scope="col" className={tableHeadVariants({ density: "compact" })}>
               Changed by
             </th>
-            <th
-              scope="col"
-              className={cn(
-                tableHeadVariants({ density: "compact" }),
-                "normal-case tracking-normal",
-              )}
-            >
+            <th scope="col" className={tableHeadVariants({ density: "compact" })}>
               Deployed
             </th>
             <th
               scope="col"
               className={cn(
                 tableHeadVariants({ density: "compact" }),
-                "w-12 text-right normal-case tracking-normal",
+                "w-12 text-right",
               )}
             >
               <span className="sr-only">Row actions</span>

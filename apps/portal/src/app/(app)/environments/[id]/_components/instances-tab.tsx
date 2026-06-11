@@ -35,56 +35,26 @@ export function InstancesTab({ envId, instances }: InstancesTabProps) {
       <table className={tableClass}>
         <thead className={tableHeaderClass}>
           <tr>
-            <th
-              scope="col"
-              className={cn(
-                tableHeadVariants({ density: "compact" }),
-                "normal-case tracking-normal",
-              )}
-            >
+            <th scope="col" className={tableHeadVariants({ density: "compact" })}>
               Instance ID
             </th>
-            <th
-              scope="col"
-              className={cn(
-                tableHeadVariants({ density: "compact" }),
-                "normal-case tracking-normal",
-              )}
-            >
+            <th scope="col" className={tableHeadVariants({ density: "compact" })}>
               Status
             </th>
-            <th
-              scope="col"
-              className={cn(
-                tableHeadVariants({ density: "compact" }),
-                "normal-case tracking-normal",
-              )}
-            >
+            <th scope="col" className={tableHeadVariants({ density: "compact" })}>
               Model / Agent
             </th>
-            <th
-              scope="col"
-              className={cn(
-                tableHeadVariants({ density: "compact" }),
-                "normal-case tracking-normal",
-              )}
-            >
+            <th scope="col" className={tableHeadVariants({ density: "compact" })}>
               Started
             </th>
-            <th
-              scope="col"
-              className={cn(
-                tableHeadVariants({ density: "compact" }),
-                "normal-case tracking-normal",
-              )}
-            >
+            <th scope="col" className={tableHeadVariants({ density: "compact" })}>
               Duration
             </th>
             <th
               scope="col"
               className={cn(
                 tableHeadVariants({ density: "compact" }),
-                "w-12 text-right normal-case tracking-normal",
+                "w-12 text-right",
               )}
             >
               <span className="sr-only">Row actions</span>

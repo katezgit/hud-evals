@@ -1,3 +1,11 @@
+import {
+  tableBodyClass,
+  tableCellVariants,
+  tableClass,
+  tableHeaderClass,
+  tableHeadVariants,
+  tableRowVariants,
+} from "@repo/ui/components/table";
 import { cn } from "@repo/ui/lib/cn";
 import type { OverviewRow } from "@/lib/mock/performance";
 import {
@@ -16,17 +24,17 @@ interface OverviewMetricsTableProps {
 }
 
 const COLUMNS = [
-  { key: "reward", label: "REWARD" },
-  { key: "steps", label: "STEPS" },
-  { key: "traces", label: "TRACES" },
-  { key: "tasks", label: "TASKS" },
-  { key: "duration", label: "DURATION" },
-  { key: "cost", label: "COST" },
-  { key: "llmCalls", label: "LLM CALLS" },
-  { key: "thinkAct", label: "THINK/ACT" },
-  { key: "errors", label: "ERRORS" },
-  { key: "entropy", label: "ENTROPY" },
-  { key: "topTool", label: "TOP TOOL" },
+  { key: "reward", label: "Reward" },
+  { key: "steps", label: "Steps" },
+  { key: "traces", label: "Traces" },
+  { key: "tasks", label: "Tasks" },
+  { key: "duration", label: "Duration" },
+  { key: "cost", label: "Cost" },
+  { key: "llmCalls", label: "LLM calls" },
+  { key: "thinkAct", label: "Think/act" },
+  { key: "errors", label: "Errors" },
+  { key: "entropy", label: "Entropy" },
+  { key: "topTool", label: "Top tool" },
 ] as const;
 
 export default function OverviewMetricsTable({
@@ -36,27 +44,30 @@ export default function OverviewMetricsTable({
     <section className="flex flex-col gap-3">
       <h3 className="text-subtitle font-semibold text-foreground">Overview</h3>
       <div className="relative overflow-x-auto rounded-md border border-border bg-card">
-        <table className="w-full text-body">
-          <thead className="border-b border-border bg-muted/30">
+        <table className={tableClass}>
+          <thead className={tableHeaderClass}>
             <tr>
               <th
                 scope="col"
-                className="sticky left-0 z-table-col bg-muted/30 px-3 py-2 text-left text-meta font-medium uppercase tracking-wider text-muted-foreground"
+                className={cn(
+                  tableHeadVariants({ density: "compact" }),
+                  "sticky left-0 z-table-col",
+                )}
               >
-                CONFIG
+                Config
               </th>
               {COLUMNS.map((c) => (
                 <th
                   key={c.key}
                   scope="col"
-                  className="whitespace-nowrap px-3 py-2 text-right text-meta font-medium uppercase tracking-wider text-muted-foreground"
+                  className={tableHeadVariants({ density: "compact", numeric: true })}
                 >
                   {c.label}
                 </th>
               ))}
             </tr>
           </thead>
-          <tbody>
+          <tbody className={tableBodyClass}>
             {rows.map((row) => (
               <OverviewRowComponent key={row.configId} row={row} />
             ))}
@@ -73,10 +84,13 @@ function OverviewRowComponent({ row }: { row: OverviewRow }) {
   const thinkActFlag = row.thinkAct > THINK_ACT_FLAG;
 
   return (
-    <tr className="border-b border-border last:border-b-0">
+    <tr className={tableRowVariants({ density: "compact" })}>
       <th
         scope="row"
-        className="sticky left-0 z-table-col whitespace-nowrap bg-card px-3 py-2 text-left font-medium"
+        className={cn(
+          tableCellVariants({ density: "compact" }),
+          "sticky left-0 z-table-col bg-card text-left font-medium",
+        )}
       >
         <span className="inline-flex items-center gap-1.5">
           <ConfigColorDot id={row.configId} />
@@ -85,33 +99,35 @@ function OverviewRowComponent({ row }: { row: OverviewRow }) {
       </th>
       <td
         className={cn(
-          "px-3 py-2 text-right font-mono tabular-nums",
+          tableCellVariants({ density: "compact", variant: "mono" }),
+          "text-right",
           rewardLow && "text-destructive",
         )}
       >
         {formatPct(row.reward)}
       </td>
-      <td className="px-3 py-2 text-right font-mono tabular-nums text-foreground">
+      <td className={cn(tableCellVariants({ density: "compact", variant: "mono" }), "text-right")}>
         {row.steps}
       </td>
-      <td className="px-3 py-2 text-right font-mono tabular-nums text-foreground">
+      <td className={cn(tableCellVariants({ density: "compact", variant: "mono" }), "text-right")}>
         {row.traces}
       </td>
-      <td className="px-3 py-2 text-right font-mono tabular-nums text-foreground">
+      <td className={cn(tableCellVariants({ density: "compact", variant: "mono" }), "text-right")}>
         {row.tasks.scored}/{row.tasks.total}
       </td>
-      <td className="px-3 py-2 text-right font-mono tabular-nums text-foreground">
+      <td className={cn(tableCellVariants({ density: "compact", variant: "mono" }), "text-right")}>
         {formatDuration(row.durationMin)}
       </td>
-      <td className="px-3 py-2 text-right font-mono tabular-nums text-foreground">
+      <td className={cn(tableCellVariants({ density: "compact", variant: "mono" }), "text-right")}>
         {formatCost(row.costUsd)}
       </td>
-      <td className="px-3 py-2 text-right font-mono tabular-nums text-foreground">
+      <td className={cn(tableCellVariants({ density: "compact", variant: "mono" }), "text-right")}>
         {row.llmCalls}
       </td>
       <td
         className={cn(
-          "px-3 py-2 text-right font-mono tabular-nums",
+          tableCellVariants({ density: "compact", variant: "mono" }),
+          "text-right",
           thinkActFlag ? "text-state-warning-text" : "text-foreground",
         )}
       >
@@ -119,16 +135,17 @@ function OverviewRowComponent({ row }: { row: OverviewRow }) {
       </td>
       <td
         className={cn(
-          "px-3 py-2 text-right font-mono tabular-nums",
+          tableCellVariants({ density: "compact", variant: "mono" }),
+          "text-right",
           errorsHigh ? "text-destructive" : "text-foreground",
         )}
       >
         {formatPct(row.errorsRate, 0)}
       </td>
-      <td className="px-3 py-2 text-right font-mono tabular-nums text-foreground">
+      <td className={cn(tableCellVariants({ density: "compact", variant: "mono" }), "text-right")}>
         {row.entropyObserved.toFixed(2)} / {row.entropyMax.toFixed(2)}
       </td>
-      <td className="px-3 py-2 text-right font-mono text-foreground">
+      <td className={cn(tableCellVariants({ density: "compact", variant: "mono" }), "text-right")}>
         <span className="rounded-sm bg-muted px-1.5 py-0.5 text-meta">
           {row.topTool.name} ({row.topTool.sharePct}%)
         </span>

@@ -287,7 +287,7 @@ function LogsTable({
         {table.getHeaderGroups().map((group) => (
           <tr key={group.id}>
             {group.headers.map((header) => (
-              <th key={header.id} className={tableHeadVariants()}>
+              <th key={header.id} className={tableHeadVariants({ density: "compact" })}>
                 {header.isPlaceholder
                   ? null
                   : flexRender(header.column.columnDef.header, header.getContext())}
@@ -337,10 +337,10 @@ function LogRowFragment({
   return (
     <>
       <tr
-        className={cn(tableRowVariants(), isExpanded && "bg-hover")}
+        className={cn(tableRowVariants({ density: "compact" }), isExpanded && "bg-hover")}
       >
         {cells.map((cell) => (
-          <td key={cell.id} className={tableCellVariants()}>
+          <td key={cell.id} className={tableCellVariants({ density: "compact" })}>
             {cell.node}
           </td>
         ))}
