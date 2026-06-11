@@ -90,9 +90,6 @@ export function UsageView() {
             );
           })}
         </div>
-        <p className="mt-4 font-mono text-caption text-meta-foreground leading-relaxed">
-          Headroom on all limits. An amber flag shows here when a run is queued against a cap.
-        </p>
       </Panel>
     </>
   );
