@@ -6,8 +6,8 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import { Badge } from "@repo/ui/components/badge";
+import { Card } from "@repo/ui/components/card";
 import ManageTable from "@/app/(manage)/_components/manage-table";
-import { Panel } from "@/app/(manage)/_components/page-primitives";
 import { billingHistory } from "@/lib/mock";
 import type { BillingHistoryEntry, BillingHistoryStatus } from "@/lib/mock/types";
 
@@ -89,14 +89,14 @@ export function BillingHistoryPanel() {
   });
 
   return (
-    <Panel>
-      <header className="mb-4">
+    <Card className="mb-4 overflow-hidden">
+      <header className="px-6 pt-6 pb-4">
         <h2 className="text-subtitle font-semibold text-foreground">Billing history</h2>
         <p className="mt-1 text-body text-muted-foreground">
           Your recent credit purchases and transactions
         </p>
       </header>
       <ManageTable table={table} />
-    </Panel>
+    </Card>
   );
 }

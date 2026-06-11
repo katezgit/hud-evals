@@ -125,6 +125,8 @@ The table sits inside a `<Card>` that already provides chrome (background, borde
 
 **Examples:** Billing history, Usage resource breakdown.
 
+**Edge-to-edge:** the table must fill the Card edge-to-edge so the `bg-muted` thead reads as a section divider butting up against the Card's inner border. Pass `className="p-0"` to the `<CardContent>` that wraps the table (or render the table as a direct sibling of the heading with no padding wrapper) and add `overflow-hidden` to the `<Card>`. The Card's rounded corners + `overflow-hidden` clip the first row's top corners and the last row's bottom corners cleanly — without this, the table reads as a sharp-cornered inner rectangle floating inside the Card.
+
 ---
 
 ### Anti-pattern: double chrome
