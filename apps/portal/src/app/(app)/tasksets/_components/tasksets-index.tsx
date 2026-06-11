@@ -1,0 +1,602 @@
+"use client";
+
+import { useMemo, useState } from "react";
+import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
+import {
+  ArrowUpRight,
+  ChevronDown,
+  ChevronRight,
+  LayoutGrid,
+  List,
+  ListChecks,
+} from "lucide-react";
+import { Button } from "@repo/ui/components/button";
+import { CodeBlock } from "@repo/ui/components/code-block";
+import { EmptyState } from "@repo/ui/components/empty-state";
+import { MultiSelect } from "@repo/ui/components/multi-select";
+import { SearchInput } from "@repo/ui/components/search-input";
+import { SegmentedControl } from "@repo/ui/components/segmented-control";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@repo/ui/components/select";
+import { Tabs, TabsList, TabsTrigger } from "@repo/ui/components/tabs";
+import type { Taskset } from "@/lib/mock/tasksets";
+import CreateTasksetDialog from "./create-taskset-dialog";
+import TasksetCard from "./taskset-card";
+import TasksetListRow from "./taskset-list-row";
+
+type TabKey = "team" | "public";
+type ViewKey = "cards" | "list";
+type SortKey =
+  | "starred-first"
+  | "newest"
+  | "oldest"
+  | "last-activity"
+  | "name-asc"
+  | "name-desc"
+  | "most-tasks";
+type GroupKey = "none" | "owner" | "environment";
+
+const SORT_OPTIONS: ReadonlyArray<{ value: SortKey; label: string }> = [
+  { value: "starred-first", label: "Starred first" },
+  { value: "newest", label: "Newest first" },
+  { value: "oldest", label: "Oldest first" },
+  // Mock-equivalent of "last activity" per wireframe §7: no Job-run timestamp
+  // on Taskset; treat as alias for "Newest first" until real activity lands.
+  { value: "last-activity", label: "Last activity" },
+  { value: "name-asc", label: "Name (A–Z)" },
+  { value: "name-desc", label: "Name (Z–A)" },
+  { value: "most-tasks", label: "Most tasks" },
+];
+
+const GROUP_OPTIONS: ReadonlyArray<{ value: GroupKey; label: string }> = [
+  { value: "none", label: "None" },
+  // Environment grouping is wireframed but Taskset has no env reference in mock;
+  // fall back to Owner-only grouping. TODO: per-Environment grouping when the
+  // Environment relation lands on Taskset.
+  { value: "environment", label: "Environment" },
+  { value: "owner", label: "Owner" },
+];
+
+const OWNER_FILTER_THRESHOLD = 10;
+
+function parseView(v: string | null): ViewKey {
+  return v === "list" ? "list" : "cards";
+}
+
+function parseSort(v: string | null): SortKey {
+  const match = SORT_OPTIONS.find((opt) => opt.value === v);
+  return match ? match.value : "starred-first";
+}
+
+function parseTab(v: string | null): TabKey {
+  return v === "public" ? "public" : "team";
+}
+
+function parseGroup(v: string | null): GroupKey {
+  const match = GROUP_OPTIONS.find((opt) => opt.value === v);
+  return match ? match.value : "none";
+}
+
+interface TasksetsIndexProps {
+  tasksets: ReadonlyArray<Taskset>;
+}
+
+export default function TasksetsIndex({ tasksets }: TasksetsIndexProps) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const activeTab = parseTab(searchParams.get("tab"));
+  const view = parseView(searchParams.get("view"));
+  const sortKey = parseSort(searchParams.get("sort"));
+  const groupKey = parseGroup(searchParams.get("group"));
+
+  const [query, setQuery] = useState("");
+  const [searchInputKey, setSearchInputKey] = useState(0);
+  const [ownerFilter, setOwnerFilter] = useState<ReadonlyArray<string>>([]);
+  const [toggledStars, setToggledStars] = useState<ReadonlySet<string>>(
+    () => new Set(),
+  );
+  const [collapsedGroups, setCollapsedGroups] = useState<ReadonlySet<string>>(
+    () => new Set(),
+  );
+
+  const toggleStar = (id: string) => {
+    setToggledStars((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleGroupCollapsed = (key: string) => {
+    setCollapsedGroups((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+  };
+
+  const starStateFor = (t: Taskset) => {
+    const flipped = toggledStars.has(t.id);
+    const isStarred = flipped ? !t.isStarred : t.isStarred;
+    let delta = 0;
+    if (isStarred && !t.isStarred) delta = 1;
+    else if (!isStarred && t.isStarred) delta = -1;
+    return { isStarred, count: t.starCount + delta };
+  };
+
+  const updateParam = (key: string, value: string | null) => {
+    const next = new URLSearchParams(searchParams.toString());
+    if (value === null) next.delete(key);
+    else next.set(key, value);
+    const qs = next.toString();
+    router.replace(qs ? `/tasksets?${qs}` : "/tasksets", { scroll: false });
+  };
+
+  const tabScope = useMemo(
+    () =>
+      tasksets.filter((t) =>
+        activeTab === "public"
+          ? t.visibility === "public"
+          : t.ownership === "team" || t.ownership === "user",
+      ),
+    [tasksets, activeTab],
+  );
+
+  const distinctOwners = useMemo(() => {
+    const set = new Set<string>();
+    for (const t of tabScope) set.add(t.ownerName);
+    return [...set].sort();
+  }, [tabScope]);
+
+  const showOwnerFilter =
+    activeTab === "team" && distinctOwners.length >= OWNER_FILTER_THRESHOLD;
+
+  const visible = useMemo(() => {
+    // When the owner filter would be hidden but selections exist, ignore them
+    // so collapsing the control doesn't silently filter the list.
+    const effective = showOwnerFilter ? ownerFilter : [];
+    const q = query.trim().toLowerCase();
+    let rows = tabScope.filter((t) => {
+      if (q && !t.name.toLowerCase().includes(q)) return false;
+      if (effective.length > 0 && !effective.includes(t.ownerName)) {
+        return false;
+      }
+      return true;
+    });
+
+    rows = [...rows].sort((a, b) => {
+      switch (sortKey) {
+        case "starred-first": {
+          const aStar = a.isStarred ? 1 : 0;
+          const bStar = b.isStarred ? 1 : 0;
+          if (aStar !== bStar) return bStar - aStar;
+          return a.createdOrder - b.createdOrder;
+        }
+        case "newest":
+        case "last-activity":
+          return a.createdOrder - b.createdOrder;
+        case "oldest":
+          return b.createdOrder - a.createdOrder;
+        case "name-asc":
+          return a.name.localeCompare(b.name);
+        case "name-desc":
+          return b.name.localeCompare(a.name);
+        case "most-tasks":
+          return b.taskCount - a.taskCount;
+        default:
+          return 0;
+      }
+    });
+
+    return rows;
+  }, [tabScope, query, ownerFilter, showOwnerFilter, sortKey]);
+
+  const tabCounts = useMemo(
+    () => ({
+      team: tasksets.filter(
+        (t) => t.ownership === "team" || t.ownership === "user",
+      ).length,
+      public: tasksets.filter((t) => t.visibility === "public").length,
+    }),
+    [tasksets],
+  );
+
+  if (tasksets.length === 0) {
+    return <EmptyTeamState />;
+  }
+
+  const searchPlaceholder =
+    activeTab === "team"
+      ? "Search team Tasksets…"
+      : "Search public Tasksets…";
+
+  const ownerOptions = distinctOwners.map((name) => ({
+    value: name,
+    label: name,
+  }));
+
+  return (
+    <div className="isolate flex flex-col px-8 pb-10">
+      <div
+        // Sticky chrome — page header + tab bar pin to the top of the (app)
+        // scroll container. pt-10 lives INSIDE the sticky element so its top
+        // edge sits at scroll y=0; outer padding would push it down and cause
+        // visible creep before pin. z-10 lifts above in-page siblings; safe
+        // because outer wrap has `isolate` so the body-portaled overlays
+        // (Dialog, Select Popper, MultiSelect Popover) still paint above.
+        // See docs/conventions/position-sticky.md.
+        className="sticky top-0 z-10 bg-background pt-10"
+      >
+        <header className="flex items-start justify-between gap-6">
+          <h1 className="text-display font-semibold text-foreground">
+            {/* TODO: docs icon `[?]` per wireframe §2 — URL contract unconfirmed. */}
+            Tasksets
+          </h1>
+          <CreateTasksetDialog />
+        </header>
+
+        <Tabs
+          value={activeTab}
+          onValueChange={(v) => updateParam("tab", v === "team" ? null : v)}
+          className="mt-4 gap-0"
+        >
+          <TabsList variant="underline">
+            <TabsTrigger value="public">
+              Public
+              <span className="ml-1.5 font-mono text-caption tabular-nums text-muted-foreground">
+                {tabCounts.public}
+              </span>
+              <span className="sr-only"> items</span>
+            </TabsTrigger>
+            <TabsTrigger value="team">
+              My Team
+              <span className="ml-1.5 font-mono text-caption tabular-nums text-muted-foreground">
+                {tabCounts.team}
+              </span>
+              <span className="sr-only"> items</span>
+            </TabsTrigger>
+          </TabsList>
+        </Tabs>
+      </div>
+
+      <div className="mt-6 flex flex-wrap items-center gap-3">
+        <div className="min-w-40 flex-1 max-w-xs">
+          <SearchInput
+            key={searchInputKey}
+            defaultValue=""
+            onValueChange={setQuery}
+            placeholder={searchPlaceholder}
+            aria-label={searchPlaceholder}
+          />
+        </div>
+
+        <span className="hidden text-label text-muted-foreground sm:inline">
+          {visible.length} of {tabScope.length}
+        </span>
+
+        <div className="ml-auto flex flex-wrap items-center gap-2">
+          {showOwnerFilter && (
+            <div className="min-w-40">
+              <MultiSelect
+                size="sm"
+                options={ownerOptions}
+                value={[...ownerFilter]}
+                onValueChange={(v) => setOwnerFilter(v)}
+                placeholder="Owner: Anyone"
+                searchPlaceholder="Search owners…"
+                maxChips={1}
+              />
+            </div>
+          )}
+          <SegmentedControl
+            aria-label="View"
+            value={view}
+            onValueChange={(v) =>
+              updateParam("view", v === "cards" ? null : v)
+            }
+          >
+            <SegmentedControl.Item value="cards" aria-label="Card view">
+              <LayoutGrid aria-hidden="true" className="size-3.5" />
+            </SegmentedControl.Item>
+            <SegmentedControl.Item value="list" aria-label="List view">
+              <List aria-hidden="true" className="size-3.5" />
+            </SegmentedControl.Item>
+          </SegmentedControl>
+          <Select
+            value={sortKey}
+            onValueChange={(v) =>
+              updateParam("sort", v === "starred-first" ? null : v)
+            }
+          >
+            <SelectTrigger size="sm" aria-label="Sort tasksets" className="w-36">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent align="end">
+              {SORT_OPTIONS.map((opt) => (
+                <SelectItem key={opt.value} value={opt.value}>
+                  {opt.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select
+            value={groupKey}
+            onValueChange={(v) =>
+              updateParam("group", v === "none" ? null : v)
+            }
+          >
+            <SelectTrigger size="sm" aria-label="Group by" className="w-36">
+              <SelectValue placeholder="Group by" />
+            </SelectTrigger>
+            <SelectContent align="end">
+              {GROUP_OPTIONS.map((opt) => (
+                <SelectItem key={opt.value} value={opt.value}>
+                  {`Group by ${opt.label}`}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      {/* TODO: pagination per wireframe §9 — mock data fits in one page. */}
+      <div className="mt-4">
+        <Results
+          visible={visible}
+          view={view}
+          groupKey={groupKey}
+          query={query}
+          tab={activeTab}
+          starStateFor={starStateFor}
+          onToggleStar={toggleStar}
+          collapsedGroups={collapsedGroups}
+          onToggleGroup={toggleGroupCollapsed}
+          onClearSearch={() => {
+            setQuery("");
+            // SearchInput is uncontrolled — remount so the input field also clears.
+            setSearchInputKey((k) => k + 1);
+          }}
+        />
+      </div>
+    </div>
+  );
+}
+
+interface ResultsProps {
+  visible: ReadonlyArray<Taskset>;
+  view: ViewKey;
+  groupKey: GroupKey;
+  query: string;
+  tab: TabKey;
+  starStateFor: (t: Taskset) => { isStarred: boolean; count: number };
+  onToggleStar: (id: string) => void;
+  collapsedGroups: ReadonlySet<string>;
+  onToggleGroup: (key: string) => void;
+  onClearSearch: () => void;
+}
+
+function Results({
+  visible,
+  view,
+  groupKey,
+  query,
+  tab,
+  starStateFor,
+  onToggleStar,
+  collapsedGroups,
+  onToggleGroup,
+  onClearSearch,
+}: ResultsProps) {
+  if (visible.length === 0) {
+    const trimmed = query.trim();
+    if (trimmed.length > 0) {
+      return (
+        <EmptyState
+          variant="no-results"
+          title={`No Tasksets match "${trimmed}"`}
+          cta={
+            <Button type="button" variant="secondary" onClick={onClearSearch}>
+              Clear search
+            </Button>
+          }
+        />
+      );
+    }
+    return (
+      <EmptyState
+        variant="no-results"
+        title="No Tasksets match your filters"
+        subtitle="Try clearing the owner filter or switching tabs."
+      />
+    );
+  }
+
+  // Environment grouping falls back to Owner grouping for now — no env data
+  // exists on Taskset in the mock. TODO: real Environment relation.
+  const effectiveGroup: GroupKey = groupKey === "environment" ? "owner" : groupKey;
+
+  if (effectiveGroup === "none") {
+    return (
+      <ResultsBody
+        visible={visible}
+        view={view}
+        tab={tab}
+        starStateFor={starStateFor}
+        onToggleStar={onToggleStar}
+      />
+    );
+  }
+
+  const groups = groupBy(visible, (t) => t.ownerName);
+
+  return (
+    <div className="flex flex-col gap-6">
+      {groups.map(({ key, items }) => {
+        const collapsed = collapsedGroups.has(key);
+        return (
+          <section key={key} className="flex flex-col gap-3">
+            <button
+              type="button"
+              aria-expanded={!collapsed}
+              onClick={() => onToggleGroup(key)}
+              className="flex items-center gap-2 border-b border-border pb-2 text-left text-body font-medium text-foreground hover:text-foreground"
+            >
+              {collapsed ? (
+                <ChevronRight aria-hidden="true" className="size-4" />
+              ) : (
+                <ChevronDown aria-hidden="true" className="size-4" />
+              )}
+              <span>{key}</span>
+              <span className="font-mono text-meta tabular-nums text-muted-foreground">
+                ({items.length})
+              </span>
+            </button>
+            {!collapsed && (
+              <ResultsBody
+                visible={items}
+                view={view}
+                tab={tab}
+                starStateFor={starStateFor}
+                onToggleStar={onToggleStar}
+              />
+            )}
+          </section>
+        );
+      })}
+    </div>
+  );
+}
+
+function ResultsBody({
+  visible,
+  view,
+  tab,
+  starStateFor,
+  onToggleStar,
+}: {
+  visible: ReadonlyArray<Taskset>;
+  view: ViewKey;
+  tab: TabKey;
+  starStateFor: (t: Taskset) => { isStarred: boolean; count: number };
+  onToggleStar: (id: string) => void;
+}) {
+  if (view === "cards") {
+    return (
+      <ul
+        aria-label="Tasksets"
+        className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3"
+      >
+        {visible.map((t) => {
+          const star = starStateFor(t);
+          return (
+            <li key={t.id}>
+              <TasksetCard
+                taskset={t}
+                tab={tab}
+                isStarred={star.isStarred}
+                starCount={star.count}
+                onToggleStar={() => onToggleStar(t.id)}
+              />
+            </li>
+          );
+        })}
+      </ul>
+    );
+  }
+  return (
+    <div className="flex flex-col gap-2">
+      {/* Sticky column header (wireframe §6) — sits just below the sticky
+        tab-bar block. top-[7.75rem] approximates the tab-bar bottom under the
+        default app-shell density; if the tab-bar height shifts, this will need
+        to follow. Acceptable margin here vs. brittle measurement. */}
+      <div
+        role="row"
+        className="sticky top-[7.75rem] z-[5] -mx-2 flex items-center gap-6 border-b border-border bg-background px-6 py-2 text-label uppercase tracking-wider text-muted-foreground"
+      >
+        <div className="flex min-w-0 flex-[3]">
+          <span className="truncate">Taskset</span>
+        </div>
+        <div className="hidden min-w-0 flex-[4] lg:block">
+          <span>Top models (Avg)</span>
+        </div>
+        <div className="flex shrink-0 items-center gap-3">
+          <span>Tasks</span>
+          <span>Models</span>
+        </div>
+        <div className="hidden w-40 shrink-0 justify-end md:flex">
+          <span>Owner</span>
+        </div>
+      </div>
+      <ul aria-label="Tasksets" className="flex flex-col gap-3">
+        {visible.map((t) => {
+          const star = starStateFor(t);
+          return (
+            <li key={t.id}>
+              <TasksetListRow
+                taskset={t}
+                tab={tab}
+                isStarred={star.isStarred}
+                starCount={star.count}
+                onToggleStar={() => onToggleStar(t.id)}
+              />
+            </li>
+          );
+        })}
+      </ul>
+    </div>
+  );
+}
+
+function groupBy(
+  items: ReadonlyArray<Taskset>,
+  key: (t: Taskset) => string,
+): ReadonlyArray<{ key: string; items: ReadonlyArray<Taskset> }> {
+  const map = new Map<string, Array<Taskset>>();
+  for (const t of items) {
+    const k = key(t);
+    const arr = map.get(k);
+    if (arr) arr.push(t);
+    else map.set(k, [t]);
+  }
+  return [...map.entries()]
+    .map(([k, v]) => ({ key: k, items: v }))
+    .sort((a, b) => a.key.localeCompare(b.key));
+}
+
+function EmptyTeamState() {
+  return (
+    <div className="flex flex-col items-center px-8 py-16 text-center">
+      <div className="flex size-12 items-center justify-center rounded-full bg-secondary text-muted-foreground">
+        <ListChecks aria-hidden="true" className="size-6" />
+      </div>
+      <h2 className="mt-4 text-subtitle font-semibold text-foreground">
+        Create your first Taskset
+      </h2>
+      <div className="mt-4 w-full max-w-md">
+        {/* TBD: exact CLI command per wireframe §17 item 1; placeholder. */}
+        <CodeBlock variant="inline" code="hud taskset new" />
+      </div>
+      <div className="mt-4 flex flex-col items-center gap-3">
+        <CreateTasksetDialog />
+        <Link
+          href="https://docs.hud.ai/concepts/tasksets"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-1 text-label text-muted-foreground hover:text-foreground"
+        >
+          Read the docs
+          <ArrowUpRight aria-hidden="true" className="size-3.5" />
+        </Link>
+      </div>
+    </div>
+  );
+}
