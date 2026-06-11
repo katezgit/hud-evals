@@ -221,7 +221,7 @@ function BuildConfigurationDrawer({
           <DrawerTitle>Build Configuration</DrawerTitle>
           <DrawerDescription>
             Inputs to{" "}
-            <code className="font-mono text-meta rounded bg-muted px-1 py-0.5 text-foreground">
+            <code className="font-mono text-label rounded bg-muted px-1 py-0.5 text-foreground">
               docker build
             </code>{" "}
             — build-time arguments and BuildKit-mounted secrets.
@@ -362,14 +362,14 @@ function BuildArgsSubsection({
       <div className="flex flex-col gap-1">
         <h3
           id={`${textareaId}-heading`}
-          className="text-label font-semibold text-foreground"
+          className="font-semibold text-foreground"
         >
           Build Arguments
         </h3>
-        <p className="text-meta text-muted-foreground">
+        <p className="text-muted-foreground">
           Build-time ARGs passed to the Dockerfile. Not available at runtime.
           Set via{" "}
-          <code className="font-mono text-meta rounded bg-muted px-1 py-0.5 text-foreground">
+          <code className="font-mono text-label rounded bg-muted px-1 py-0.5 text-foreground">
             hud deploy --build-arg
           </code>
           .
@@ -386,7 +386,7 @@ function BuildArgsSubsection({
           onChange={(event) => onChange(event.target.value)}
           rows={6}
           spellCheck={false}
-          className="font-mono text-meta"
+          className="font-mono"
           placeholder={"NODE_VERSION=20\nPNPM_VERSION=10"}
           aria-label="Build arguments"
         />
@@ -446,11 +446,11 @@ function BuildSecretsSubsection({
       <div className="flex flex-col gap-1">
         <h3
           id={headingId}
-          className="text-label font-semibold text-foreground"
+          className="font-semibold text-foreground"
         >
           Build Secrets
         </h3>
-        <p className="text-meta text-muted-foreground">
+        <p className="text-muted-foreground">
           Mounted as Docker BuildKit secrets. Values are never written to image
           layers.
         </p>
@@ -495,7 +495,7 @@ function BuildSecretsSubsection({
         data-add-build-secret-form
         className="flex flex-col gap-1.5 rounded-md border border-dashed border-border p-2.5"
       >
-        <div className="text-label font-medium text-foreground">
+        <div className="font-medium text-foreground">
           Add new build secret
         </div>
         <div className="flex items-start gap-1.5">
