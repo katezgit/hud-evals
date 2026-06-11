@@ -152,7 +152,7 @@ export function EnvInfoSection({ envId, displayName }: EnvInfoSectionProps) {
             </Button>
           </div>
           {saveState === "error" && error && (
-            <p className="text-label text-state-errored text-right">{error}</p>
+            <p className="text-state-errored text-right">{error}</p>
           )}
         </div>
       </CardFooter>

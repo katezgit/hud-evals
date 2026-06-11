@@ -48,7 +48,7 @@ export function OverviewScenarioCard({
         >
           {scenario.name}
         </h3>
-        <p className="text-label text-muted-foreground line-clamp-3">
+        <p className="text-muted-foreground line-clamp-3">
           {scenario.description}
         </p>
       </div>

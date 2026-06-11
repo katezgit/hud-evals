@@ -264,7 +264,7 @@ export function EnvVarsSection({ vars }: EnvVarsSectionProps) {
             onAdd={handleAddVar}
           />
 
-          <p className="text-label text-meta-foreground">
+          <p className="text-meta-foreground">
             Or set via{" "}
             <code className="font-mono text-meta rounded bg-muted px-1 py-0.5 text-foreground">
               hud deploy -e KEY=value
@@ -304,7 +304,7 @@ export function EnvVarsSection({ vars }: EnvVarsSectionProps) {
             </Button>
           </div>
           {saveState === "error" && error && (
-            <p className="text-label text-state-errored text-right">{error}</p>
+            <p className="text-state-errored text-right">{error}</p>
           )}
         </div>
       </CardFooter>
@@ -412,7 +412,7 @@ function AddVarForm({
         </Button>
       </div>
       {error && (
-        <p className="text-label text-state-errored">{error}</p>
+        <p className="text-state-errored">{error}</p>
       )}
     </div>
   );

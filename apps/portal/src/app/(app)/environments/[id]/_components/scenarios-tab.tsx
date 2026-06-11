@@ -34,7 +34,7 @@ export function ScenariosTab({
             aria-hidden="true"
             className="size-4 shrink-0 text-state-warning"
           />
-          <div className="flex flex-1 flex-col gap-1 text-label">
+          <div className="flex flex-1 flex-col gap-1">
             <span className="font-medium text-foreground">
               This env needs setup before scenarios can run.
             </span>
@@ -66,7 +66,7 @@ export function ScenariosTab({
           Create Scenario
         </Button>
       </header>
-      <p className="text-label text-muted-foreground">
+      <p className="text-muted-foreground">
         Each scenario represents a specialized skill or task you can perform
         with this environment. Select one to configure and run it.
       </p>
@@ -100,7 +100,7 @@ function ScenariosEmptyState() {
         <h2 className="text-subtitle font-semibold text-foreground">
           No Scenarios yet.
         </h2>
-        <p className="text-label text-muted-foreground">
+        <p className="text-muted-foreground">
           Add Scenarios using the{" "}
           <code className="font-mono text-meta rounded bg-muted px-1 py-0.5 text-foreground">
             @env.scenario
@@ -116,7 +116,7 @@ function ScenariosEmptyState() {
         href="https://docs.hud.ai/scenarios"
         target="_blank"
         rel="noreferrer noopener"
-        className="text-label text-primary hover:underline"
+        className="text-primary hover:underline"
       >
         Read the docs →
       </a>

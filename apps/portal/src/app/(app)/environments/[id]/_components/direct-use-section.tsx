@@ -27,7 +27,7 @@ export function DirectUseSection({ mcp, python }: DirectUseSectionProps) {
         >
           Use Environment Directly
         </h2>
-        <p className="text-label text-muted-foreground">
+        <p className="text-muted-foreground">
           Connect to this environment from your eval harness without a Scenario.
         </p>
       </header>

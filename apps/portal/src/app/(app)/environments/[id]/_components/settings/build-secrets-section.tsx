@@ -236,7 +236,7 @@ export function BuildSecretsSection() {
               </Button>
             </div>
             {addError && (
-              <p className="text-label text-state-errored">{addError}</p>
+              <p className="text-state-errored">{addError}</p>
             )}
           </div>
         </div>
@@ -273,7 +273,7 @@ export function BuildSecretsSection() {
             </Button>
           </div>
           {saveState === "error" && error && (
-            <p className="text-label text-state-errored text-right">{error}</p>
+            <p className="text-state-errored text-right">{error}</p>
           )}
         </div>
       </CardFooter>

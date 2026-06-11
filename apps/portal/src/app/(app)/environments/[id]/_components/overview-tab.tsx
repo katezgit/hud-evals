@@ -97,7 +97,7 @@ export function OverviewTab({
             >
               Scenarios
             </h2>
-            <p className="text-label text-muted-foreground">
+            <p className="text-muted-foreground">
               Each scenario represents a specialized skill or task you can
               perform with this environment. Select one to configure and run
               it.
@@ -111,7 +111,7 @@ export function OverviewTab({
                   aria-hidden="true"
                   className="size-4 shrink-0 text-state-warning"
                 />
-                <div className="flex flex-1 flex-col gap-1 text-label">
+                <div className="flex flex-1 flex-col gap-1">
                   <span className="font-medium text-foreground">
                     This env needs setup before scenarios can run.
                   </span>
@@ -125,7 +125,7 @@ export function OverviewTab({
               </div>
               <Link
                 href={`/environments/${env.id}?tab=settings`}
-                className="shrink-0 text-label text-primary hover:underline"
+                className="shrink-0 text-primary hover:underline"
               >
                 Configure in Settings →
               </Link>

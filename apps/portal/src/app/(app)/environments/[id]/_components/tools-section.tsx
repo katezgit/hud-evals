@@ -16,7 +16,7 @@ export function ToolsSection({ tools }: { tools: ReadonlyArray<Tool> }) {
         >
           Tools
         </h2>
-        <p className="text-label text-muted-foreground">
+        <p className="text-muted-foreground">
           These are the tools the agent will have access to when running
           scenarios.
         </p>

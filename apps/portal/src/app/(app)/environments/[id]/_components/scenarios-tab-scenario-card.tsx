@@ -95,7 +95,7 @@ export function ScenariosTabScenarioCard({
         </div>
       </header>
 
-      <p className="text-label text-muted-foreground line-clamp-2">
+      <p className="text-muted-foreground line-clamp-2">
         {scenario.description}
       </p>
 
