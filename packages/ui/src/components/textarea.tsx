@@ -12,6 +12,8 @@ function Textarea({ className, ...props }: React.ComponentProps<"textarea">) {
         "resize-y",
         "rounded-lg",
         "border border-border bg-background text-foreground",
+        // Lift bg off page canvas on focus — bg-background (#F6F8FA light) → bg-panel (white light).
+        "focus:bg-panel",
         "placeholder:text-meta-foreground",
         "text-body font-sans font-normal",
         // Focus ring — *:focus-visible in base.css (WCAG 2.4.11). outline-none removed; base layer owns it.
