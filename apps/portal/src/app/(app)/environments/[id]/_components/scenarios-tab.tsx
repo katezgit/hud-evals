@@ -28,10 +28,11 @@ export function ScenariosTab({
   return (
     <div className="flex flex-col gap-4">
       {missingRequired.length > 0 && (
-        // Horizontal alert — mirrors overview-tab.tsx exactly so the same
-        // signal reads identically across both tabs. Icon · title+desc · CTA.
-        <div className="flex items-center justify-between gap-3 rounded-md border border-state-warning/40 bg-state-warning-subtle p-3">
-          <div className="flex items-start gap-2">
+        // Mirrors overview-tab.tsx exactly so the same signal reads identically
+        // across both tabs. Stacks on narrow viewports (icon + message on top,
+        // CTA below); flips to horizontal at md+ (icon · message · CTA on the right).
+        <div className="flex flex-col items-start gap-2 rounded-md border border-state-warning/40 bg-state-warning-subtle p-3 md:flex-row md:items-center md:justify-between md:gap-3">
+          <div className="flex items-start gap-2 md:items-center">
             <AlertTriangle
               aria-hidden="true"
               className="size-4 shrink-0 text-state-warning"

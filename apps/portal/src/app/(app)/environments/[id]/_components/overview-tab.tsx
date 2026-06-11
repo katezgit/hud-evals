@@ -105,8 +105,8 @@ export function OverviewTab({
           </header>
 
           {missingRequired.length > 0 && (
-            <div className="flex items-center justify-between gap-3 rounded-md border border-state-warning/40 bg-state-warning-subtle p-3">
-              <div className="flex items-start gap-2">
+            <div className="flex flex-col items-start gap-2 rounded-md border border-state-warning/40 bg-state-warning-subtle p-3 md:flex-row md:items-center md:justify-between md:gap-3">
+              <div className="flex items-start gap-2 md:items-center">
                 <AlertTriangle
                   aria-hidden="true"
                   className="size-4 shrink-0 text-state-warning"
