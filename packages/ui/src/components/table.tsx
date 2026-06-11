@@ -45,14 +45,14 @@ export const tableRowVariants = cva(
     "data-[state=selected]:border-l-2 data-[state=selected]:border-l-primary",
     "hover:bg-hover",
   ].join(" "),
-  { variants: { density: { default: "", compact: "" } }, defaultVariants: { density: "default" } }
+  { variants: { density: { default: "h-9", compact: "h-8" } }, defaultVariants: { density: "default" } }
 )
 
 export const tableCellVariants = cva(
   "align-middle text-body font-normal text-foreground whitespace-nowrap",
   {
     variants: {
-      density: { default: "px-3", compact: "px-3" },
+      density: { default: "px-4", compact: "px-3" },
       variant: {
         default: "",
         mono: "font-mono text-code [font-feature-settings:'tnum'_1,'lnum'_1]",
@@ -239,7 +239,7 @@ const TableCell = React.forwardRef<HTMLTableCellElement, TableCellProps>(
       className={cn(
         "align-middle whitespace-nowrap text-body text-foreground",
         variant === "id" && "px-4 font-mono font-semibold text-code z-table-col",
-        variant !== "id" && "px-3",
+        variant !== "id" && "px-4",
         variant === "numeric" && "text-right font-mono text-code [font-feature-settings:'tnum'_1,'lnum'_1]",
         variant === "status" && "",
         sticky && "sticky left-0 bg-background",

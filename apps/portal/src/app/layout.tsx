@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { ThemeProvider } from "next-themes";
+import { Toaster } from "@repo/ui/components/toast";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -21,7 +22,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
       <body>
         <ThemeProvider attribute="data-theme" defaultTheme="system" enableSystem>
           {children}
-          {/* TODO: re-add Toaster once @repo/ui ships a toast component. */}
+          <Toaster />
         </ThemeProvider>
       </body>
     </html>

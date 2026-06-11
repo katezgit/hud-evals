@@ -562,16 +562,15 @@ Shown when the Tasksets list fails to load due to a network error, server error,
 ### Mobile
 
 - Sidebar hides; top bar appears with hamburger (see app-shell.wireframe.md §5).
-- View toggle hidden — list view is forced on mobile (grid cards are too narrow to show leaderboard meaningfully at single-column width).
-- **Leaderboard preview in list rows**: leader-only — rank chip + model name + score. Same spec as desktop and tablet. Rationale: all breakpoints converged on leader-only after the list-view leaderboard reduction; mobile no longer requires a special collapse rule.
+- **View toggle hidden — cards forced on mobile.** Grid cards stack vertically one per row, which fits a single-column phone viewport naturally; list rows assume horizontal columns (identity | leaderboard | metrics) that collapse below ~640px width and lose the identity column entirely.
+- **Card layout on mobile**: single column (`grid-cols-1`). Card identity prefix `[icon] {ownerName} / {name}` truncates the name when long but keeps the prefix visible. Leaderboard preview in card stays top-2 (was top-3 at tablet; mobile drops one more row only if vertical density requires it — confirm by viewing the engineer's mobile screenshot when committed).
 - **Docs icon `[?]`**: visible inline with the title. Icon glyph is small; the tap target extends beyond the visible glyph to meet touch-target adequacy (no px spec — this is a design-tokens-phase decision; call it out for implementation).
 - `+ New Taskset` button collapses to `+` icon-only button with `aria-label="New Taskset"` in the page header to preserve horizontal space.
 - **Filter row on mobile**: the desktop filter row (search + view toggle + sort + group by + owner filter) is too wide for mobile. Pattern:
   - Search input takes its own full-width row below the tabs.
-  - View toggle is hidden (list forced).
+  - View toggle is hidden (cards forced).
   - Sort, Group by, and Owner filter collapse into a single `[⚙ Filters ▾]` overflow trigger. When any non-default filter is active, a small badge on the trigger shows the count of active non-default controls.
   - Tapping `[⚙ Filters]` opens a **mobile bottom sheet** (see diagram below).
-- Footer meta in list rows collapses: task count and model count remain; owner + visibility badge hidden (recoverable from detail page).
 - **Error state (§10) on mobile**: error block fills the content area. Copy may wrap to multiple lines. Retry button stacks below the message if horizontal space is tight. Tabs, search, the `[⚙ Filters]` trigger, and the page-title docs icon all remain accessible above the error block.
 - **Group headers (§8) on mobile**: chevron, label, and count render on a single line when the label fits. If the label is too long, the count wraps below the label; chevron stays inline with the label's first line. Collapsed state persists in session. When a group is collapsed, the chevron alone is the tap target (tap target extends beyond the glyph).
 - **Pagination**: `Showing N of M · Load more` row at the bottom of the list. Load more button stretches to full width for tap-target ease. After loading, keyboard focus moves to the first newly-loaded row so screen-reader users hear new content — see also §13 (a11y).
@@ -588,12 +587,15 @@ Shown when the Tasksets list fails to load due to a network error, server error,
 │  [Search Tasksets…          ]                │  ← full-width search, own row
 │  [⚙ Filters ▾]  (badge if active)           │  ← sort + group + owner overflow
 │                                              │
-│  OSWorld-Verified  ☆  3                      │
-│  #1 Sonnet 4.6  54%        367  5            │  ← leader-only, no owner on public
-│  ────────────────────────────────────────    │
-│  WikiGames 2  ☆  2                           │
-│  #1 Sonnet 4.6  25%         35  4            │
-│  ────────────────────────────────────────    │
+│  ┌──────────────────────────────────────────┐ │
+│  │ [icon] acme / OSWorld-Verified  ☆        │ │  ← card layout (§4), single column
+│  │ #1 Sonnet 4.6  54%              367  5   │ │  ← top-2 leaderboard preview
+│  │ #2 GPT-4o      48%                        │ │
+│  └──────────────────────────────────────────┘ │
+│  ┌──────────────────────────────────────────┐ │
+│  │ [icon] acme / WikiGames 2  ☆             │ │
+│  │ #1 Sonnet 4.6  25%               35  4   │ │
+│  └──────────────────────────────────────────┘ │
 │                                              │
 │  [          Load more           ]            │  ← full-width button
 │  Showing 50 of 127                           │
@@ -824,6 +826,8 @@ The star icon appears in the card header (grid) and in the identity block (list)
 - **Tab-conditional card footer and list row meta**: the former spec used one universal footer (owner + visibility pill + star count) regardless of which tab was active. This revision makes the footer conditional on the active tab. Public-tab cards drop the `Public` pill (redundant when every card on that surface is public) and treat `★` count as a prominent community signal. My Team tab cards restore the visibility pill (now information-bearing — the team view mixes Public and Private) and demote `★` to a personal bookmark. This is a new design decision derived from operator feedback; no production screenshot shows the differentiated treatment.
 
 - **Pagination / load-more not shown in screenshots**: screenshots appear to show a fully-loaded list. The pagination design is derived from scale requirements, not from observed production behavior. Load-more (not infinite scroll) is a design judgment call — flagged for Operator review.
+
+- **Cards forced on mobile (June 2026 revision)**: §12 originally specced list-view as the forced mobile layout. Implementation surfaced the empirical failure mode — list rows' horizontal column grid collapses the identity column to zero width at ~390px viewport, losing the taskset name. Card layout (env-card vertical stack) naturally fits single-column mobile viewports. Spec corrected; engineer applying in parallel.
 
 ---
 
