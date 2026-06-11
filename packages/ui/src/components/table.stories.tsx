@@ -104,7 +104,7 @@ export const DensityComparison: Story = {
   render: () => (
     <div className="flex flex-col gap-8" style={{ width: 680 }}>
       <div className="flex flex-col gap-2">
-        <p className="text-label text-muted-foreground">Default — 36px rows</p>
+        <p className="text-label text-muted-foreground">Default — 40px rows (min-h)</p>
         <Table totalCount={3} pageOffset={0} density="default">
           <TableHeader>
             <tr>
@@ -130,7 +130,7 @@ export const DensityComparison: Story = {
       </div>
 
       <div className="flex flex-col gap-2">
-        <p className="text-label text-muted-foreground">Compact — 32px rows (scan-mode only, no inline editing)</p>
+        <p className="text-label text-muted-foreground">Compact — 36px rows (min-h, scan-mode only, no inline editing)</p>
         <Table totalCount={3} pageOffset={0} density="compact">
           <TableHeader>
             <tr>
@@ -335,6 +335,91 @@ export const EmptyLoadingError: Story = {
               cause="Failed to load Runs — API timeout. Retry or check status."
               onRetry={() => {}}
             />
+          </TableBody>
+        </Table>
+      </div>
+    </div>
+  ),
+}
+
+// ── Wrapping Content ──────────────────────────────────────────────────────────
+
+export const WrappingContent: Story = {
+  name: "Wrapping content (rows grow past min-h)",
+  render: () => (
+    <div className="flex flex-col gap-8" style={{ width: 560 }}>
+      <div className="flex flex-col gap-2">
+        <p className="text-label text-muted-foreground">
+          Default density — long cell text wraps; row grows past 40px min-h, separators track correctly.
+        </p>
+        <Table totalCount={3} pageOffset={0} density="default">
+          <TableHeader>
+            <tr>
+              <TableHeaderCell label="Job ID" sticky="left" />
+              <TableHeaderCell label="Description" />
+              <TableHeaderCell label="Reward" numeric />
+            </tr>
+          </TableHeader>
+          <TableBody>
+            <TableRow>
+              <TableCell variant="id" sticky>job-8xkp3a</TableCell>
+              <TableCell className="whitespace-normal max-w-xs">
+                Short description — fits in one line.
+              </TableCell>
+              <TableCell variant="numeric">0.812</TableCell>
+            </TableRow>
+            <TableRow>
+              <TableCell variant="id" sticky>job-9fmq1b</TableCell>
+              <TableCell className="whitespace-normal max-w-xs">
+                A much longer description that deliberately wraps across multiple lines to verify the row grows beyond the 40px minimum height without clipping text or collapsing the bottom border separator.
+              </TableCell>
+              <TableCell variant="numeric">0.654</TableCell>
+            </TableRow>
+            <TableRow>
+              <TableCell variant="id" sticky>job-2zrv7c</TableCell>
+              <TableCell className="whitespace-normal max-w-xs">
+                Medium-length description — wraps once.
+              </TableCell>
+              <TableCell variant="numeric">—</TableCell>
+            </TableRow>
+          </TableBody>
+        </Table>
+      </div>
+
+      <div className="flex flex-col gap-2">
+        <p className="text-label text-muted-foreground">
+          Compact density — same wrapping test at 36px min-h baseline.
+        </p>
+        <Table totalCount={3} pageOffset={0} density="compact">
+          <TableHeader>
+            <tr>
+              <TableHeaderCell label="Job ID" sticky="left" />
+              <TableHeaderCell label="Description" />
+              <TableHeaderCell label="Reward" numeric />
+            </tr>
+          </TableHeader>
+          <TableBody>
+            <TableRow>
+              <TableCell variant="id" sticky>job-8xkp3a</TableCell>
+              <TableCell className="whitespace-normal max-w-xs">
+                Short description — fits in one line.
+              </TableCell>
+              <TableCell variant="numeric">0.812</TableCell>
+            </TableRow>
+            <TableRow>
+              <TableCell variant="id" sticky>job-9fmq1b</TableCell>
+              <TableCell className="whitespace-normal max-w-xs">
+                A much longer description that deliberately wraps across multiple lines to verify the row grows beyond the 36px compact minimum height without clipping text or collapsing the bottom border separator.
+              </TableCell>
+              <TableCell variant="numeric">0.654</TableCell>
+            </TableRow>
+            <TableRow>
+              <TableCell variant="id" sticky>job-2zrv7c</TableCell>
+              <TableCell className="whitespace-normal max-w-xs">
+                Medium-length description — wraps once.
+              </TableCell>
+              <TableCell variant="numeric">—</TableCell>
+            </TableRow>
           </TableBody>
         </Table>
       </div>

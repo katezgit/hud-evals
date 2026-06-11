@@ -85,16 +85,18 @@ describe("tableHeadVariants", () => {
     expect(cls).toContain("px-3")
   })
 
-  it("compact density includes px-3 (no vertical padding)", () => {
+  it("compact density includes min-h-8 py-2 px-3", () => {
     const cls = tableHeadVariants({ density: "compact" })
+    expect(cls).toContain("min-h-8")
+    expect(cls).toContain("py-2")
     expect(cls).toContain("px-3")
-    expect(cls).not.toContain("py-")
   })
 
-  it("default density includes px-3 (no vertical padding)", () => {
+  it("default density includes min-h-9 py-2.5 px-3", () => {
     const cls = tableHeadVariants({ density: "default" })
+    expect(cls).toContain("min-h-9")
+    expect(cls).toContain("py-2.5")
     expect(cls).toContain("px-3")
-    expect(cls).not.toContain("py-")
   })
 })
 
@@ -126,14 +128,14 @@ describe("tableRowVariants", () => {
     expect(cls).toContain("ease-out-standard")
   })
 
-  it("default density includes h-9", () => {
+  it("default density includes min-h-10", () => {
     const cls = tableRowVariants({ density: "default" })
-    expect(cls).toContain("h-9")
+    expect(cls).toContain("min-h-10")
   })
 
-  it("compact density includes h-8", () => {
+  it("compact density includes min-h-9", () => {
     const cls = tableRowVariants({ density: "compact" })
-    expect(cls).toContain("h-8")
+    expect(cls).toContain("min-h-9")
   })
 })
 
@@ -153,16 +155,16 @@ describe("tableCellVariants", () => {
     expect(cls).toContain("font-normal")
   })
 
-  it("default density includes px-4 (no vertical padding)", () => {
+  it("default density includes py-2 px-4", () => {
     const cls = tableCellVariants()
+    expect(cls).toContain("py-2")
     expect(cls).toContain("px-4")
-    expect(cls).not.toContain("py-")
   })
 
-  it("compact density includes px-3 (no vertical padding)", () => {
+  it("compact density includes py-1.5 px-3", () => {
     const cls = tableCellVariants({ density: "compact" })
+    expect(cls).toContain("py-1.5")
     expect(cls).toContain("px-3")
-    expect(cls).not.toContain("py-")
   })
 
   it("mono variant includes font-mono text-code", () => {

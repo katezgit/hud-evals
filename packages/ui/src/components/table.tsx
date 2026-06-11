@@ -30,7 +30,7 @@ export const tableHeadVariants = cva(
   ].join(" "),
   {
     variants: {
-      density: { default: "px-3", compact: "px-3" },
+      density: { default: "min-h-9 py-2.5 px-3", compact: "min-h-8 py-2 px-3" },
       numeric: { true: "text-right", false: "" },
     },
     defaultVariants: { density: "default", numeric: false },
@@ -45,14 +45,14 @@ export const tableRowVariants = cva(
     "data-[state=selected]:border-l-2 data-[state=selected]:border-l-primary",
     "hover:bg-hover",
   ].join(" "),
-  { variants: { density: { default: "h-9", compact: "h-8" } }, defaultVariants: { density: "default" } }
+  { variants: { density: { default: "min-h-10", compact: "min-h-9" } }, defaultVariants: { density: "default" } }
 )
 
 export const tableCellVariants = cva(
   "align-middle text-body font-normal text-foreground whitespace-nowrap",
   {
     variants: {
-      density: { default: "px-4", compact: "px-3" },
+      density: { default: "py-2 px-4", compact: "py-1.5 px-3" },
       variant: {
         default: "",
         mono: "font-mono text-code [font-feature-settings:'tnum'_1,'lnum'_1]",
@@ -122,6 +122,7 @@ export interface TableHeaderCellProps extends React.ComponentPropsWithoutRef<"th
 
 const TableHeaderCell = React.forwardRef<HTMLTableCellElement, TableHeaderCellProps>(
   ({ className, sortable, label, sticky = "none", numeric, children, ...props }, ref) => {
+    const density = React.useContext(DensityContext)
     const isLeft = sticky === "left"
     const isRight = sticky === "right"
     return (
@@ -130,11 +131,8 @@ const TableHeaderCell = React.forwardRef<HTMLTableCellElement, TableHeaderCellPr
         data-slot="table-header-cell"
         scope="col"
         className={cn(
-          "sticky top-0 align-middle whitespace-nowrap",
-          "text-table-header text-muted-foreground",
-          "border-b border-border bg-elevated",
-          "h-8 px-3",
-          numeric ? "text-right" : "text-left",
+          tableHeadVariants({ density, numeric: !!numeric }),
+          "bg-elevated",
           isLeft && "left-0 z-table-corner",
           isRight && "right-0 z-table-corner",
           !isLeft && !isRight && "z-table-header",
@@ -205,7 +203,7 @@ const TableRow = React.forwardRef<HTMLTableRowElement, TableRowProps>(
         className={cn(
           "border-b border-border",
           "transition-[background-color] duration-fast ease-out-standard",
-          density === "default" ? "h-9" : "h-8",
+          density === "default" ? "min-h-10" : "min-h-9",
           "hover:bg-hover",
           selected && "border-l-2 border-l-primary bg-selected",
           pinned && "border-l-[3px] border-l-primary",
@@ -266,7 +264,7 @@ const TableSelectionBar = React.forwardRef<HTMLTableRowElement, TableSelectionBa
         data-slot="table-selection-bar"
         className={cn(
           "border-b border-border bg-muted",
-          density === "default" ? "h-9" : "h-8",
+          density === "default" ? "min-h-10" : "min-h-9",
           className
         )}
         {...props}
@@ -362,7 +360,7 @@ function TableSkeletonRow({ colCount, density: densityProp, className }: TableSk
       aria-hidden="true"
       className={cn(
         "border-b border-border",
-        density === "default" ? "h-9" : "h-8",
+        density === "default" ? "min-h-9" : "min-h-8",
         className
       )}
     >
