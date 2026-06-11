@@ -10,7 +10,7 @@ import { PodConfigSection } from "./settings/pod-config-section";
 
 export function SettingsTab({ env }: { env: Environment }) {
   return (
-    <div className="flex w-full max-w-2xl flex-col gap-4">
+    <div className="flex w-full max-w-2xl flex-col gap-6">
       <EnvInfoSection envId={env.id} displayName={env.name} />
       <EnvVarsSection vars={env.vars} />
       <PodConfigSection />
