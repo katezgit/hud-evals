@@ -16,3 +16,4 @@ Living documents maintained by the engineering team. Propose changes via PR with
 | [frontend-solutions.md](frontend-solutions.md) | Library decision matrix: tables, data fetching, forms, dates   |
 | [git.md](git.md)                               | Branch naming, commit format, push strategy, PR                |
 | [documentation.md](documentation.md)           | LLM-optimized doc framework, signal-to-noise methodology       |
+| [table.md](table.md)                           | JSX primitive vs CSS-string table modes, Pattern A/B layout, token gotchas |

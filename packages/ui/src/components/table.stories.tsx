@@ -14,6 +14,7 @@ import {
   TableErrorBand,
   TableSkeletonRow,
 } from "./table"
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "./card"
 import { Checkbox } from "./checkbox"
 import { IconButton } from "./icon-button"
 import { Button } from "./button"
@@ -104,7 +105,7 @@ export const DensityComparison: Story = {
   render: () => (
     <div className="flex flex-col gap-8" style={{ width: 680 }}>
       <div className="flex flex-col gap-2">
-        <p className="text-label text-muted-foreground">Default — 36px rows</p>
+        <p className="text-label text-muted-foreground">Default — 40px rows · header 32px · first cell pl-6, last cell pr-6 in both densities</p>
         <Table totalCount={3} pageOffset={0} density="default">
           <TableHeader>
             <tr>
@@ -130,7 +131,7 @@ export const DensityComparison: Story = {
       </div>
 
       <div className="flex flex-col gap-2">
-        <p className="text-label text-muted-foreground">Compact — 32px rows (scan-mode only, no inline editing)</p>
+        <p className="text-label text-muted-foreground">Compact — 36px rows · header 32px · first cell pl-6, last cell pr-6</p>
         <Table totalCount={3} pageOffset={0} density="compact">
           <TableHeader>
             <tr>
@@ -335,6 +336,316 @@ export const EmptyLoadingError: Story = {
               cause="Failed to load Runs — API timeout. Retry or check status."
               onRetry={() => {}}
             />
+          </TableBody>
+        </Table>
+      </div>
+    </div>
+  ),
+}
+
+// ── Inside Card ───────────────────────────────────────────────────────────────
+
+export const InsideCard: Story = {
+  name: "Inside Card (header bg vs card bg)",
+  render: () => (
+    <div className="flex flex-col gap-6" style={{ width: 560 }}>
+      <p className="text-label text-muted-foreground">
+        Header carries bg-muted as a structural band — consistent in both Card and freestanding contexts.
+      </p>
+      <Card className="overflow-hidden p-0">
+        <Table totalCount={3} pageOffset={0}>
+          <TableHeader>
+            <tr>
+              <TableHeaderCell label="Job ID" sticky="left" />
+              <TableHeaderCell label="Status" />
+              <TableHeaderCell label="Reward" numeric />
+            </tr>
+          </TableHeader>
+          <TableBody>
+            {RUNS.slice(0, 3).map((row) => (
+              <TableRow key={row.id} outcome={row.status}>
+                <TableCell variant="id" sticky>{row.jobId}</TableCell>
+                <TableCell>{STATUS_LABEL[row.status]}</TableCell>
+                <TableCell variant="numeric">{row.reward != null ? row.reward.toFixed(3) : "—"}</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </Card>
+      <p className="text-label text-muted-foreground">
+        Freestanding on page bg — same header bg, reads cleanly.
+      </p>
+      <Table totalCount={3} pageOffset={0}>
+        <TableHeader>
+          <tr>
+            <TableHeaderCell label="Job ID" sticky="left" />
+            <TableHeaderCell label="Status" />
+            <TableHeaderCell label="Reward" numeric />
+          </tr>
+        </TableHeader>
+        <TableBody>
+          {RUNS.slice(0, 3).map((row) => (
+            <TableRow key={row.id} outcome={row.status}>
+              <TableCell variant="id" sticky>{row.jobId}</TableCell>
+              <TableCell>{STATUS_LABEL[row.status]}</TableCell>
+              <TableCell variant="numeric">{row.reward != null ? row.reward.toFixed(3) : "—"}</TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </div>
+  ),
+}
+
+// ── Deployment Patterns ───────────────────────────────────────────────────────
+
+export const PatternA_PageSection: Story = {
+  name: "Pattern A — Page-section table (bordered)",
+  parameters: {
+    docs: {
+      description: {
+        story:
+          "Use `<Table bordered>` when the table IS the page section — no Card wrapper. " +
+          "The `bordered` prop adds `rounded-md border border-border overflow-hidden bg-card` to the outer wrapper, " +
+          "so the table reads as a self-contained card-equivalent surface. " +
+          "The `<thead>` carries `bg-muted` (#F0F2F6 light) against the `bg-card` (#FFFFFF light) body, giving a visible header band identical to Pattern B. " +
+          "The last body row's `border-b-0` (applied by TableBody) ensures no doubled bottom edge inside the outer border. " +
+          "First-cell `pl-6` aligns the first column with the section heading's left edge when both share `px-6` indent.",
+      },
+    },
+  },
+  render: () => (
+    // Outer px-6 simulates the page-section horizontal indent shared by the heading + table.
+    // First-cell pl-6 keeps the "Name" column optically aligned with "API Keys" heading text.
+    <div className="flex flex-col gap-3 px-6" style={{ width: 612 }}>
+      <div>
+        <h2 className="text-heading font-semibold text-foreground">API Keys</h2>
+        <p className="mt-1 text-body text-muted-foreground">
+          Keys are scoped to this workspace. Revoke any key at any time.
+        </p>
+      </div>
+      {/* Table has no px — the outer div provides page-section indent. */}
+      {/* First cell gets pl-6 from first:pl-6 in tableHeadVariants / tableCellVariants. */}
+      <div style={{ marginLeft: "-1.5rem", marginRight: "-1.5rem" }}>
+        <Table totalCount={3} pageOffset={0} bordered>
+          <TableHeader>
+            <tr>
+              <TableHeaderCell label="Name" />
+              <TableHeaderCell label="Created" />
+              <TableHeaderCell label="Last used" />
+              <TableHeaderCell label="Scope" />
+            </tr>
+          </TableHeader>
+          <TableBody>
+            <TableRow>
+              <TableCell>prod-ci</TableCell>
+              <TableCell>2026-06-01</TableCell>
+              <TableCell>2026-06-10</TableCell>
+              <TableCell>read:write</TableCell>
+            </TableRow>
+            <TableRow>
+              <TableCell>staging</TableCell>
+              <TableCell>2026-05-14</TableCell>
+              <TableCell>2026-06-08</TableCell>
+              <TableCell>read:write</TableCell>
+            </TableRow>
+            <TableRow>
+              <TableCell>local-dev</TableCell>
+              <TableCell>2026-04-20</TableCell>
+              <TableCell>2026-06-09</TableCell>
+              <TableCell>read:write</TableCell>
+            </TableRow>
+          </TableBody>
+        </Table>
+      </div>
+    </div>
+  ),
+}
+
+export const PatternB_InsideCard: Story = {
+  name: "Pattern B — Card-contained table (no bordered)",
+  parameters: {
+    docs: {
+      description: {
+        story:
+          "Use plain `<Table>` (no `bordered`) when the table is one panel among others. " +
+          "The Card carries its own heading + subtitle and provides all outer chrome via `border` + `bg-panel`. " +
+          "The table adds no outer border — the Card IS the container. " +
+          "Use `overflow-hidden p-0` on the Card so the table flush-fills the card's rounded corners. " +
+          "CardHeader uses `px-6` and the table's first cell gets `first:pl-6`, " +
+          "so the first column aligns with the card heading text.",
+      },
+    },
+  },
+  render: () => (
+    <div style={{ width: 560 }}>
+      <Card className="overflow-hidden p-0">
+        {/* CardHeader px-6 = 24px — matches first:pl-6 on table cells, keeping column aligned with heading */}
+        <CardHeader className="px-6 pt-5 pb-4">
+          <CardTitle>Billing history</CardTitle>
+          <CardDescription>Invoices for the last 12 months.</CardDescription>
+        </CardHeader>
+        <CardContent className="p-0">
+          {/* First cell pl-6 aligns with CardHeader's px-6 — "Invoice" lines up with "Billing history" */}
+          <Table totalCount={3} pageOffset={0}>
+            <TableHeader>
+              <tr>
+                <TableHeaderCell label="Invoice" />
+                <TableHeaderCell label="Date" />
+                <TableHeaderCell label="Amount" numeric />
+                <TableHeaderCell label="Status" />
+              </tr>
+            </TableHeader>
+            <TableBody>
+              <TableRow>
+                <TableCell variant="id">INV-0042</TableCell>
+                <TableCell>2026-06-01</TableCell>
+                <TableCell variant="numeric">$120.00</TableCell>
+                <TableCell>Paid</TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell variant="id">INV-0041</TableCell>
+                <TableCell>2026-05-01</TableCell>
+                <TableCell variant="numeric">$120.00</TableCell>
+                <TableCell>Paid</TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell variant="id">INV-0040</TableCell>
+                <TableCell>2026-04-01</TableCell>
+                <TableCell variant="numeric">$80.00</TableCell>
+                <TableCell>Paid</TableCell>
+              </TableRow>
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+    </div>
+  ),
+}
+
+export const Antipattern_DoubleChrome: Story = {
+  name: "Anti-pattern — Double chrome (do not copy)",
+  parameters: {
+    docs: {
+      description: {
+        story:
+          "DO NOT do this. `<Card><Table bordered>` stacks two sets of border + rounded corners and two bg-elevated surfaces. " +
+          "The Card border and the `bordered` Table border fight each other, producing doubled edges, " +
+          "mismatched radii, and a double bg-elevated that makes the background visually broken. " +
+          "Use Pattern A (bordered, no Card) or Pattern B (Card, no bordered) — never both.",
+      },
+    },
+  },
+  render: () => (
+    <div className="flex flex-col gap-3" style={{ width: 560 }}>
+      <div className="flex items-center gap-2 rounded-md border border-state-errored-border bg-state-errored-subtle px-3 py-2">
+        <span className="text-label font-semibold text-state-errored-text">Anti-pattern</span>
+        <span className="text-label text-state-errored-text">
+          Don&apos;t do this — double border + double bg. Use Pattern A or Pattern B.
+        </span>
+      </div>
+      <Card className="overflow-hidden p-0">
+        <Table totalCount={3} pageOffset={0} bordered>
+          <TableHeader>
+            <tr>
+              <TableHeaderCell label="Job ID" />
+              <TableHeaderCell label="Status" />
+              <TableHeaderCell label="Reward" numeric />
+            </tr>
+          </TableHeader>
+          <TableBody>
+            {RUNS.slice(0, 3).map((row) => (
+              <TableRow key={row.id} outcome={row.status}>
+                <TableCell variant="id">{row.jobId}</TableCell>
+                <TableCell>{STATUS_LABEL[row.status]}</TableCell>
+                <TableCell variant="numeric">{row.reward != null ? row.reward.toFixed(3) : "—"}</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </Card>
+    </div>
+  ),
+}
+
+// ── Wrapping Content ──────────────────────────────────────────────────────────
+
+export const WrappingContent: Story = {
+  name: "Wrapping content (rows grow past min-h)",
+  render: () => (
+    <div className="flex flex-col gap-8" style={{ width: 560 }}>
+      <div className="flex flex-col gap-2">
+        <p className="text-label text-muted-foreground">
+          Default density — long cell text wraps; row grows past 40px min-h, separators track correctly.
+        </p>
+        <Table totalCount={3} pageOffset={0} density="default">
+          <TableHeader>
+            <tr>
+              <TableHeaderCell label="Job ID" sticky="left" />
+              <TableHeaderCell label="Description" />
+              <TableHeaderCell label="Reward" numeric />
+            </tr>
+          </TableHeader>
+          <TableBody>
+            <TableRow>
+              <TableCell variant="id" sticky>job-8xkp3a</TableCell>
+              <TableCell className="whitespace-normal max-w-xs">
+                Short description — fits in one line.
+              </TableCell>
+              <TableCell variant="numeric">0.812</TableCell>
+            </TableRow>
+            <TableRow>
+              <TableCell variant="id" sticky>job-9fmq1b</TableCell>
+              <TableCell className="whitespace-normal max-w-xs">
+                A much longer description that deliberately wraps across multiple lines to verify the row grows beyond the 40px minimum height without clipping text or collapsing the bottom border separator.
+              </TableCell>
+              <TableCell variant="numeric">0.654</TableCell>
+            </TableRow>
+            <TableRow>
+              <TableCell variant="id" sticky>job-2zrv7c</TableCell>
+              <TableCell className="whitespace-normal max-w-xs">
+                Medium-length description — wraps once.
+              </TableCell>
+              <TableCell variant="numeric">—</TableCell>
+            </TableRow>
+          </TableBody>
+        </Table>
+      </div>
+
+      <div className="flex flex-col gap-2">
+        <p className="text-label text-muted-foreground">
+          Compact density — same wrapping test at 36px min-h baseline.
+        </p>
+        <Table totalCount={3} pageOffset={0} density="compact">
+          <TableHeader>
+            <tr>
+              <TableHeaderCell label="Job ID" sticky="left" />
+              <TableHeaderCell label="Description" />
+              <TableHeaderCell label="Reward" numeric />
+            </tr>
+          </TableHeader>
+          <TableBody>
+            <TableRow>
+              <TableCell variant="id" sticky>job-8xkp3a</TableCell>
+              <TableCell className="whitespace-normal max-w-xs">
+                Short description — fits in one line.
+              </TableCell>
+              <TableCell variant="numeric">0.812</TableCell>
+            </TableRow>
+            <TableRow>
+              <TableCell variant="id" sticky>job-9fmq1b</TableCell>
+              <TableCell className="whitespace-normal max-w-xs">
+                A much longer description that deliberately wraps across multiple lines to verify the row grows beyond the 36px compact minimum height without clipping text or collapsing the bottom border separator.
+              </TableCell>
+              <TableCell variant="numeric">0.654</TableCell>
+            </TableRow>
+            <TableRow>
+              <TableCell variant="id" sticky>job-2zrv7c</TableCell>
+              <TableCell className="whitespace-normal max-w-xs">
+                Medium-length description — wraps once.
+              </TableCell>
+              <TableCell variant="numeric">—</TableCell>
+            </TableRow>
           </TableBody>
         </Table>
       </div>

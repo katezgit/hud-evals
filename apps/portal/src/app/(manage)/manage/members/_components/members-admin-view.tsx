@@ -1,17 +1,22 @@
 "use client";
 
-import { PlusIcon, Trash2 } from "lucide-react";
+import { PlusIcon } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@repo/ui/components/button";
-import { IconButton } from "@repo/ui/components/icon-button";
 import { ManagePageAction } from "@/app/(manage)/_components/manage-page-action";
-import { Panel } from "@/app/(manage)/_components/page-primitives";
 import { InviteMemberPanel } from "./invite-member-panel";
 import MembersTable from "./members-table";
+import { RemoveMemberButton } from "./remove-member-button";
 import { membersAdmin } from "@/lib/mock";
+import type { Member } from "@/lib/mock/types";
 
 export function MembersAdminView() {
   const [inviting, setInviting] = useState(false);
+  const [members, setMembers] = useState<ReadonlyArray<Member>>(membersAdmin);
+
+  const handleRemove = (id: string) => {
+    setMembers((prev) => prev.filter((m) => m.id !== id));
+  };
 
   return (
     <>
@@ -22,20 +27,15 @@ export function MembersAdminView() {
         </Button>
       </ManagePageAction>
       <InviteMemberPanel open={inviting} onOpenChange={setInviting} />
-      <Panel>
-        <MembersTable
-          members={membersAdmin}
-          renderRowActions={(member) => (
-            <IconButton
-              variant="destructive-ghost"
-              size="sm"
-              aria-label={`Remove ${member.name}`}
-            >
-              <Trash2 aria-hidden="true" className="size-3.5" />
-            </IconButton>
-          )}
-        />
-      </Panel>
+      <MembersTable
+        members={members}
+        renderRowActions={(member) => (
+          <RemoveMemberButton
+            name={member.name}
+            onRemove={() => handleRemove(member.id)}
+          />
+        )}
+      />
     </>
   );
 }

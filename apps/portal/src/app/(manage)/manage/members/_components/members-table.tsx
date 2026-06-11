@@ -78,7 +78,7 @@ export default function MembersTable({ members, renderRowActions }: MembersTable
     getCoreRowModel: getCoreRowModel(),
   });
 
-  return <ManageTable table={table} />;
+  return <ManageTable table={table} bordered />;
 }
 
 function RolePill({ role }: { role: Role }) {

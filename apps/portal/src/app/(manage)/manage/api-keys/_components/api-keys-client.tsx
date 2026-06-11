@@ -10,7 +10,6 @@ import {
 import { Button } from "@repo/ui/components/button";
 import ManageTable from "@/app/(manage)/_components/manage-table";
 import { ManagePageAction } from "@/app/(manage)/_components/manage-page-action";
-import { Panel } from "@/app/(manage)/_components/page-primitives";
 import type { ApiKey } from "@/lib/mock/types";
 import { CreateApiKeyDialog, type ExpirationOption } from "./create-api-key-dialog";
 import { RevokeKeyButton } from "./revoke-key-button";
@@ -96,14 +95,7 @@ export function ApiKeysClient({ initialKeys }: ApiKeysClientProps) {
         cell: (info) => {
           const value = info.getValue();
           if (value) return DATE_FMT.format(new Date(value));
-          return (
-            <div className="flex flex-col gap-0.5">
-              <span>Never</span>
-              <span className="text-meta italic text-meta-foreground">
-                Set on creation only — revoke to change.
-              </span>
-            </div>
-          );
+          return "Never";
         },
         meta: { cellClassName: "font-mono text-label text-muted-foreground" },
       }),
@@ -164,9 +156,7 @@ export function ApiKeysClient({ initialKeys }: ApiKeysClientProps) {
           Create New Key
         </Button>
       </ManagePageAction>
-      <Panel>
-        <ManageTable table={table} />
-      </Panel>
+      <ManageTable table={table} bordered />
       <CreateApiKeyDialog
         open={createOpen}
         onOpenChange={setCreateOpen}

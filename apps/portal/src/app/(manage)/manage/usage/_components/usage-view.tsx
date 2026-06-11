@@ -53,9 +53,9 @@ export function UsageView() {
       </div>
 
       <div className="mb-4 grid gap-4 lg:grid-cols-3">
-        <Panel className="mb-0 lg:col-span-2">
+        <Card className="overflow-hidden lg:col-span-2">
           <UsageTable rows={usageRows} />
-        </Panel>
+        </Card>
         <div className="lg:col-span-1">
           <BurndownPanel />
         </div>
@@ -90,9 +90,6 @@ export function UsageView() {
             );
           })}
         </div>
-        <p className="mt-4 font-mono text-caption text-meta-foreground leading-relaxed">
-          Headroom on all limits. An amber flag shows here when a run is queued against a cap.
-        </p>
       </Panel>
     </>
   );

@@ -43,7 +43,7 @@ export function SecretsTable({ rows }: SecretsTableProps) {
     getCoreRowModel: getCoreRowModel(),
   });
 
-  return <ManageTable table={table} />;
+  return <ManageTable table={table} bordered />;
 }
 
 interface SecretValueCellProps {

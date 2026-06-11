@@ -12,8 +12,8 @@ const DensityContext = React.createContext<TableDensity>("default")
 // ── CSS-only exports (legacy — backward-compat, consumed by TanStack Table) ──
 
 export const tableClass = "w-full caption-bottom border-collapse bg-background"
-export const tableHeaderClass = "bg-background"
-export const tableHeaderStickyClass = "bg-elevated"
+export const tableHeaderClass = "bg-muted"
+export const tableHeaderStickyClass = "bg-muted"
 export const tableBodyClass = "[&_tr:last-child]:border-b-0"
 export const tableFooterClass = "border-t border-border bg-muted font-medium [&>tr]:last:border-b-0"
 export const tableCaptionClass = "mt-4 text-caption text-muted-foreground"
@@ -22,15 +22,16 @@ export const tableEmptyCellClass = "py-8 text-center text-body text-muted-foregr
 export const tableHeadVariants = cva(
   [
     "sticky top-0 z-table-header",
-    "bg-background",
     "text-left align-middle whitespace-nowrap",
     "text-label font-medium tracking-[0.01em] uppercase",
     "text-muted-foreground",
     "border-b border-border",
+    // First/last inset aligns with surrounding container chrome (Card px-6, page-section px-6)
+    "first:pl-6 last:pr-6",
   ].join(" "),
   {
     variants: {
-      density: { default: "px-3", compact: "px-3" },
+      density: { default: "min-h-8 py-2 px-3", compact: "min-h-8 py-2 px-3" },
       numeric: { true: "text-right", false: "" },
     },
     defaultVariants: { density: "default", numeric: false },
@@ -45,14 +46,18 @@ export const tableRowVariants = cva(
     "data-[state=selected]:border-l-2 data-[state=selected]:border-l-primary",
     "hover:bg-hover",
   ].join(" "),
-  { variants: { density: { default: "h-9", compact: "h-8" } }, defaultVariants: { density: "default" } }
+  { variants: { density: { default: "min-h-10", compact: "min-h-9" } }, defaultVariants: { density: "default" } }
 )
 
 export const tableCellVariants = cva(
-  "align-middle text-body font-normal text-foreground whitespace-nowrap",
+  [
+    "align-middle text-body font-normal text-foreground whitespace-nowrap",
+    // First/last inset aligns with surrounding container chrome (Card px-6, page-section px-6)
+    "first:pl-6 last:pr-6",
+  ].join(" "),
   {
     variants: {
-      density: { default: "px-4", compact: "px-3" },
+      density: { default: "py-2 px-4", compact: "py-1.5 px-3" },
       variant: {
         default: "",
         mono: "font-mono text-code [font-feature-settings:'tnum'_1,'lnum'_1]",
@@ -72,10 +77,11 @@ export interface TableProps extends React.ComponentPropsWithoutRef<"div"> {
   density?: TableDensity
   totalCount: number
   pageOffset: number
+  bordered?: boolean
 }
 
 const Table = React.forwardRef<HTMLDivElement, TableProps>(
-  ({ className, density = "default", totalCount, pageOffset, children, ...props }, ref) => (
+  ({ className, density = "default", totalCount, pageOffset, bordered, children, ...props }, ref) => (
     <DensityContext.Provider value={density}>
       <div
         ref={ref}
@@ -83,7 +89,11 @@ const Table = React.forwardRef<HTMLDivElement, TableProps>(
         data-density={density}
         data-total-count={totalCount}
         data-page-offset={pageOffset}
-        className={cn("relative w-full overflow-x-auto", className)}
+        className={cn(
+          "relative w-full overflow-x-auto",
+          bordered && "rounded-md border border-border overflow-hidden bg-card",
+          className
+        )}
         {...props}
       >
         <table className="w-full border-collapse bg-background">
@@ -106,7 +116,7 @@ const TableHeader = React.forwardRef<HTMLTableSectionElement, TableHeaderProps>(
     <thead
       ref={ref}
       data-slot="table-header"
-      className={cn("bg-elevated", className)}
+      className={cn("bg-muted", className)}
       {...props}
     />
   )
@@ -122,6 +132,7 @@ export interface TableHeaderCellProps extends React.ComponentPropsWithoutRef<"th
 
 const TableHeaderCell = React.forwardRef<HTMLTableCellElement, TableHeaderCellProps>(
   ({ className, sortable, label, sticky = "none", numeric, children, ...props }, ref) => {
+    const density = React.useContext(DensityContext)
     const isLeft = sticky === "left"
     const isRight = sticky === "right"
     return (
@@ -130,11 +141,8 @@ const TableHeaderCell = React.forwardRef<HTMLTableCellElement, TableHeaderCellPr
         data-slot="table-header-cell"
         scope="col"
         className={cn(
-          "sticky top-0 align-middle whitespace-nowrap",
-          "text-table-header text-muted-foreground",
-          "border-b border-border bg-elevated",
-          "h-8 px-3",
-          numeric ? "text-right" : "text-left",
+          tableHeadVariants({ density, numeric: !!numeric }),
+          (isLeft || isRight) && "bg-elevated",
           isLeft && "left-0 z-table-corner",
           isRight && "right-0 z-table-corner",
           !isLeft && !isRight && "z-table-header",
@@ -205,7 +213,7 @@ const TableRow = React.forwardRef<HTMLTableRowElement, TableRowProps>(
         className={cn(
           "border-b border-border",
           "transition-[background-color] duration-fast ease-out-standard",
-          density === "default" ? "h-9" : "h-8",
+          density === "default" ? "min-h-10" : "min-h-9",
           "hover:bg-hover",
           selected && "border-l-2 border-l-primary bg-selected",
           pinned && "border-l-[3px] border-l-primary",
@@ -232,22 +240,28 @@ export interface TableCellProps extends React.ComponentPropsWithoutRef<"td"> {
 }
 
 const TableCell = React.forwardRef<HTMLTableCellElement, TableCellProps>(
-  ({ className, sticky, variant = "default", ...props }, ref) => (
-    <td
-      ref={ref}
-      data-slot="table-cell"
-      className={cn(
-        "align-middle whitespace-nowrap text-body text-foreground",
-        variant === "id" && "px-4 font-mono font-semibold text-code z-table-col",
-        variant !== "id" && "px-4",
-        variant === "numeric" && "text-right font-mono text-code [font-feature-settings:'tnum'_1,'lnum'_1]",
-        variant === "status" && "",
-        sticky && "sticky left-0 bg-background",
-        className
-      )}
-      {...props}
-    />
-  )
+  ({ className, sticky, variant = "default", ...props }, ref) => {
+    const density = React.useContext(DensityContext)
+    // Map TableCell's variant prop to tableCellVariants' variant keys
+    const cvaVariant =
+      variant === "id" ? "mono" :
+      variant === "numeric" ? "mono" :
+      "default"
+    return (
+      <td
+        ref={ref}
+        data-slot="table-cell"
+        className={cn(
+          tableCellVariants({ density, variant: cvaVariant }),
+          variant === "id" && "font-semibold z-table-col",
+          variant === "numeric" && "text-right [font-feature-settings:'tnum'_1,'lnum'_1]",
+          sticky && "sticky left-0 bg-background",
+          className
+        )}
+        {...props}
+      />
+    )
+  }
 )
 TableCell.displayName = "TableCell"
 
@@ -266,7 +280,7 @@ const TableSelectionBar = React.forwardRef<HTMLTableRowElement, TableSelectionBa
         data-slot="table-selection-bar"
         className={cn(
           "border-b border-border bg-muted",
-          density === "default" ? "h-9" : "h-8",
+          density === "default" ? "min-h-10" : "min-h-9",
           className
         )}
         {...props}
@@ -362,7 +376,7 @@ function TableSkeletonRow({ colCount, density: densityProp, className }: TableSk
       aria-hidden="true"
       className={cn(
         "border-b border-border",
-        density === "default" ? "h-9" : "h-8",
+        density === "default" ? "min-h-9" : "min-h-8",
         className
       )}
     >

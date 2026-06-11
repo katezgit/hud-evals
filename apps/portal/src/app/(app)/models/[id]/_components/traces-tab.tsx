@@ -346,7 +346,7 @@ function TraceList({ traces }: { traces: ReadonlyArray<Trace> }) {
           {table.getHeaderGroups().map((group) => (
             <tr key={group.id}>
               {group.headers.map((header) => (
-                <th key={header.id} className={tableHeadVariants()}>
+                <th key={header.id} className={tableHeadVariants({ density: "compact" })}>
                   {header.isPlaceholder
                     ? null
                     : flexRender(header.column.columnDef.header, header.getContext())}
@@ -357,9 +357,9 @@ function TraceList({ traces }: { traces: ReadonlyArray<Trace> }) {
         </thead>
         <tbody className={tableBodyClass}>
           {table.getRowModel().rows.map((row) => (
-            <tr key={row.id} className={tableRowVariants()}>
+            <tr key={row.id} className={tableRowVariants({ density: "compact" })}>
               {row.getVisibleCells().map((cell) => (
-                <td key={cell.id} className={tableCellVariants()}>
+                <td key={cell.id} className={tableCellVariants({ density: "compact" })}>
                   {flexRender(cell.column.columnDef.cell, cell.getContext())}
                 </td>
               ))}

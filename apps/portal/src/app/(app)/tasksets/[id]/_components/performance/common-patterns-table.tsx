@@ -1,6 +1,15 @@
 "use client";
 
 import { useState } from "react";
+import {
+  tableBodyClass,
+  tableCellVariants,
+  tableClass,
+  tableHeaderClass,
+  tableHeadVariants,
+  tableRowVariants,
+} from "@repo/ui/components/table";
+import { cn } from "@repo/ui/lib/cn";
 import type { PatternRow, PerformanceConfig } from "@/lib/mock/performance";
 import { formatPct } from "@/lib/mock/performance";
 import { configDotClass } from "./config-color-dot";
@@ -26,36 +35,30 @@ export default function CommonPatternsTable({
         Common Patterns
       </h3>
       <div className="overflow-x-auto rounded-md border border-border bg-card">
-        <table className="w-full text-body">
-          <thead className="border-b border-border bg-muted/30">
+        <table className={tableClass}>
+          <thead className={tableHeaderClass}>
             <tr>
-              <th
-                scope="col"
-                className="px-3 py-2 text-left text-meta font-medium uppercase tracking-wider text-muted-foreground"
-              >
-                PATTERN
+              <th scope="col" className={tableHeadVariants({ density: "compact" })}>
+                Pattern
               </th>
               <th
                 scope="col"
-                className="whitespace-nowrap px-3 py-2 text-right text-meta font-medium uppercase tracking-wider text-muted-foreground"
+                className={tableHeadVariants({ density: "compact", numeric: true })}
               >
                 N
               </th>
               <th
                 scope="col"
-                className="whitespace-nowrap px-3 py-2 text-right text-meta font-medium uppercase tracking-wider text-muted-foreground"
+                className={tableHeadVariants({ density: "compact", numeric: true })}
               >
-                SCORE
+                Score
               </th>
             </tr>
           </thead>
-          <tbody>
+          <tbody className={tableBodyClass}>
             {visible.map((row) => (
-              <tr
-                key={row.id}
-                className="border-b border-border last:border-b-0"
-              >
-                <td className="px-3 py-1.5">
+              <tr key={row.id} className={tableRowVariants({ density: "compact" })}>
+                <td className={tableCellVariants({ density: "compact" })}>
                   <span className="flex items-center gap-2">
                     <span className="font-mono text-meta text-muted-foreground">
                       {row.id}
@@ -63,7 +66,12 @@ export default function CommonPatternsTable({
                     <ToolSequence tools={row.tools} />
                   </span>
                 </td>
-                <td className="px-3 py-1.5 text-right font-mono tabular-nums text-foreground">
+                <td
+                  className={cn(
+                    tableCellVariants({ density: "compact", variant: "mono" }),
+                    "text-right",
+                  )}
+                >
                   <span className="inline-flex items-center gap-1.5">
                     <span
                       aria-hidden="true"
@@ -84,7 +92,12 @@ export default function CommonPatternsTable({
                     )}
                   </span>
                 </td>
-                <td className="whitespace-nowrap px-3 py-1.5 text-right font-mono tabular-nums text-foreground">
+                <td
+                  className={cn(
+                    tableCellVariants({ density: "compact", variant: "mono" }),
+                    "text-right",
+                  )}
+                >
                   {formatPct(row.scoreA)}
                   {b && row.scoreB !== undefined && (
                     <>

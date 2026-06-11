@@ -48,11 +48,13 @@ export function CheckpointsTab({
   void ownershipClass;
 
   return (
-    <div className="overflow-x-auto py-4">
-      <CheckpointsTable
-        rows={checkpoints}
-        activeCheckpointId={model.activeCheckpointId}
-      />
+    <div className="py-4">
+      <div className="overflow-x-auto rounded-md border border-border bg-card">
+        <CheckpointsTable
+          rows={checkpoints}
+          activeCheckpointId={model.activeCheckpointId}
+        />
+      </div>
     </div>
   );
 }
