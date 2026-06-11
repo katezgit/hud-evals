@@ -16,7 +16,7 @@ export function EnvDescription({ text }: { text: string }) {
   return (
     <div className="flex flex-col gap-3">
       {paragraphs.map((para, i) => (
-        <p key={i} className="text-body text-foreground">
+        <p key={i} className="text-foreground">
           {renderTokens(para)}
         </p>
       ))}

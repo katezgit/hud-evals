@@ -33,13 +33,20 @@ export function OverviewScenarioCard({
     <article
       aria-current={loaded ? "true" : undefined}
       className={cn(
-        "group/card flex h-full flex-col gap-3 rounded-lg border bg-panel p-4",
-        "transition-shadow hover:shadow-(--shadow-card)",
-        loaded ? "border-foreground" : "border-border",
+        "group/card flex h-full flex-col gap-3 rounded-lg border p-4",
+        "transition-[box-shadow,background-color,border-color]",
+        loaded
+          ? "border-primary bg-primary-glow"
+          : "border-border bg-panel hover:shadow-(--shadow-card)",
       )}
     >
       <div className="flex flex-col gap-1.5">
-        <h3 className="font-mono text-body font-semibold text-foreground">
+        <h3
+          className={cn(
+            "font-mono text-body font-semibold",
+            loaded ? "text-primary" : "text-foreground",
+          )}
+        >
           {scenario.name}
         </h3>
         <p className="text-label text-muted-foreground line-clamp-3">
@@ -54,6 +61,10 @@ export function OverviewScenarioCard({
           size="sm"
           onClick={() => onLoad(scenario)}
           aria-pressed={loaded}
+          className={cn(
+            !loaded &&
+              "group-hover/card:border-primary group-hover/card:bg-primary group-hover/card:text-primary-foreground",
+          )}
         >
           {loaded ? "Loaded" : "Load this scenario"}
           {!loaded && <ArrowRightIcon aria-hidden="true" />}
