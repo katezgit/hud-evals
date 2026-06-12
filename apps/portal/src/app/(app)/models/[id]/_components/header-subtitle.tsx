@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { Sparkles } from "lucide-react";
+import type { Capability } from "@/lib/mock/explore-models";
 import type { Model } from "../_data/types";
 
 /**
@@ -18,9 +20,10 @@ import type { Model } from "../_data/types";
 interface BaseModelSubtitleProps {
   apiName: string;
   provider: string;
+  reasoning: Capability<boolean>;
 }
 
-export function BaseModelSubtitle({ apiName, provider }: BaseModelSubtitleProps) {
+export function BaseModelSubtitle({ apiName, provider, reasoning }: BaseModelSubtitleProps) {
   return (
     <div className="flex flex-wrap items-center gap-1.5 text-body text-muted-foreground">
       <span>{provider}</span>
@@ -28,6 +31,12 @@ export function BaseModelSubtitle({ apiName, provider }: BaseModelSubtitleProps)
       <span>Base model</span>
       <Separator />
       <span className="font-mono">{apiName}</span>
+      {reasoning === true && (
+        <>
+          <Separator />
+          <ReasoningChip />
+        </>
+      )}
     </div>
   );
 }
@@ -39,6 +48,7 @@ interface UserTrainedModelSubtitleProps {
   forkedFromModelId: string;
   activeCheckpointId: string;
   activeCheckpointStep: number;
+  reasoning: Capability<boolean>;
 }
 
 export function UserTrainedModelSubtitle({
@@ -48,6 +58,7 @@ export function UserTrainedModelSubtitle({
   forkedFromModelId,
   activeCheckpointId,
   activeCheckpointStep,
+  reasoning,
 }: UserTrainedModelSubtitleProps) {
   return (
     <div className="flex flex-wrap items-center gap-1.5 text-body text-muted-foreground">
@@ -70,6 +81,12 @@ export function UserTrainedModelSubtitle({
       </span>
       <Separator />
       <span className="font-mono">{apiName}</span>
+      {reasoning === true && (
+        <>
+          <Separator />
+          <ReasoningChip />
+        </>
+      )}
     </div>
   );
 }
@@ -89,12 +106,28 @@ export function HeaderSubtitle({ model }: { model: Model }) {
         forkedFromModelId={model.forkedFrom.modelId}
         activeCheckpointId={model.activeCheckpointId}
         activeCheckpointStep={model.activeCheckpointStep}
+        reasoning={model.reasoning}
       />
     );
   }
-  return <BaseModelSubtitle apiName={model.apiName} provider={model.provider} />;
+  return (
+    <BaseModelSubtitle
+      apiName={model.apiName}
+      provider={model.provider}
+      reasoning={model.reasoning}
+    />
+  );
 }
 
 function Separator() {
   return <span aria-hidden="true" className="text-meta-foreground">·</span>;
+}
+
+function ReasoningChip() {
+  return (
+    <span className="flex items-center gap-1">
+      <Sparkles aria-hidden="true" className="size-3" />
+      Reasoning
+    </span>
+  );
 }
