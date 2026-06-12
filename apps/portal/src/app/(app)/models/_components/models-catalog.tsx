@@ -76,23 +76,12 @@ import UsageSparkline from "./usage-sparkline";
 // at this scope) pinning state — keep them in sync via this constant.
 const MOBILE_MEDIA_QUERY = "(max-width: 1023px)";
 
-type SortKey =
-  | "most-used"
-  | "most-starred"
-  | "most-recent"
-  | "name-asc"
-  | "provider"
-  | "price-asc"
-  | "price-desc";
+type SortKey = "most-used" | "price-asc" | "name-asc";
 
 const SORT_OPTIONS: ReadonlyArray<{ value: SortKey; label: string }> = [
   { value: "most-used", label: "Most used" },
-  { value: "most-starred", label: "Most starred" },
-  { value: "most-recent", label: "Most recent" },
+  { value: "price-asc", label: "Lowest price" },
   { value: "name-asc", label: "Name (A-Z)" },
-  { value: "provider", label: "Provider" },
-  { value: "price-asc", label: "Price (lowest)" },
-  { value: "price-desc", label: "Price (highest)" },
 ];
 
 // Pixel sizes feed TanStack's column-pinning math (`column.getStart`,
@@ -142,6 +131,8 @@ function getPinningStyles(
 
 interface Filters {
   providers: ReadonlySet<ModelProvider>;
+  // Private tab only — IDs of allowed base models. Empty = no base filter.
+  baseModelIds: ReadonlySet<string>;
   trainable: boolean;
   reasoning: boolean;
   favoritesOnly: boolean;
@@ -149,6 +140,7 @@ interface Filters {
 
 const INITIAL_FILTERS: Filters = {
   providers: new Set(),
+  baseModelIds: new Set(),
   trainable: false,
   reasoning: false,
   favoritesOnly: false,
@@ -179,6 +171,9 @@ function matchesFilters(
     return false;
   }
   if (f.providers.size > 0 && !f.providers.has(m.provider)) return false;
+  if (f.baseModelIds.size > 0) {
+    if (!m.baseModelId || !f.baseModelIds.has(m.baseModelId)) return false;
+  }
   if (f.trainable && !m.trainable) return false;
   if (f.reasoning && m.reasoning !== true) return false;
   if (f.favoritesOnly && !favorites.has(m.modelId)) return false;
@@ -229,23 +224,10 @@ export default function ModelsCatalog() {
       switch (sortKey) {
         case "most-used":
           return b.usage - a.usage;
-        case "most-starred": {
-          const aFav = favorites.has(a.modelId) ? 1 : 0;
-          const bFav = favorites.has(b.modelId) ? 1 : 0;
-          if (aFav !== bFav) return bFav - aFav;
-          return b.usage - a.usage;
-        }
-        case "most-recent":
-          // Fixture order doubles as recency — top of catalogModels is newest.
-          return catalogModels.indexOf(a) - catalogModels.indexOf(b);
         case "name-asc":
           return a.name.localeCompare(b.name);
-        case "provider":
-          return a.provider.localeCompare(b.provider) || a.name.localeCompare(b.name);
         case "price-asc":
           return a.priceIn - b.priceIn;
-        case "price-desc":
-          return b.priceIn - a.priceIn;
         default:
           return 0;
       }
@@ -535,6 +517,7 @@ export default function ModelsCatalog() {
 
   const activeFilterCount =
     (filters.providers.size > 0 ? 1 : 0) +
+    (filters.baseModelIds.size > 0 ? 1 : 0) +
     (filters.trainable ? 1 : 0) +
     (filters.reasoning ? 1 : 0) +
     (filters.favoritesOnly ? 1 : 0);
@@ -567,6 +550,27 @@ export default function ModelsCatalog() {
     [],
   );
 
+  // Base model options derive from the distinct `baseModelId` values present on
+  // private rows — Anthropic/OpenAI/Tinker/Bedrock fine-tunes the org has run.
+  // Labels prefer the human-readable name from the catalog if the base also
+  // exists as a public row; falls back to the raw ID otherwise.
+  const baseModelOptions = useMemo<{ value: string; label: string }[]>(() => {
+    const ids = new Set<string>();
+    for (const m of catalogModels) {
+      if (m.isPrivate && m.baseModelId) ids.add(m.baseModelId);
+    }
+    const nameById = new Map(catalogModels.map((m) => [m.modelId, m.name]));
+    return Array.from(ids)
+      .map((id) => ({ value: id, label: nameById.get(id) ?? id }))
+      .sort((a, b) => a.label.localeCompare(b.label));
+  }, []);
+  const baseModelArray = useMemo(
+    () => Array.from(filters.baseModelIds),
+    [filters.baseModelIds],
+  );
+
+  const isPrivateTab = activeTab === "mine";
+
   // Counts reflect each tab's universe BEFORE filter narrowing, so the badge
   // stays stable while filters change.
   const tabCounts = useMemo(
@@ -592,7 +596,7 @@ export default function ModelsCatalog() {
             </span>
           </TabsTrigger>
           <TabsTrigger value="mine">
-            My models
+            Private models
             <span className="ml-1.5 font-mono text-meta tabular-nums text-meta-foreground">
               {tabCounts.mine}
             </span>
@@ -620,32 +624,22 @@ export default function ModelsCatalog() {
           {/* Desktop-only chip cluster + sort. Hidden below xl — at lg the
               cluster wrapped into a broken 2-row layout (search + 3 chips
               then favorites + count + sort). Mobile/tablet use the bottom
-              sheet below. */}
-          <div className="hidden flex-1 flex-wrap items-center gap-3 xl:flex">
-            <MultiSelect
-              size="sm"
-              options={providerOptions}
-              value={providerArray}
-              // Treat full selection as "no filter" → keeps state lean and
-              // collapses trigger label back to "All Providers".
-              onValueChange={(v) => {
-                const all = v.length === providerOptions.length;
-                updateFilters({
-                  providers: all ? new Set() : new Set(v as ModelProvider[]),
-                });
-              }}
-              emptyMeansAll
-              placeholder="All Providers"
-              searchPlaceholder="Search providers…"
-              className="w-44"
-            />
+              sheet below.
 
-            <ToggleFilterChip
-              label="Trainable"
-              active={filters.trainable}
-              count={toggleCounts.trainable}
-              onToggle={() => updateFilters({ trainable: !filters.trainable })}
-            />
+              Chip order on All tab (spec §3): Trainable → Reasoning →
+              Provider → Favorites. Private tab swaps Trainable out (private
+              models are training output — chip is degenerate) and Provider
+              for Base model (all private are provider=HUD; lineage is the
+              meaningful axis). */}
+          <div className="hidden flex-1 flex-wrap items-center gap-3 xl:flex">
+            {!isPrivateTab && (
+              <ToggleFilterChip
+                label="Trainable"
+                active={filters.trainable}
+                count={toggleCounts.trainable}
+                onToggle={() => updateFilters({ trainable: !filters.trainable })}
+              />
+            )}
 
             <ToggleFilterChip
               label="Reasoning"
@@ -653,6 +647,42 @@ export default function ModelsCatalog() {
               count={toggleCounts.reasoning}
               onToggle={() => updateFilters({ reasoning: !filters.reasoning })}
             />
+
+            {isPrivateTab ? (
+              <MultiSelect
+                size="sm"
+                options={baseModelOptions}
+                value={baseModelArray}
+                onValueChange={(v) => {
+                  const all = v.length === baseModelOptions.length;
+                  updateFilters({
+                    baseModelIds: all ? new Set() : new Set(v),
+                  });
+                }}
+                emptyMeansAll
+                placeholder="All Base models"
+                searchPlaceholder="Search base models…"
+                className="w-48"
+              />
+            ) : (
+              <MultiSelect
+                size="sm"
+                options={providerOptions}
+                value={providerArray}
+                // Treat full selection as "no filter" → keeps state lean and
+                // collapses trigger label back to "All Providers".
+                onValueChange={(v) => {
+                  const all = v.length === providerOptions.length;
+                  updateFilters({
+                    providers: all ? new Set() : new Set(v as ModelProvider[]),
+                  });
+                }}
+                emptyMeansAll
+                placeholder="All Providers"
+                searchPlaceholder="Search providers…"
+                className="w-44"
+              />
+            )}
 
             <ToggleFilterChip
               label="Favorites"
@@ -730,46 +760,21 @@ export default function ModelsCatalog() {
                 </DrawerHeader>
                 <DrawerBody>
                   <div className="flex flex-col gap-6">
-                    <FilterGroup label="Provider">
-                      {providerOptions.map((opt) => {
-                        const id = `mfilter-provider-${opt.value}`;
-                        const checked = filters.providers.has(
-                          opt.value as ModelProvider,
-                        );
-                        return (
-                          <label
-                            key={opt.value}
-                            htmlFor={id}
-                            className="flex cursor-pointer items-center gap-3 py-1"
-                          >
-                            <Checkbox
-                              id={id}
-                              size="sm"
-                              checked={checked}
-                              onCheckedChange={(next) => {
-                                const nextSet = new Set(filters.providers);
-                                if (next === true) {
-                                  nextSet.add(opt.value as ModelProvider);
-                                } else {
-                                  nextSet.delete(opt.value as ModelProvider);
-                                }
-                                updateFilters({ providers: nextSet });
-                              }}
-                            />
-                            <span className="text-body text-foreground">{opt.label}</span>
-                          </label>
-                        );
-                      })}
-                    </FilterGroup>
-
+                    {/* Capability first — Trainable + Reasoning are the
+                        decision-relevant filters for Alex; same precedence
+                        as the desktop chip cluster (spec §3). Trainable
+                        hides on Private tab (degenerate — all output of
+                        training). */}
                     <FilterGroup label="Capability">
-                      <CapabilityCheckbox
-                        id="mfilter-trainable"
-                        label="Trainable"
-                        count={toggleCounts.trainable}
-                        checked={filters.trainable}
-                        onCheckedChange={(v) => updateFilters({ trainable: v })}
-                      />
+                      {!isPrivateTab && (
+                        <CapabilityCheckbox
+                          id="mfilter-trainable"
+                          label="Trainable"
+                          count={toggleCounts.trainable}
+                          checked={filters.trainable}
+                          onCheckedChange={(v) => updateFilters({ trainable: v })}
+                        />
+                      )}
                       <CapabilityCheckbox
                         id="mfilter-reasoning"
                         label="Reasoning"
@@ -778,6 +783,72 @@ export default function ModelsCatalog() {
                         onCheckedChange={(v) => updateFilters({ reasoning: v })}
                       />
                     </FilterGroup>
+
+                    {isPrivateTab ? (
+                      <FilterGroup label="Base model">
+                        {baseModelOptions.map((opt) => {
+                          const id = `mfilter-base-${opt.value}`;
+                          const checked = filters.baseModelIds.has(opt.value);
+                          return (
+                            <label
+                              key={opt.value}
+                              htmlFor={id}
+                              className="flex cursor-pointer items-center gap-3 py-1"
+                            >
+                              <Checkbox
+                                id={id}
+                                size="sm"
+                                checked={checked}
+                                onCheckedChange={(next) => {
+                                  const nextSet = new Set(filters.baseModelIds);
+                                  if (next === true) {
+                                    nextSet.add(opt.value);
+                                  } else {
+                                    nextSet.delete(opt.value);
+                                  }
+                                  updateFilters({ baseModelIds: nextSet });
+                                }}
+                              />
+                              <span className="text-body text-foreground">
+                                {opt.label}
+                              </span>
+                            </label>
+                          );
+                        })}
+                      </FilterGroup>
+                    ) : (
+                      <FilterGroup label="Provider">
+                        {providerOptions.map((opt) => {
+                          const id = `mfilter-provider-${opt.value}`;
+                          const checked = filters.providers.has(
+                            opt.value as ModelProvider,
+                          );
+                          return (
+                            <label
+                              key={opt.value}
+                              htmlFor={id}
+                              className="flex cursor-pointer items-center gap-3 py-1"
+                            >
+                              <Checkbox
+                                id={id}
+                                size="sm"
+                                checked={checked}
+                                onCheckedChange={(next) => {
+                                  const nextSet = new Set(filters.providers);
+                                  if (next === true) {
+                                    nextSet.add(opt.value as ModelProvider);
+                                  } else {
+                                    nextSet.delete(opt.value as ModelProvider);
+                                  }
+                                  updateFilters({ providers: nextSet });
+                                }}
+                              />
+                              <span className="text-body text-foreground">{opt.label}</span>
+                            </label>
+                          );
+                        })}
+                      </FilterGroup>
+                    )}
 
                     <FilterGroup label="Favorites">
                       <CapabilityCheckbox

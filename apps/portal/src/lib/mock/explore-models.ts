@@ -63,6 +63,12 @@ export interface CatalogModel {
   trainable: boolean;
   /** Private to the current org (vs public catalog). */
   isPrivate: boolean;
+  /**
+   * For private (org-trained) models, the `modelId` of the base model the
+   * fine-tune started from. Drives the `Base model ▾` filter on the Private
+   * models tab. Omitted for public catalog models — they have no parent.
+   */
+  baseModelId?: string;
 }
 
 function spark(seed: number): ReadonlyArray<number> {
@@ -163,6 +169,7 @@ export const catalogModels: ReadonlyArray<CatalogModel> = [
     priceOut: 4,
     trainable: true,
     isPrivate: true,
+    baseModelId: "claude-sonnet-4-5",
   },
   {
     name: "Claude Sonnet 4",
@@ -285,6 +292,7 @@ export const catalogModels: ReadonlyArray<CatalogModel> = [
     priceOut: 24,
     trainable: true,
     isPrivate: true,
+    baseModelId: "gpt-5",
   },
   {
     name: "GPT 4o",
@@ -439,6 +447,7 @@ export const catalogModels: ReadonlyArray<CatalogModel> = [
     priceOut: 1.2,
     trainable: true,
     isPrivate: true,
+    baseModelId: "gpt-oss-120b",
   },
   {
     name: "Gpt Oss 120B",
@@ -486,6 +495,7 @@ export const catalogModels: ReadonlyArray<CatalogModel> = [
     priceOut: 3.2,
     trainable: false,
     isPrivate: true,
+    baseModelId: "gpt-5",
   },
 ];
 
