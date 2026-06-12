@@ -82,9 +82,13 @@ const FilterChip = React.forwardRef<HTMLButtonElement, FilterChipProps>(
         {hasCount && (
           <>
             <span className="sr-only">, </span>
+            {/* inline-flex + leading-none collapses the line-box to the glyph height,
+                so the flex parent's items-center aligns glyph centers rather than
+                box centers (text-meta 10px inside 14px line-box vs text-body 14px
+                inside 22px line-box produces a visible optical offset otherwise). */}
             <span
               className={cn(
-                "font-mono text-meta tabular-nums",
+                "inline-flex items-center leading-none font-mono text-meta tabular-nums",
                 selected ? "text-foreground" : "text-muted-foreground",
               )}
             >

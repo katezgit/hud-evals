@@ -81,7 +81,7 @@ const EmptyState = React.forwardRef<HTMLDivElement, EmptyStateProps>(
             {title}
           </p>
           {subtitle != null && (
-            <p className="text-caption text-muted-foreground">
+            <p className="text-body text-muted-foreground">
               {subtitle}
             </p>
           )}
