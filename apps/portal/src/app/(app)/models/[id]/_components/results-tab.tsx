@@ -37,14 +37,8 @@ interface ResultsTabProps {
 export function ResultsTab({ modelId, rows }: ResultsTabProps) {
   if (rows.length === 0) {
     return (
-      <section aria-labelledby="results-heading" className="py-4">
-        <h2
-          id="results-heading"
-          className="text-meta font-medium uppercase tracking-wide text-meta-foreground"
-        >
-          Results
-        </h2>
-        <div className="mt-3 py-12 text-center text-body text-muted-foreground">
+      <section className="py-4">
+        <div className="py-12 text-center text-body text-muted-foreground">
           No tasksets yet. Add one to start evaluating.
         </div>
       </section>
@@ -52,14 +46,8 @@ export function ResultsTab({ modelId, rows }: ResultsTabProps) {
   }
 
   return (
-    <section aria-labelledby="results-heading" className="py-4">
-      <h2
-        id="results-heading"
-        className="text-meta font-medium uppercase tracking-wide text-meta-foreground"
-      >
-        Results
-      </h2>
-      <div className="mt-3 overflow-x-auto">
+    <section className="py-4">
+      <div className="overflow-x-auto">
         <ResultsTable modelId={modelId} rows={rows} />
       </div>
     </section>
@@ -144,7 +132,7 @@ function ResultsTable({ modelId, rows }: ResultsTabProps) {
         {table.getHeaderGroups().map((group) => (
           <tr key={group.id}>
             {group.headers.map((header) => (
-              <th key={header.id} className={tableHeadVariants()}>
+              <th key={header.id} className={cn(tableHeadVariants(), "normal-case")}>
                 {header.isPlaceholder
                   ? null
                   : flexRender(header.column.columnDef.header, header.getContext())}
