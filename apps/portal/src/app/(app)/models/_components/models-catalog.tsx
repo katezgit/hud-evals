@@ -355,7 +355,7 @@ export default function ModelsCatalog() {
                   <CopyButton
                     value={m.modelId}
                     ariaLabel="Copy model ID"
-                    className="opacity-0 transition-opacity group-hover/row:opacity-100 group-focus-within/row:opacity-100 [@media(hover:none)]:opacity-100"
+                    className="row-action-reveal"
                   />
                 </div>
               </div>
