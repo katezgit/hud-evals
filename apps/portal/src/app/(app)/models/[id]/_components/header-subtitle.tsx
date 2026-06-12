@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Sparkles } from "lucide-react";
 import type { Capability } from "@/lib/mock/explore-models";
+import UnknownIndicator from "../../_components/unknown-indicator";
 import type { Model } from "../_data/types";
 
 /**
@@ -20,15 +21,16 @@ import type { Model } from "../_data/types";
 interface BaseModelSubtitleProps {
   apiName: string;
   provider: string;
+  kind: Capability<"chat" | "reasoning">;
   reasoning: Capability<boolean>;
 }
 
-export function BaseModelSubtitle({ apiName, provider, reasoning }: BaseModelSubtitleProps) {
+export function BaseModelSubtitle({ apiName, provider, kind, reasoning }: BaseModelSubtitleProps) {
   return (
     <div className="flex flex-wrap items-center gap-1.5 text-body text-muted-foreground">
       <span>{provider}</span>
       <Separator />
-      <span>Base model</span>
+      <KindLabel kind={kind} />
       <Separator />
       <span className="font-mono">{apiName}</span>
       {reasoning === true && (
@@ -44,6 +46,7 @@ export function BaseModelSubtitle({ apiName, provider, reasoning }: BaseModelSub
 interface UserTrainedModelSubtitleProps {
   apiName: string;
   provider: string;
+  kind: Capability<"chat" | "reasoning">;
   forkedFromApiName: string;
   forkedFromModelId: string;
   activeCheckpointId: string;
@@ -54,6 +57,7 @@ interface UserTrainedModelSubtitleProps {
 export function UserTrainedModelSubtitle({
   apiName,
   provider,
+  kind,
   forkedFromApiName,
   forkedFromModelId,
   activeCheckpointId,
@@ -63,6 +67,8 @@ export function UserTrainedModelSubtitle({
   return (
     <div className="flex flex-wrap items-center gap-1.5 text-body text-muted-foreground">
       <span>{provider}</span>
+      <Separator />
+      <KindLabel kind={kind} />
       <Separator />
       <span>
         forked from{" "}
@@ -102,6 +108,7 @@ export function HeaderSubtitle({ model }: { model: Model }) {
       <UserTrainedModelSubtitle
         apiName={model.apiName}
         provider={model.provider}
+        kind={model.kind}
         forkedFromApiName={model.forkedFrom.apiName}
         forkedFromModelId={model.forkedFrom.modelId}
         activeCheckpointId={model.activeCheckpointId}
@@ -114,6 +121,7 @@ export function HeaderSubtitle({ model }: { model: Model }) {
     <BaseModelSubtitle
       apiName={model.apiName}
       provider={model.provider}
+      kind={model.kind}
       reasoning={model.reasoning}
     />
   );
@@ -121,6 +129,13 @@ export function HeaderSubtitle({ model }: { model: Model }) {
 
 function Separator() {
   return <span aria-hidden="true" className="text-meta-foreground">·</span>;
+}
+
+function KindLabel({ kind }: { kind: Capability<"chat" | "reasoning"> }) {
+  if (kind === "unknown") {
+    return <UnknownIndicator label="Kind not published by provider" />;
+  }
+  return <span>{kind === "chat" ? "Chat" : "Reasoning"}</span>;
 }
 
 function ReasoningChip() {

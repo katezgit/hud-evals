@@ -72,6 +72,8 @@ export interface Model {
   trainable: boolean;
   /** Reasoning-capable (extended thinking / RL-tuned chains). 'unknown' renders no chip. */
   reasoning: Capability<boolean>;
+  /** Product kind. 'chat' = general-purpose; 'reasoning' = reasoning-specialized. `'unknown'` renders as `?`. */
+  kind: Capability<"chat" | "reasoning">;
   /** Private to the current org (vs public catalog). Drives the header visibility icon. */
   isPrivate: boolean;
   /** Number of checkpoints. 0 implies a base/gateway Model. */
