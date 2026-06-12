@@ -209,23 +209,9 @@ function TracesToolbar({
   view: ViewMode;
   onViewChange: (next: ViewMode) => void;
 }) {
-  // Left-to-right order: segment control → search → checkpoint → taskset.
+  // Left-to-right order: search → checkpoint → taskset → segment control.
   return (
     <div className="flex flex-wrap items-center gap-3">
-      <SegmentedControl
-        aria-label="View mode"
-        value={view}
-        onValueChange={(value) => onViewChange(value as ViewMode)}
-        size="md"
-      >
-        <SegmentedControl.Item value="grid" aria-label="Grid view">
-          <LayoutGrid aria-hidden="true" className="size-4" />
-        </SegmentedControl.Item>
-        <SegmentedControl.Item value="list" aria-label="List view">
-          <ListIcon aria-hidden="true" className="size-4" />
-        </SegmentedControl.Item>
-      </SegmentedControl>
-
       <div className="w-full flex-none sm:w-56">
         <SearchInput
           size="sm"
@@ -265,6 +251,20 @@ function TracesToolbar({
           ))}
         </SelectContent>
       </Select>
+
+      <SegmentedControl
+        aria-label="View mode"
+        value={view}
+        onValueChange={(value) => onViewChange(value as ViewMode)}
+        size="md"
+      >
+        <SegmentedControl.Item value="grid" aria-label="Grid view">
+          <LayoutGrid aria-hidden="true" className="size-4" />
+        </SegmentedControl.Item>
+        <SegmentedControl.Item value="list" aria-label="List view">
+          <ListIcon aria-hidden="true" className="size-4" />
+        </SegmentedControl.Item>
+      </SegmentedControl>
     </div>
   );
 }
