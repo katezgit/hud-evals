@@ -253,9 +253,11 @@ function DrawerContent({
           // Right drawer: shadow-(--shadow-drawer-edge) is an inset box-shadow instead of
           // border-l so the 1px separator does not consume box space, keeping px-6 visually
           // symmetric on both panel edges.
-          "data-[vaul-drawer-direction=right]:inset-y-0 data-[vaul-drawer-direction=right]:right-0",
+          // max-w-[100vw] caps side drawers to viewport width on narrow screens (e.g. 375px iPhone)
+          // — lives here rather than in SIDE_WIDTH_CLASSES because it doesn't vary per size.
+          "data-[vaul-drawer-direction=right]:inset-y-0 data-[vaul-drawer-direction=right]:right-0 data-[vaul-drawer-direction=right]:max-w-[100vw]",
           "data-[vaul-drawer-direction=right]:shadow-drawer-edge",
-          "data-[vaul-drawer-direction=left]:inset-y-0 data-[vaul-drawer-direction=left]:left-0",
+          "data-[vaul-drawer-direction=left]:inset-y-0 data-[vaul-drawer-direction=left]:left-0 data-[vaul-drawer-direction=left]:max-w-[100vw]",
           "data-[vaul-drawer-direction=left]:border-r data-[vaul-drawer-direction=left]:border-border",
           "data-[vaul-drawer-direction=top]:inset-x-0 data-[vaul-drawer-direction=top]:top-0",
           "data-[vaul-drawer-direction=top]:border-b data-[vaul-drawer-direction=top]:border-border",
