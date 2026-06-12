@@ -174,7 +174,7 @@ export default function AppError({ error, reset }: AppErrorProps) {
               {copied ? "Copied" : "Copy error details"}
             </Button>
 
-            <div className="flex gap-3">
+            <div className="flex gap-2">
               <Button variant="primary" onClick={reset}>
                 Try again
               </Button>

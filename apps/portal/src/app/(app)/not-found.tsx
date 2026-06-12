@@ -1,10 +1,5 @@
 "use client";
 
-// Client component: diagnostic uses `usePathname()` and the secondary action
-// uses `router.back()`. Per-segment variants exist for high-frequency entity
-// 404s (see items/[id]/not-found.tsx) — this is the universal fallback for
-// everything else under (app). Per not-found/spec.md §2 + §3 universal row.
-
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Button } from "@repo/ui";

@@ -38,7 +38,7 @@ export default function GlobalError({
       </head>
       <body className="min-h-screen bg-background">
         <div className="flex min-h-screen w-full items-center justify-center">
-          <div className="flex max-w-[480px] flex-col items-center gap-6 px-6 text-center">
+          <div className="flex max-w-[480px] flex-col items-center gap-4 px-6 text-center">
             <span className="inline-flex items-center rounded-md border border-border bg-muted px-3 py-1.5 font-mono text-label font-medium text-muted-foreground">
               FATAL
             </span>
@@ -62,7 +62,7 @@ export default function GlobalError({
               </div>
             )}
 
-            <div className="flex flex-row gap-3">
+            <div className="flex flex-row gap-2">
               <Button type="button" variant="primary" onClick={reset}>
                 Reload page
               </Button>

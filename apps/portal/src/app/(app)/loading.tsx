@@ -1,18 +1,7 @@
 import { LoaderIcon } from "lucide-react";
 
-/**
- * Route-segment Suspense fallback for the (app) group.
- *
- * Preserves two non-obvious behaviors:
- * - 200ms anti-flash: spinner stays opacity:0 until 200ms have elapsed, so
- *   fast routes never visually show it.
- * - prefers-reduced-motion: `motion-safe:animate-spin` omits the rotation
- *   entirely when the user has reduced motion enabled (Tailwind's
- *   `animate-spin` does not respect the media query on its own).
- *
- * Spinner glyph matches `toast.promise(...)` loading state — see
- * packages/ui/src/components/toast.tsx.
- */
+// 200ms opacity gate suppresses flash on sub-200ms loads.
+// motion-safe: needed because Tailwind's animate-spin ignores prefers-reduced-motion.
 export default function Loading() {
   return (
     <div

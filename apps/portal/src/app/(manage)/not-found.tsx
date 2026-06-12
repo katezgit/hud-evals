@@ -1,9 +1,5 @@
 "use client";
 
-// Universal 404 for the manage (settings) group. User came from settings context,
-// so recovery keeps them there — primary CTA anchors to /manage, not /jobs.
-// Per not-found/spec.md §2 universal row.
-
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Button } from "@repo/ui";
