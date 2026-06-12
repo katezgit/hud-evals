@@ -8,7 +8,9 @@ import {
   getCoreRowModel,
   useReactTable,
 } from "@tanstack/react-table";
+import { Card } from "@repo/ui/components/card";
 import { EmptyState } from "@repo/ui/components/empty-state";
+import { SearchInput } from "@repo/ui/components/search-input";
 import {
   Select,
   SelectContent,
@@ -91,6 +93,9 @@ export function LogsTab({
 }
 
 function LogsView({ logs }: { logs: ReadonlyArray<Log> }) {
+  // SearchInput keeps its own input value internally; we only consume the
+  // deferred value via `onValueChange`. No mirrored state needed.
+  const [query, setQuery] = useState("");
   const [checkpoint, setCheckpoint] = useState<string>(ALL_CHECKPOINTS);
   const [user, setUser] = useState<string>(ALL_USERS);
   const [range, setRange] = useState<RangeValue>("7d");
@@ -120,7 +125,16 @@ function LogsView({ logs }: { logs: ReadonlyArray<Log> }) {
     const windowMs =
       RANGE_OPTIONS.find((opt) => opt.value === range)?.windowMs ?? null;
     const cutoff = windowMs === null ? null : now - windowMs;
+    const q = query.trim().toLowerCase();
     return logs.filter((log) => {
+      if (q) {
+        const matches =
+          log.id.toLowerCase().includes(q) ||
+          log.userName.toLowerCase().includes(q) ||
+          (log.checkpointId !== null &&
+            log.checkpointId.toLowerCase().includes(q));
+        if (!matches) return false;
+      }
       if (checkpoint !== ALL_CHECKPOINTS && log.checkpointId !== checkpoint) {
         return false;
       }
@@ -128,13 +142,23 @@ function LogsView({ logs }: { logs: ReadonlyArray<Log> }) {
       if (cutoff !== null && Date.parse(log.createdAt) < cutoff) return false;
       return true;
     });
-  }, [logs, checkpoint, user, range, now]);
+  }, [logs, query, checkpoint, user, range, now]);
 
   const showCheckpointFilter = checkpointOptions.length > 0;
 
   return (
     <div className="py-4">
       <div className="flex flex-wrap items-center gap-3">
+        <div className="w-full flex-none sm:w-64">
+          <SearchInput
+            size="sm"
+            defaultValue=""
+            onValueChange={setQuery}
+            placeholder="Search by model, ID, or user…"
+            aria-label="Search logs"
+          />
+        </div>
+
         {showCheckpointFilter && (
           <Select value={checkpoint} onValueChange={setCheckpoint}>
             <SelectTrigger size="sm" aria-label="Checkpoint" className="w-48">
@@ -179,14 +203,16 @@ function LogsView({ logs }: { logs: ReadonlyArray<Log> }) {
         </Select>
       </div>
 
-      <div className="mt-4 overflow-x-auto">
-        <LogsTable
-          rows={filtered}
-          now={now}
-          expandedId={expandedId}
-          onToggle={(id) => setExpandedId((curr) => (curr === id ? null : id))}
-        />
-      </div>
+      <Card className="mt-4 overflow-hidden p-0">
+        <div className="overflow-x-auto">
+          <LogsTable
+            rows={filtered}
+            now={now}
+            expandedId={expandedId}
+            onToggle={(id) => setExpandedId((curr) => (curr === id ? null : id))}
+          />
+        </div>
+      </Card>
     </div>
   );
 }
@@ -287,7 +313,10 @@ function LogsTable({
         {table.getHeaderGroups().map((group) => (
           <tr key={group.id}>
             {group.headers.map((header) => (
-              <th key={header.id} className={tableHeadVariants({ density: "compact" })}>
+              <th
+                key={header.id}
+                className={cn(tableHeadVariants({ density: "compact" }), "normal-case")}
+              >
                 {header.isPlaceholder
                   ? null
                   : flexRender(header.column.columnDef.header, header.getContext())}

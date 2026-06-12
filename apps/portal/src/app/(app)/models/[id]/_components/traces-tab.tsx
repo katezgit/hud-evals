@@ -12,6 +12,7 @@ import {
 import { Badge } from "@repo/ui/components/badge";
 import { Card, CardContent } from "@repo/ui/components/card";
 import { EmptyState } from "@repo/ui/components/empty-state";
+import { SearchInput } from "@repo/ui/components/search-input";
 import { SegmentedControl } from "@repo/ui/components/segmented-control";
 import {
   Select,
@@ -33,6 +34,7 @@ import { getTraces } from "../_data/models";
 import type { Trace, Viewer } from "../_data/types";
 
 const ALL_TASKSETS = "__all__";
+const ALL_CHECKPOINTS = "__all__";
 type ViewMode = "grid" | "list";
 
 interface TracesTabProps {
@@ -59,6 +61,10 @@ function TracesTabClient({ modelId }: TracesTabProps) {
   const [traces, setTraces] = useState<ReadonlyArray<Trace> | null>(null);
   const [view, setView] = useState<ViewMode>("grid");
   const [tasksetId, setTasksetId] = useState<string>(ALL_TASKSETS);
+  const [checkpointId, setCheckpointId] = useState<string>(ALL_CHECKPOINTS);
+  // SearchInput owns its own input value; we consume the deferred result via
+  // `onValueChange`. `query` drives filtering.
+  const [query, setQuery] = useState("");
 
   useEffect(() => {
     let cancelled = false;
@@ -82,11 +88,28 @@ function TracesTabClient({ modelId }: TracesTabProps) {
     return Array.from(seen, ([id, name]) => ({ id, name }));
   }, [traces]);
 
+  // Same shape for checkpoints — only surface ones present in the data.
+  const checkpointOptions = useMemo(() => {
+    if (traces === null) return [] as ReadonlyArray<string>;
+    const seen = new Set<string>();
+    for (const t of traces) {
+      if (t.checkpointId !== null) seen.add(t.checkpointId);
+    }
+    return Array.from(seen).sort();
+  }, [traces]);
+
   const filtered = useMemo(() => {
     if (traces === null) return null;
-    if (tasksetId === ALL_TASKSETS) return traces;
-    return traces.filter((t) => t.tasksetId === tasksetId);
-  }, [traces, tasksetId]);
+    const q = query.trim().toLowerCase();
+    return traces.filter((t) => {
+      if (q && !t.id.toLowerCase().includes(q)) return false;
+      if (tasksetId !== ALL_TASKSETS && t.tasksetId !== tasksetId) return false;
+      if (checkpointId !== ALL_CHECKPOINTS && t.checkpointId !== checkpointId) {
+        return false;
+      }
+      return true;
+    });
+  }, [traces, tasksetId, checkpointId, query]);
 
   // Loading skeleton — keeps the toolbar visible so the layout doesn't jump.
   if (traces === null) {
@@ -96,6 +119,10 @@ function TracesTabClient({ modelId }: TracesTabProps) {
           tasksetId={tasksetId}
           onTasksetChange={setTasksetId}
           tasksetOptions={tasksetOptions}
+          checkpointId={checkpointId}
+          onCheckpointChange={setCheckpointId}
+          checkpointOptions={checkpointOptions}
+          onQueryChange={setQuery}
           view={view}
           onViewChange={setView}
         />
@@ -126,6 +153,10 @@ function TracesTabClient({ modelId }: TracesTabProps) {
         tasksetId={tasksetId}
         onTasksetChange={setTasksetId}
         tasksetOptions={tasksetOptions}
+        checkpointId={checkpointId}
+        onCheckpointChange={setCheckpointId}
+        checkpointOptions={checkpointOptions}
+        onQueryChange={setQuery}
         view={view}
         onViewChange={setView}
       />
@@ -161,31 +192,26 @@ function TracesToolbar({
   tasksetId,
   onTasksetChange,
   tasksetOptions,
+  checkpointId,
+  onCheckpointChange,
+  checkpointOptions,
+  onQueryChange,
   view,
   onViewChange,
 }: {
   tasksetId: string;
   onTasksetChange: (next: string) => void;
   tasksetOptions: ReadonlyArray<{ id: string; name: string }>;
+  checkpointId: string;
+  onCheckpointChange: (next: string) => void;
+  checkpointOptions: ReadonlyArray<string>;
+  onQueryChange: (next: string) => void;
   view: ViewMode;
   onViewChange: (next: ViewMode) => void;
 }) {
+  // Left-to-right order: segment control → search → checkpoint → taskset.
   return (
-    <div className="flex items-center justify-between gap-3">
-      <Select value={tasksetId} onValueChange={onTasksetChange}>
-        <SelectTrigger className="w-56" aria-label="Filter by taskset">
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value={ALL_TASKSETS}>All tasksets</SelectItem>
-          {tasksetOptions.map((option) => (
-            <SelectItem key={option.id} value={option.id}>
-              {option.name}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-
+    <div className="flex flex-wrap items-center gap-3">
       <SegmentedControl
         aria-label="View mode"
         value={view}
@@ -199,6 +225,46 @@ function TracesToolbar({
           <ListIcon aria-hidden="true" className="size-4" />
         </SegmentedControl.Item>
       </SegmentedControl>
+
+      <div className="w-full flex-none sm:w-56">
+        <SearchInput
+          size="sm"
+          defaultValue=""
+          onValueChange={onQueryChange}
+          placeholder="Search by trace ID…"
+          aria-label="Search by trace ID"
+        />
+      </div>
+
+      {checkpointOptions.length > 0 && (
+        <Select value={checkpointId} onValueChange={onCheckpointChange}>
+          <SelectTrigger size="sm" className="w-48" aria-label="Filter by checkpoint">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value={ALL_CHECKPOINTS}>All checkpoints</SelectItem>
+            {checkpointOptions.map((id) => (
+              <SelectItem key={id} value={id}>
+                {id}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      )}
+
+      <Select value={tasksetId} onValueChange={onTasksetChange}>
+        <SelectTrigger size="sm" className="w-56" aria-label="Filter by taskset">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value={ALL_TASKSETS}>All tasksets</SelectItem>
+          {tasksetOptions.map((option) => (
+            <SelectItem key={option.id} value={option.id}>
+              {option.name}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
     </div>
   );
 }
@@ -340,34 +406,42 @@ function TraceList({ traces }: { traces: ReadonlyArray<Trace> }) {
   });
 
   return (
-    <div className="mt-4 overflow-x-auto">
-      <table className={tableClass}>
-        <thead className={tableHeaderClass}>
-          {table.getHeaderGroups().map((group) => (
-            <tr key={group.id}>
-              {group.headers.map((header) => (
-                <th key={header.id} className={tableHeadVariants({ density: "compact" })}>
-                  {header.isPlaceholder
-                    ? null
-                    : flexRender(header.column.columnDef.header, header.getContext())}
-                </th>
-              ))}
-            </tr>
-          ))}
-        </thead>
-        <tbody className={tableBodyClass}>
-          {table.getRowModel().rows.map((row) => (
-            <tr key={row.id} className={tableRowVariants({ density: "compact" })}>
-              {row.getVisibleCells().map((cell) => (
-                <td key={cell.id} className={tableCellVariants({ density: "compact" })}>
-                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                </td>
-              ))}
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+    <Card className="mt-4 overflow-hidden p-0">
+      <div className="overflow-x-auto">
+        <table className={tableClass}>
+          <thead className={tableHeaderClass}>
+            {table.getHeaderGroups().map((group) => (
+              <tr key={group.id}>
+                {group.headers.map((header) => (
+                  <th
+                    key={header.id}
+                    className={cn(
+                      tableHeadVariants({ density: "compact" }),
+                      "normal-case",
+                    )}
+                  >
+                    {header.isPlaceholder
+                      ? null
+                      : flexRender(header.column.columnDef.header, header.getContext())}
+                  </th>
+                ))}
+              </tr>
+            ))}
+          </thead>
+          <tbody className={tableBodyClass}>
+            {table.getRowModel().rows.map((row) => (
+              <tr key={row.id} className={tableRowVariants({ density: "compact" })}>
+                {row.getVisibleCells().map((cell) => (
+                  <td key={cell.id} className={tableCellVariants({ density: "compact" })}>
+                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </Card>
   );
 }
 

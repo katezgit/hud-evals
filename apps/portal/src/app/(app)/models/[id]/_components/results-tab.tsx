@@ -8,6 +8,7 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import { Button } from "@repo/ui/components/button";
+import { Card } from "@repo/ui/components/card";
 import { Progress } from "@repo/ui/components/progress";
 import {
   tableBodyClass,
@@ -47,9 +48,11 @@ export function ResultsTab({ modelId, rows }: ResultsTabProps) {
 
   return (
     <section className="py-4">
-      <div className="overflow-x-auto">
-        <ResultsTable modelId={modelId} rows={rows} />
-      </div>
+      <Card className="overflow-hidden p-0">
+        <div className="overflow-x-auto">
+          <ResultsTable modelId={modelId} rows={rows} />
+        </div>
+      </Card>
     </section>
   );
 }

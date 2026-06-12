@@ -12,7 +12,7 @@ export function ModelInformationPanel({ model }: { model: Model }) {
         id="model-information-heading"
         className="text-meta font-medium uppercase tracking-wide text-meta-foreground"
       >
-        Model Information
+        Details
       </h2>
       <dl
         className={cn(
