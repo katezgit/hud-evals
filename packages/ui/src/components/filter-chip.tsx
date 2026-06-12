@@ -1,0 +1,100 @@
+// shadcn-source: radix-wrap:n/a (n/a, 2026-06-12)
+// Composition: raw <button> instead of composing Button.
+// Button applies [&_svg]:size-4 globally which would override the spec's size-3.5 leading icon.
+// We replicate Button's base + secondary variant classes directly.
+//
+// Accessible name: count is included via aria-label ("GPU (12)" not "GPU" + decorative span)
+// so screen-reader users hear the full context without extra navigation.
+
+import * as React from "react"
+import { Check } from "lucide-react"
+import { cva } from "class-variance-authority"
+
+import { cn } from "@repo/ui/lib/cn"
+
+const filterChipVariants = cva(
+  [
+    "inline-flex shrink-0 items-center justify-center",
+    "cursor-pointer",
+    "whitespace-nowrap",
+    "font-sans",
+    "transition-colors duration-150",
+    "disabled:cursor-not-allowed disabled:text-text-disabled",
+    "[&_svg]:pointer-events-none [&_svg]:shrink-0",
+    "h-8 px-3.5 py-0 text-body font-medium rounded-lg gap-2",
+    "border border-border bg-transparent text-foreground",
+    "hover:bg-secondary-surface",
+    "active:bg-selected-surface",
+    "disabled:bg-transparent",
+  ],
+  {
+    variants: {
+      selected: {
+        true: "bg-selected-surface hover:bg-selected-surface active:bg-selected-surface",
+        false: "",
+      },
+    },
+    defaultVariants: {
+      selected: false,
+    },
+  },
+)
+
+export interface FilterChipProps
+  extends Omit<React.ComponentPropsWithoutRef<"button">, "children" | "aria-label"> {
+  label: string
+  selected: boolean
+  onSelectedChange: (next: boolean) => void
+  count?: number
+  disabled?: boolean
+  className?: string
+}
+
+const FilterChip = React.forwardRef<HTMLButtonElement, FilterChipProps>(
+  (
+    { label, selected, onSelectedChange, count, disabled, className, onClick, ...props },
+    ref,
+  ) => {
+    const hasCount = typeof count === "number"
+    const ariaLabel = hasCount ? `${label} (${count})` : label
+
+    function handleClick(e: React.MouseEvent<HTMLButtonElement>) {
+      onClick?.(e)
+      if (!e.defaultPrevented) {
+        onSelectedChange(!selected)
+      }
+    }
+
+    return (
+      <button
+        ref={ref}
+        type="button"
+        aria-pressed={selected}
+        aria-label={ariaLabel}
+        disabled={disabled}
+        className={cn(filterChipVariants({ selected }), className)}
+        onClick={handleClick}
+        {...props}
+      >
+        {selected && (
+          <Check className="size-3.5 text-foreground" aria-hidden="true" />
+        )}
+        <span>{label}</span>
+        {hasCount && (
+          <span
+            aria-hidden="true"
+            className={cn(
+              "font-mono text-meta tabular-nums",
+              selected ? "text-foreground" : "text-meta-foreground",
+            )}
+          >
+            {count}
+          </span>
+        )}
+      </button>
+    )
+  },
+)
+FilterChip.displayName = "FilterChip"
+
+export { FilterChip, filterChipVariants }
