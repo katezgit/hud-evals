@@ -22,16 +22,16 @@ const filterChipVariants = cva(
     "transition-colors duration-150",
     "disabled:cursor-not-allowed disabled:text-text-disabled",
     "[&_svg]:pointer-events-none [&_svg]:shrink-0",
-    "h-8 px-3.5 py-0 text-body font-medium rounded-lg gap-2",
+    "h-8 px-3 py-0 text-body font-medium rounded-lg gap-1.5",
     "border border-border bg-transparent text-foreground",
     "hover:bg-secondary-surface",
-    "active:bg-selected-surface",
+    "active:bg-primary-soft",
     "disabled:bg-transparent",
   ],
   {
     variants: {
       selected: {
-        true: "bg-selected-surface hover:bg-selected-surface active:bg-selected-surface",
+        true: "bg-primary-soft hover:bg-primary-soft active:bg-primary-soft",
         false: "",
       },
     },
