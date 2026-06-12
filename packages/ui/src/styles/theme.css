@@ -64,11 +64,9 @@
 
   /* Borders — alpha-tinted hairlines, compose on any surface.
    *   border:        default hairline
-   *   border-strong: +10pp alpha for selected/active edges
-   *   grid-line:     ultra-faint gridline for app-shell backdrop (56px grid) */
+   *   border-strong: +10pp alpha for selected/active edges */
   --color-border:        light-dark(rgb(var(--border-seed-light) / .17),  rgb(var(--border-seed-dark) / .08));
   --color-border-strong: light-dark(rgb(var(--border-seed-light) / .28),  rgb(var(--border-seed-dark) / .18));
-  --color-grid-line:     light-dark(rgb(var(--border-seed-light) / .01),  rgb(var(--border-seed-dark) / .008));
   /* Code block surface — PINNED flat literals; always dark in both themes.
    * Light mode: high-contrast pop against page bg.
    * Dark mode: --ink-900 (#18212E) reads visibly lighter than --surface-bg-dark (#0C1016). */

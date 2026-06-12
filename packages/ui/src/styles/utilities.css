@@ -12,18 +12,6 @@
 @utility z-table-header { z-index: 3; }
 @utility z-table-corner { z-index: 4; }
 
-/* ─── Layout backdrop utilities ─────────────────────────────────────────────
- * Multi-property recipes that cannot be expressed as a single @theme utility.
- * bg-grid-backdrop: 56px × 56px hairline grid for the AppShell main scroll region.
- *   - background-attachment: fixed is intentionally OMITTED (perf: trace/table scroll). */
-@utility bg-grid-backdrop {
-  background-color: var(--color-background);
-  background-image:
-    linear-gradient(to right,  var(--color-grid-line) 1px, transparent 1px),
-    linear-gradient(to bottom, var(--color-grid-line) 1px, transparent 1px);
-  background-size: 56px 56px;
-}
-
 /* ─── Typography composites ──────────────────────────────────────────────────
  * Bundle font-family + size + line-height + letter-spacing + weight into a
  * single utility. These OVERRIDE Tailwind v4's auto-generated text-* utilities
