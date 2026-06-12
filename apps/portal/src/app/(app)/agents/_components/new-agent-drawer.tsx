@@ -32,7 +32,7 @@ function parseStep(value: string | null): Step | null {
 }
 
 const TITLE: Record<Step, string> = {
-  select: "New Agent",
+  select: "Add Agent",
   automation: "New Automation",
   qa: "New QA Agent",
   chat: "New Chat Agent",

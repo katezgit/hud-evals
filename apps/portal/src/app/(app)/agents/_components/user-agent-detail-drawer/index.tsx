@@ -228,7 +228,7 @@ function UserAgentDetailDrawerBody({ agent, onClose }: DrawerBodyProps) {
           <DrawerCloseButton aria-label="Close drawer" className="-mt-1" />
         </DrawerHeader>
 
-        <DrawerBody>
+        <DrawerBody className="pb-8">
           <div className="flex flex-col gap-6 pt-2">
             <PurposeSection
               scenarioId={agent.scenarioId}
