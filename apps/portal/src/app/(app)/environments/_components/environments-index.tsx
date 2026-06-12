@@ -303,9 +303,16 @@ export function EnvironmentsIndex({
 
   return (
     <div className="isolate flex flex-col pb-10">
-      {/* Sticky chrome — holds activity bar + tab strip only. The page H1 +
-          CTA live in the route's page.tsx and scroll away with the page. The
-          TabsList's own `w-fit` underline (variant=underline) carries the
+      {/* Activity bar — meta strip subordinate to the page H1 (which lives in
+          page.tsx). Sits OUTSIDE the sticky band so the H1 + stats read as
+          one title block at scroll-top; only the tab strip pins. */}
+      <div className="page-shell block py-0">
+        <ActivityBar runs={visibleRuns} activeNow={activity.activeNow} />
+      </div>
+
+      {/* Sticky chrome — tab strip only. The page H1 + CTA live in the route's
+          page.tsx and the activity meta strip sits above; both scroll away.
+          The TabsList's own `w-fit` underline (variant=underline) carries the
           lower-edge separation with the active-tab indicator painting on top.
           z-page-chrome (=20) matches env-detail-shell so the pinned chrome
           paints above tab-content stickies (z-sticky=10) and any raw z-10/z-20
@@ -323,7 +330,7 @@ export function EnvironmentsIndex({
       <div
         ref={stickyRef}
         className={cn(
-          "sticky top-0 z-page-chrome bg-background pt-4 will-change-transform",
+          "sticky top-0 z-page-chrome bg-background mt-4 pt-2 will-change-transform",
           // Scroll-cue: border slot is always occupied (border-b) so flipping
           // border-color does not shift layout. Mirrors DialogHeader.
           "border-b",
@@ -333,12 +340,10 @@ export function EnvironmentsIndex({
         )}
       >
         <div className="page-shell block py-0">
-          <ActivityBar runs={visibleRuns} activeNow={activity.activeNow} />
-
           <Tabs
             value={activeTab}
             onValueChange={(v) => handleTabChange(v as TabKey)}
-            className="mt-4 gap-0"
+            className="gap-0"
           >
             <TabsList variant="underline">
               <TabsTrigger value="explore">
