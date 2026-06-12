@@ -8,18 +8,18 @@ import { ModelStatusBadge } from "./model-status-badge";
 export function ModelInformationPanel({ model }: { model: Model }) {
   return (
     <section aria-labelledby="model-information-heading" className="max-w-3xl">
-      <h2
-        id="model-information-heading"
-        className="text-meta font-medium uppercase tracking-wide text-meta-foreground"
-      >
-        Details
-      </h2>
-      <dl
-        className={cn(
-          "mt-3 grid grid-cols-[max-content_1fr] items-center gap-x-6 gap-y-3",
-          "rounded-surface border border-border bg-panel px-5 py-4",
-        )}
-      >
+      <div className="rounded-surface border border-border bg-panel px-5 py-4">
+        <h2
+          id="model-information-heading"
+          className="text-subtitle font-medium text-foreground"
+        >
+          Details
+        </h2>
+        <dl
+          className={cn(
+            "mt-4 grid grid-cols-[max-content_1fr] items-center gap-x-6 gap-y-3",
+          )}
+        >
         <Row label="API Name">
           <CopyableValue value={model.apiName} mono ariaLabel="Copy API name" />
         </Row>
@@ -74,7 +74,8 @@ export function ModelInformationPanel({ model }: { model: Model }) {
             {formatRelative(model.createdAt)}
           </span>
         </Row>
-      </dl>
+        </dl>
+      </div>
     </section>
   );
 }

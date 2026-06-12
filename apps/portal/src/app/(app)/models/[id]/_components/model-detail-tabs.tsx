@@ -31,11 +31,7 @@ export function ModelDetailTabs({
     model.checkpointCount >= 1 && viewer.persona === "rl-researcher";
 
   return (
-    // `Tabs` primitive defaults to `gap-6` between TabsList and TabsContent.
-    // Each tab body owns its own 24px top padding (`py-6`) as the
-    // TabsList-bottom → first-content-row gap, so neutralize the primitive's
-    // gap here to avoid double-stacking.
-    <Tabs defaultValue="results" className="flex-1 min-w-0 gap-0">
+    <Tabs defaultValue="results" className="flex-1 min-w-0 gap-2">
       <TabsList variant="underline">
         <TabsTrigger value="results">Results</TabsTrigger>
         <TabsTrigger value="traces">Traces</TabsTrigger>

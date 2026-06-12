@@ -654,7 +654,6 @@ export default function ModelsCatalog() {
 
             {isPrivateTab ? (
               <MultiSelect
-                size="sm"
                 options={baseModelOptions}
                 value={baseModelArray}
                 onValueChange={(v) => {
@@ -670,7 +669,6 @@ export default function ModelsCatalog() {
               />
             ) : (
               <MultiSelect
-                size="sm"
                 options={providerOptions}
                 value={providerArray}
                 // Treat full selection as "no filter" → keeps state lean and
@@ -711,7 +709,7 @@ export default function ModelsCatalog() {
                 </button>
               ) : null}
               <Select value={sortKey} onValueChange={(v) => setSortKey(v as SortKey)}>
-                <SelectTrigger size="sm" aria-label="Sort by" className="w-44">
+                <SelectTrigger aria-label="Sort by" className="w-44">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent align="end">

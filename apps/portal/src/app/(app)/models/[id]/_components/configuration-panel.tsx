@@ -43,31 +43,39 @@ export function ConfigurationPanel({
 function ConfigurationShell({ children }: { children: React.ReactNode }) {
   return (
     <section aria-labelledby="configuration-heading" className="max-w-3xl">
-      <h2
-        id="configuration-heading"
-        className="text-meta font-medium uppercase tracking-wide text-meta-foreground"
-      >
-        Configuration
-      </h2>
       {children}
     </section>
+  );
+}
+
+function ConfigurationHeading() {
+  return (
+    <h2
+      id="configuration-heading"
+      className="text-subtitle font-medium text-foreground"
+    >
+      Configuration
+    </h2>
   );
 }
 
 function ReadOnlyConfigurationPanel({ model }: { model: Model }) {
   return (
     <ConfigurationShell>
-      <div className="mt-3 rounded-surface border border-border bg-panel px-5 py-4">
-        <FormField id="model-display-name" label="Display name">
-          <Input
-            type="text"
-            readOnly
-            value={model.displayName}
-            autoComplete="off"
-            spellCheck={false}
-            className="bg-muted-surface"
-          />
-        </FormField>
+      <div className="rounded-surface border border-border bg-panel px-5 py-4">
+        <ConfigurationHeading />
+        <div className="mt-4">
+          <FormField id="model-display-name" label="Display name">
+            <Input
+              type="text"
+              readOnly
+              value={model.displayName}
+              autoComplete="off"
+              spellCheck={false}
+              className="bg-muted-surface"
+            />
+          </FormField>
+        </div>
 
         <div className="mt-4">
           <ReadOnlyTagsField id="model-tags" value={model.tags} />
@@ -107,20 +115,23 @@ function EditableConfigurationPanel({ model }: { model: Model }) {
       <form
         onSubmit={onSubmit}
         noValidate
-        className="mt-3 rounded-surface border border-border bg-panel px-5 py-4"
+        className="rounded-surface border border-border bg-panel px-5 py-4"
       >
-        <FormField
-          id="model-display-name"
-          label="Display name"
-          error={errors.displayName?.message}
-        >
-          <Input
-            type="text"
-            autoComplete="off"
-            spellCheck={false}
-            {...register("displayName")}
-          />
-        </FormField>
+        <ConfigurationHeading />
+        <div className="mt-4">
+          <FormField
+            id="model-display-name"
+            label="Display name"
+            error={errors.displayName?.message}
+          >
+            <Input
+              type="text"
+              autoComplete="off"
+              spellCheck={false}
+              {...register("displayName")}
+            />
+          </FormField>
+        </div>
 
         <div className="mt-4">
           <Controller
