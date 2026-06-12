@@ -37,7 +37,7 @@ export default async function ModelDetailPage({
   const ownershipClass = deriveOwnershipClass(model, viewer);
 
   return (
-    <div className="mx-auto w-full max-w-[1536px] flex min-h-full flex-col gap-2 px-4 md:px-6 lg:px-8 xl:px-12 py-6">
+    <div className="mx-auto w-full max-w-[1536px] flex min-h-full flex-col gap-2 px-4 md:px-6 lg:px-8 xl:px-20 py-6">
       <ModelDetailHeader model={model} viewer={viewer} />
       <ModelDetailTabs
         model={model}

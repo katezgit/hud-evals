@@ -303,7 +303,7 @@ export default function TasksetsIndex({ tasksets }: TasksetsIndexProps) {
           "transition-[border-color,box-shadow] prop-(--motion-state-change)",
         )}
       >
-        <div className="mx-auto w-full max-w-[1536px] px-4 md:px-6 lg:px-8 xl:px-12">
+        <div className="mx-auto w-full max-w-[1536px] px-4 md:px-6 lg:px-8 xl:px-20">
           <header className="flex items-center justify-between gap-3 md:gap-6">
             <h1 className="text-display font-semibold text-foreground">
               {/* TODO: docs icon `[?]` per wireframe §2 — URL contract unconfirmed. */}
@@ -349,7 +349,7 @@ export default function TasksetsIndex({ tasksets }: TasksetsIndexProps) {
         bottom-sheet trigger below. Desktop (md+): inline filter row matching
         the original layout. Selections written via updateParam in both modes
         — the sheet is a presentation switch, not a separate data flow. */}
-      <div className="mx-auto w-full max-w-[1536px] px-4 md:px-6 lg:px-8 xl:px-12 mt-6 flex flex-col gap-3 md:flex-row md:flex-wrap md:items-center">
+      <div className="mx-auto w-full max-w-[1536px] px-4 md:px-6 lg:px-8 xl:px-20 mt-6 flex flex-col gap-3 md:flex-row md:flex-wrap md:items-center">
         <div className="w-full md:min-w-40 md:flex-1 md:max-w-xs">
           <SearchInput
             key={searchInputKey}
@@ -477,7 +477,7 @@ export default function TasksetsIndex({ tasksets }: TasksetsIndexProps) {
       </div>
 
       {/* TODO: pagination per wireframe §9 — mock data fits in one page. */}
-      <div className="mx-auto w-full max-w-[1536px] px-4 md:px-6 lg:px-8 xl:px-12 mt-4">
+      <div className="mx-auto w-full max-w-[1536px] px-4 md:px-6 lg:px-8 xl:px-20 mt-4">
         <Results
           visible={visible}
           view={effectiveView}

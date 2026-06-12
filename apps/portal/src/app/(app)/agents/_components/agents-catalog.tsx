@@ -111,7 +111,7 @@ export function AgentsCatalog({
   }, [userByKind, tab, sort]);
 
   return (
-    <div className="mx-auto w-full max-w-[1536px] flex flex-col gap-8 px-4 md:px-6 lg:px-8 xl:px-12 py-6">
+    <div className="mx-auto w-full max-w-[1536px] flex flex-col gap-8 px-4 md:px-6 lg:px-8 xl:px-20 py-6">
       <InspectDrawerMount presetAgents={presetAgents} userAgents={userAgents} />
       <NewAgentDrawer />
       <header className="flex flex-col gap-4">
