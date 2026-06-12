@@ -47,3 +47,27 @@
     linear-gradient(to bottom, var(--color-grid-line) 1px, transparent 1px);
   background-size: 56px 56px;
 }
+
+/* ─── Row-action reveal ──────────────────────────────────────────────────────
+ * Hover/focus-reveal pattern for secondary row affordances (copy, kebab, etc.)
+ * inside a `.group/row` table row. Lives here, not in @repo/ui, because the
+ * design system intentionally has no `opacity-*` utility scale — opacity is
+ * reserved for disabled-state tokens (see packages/ui/src/styles/primitive.css).
+ *
+ * Element stays in the tab order (opacity-only; no display/visibility tricks),
+ * so keyboard users reveal it via `:focus-within` on the parent row. Touch
+ * devices (no hover) get it permanently visible — Alex on a tablet doesn't
+ * lose the affordance. */
+.row-action-reveal {
+  opacity: 0;
+  transition: opacity var(--motion-state-change);
+}
+.group\/row:hover .row-action-reveal,
+.group\/row:focus-within .row-action-reveal {
+  opacity: 1;
+}
+@media (hover: none) {
+  .row-action-reveal {
+    opacity: 1;
+  }
+}

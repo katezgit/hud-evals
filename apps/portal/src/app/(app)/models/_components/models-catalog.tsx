@@ -334,7 +334,11 @@ export default function ModelsCatalog() {
                   <code className="font-mono text-caption text-muted-foreground">
                     {m.modelId}
                   </code>
-                  <CopyButton value={m.modelId} ariaLabel="Copy model ID" />
+                  <CopyButton
+                    value={m.modelId}
+                    ariaLabel="Copy model ID"
+                    className="row-action-reveal"
+                  />
                 </div>
               </div>
             </div>
@@ -979,7 +983,7 @@ export default function ModelsCatalog() {
                   table.getRowModel().rows.map((row) => (
                     <tr
                       key={row.id}
-                      className={tableRowVariants()}
+                      className={cn(tableRowVariants(), "group/row")}
                     >
                       {row.getVisibleCells().map((cell) => {
                         const meta = cell.column.columnDef.meta as
