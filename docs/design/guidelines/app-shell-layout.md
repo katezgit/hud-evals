@@ -82,7 +82,7 @@ Every `(app)/**` page uses one container at this width — dashboards, tables, t
 | `sm` (< 768px) | 16px | `px-4` |
 | `md` (768px – 1023px) | 24px | `px-6` |
 | `lg` (1024px – 1279px) | 32px | `px-8` |
-| **`xl` (≥ 1280px)** | **48px** | **`xl:px-12`** |
+| **`xl` (≥ 1280px)** | **80px** | **`xl:px-20`** | Loose step accommodates dashboards with a persistent left rail where the centered cap creates a tighter visual gap than the math suggests. |
 
 **Vertical padding:** page header top padding is `pt-10` (40px) — defined in §7, not here. Pages own their own vertical spacing; the shared container does not set it.
 
@@ -100,18 +100,18 @@ Pages that have a sticky page-header must keep the chrome **full-bleed** across 
 <div className="flex flex-col">
   {/* sticky header — chrome is full-bleed */}
   <div className="sticky top-0 z-page-chrome bg-background border-b border-border">
-    <div className="mx-auto w-full max-w-[1536px] px-4 md:px-6 lg:px-8 xl:px-12 pt-10">
+    <div className="mx-auto w-full max-w-[1536px] px-4 md:px-6 lg:px-8 xl:px-20 pt-10">
       {/* title, tabs, filters */}
     </div>
   </div>
   {/* body content */}
-  <div className="mx-auto w-full max-w-[1536px] px-4 md:px-6 lg:px-8 xl:px-12 py-6">
+  <div className="mx-auto w-full max-w-[1536px] px-4 md:px-6 lg:px-8 xl:px-20 py-6">
     {/* page content */}
   </div>
 </div>
 ```
 
-Pages without a sticky header wrap their content directly in `mx-auto w-full max-w-[1536px] px-4 md:px-6 lg:px-8 xl:px-12`. Pages own their own vertical padding in both cases.
+Pages without a sticky header wrap their content directly in `mx-auto w-full max-w-[1536px] px-4 md:px-6 lg:px-8 xl:px-20`. Pages own their own vertical padding in both cases.
 
 ### Right inspector / content sidebar
 
