@@ -179,7 +179,7 @@ export default function AppError({ error, reset }: AppErrorProps) {
                 Try again
               </Button>
               <Button variant="ghost" asChild>
-                <Link href="/jobs">Go to Jobs</Link>
+                <Link href="/">Go home</Link>
               </Button>
             </div>
           </CardFooter>

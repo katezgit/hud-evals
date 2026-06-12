@@ -1,55 +1,45 @@
-// RSC-safe Suspense fallback. SVG ring + CSS keyframes only — no JS, no state.
-// 200ms anti-flash via opacity gating; rotation suppressed under prefers-reduced-motion
-// because --motion-continuous collapses to `none` in theme.css.
-// Co-located keyframes (`spinner-rotate`, `spinner-appear`) are implementation detail
-// of this one route file — not a design-system primitive (per loading/spec.md §6).
-export default function AppLoading() {
+import { LoaderIcon } from "lucide-react";
+
+/**
+ * Route-segment Suspense fallback for the (app) group.
+ *
+ * Preserves two non-obvious behaviors:
+ * - 200ms anti-flash: spinner stays opacity:0 until 200ms have elapsed, so
+ *   fast routes never visually show it.
+ * - prefers-reduced-motion: `motion-safe:animate-spin` omits the rotation
+ *   entirely when the user has reduced motion enabled (Tailwind's
+ *   `animate-spin` does not respect the media query on its own).
+ *
+ * Spinner glyph matches `toast.promise(...)` loading state — see
+ * packages/ui/src/components/toast.tsx.
+ */
+export default function Loading() {
   return (
     <div
       role="status"
       aria-label="Loading"
-      className="flex h-full w-full items-center justify-center"
+      className="flex min-h-full w-full items-center justify-center py-12"
     >
       <style>{`
-        @keyframes spinner-rotate {
-          from { transform: rotate(0deg); }
-          to { transform: rotate(360deg); }
-        }
         @keyframes spinner-appear {
-          to { opacity: 1; }
+          from { opacity: 0; }
+          to   { opacity: 1; }
         }
-        .spinner-wrap {
+        [data-slot="route-spinner"] {
           opacity: 0;
-          animation:
-            spinner-appear 0ms var(--ease-out-standard) 200ms forwards,
-            spinner-rotate var(--motion-continuous) 200ms;
+          animation: spinner-appear 120ms var(--ease-out-standard) 200ms forwards;
         }
       `}</style>
-      <span className="spinner-wrap inline-flex size-5">
-        <svg
+      <p
+        data-slot="route-spinner"
+        className="inline-flex items-center gap-2 text-muted-foreground"
+      >
+        <LoaderIcon
+          className="size-4 motion-safe:animate-spin"
           aria-hidden="true"
-          viewBox="0 0 20 20"
-          className="size-5"
-          fill="none"
-        >
-          <circle
-            cx="10"
-            cy="10"
-            r="8"
-            stroke="var(--color-border)"
-            strokeWidth="2"
-          />
-          <circle
-            cx="10"
-            cy="10"
-            r="8"
-            stroke="var(--color-muted-foreground)"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeDasharray="12.566 50.265"
-          />
-        </svg>
-      </span>
+        />
+        <span>loading</span>
+      </p>
     </div>
   );
 }

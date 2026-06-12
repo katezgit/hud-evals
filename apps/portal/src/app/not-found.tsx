@@ -17,8 +17,8 @@ export default function RootNotFound() {
     pathname.length > 80 ? `${pathname.slice(0, 80)}…` : pathname;
 
   return (
-    <div className="flex min-h-screen w-full items-center justify-center bg-background">
-      <div className="flex max-w-[480px] flex-col items-center gap-6 px-6 text-center">
+    <div className="flex min-h-full w-full items-center justify-center py-12">
+      <div className="flex max-w-[480px] flex-col items-center gap-4 px-6 text-center">
         <span className="inline-flex items-center rounded-md border border-border bg-muted-surface px-3 py-1.5 font-mono text-label font-medium text-muted-foreground">
           404
         </span>

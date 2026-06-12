@@ -16,8 +16,8 @@ export default function AppNotFound() {
     pathname.length > 80 ? `${pathname.slice(0, 80)}…` : pathname;
 
   return (
-    <div className="flex min-h-full w-full items-center justify-center">
-      <div className="flex max-w-[480px] flex-col items-center gap-6 px-6 text-center">
+    <div className="flex min-h-full w-full items-center justify-center py-12">
+      <div className="flex max-w-[480px] flex-col items-center gap-4 px-6 text-center">
         <span className="inline-flex items-center rounded-md border border-border bg-muted-surface px-3 py-1.5 font-mono text-label font-medium text-muted-foreground">
           404
         </span>
@@ -30,9 +30,9 @@ export default function AppNotFound() {
           {diagnostic}
         </p>
 
-        <div className="flex flex-row gap-3">
+        <div className="flex flex-row gap-2">
           <Button asChild variant="primary">
-            <Link href="/jobs">Go to Jobs</Link>
+            <Link href="/">Go home</Link>
           </Button>
           <Button type="button" variant="ghost" onClick={() => router.back()}>
             Go back
