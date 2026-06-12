@@ -100,7 +100,7 @@ function CheckpointsTable({
       header: () => <span className="sr-only">Active checkpoint marker</span>,
       cell: (info) =>
         info.row.original.id === activeCheckpointId && (
-          <Badge variant="success">Active</Badge>
+          <Badge variant="success" size="sm">Active</Badge>
         ),
     }),
     ...(FORK_FLAG_ENABLED
