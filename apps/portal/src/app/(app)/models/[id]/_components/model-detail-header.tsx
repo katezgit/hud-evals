@@ -47,7 +47,7 @@ export function ModelDetailHeader({
         </div>
 
         <div className="flex shrink-0 flex-col items-end gap-2">
-          <HeaderActions model={model} isResearcher={isResearcher} />
+          <HeaderActions model={model} />
           {showJobsPill && (
             <JobsTrainingPill
               modelId={model.id}

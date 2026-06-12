@@ -16,10 +16,8 @@ const FORK_TARGET_ID = "my-model-v2";
 
 export function HeaderActions({
   model,
-  isResearcher,
 }: {
   model: Model;
-  isResearcher: boolean;
 }) {
   const router = useRouter();
   const [forkOpen, setForkOpen] = useState(false);
@@ -63,7 +61,7 @@ export function HeaderActions({
             </Button>
           </>
         )}
-        {isResearcher && model.trainable && (
+        {model.trainable && (
           <>
             <IconButton
               variant="primary"
