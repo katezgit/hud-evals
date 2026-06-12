@@ -111,7 +111,7 @@ export function AgentsCatalog({
   }, [userByKind, tab, sort]);
 
   return (
-    <div className="flex flex-col gap-8 px-8 py-6">
+    <div className="page-shell">
       <InspectDrawerMount presetAgents={presetAgents} userAgents={userAgents} />
       <NewAgentDrawer />
       <header className="flex flex-col gap-4">

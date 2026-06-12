@@ -18,10 +18,12 @@ export default async function ItemDetailPage({ params }: ItemDetailPageProps) {
   if (!item) notFound();
 
   return (
-    <div className="flex flex-col gap-4">
-      <h1 className="text-display">{item.name}</h1>
-      <p className="text-meta-foreground">{item.id}</p>
-      <p className="text-muted-foreground">TODO: implement item detail.</p>
+    <div className="page-shell block">
+      <div className="flex flex-col gap-4">
+        <h1 className="text-display">{item.name}</h1>
+        <p className="text-meta-foreground">{item.id}</p>
+        <p className="text-muted-foreground">TODO: implement item detail.</p>
+      </div>
     </div>
   );
 }

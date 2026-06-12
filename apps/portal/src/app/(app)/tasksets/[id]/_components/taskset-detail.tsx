@@ -46,7 +46,7 @@ export default function TasksetDetail({ taskset }: TasksetDetailProps) {
   };
 
   return (
-    <div className="flex min-h-full flex-col px-4 md:px-8">
+    <div className="flex min-h-full flex-col">
       <Tabs
         value={activeTab}
         onValueChange={handleTabChange}
@@ -68,6 +68,10 @@ export default function TasksetDetail({ taskset }: TasksetDetailProps) {
           // the Jobs tab's filter bar), and below all overlays (`z-overlay`=50).
           // Portaled dialogs/drawers are rooted to <body> and still win.
           // Tiered tokens live in `packages/ui/src/styles/primitive.css`.
+          //
+          // Chrome (bg + border + shadow) is FULL-BLEED across <main>; only the
+          // visible header content is capped at 1536 via the inner wrapper. See
+          // docs/design/guidelines/app-shell-layout.md §2.
           className={cn(
             "sticky top-0 z-page-chrome bg-background pt-6",
             // Scroll-cue: border slot is always occupied (border-b) so flipping
@@ -78,29 +82,41 @@ export default function TasksetDetail({ taskset }: TasksetDetailProps) {
             "transition-[border-color,box-shadow] prop-(--motion-state-change)",
           )}
         >
-          <TasksetDetailHeader taskset={taskset} />
-          <TabsList variant="underline" className="border-b-0">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="tasks">Tasks</TabsTrigger>
-            <TabsTrigger value="jobs">Jobs</TabsTrigger>
-            <TabsTrigger value="performance">Performance</TabsTrigger>
-            <TabsTrigger value="settings">Settings</TabsTrigger>
-          </TabsList>
+          <div className="page-shell block py-0">
+            <TasksetDetailHeader taskset={taskset} />
+            <TabsList variant="underline" className="border-b-0">
+              <TabsTrigger value="overview">Overview</TabsTrigger>
+              <TabsTrigger value="tasks">Tasks</TabsTrigger>
+              <TabsTrigger value="jobs">Jobs</TabsTrigger>
+              <TabsTrigger value="performance">Performance</TabsTrigger>
+              <TabsTrigger value="settings">Settings</TabsTrigger>
+            </TabsList>
+          </div>
         </div>
         <TabsContent value="overview" className="pt-6">
-          <OverviewTab taskset={taskset} />
+          <div className="page-shell block py-0">
+            <OverviewTab taskset={taskset} />
+          </div>
         </TabsContent>
         <TabsContent value="tasks" className="pt-6">
-          <TasksTab taskset={taskset} />
+          <div className="page-shell block py-0">
+            <TasksTab taskset={taskset} />
+          </div>
         </TabsContent>
         <TabsContent value="jobs" className="pt-6">
-          <JobsTab taskset={taskset} />
+          <div className="page-shell block py-0">
+            <JobsTab taskset={taskset} />
+          </div>
         </TabsContent>
         <TabsContent value="performance" className="pt-6">
-          <PerformanceTab taskset={taskset} />
+          <div className="page-shell block py-0">
+            <PerformanceTab taskset={taskset} />
+          </div>
         </TabsContent>
         <TabsContent value="settings" className="pt-6">
-          <SettingsTab taskset={taskset} />
+          <div className="page-shell block py-0">
+            <SettingsTab taskset={taskset} />
+          </div>
         </TabsContent>
       </Tabs>
     </div>

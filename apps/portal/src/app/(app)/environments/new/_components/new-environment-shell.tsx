@@ -13,7 +13,7 @@ export function NewEnvironmentShell() {
   const scrolled = usePageScrolled({ ref: stickyRef });
 
   return (
-    <div className="flex min-h-full flex-col px-4 pb-6 md:px-8">
+    <div className="flex min-h-full flex-col pb-6">
       <div
         ref={stickyRef}
         // Sticky header (breadcrumb + title + subhead) pinned to the top of
@@ -22,6 +22,10 @@ export function NewEnvironmentShell() {
         // so the sticky's natural top edge sits at scroll y=0; otherwise
         // outer padding would push it down and it would visibly creep upward
         // during scroll 0→24 before pinning. See env-detail-shell.tsx.
+        //
+        // Chrome (bg + border + shadow) is FULL-BLEED across <main>; only the
+        // visible header content is capped at 1536 via the inner wrapper. See
+        // docs/design/guidelines/app-shell-layout.md §2.
         className={cn(
           "sticky top-0 z-page-chrome bg-background pt-6",
           // Scroll-cue: border slot is always occupied so flipping
@@ -32,38 +36,40 @@ export function NewEnvironmentShell() {
           "transition-[border-color,box-shadow] prop-(--motion-state-change)",
         )}
       >
-        <header className="flex flex-col gap-3 pt-2 pb-6">
-          <nav
-            aria-label="Breadcrumb"
-            className="flex items-center gap-1 text-label tracking-normal normal-case text-muted-foreground"
-          >
-            <Link
-              href="/environments"
-              className="rounded-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+        <div className="page-shell block py-0">
+          <header className="flex flex-col gap-3 pt-2 pb-6">
+            <nav
+              aria-label="Breadcrumb"
+              className="flex items-center gap-1 text-label tracking-normal normal-case text-muted-foreground"
             >
-              Environments
-            </Link>
-            <ChevronRight
-              aria-hidden="true"
-              className="size-3 text-meta-foreground"
-            />
-            <span aria-current="page" className="truncate text-foreground">
-              New
-            </span>
-          </nav>
-          <h1 className="text-display font-semibold text-foreground">
-            Let&apos;s create your custom environment
-          </h1>
-          <p className="text-body text-muted-foreground">
-            The fastest path is the CLI{" "}
-            <code className="font-mono text-code">hud init</code> scaffolds a
-            working environment in seconds. Or fork a template repo below to
-            start from a known-good shape.
-          </p>
-        </header>
+              <Link
+                href="/environments"
+                className="rounded-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+              >
+                Environments
+              </Link>
+              <ChevronRight
+                aria-hidden="true"
+                className="size-3 text-meta-foreground"
+              />
+              <span aria-current="page" className="truncate text-foreground">
+                New
+              </span>
+            </nav>
+            <h1 className="text-display font-semibold text-foreground">
+              Let&apos;s create your custom environment
+            </h1>
+            <p className="text-body text-muted-foreground">
+              The fastest path is the CLI{" "}
+              <code className="font-mono text-code">hud init</code> scaffolds a
+              working environment in seconds. Or fork a template repo below to
+              start from a known-good shape.
+            </p>
+          </header>
+        </div>
       </div>
 
-      <div className="flex flex-col gap-8 pt-6">
+      <div className="page-shell py-0 pt-6">
         <CliQuickstart />
         <hr className="border-border" />
         <TemplatesSection />

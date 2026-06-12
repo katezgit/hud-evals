@@ -10,5 +10,9 @@ export default async function AgentDetailPage({
   params: Promise<{ id: string }>;
 }) {
   await params;
-  return <h1>/agents/[id]</h1>;
+  return (
+    <div className="page-shell block">
+      <h1>/agents/[id]</h1>
+    </div>
+  );
 }

@@ -88,7 +88,7 @@ export function EnvDetailShell({ env }: { env: Environment }) {
 
   return (
     <EnvVarsStoreProvider vars={env.vars}>
-      <div className="flex min-h-full flex-col px-4 md:px-8">
+      <div className="flex min-h-full flex-col">
         <Tabs
           value={activeTab}
           onValueChange={(next) => setActiveTab(next as TabKey)}
@@ -110,6 +110,10 @@ export function EnvDetailShell({ env }: { env: Environment }) {
             // (`z-sticky`=10) and any raw `z-10`/`z-20` inside tab panels
             // (e.g. `Card` descendants with `position: relative`), and below
             // all overlays. Portaled dialogs/drawers still win.
+            //
+            // Chrome (bg + border + shadow) is FULL-BLEED across <main>; only
+            // the visible header content is capped at 1536 via the inner
+            // wrapper. See docs/design/guidelines/app-shell-layout.md §2.
             className={cn(
               "sticky top-0 z-page-chrome bg-background pt-6",
               // Scroll-cue: border slot is always occupied (border-b) so
@@ -120,67 +124,79 @@ export function EnvDetailShell({ env }: { env: Environment }) {
               "transition-[border-color,box-shadow] prop-(--motion-state-change)",
             )}
           >
-            <EnvDetailHeader
-              name={env.name}
-              type={env.type}
-              slug={env.id}
-              organization={env.organization}
-              visibility={env.visibility}
-            />
-            <TabsList variant="underline">
-              <TabsTrigger value="overview">Overview</TabsTrigger>
-              {env.tabs.scenarios && (
-                <TabsTrigger value="scenarios">
-                  Scenarios
-                  <TabCountBadge
-                    count={env.scenarios.length}
-                    active={activeTab === "scenarios"}
-                  />
-                </TabsTrigger>
-              )}
-              {env.tabs.builds && (
-                <TabsTrigger value="builds">Builds</TabsTrigger>
-              )}
-              {env.tabs.instances && (
-                <TabsTrigger value="instances">Instances</TabsTrigger>
-              )}
-              <TabsTrigger value="settings">Settings</TabsTrigger>
-            </TabsList>
+            <div className="page-shell block py-0">
+              <EnvDetailHeader
+                name={env.name}
+                type={env.type}
+                slug={env.id}
+                organization={env.organization}
+                visibility={env.visibility}
+              />
+              <TabsList variant="underline">
+                <TabsTrigger value="overview">Overview</TabsTrigger>
+                {env.tabs.scenarios && (
+                  <TabsTrigger value="scenarios">
+                    Scenarios
+                    <TabCountBadge
+                      count={env.scenarios.length}
+                      active={activeTab === "scenarios"}
+                    />
+                  </TabsTrigger>
+                )}
+                {env.tabs.builds && (
+                  <TabsTrigger value="builds">Builds</TabsTrigger>
+                )}
+                {env.tabs.instances && (
+                  <TabsTrigger value="instances">Instances</TabsTrigger>
+                )}
+                <TabsTrigger value="settings">Settings</TabsTrigger>
+              </TabsList>
+            </div>
           </div>
 
           <TabsContent value="overview" className="pt-6">
-            <OverviewTab
-              env={env}
-              loadedScenarioId={openScenario?.id ?? null}
-              onLoadScenario={setOpenScenario}
-              onSwitchToScenariosTab={() => setActiveTab("scenarios")}
-            />
+            <div className="page-shell block py-0">
+              <OverviewTab
+                env={env}
+                loadedScenarioId={openScenario?.id ?? null}
+                onLoadScenario={setOpenScenario}
+                onSwitchToScenariosTab={() => setActiveTab("scenarios")}
+              />
+            </div>
           </TabsContent>
 
           {env.tabs.scenarios && (
             <TabsContent value="scenarios" className="pt-6">
-              <ScenariosTab
-                env={env}
-                loadedScenarioId={openScenario?.id ?? null}
-                onLoadScenario={setOpenScenario}
-              />
+              <div className="page-shell block py-0">
+                <ScenariosTab
+                  env={env}
+                  loadedScenarioId={openScenario?.id ?? null}
+                  onLoadScenario={setOpenScenario}
+                />
+              </div>
             </TabsContent>
           )}
 
           {env.tabs.builds && (
             <TabsContent value="builds" className="pt-6">
-              <BuildsTab builds={env.builds} />
+              <div className="page-shell block py-0">
+                <BuildsTab builds={env.builds} />
+              </div>
             </TabsContent>
           )}
 
           {env.tabs.instances && (
             <TabsContent value="instances" className="pt-6">
-              <InstancesTab envId={env.id} instances={env.instances} />
+              <div className="page-shell block py-0">
+                <InstancesTab envId={env.id} instances={env.instances} />
+              </div>
             </TabsContent>
           )}
 
           <TabsContent value="settings" className="pt-6">
-            <SettingsTab env={env} />
+            <div className="page-shell block py-0">
+              <SettingsTab env={env} />
+            </div>
           </TabsContent>
         </Tabs>
 
