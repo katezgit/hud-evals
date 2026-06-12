@@ -1,10 +1,16 @@
 "use client";
 
+// Root-level 404 — catches URLs that match no route group ((app), (auth), (manage)).
+// Renders inside the root layout's ThemeProvider but without the AppShell;
+// authenticated users hitting /totally-bad-url land here. Primary CTA goes home;
+// requireSession() in (app)/layout.tsx redirects unauthed visitors to /login.
+// Per not-found/spec.md §2 universal row.
+
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Button } from "@repo/ui";
 
-export default function ManageNotFound() {
+export default function RootNotFound() {
   const router = useRouter();
   const pathname = usePathname();
   const diagnostic =
@@ -25,7 +31,7 @@ export default function ManageNotFound() {
           {diagnostic}
         </p>
 
-        <div className="flex flex-row gap-2">
+        <div className="flex flex-row gap-3">
           <Button asChild variant="primary">
             <Link href="/">Go home</Link>
           </Button>

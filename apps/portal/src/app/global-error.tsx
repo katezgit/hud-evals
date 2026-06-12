@@ -1,36 +1,79 @@
 "use client";
 
+// https://nextjs.org/docs/app/api-reference/file-conventions/error#global-error
+
+import { useEffect } from "react";
+import { Button } from "@repo/ui";
 import "./globals.css";
 
-interface GlobalErrorProps {
-  error: Error & { digest?: string };
-  reset: () => void;
+function diagnosticFor(error: Error & { digest?: string }): string | null {
+  const raw = error.message?.trim() || error.name?.trim() || "";
+  if (!raw) return null;
+  return raw.length > 120 ? `${raw.slice(0, 120)}…` : raw;
 }
 
-// Fires when the root layout itself crashed — so there is no ThemeProvider in scope.
-// Pin data-theme="light" and inline a media-query block that flips color-scheme for
-// dark-mode users; every semantic token in color.css is keyed off color-scheme via
-// light-dark(), so flipping color-scheme alone surfaces the dark palette.
-export default function GlobalError({ reset }: GlobalErrorProps) {
+export default function GlobalError({
+  error,
+  reset,
+}: {
+  error: Error & { digest?: string };
+  reset: () => void;
+}) {
+  useEffect(() => {
+    console.error(error);
+  }, [error]);
+
+  const diagnostic = diagnosticFor(error);
+  const digest = error.digest;
+  const hasDiagnosticBlock = diagnostic !== null || Boolean(digest);
+
   return (
+    // `data-theme="light"` pins the light palette without ThemeProvider.
+    // The `<style>` below opts users with prefers-color-scheme: dark into the dark palette
+    // (every semantic color uses light-dark() keyed on color-scheme, so flipping color-scheme
+    // is sufficient — no per-token swap needed).
     <html lang="en" data-theme="light">
       <head>
         <style>{`@media (prefers-color-scheme: dark) { html { color-scheme: dark; } }`}</style>
       </head>
-      <body className="min-h-dvh bg-background text-foreground">
-        <main className="mx-auto flex min-h-dvh max-w-md flex-col items-center justify-center gap-4 p-6 text-center">
-          <h1 className="text-display">Something went wrong</h1>
-          <p className="text-muted-foreground">
-            An unexpected error occurred. Try again, or reload the page.
-          </p>
-          <button
-            type="button"
-            onClick={reset}
-            className="rounded-control bg-primary px-4 py-2 text-primary-foreground hover:bg-primary-hover"
-          >
-            Try again
-          </button>
-        </main>
+      <body className="min-h-screen bg-background">
+        <div className="flex min-h-screen w-full items-center justify-center">
+          <div className="flex max-w-[480px] flex-col items-center gap-4 px-6 text-center">
+            <span className="inline-flex items-center rounded-md border border-border bg-muted px-3 py-1.5 font-mono text-label font-medium text-muted-foreground">
+              FATAL
+            </span>
+
+            <h1 className="text-subtitle font-semibold text-foreground">
+              Platform failed to initialize
+            </h1>
+
+            {hasDiagnosticBlock && (
+              <div className="flex max-w-[440px] flex-col gap-1">
+                {diagnostic &&(
+                  <p className="line-clamp-2 font-mono text-code text-muted-foreground">
+                    {diagnostic}
+                  </p>
+                )}
+                {digest && (
+                  <p className="font-mono text-code text-muted-foreground/60">
+                    digest: {digest}
+                  </p>
+                )}
+              </div>
+            )}
+
+            <div className="flex flex-row gap-2">
+              <Button type="button" variant="primary" onClick={reset}>
+                Reload page
+              </Button>
+              <Button asChild variant="ghost">
+                <a href="mailto:support@example.com?subject=Platform%20failed%20to%20initialize">
+                  Contact us
+                </a>
+              </Button>
+            </div>
+          </div>
+        </div>
       </body>
     </html>
   );

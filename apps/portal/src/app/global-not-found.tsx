@@ -1,27 +1,51 @@
-import Link from "next/link";
+// https://nextjs.org/docs/app/api-reference/file-conventions/not-found#global-not-found
+// Renders outside the root layout — must define its own <html> and <body>.
+
+import { Home } from "lucide-react";
+import { Button, BrandMarkSquare } from "@repo/ui";
 import "./globals.css";
 
-// Renders OUTSIDE the root layout — owns its own <html>/<body>. Same color-scheme
-// flip pattern as global-error.tsx so dark-mode users see the dark palette
-// without a ThemeProvider in scope.
 export default function GlobalNotFound() {
   return (
+    // `data-theme="light"` pins the light palette without ThemeProvider.
+    // The `<style>` below opts users with prefers-color-scheme: dark into the dark palette.
     <html lang="en" data-theme="light">
       <head>
+        <title>404 - Not Found</title>
         <style>{`@media (prefers-color-scheme: dark) { html { color-scheme: dark; } }`}</style>
-        <title>Not found</title>
       </head>
-      <body className="min-h-dvh bg-background text-foreground">
-        <main className="mx-auto flex min-h-dvh max-w-md flex-col items-center justify-center gap-4 p-6 text-center">
-          <h1 className="text-display">404</h1>
-          <p className="text-muted-foreground">This page doesn’t exist.</p>
-          <Link
-            href="/"
-            className="rounded-control bg-primary px-4 py-2 text-primary-foreground hover:bg-primary-hover"
-          >
-            Go home
-          </Link>
-        </main>
+      <body className="min-h-screen bg-background">
+        <div className="flex min-h-screen w-full items-center justify-center">
+          <div className="flex max-w-[480px] flex-col items-center gap-6 px-6 text-center">
+            <BrandMarkSquare />
+
+            <div className="flex flex-col items-center gap-1">
+              <h1 className="text-subtitle font-semibold text-foreground">
+                404 - Not Found
+              </h1>
+              <p className="text-body text-muted-foreground">
+                The page you&apos;re looking for doesn&apos;t exist.
+              </p>
+            </div>
+
+            <Button asChild variant="secondary">
+              <a href="/">
+                <Home />
+                Home
+              </a>
+            </Button>
+
+            <p className="text-body text-muted-foreground">
+              Need help?{" "}
+              <a
+                href="mailto:support@example.com?subject=Page%20not%20found"
+                className="text-foreground underline underline-offset-4 hover:text-primary"
+              >
+                Contact support
+              </a>
+            </p>
+          </div>
+        </div>
       </body>
     </html>
   );
