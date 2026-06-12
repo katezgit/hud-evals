@@ -74,9 +74,42 @@ All values in `px`. Tailwind utility shown where the value matches a default sca
 | **Fluid (no cap)** | full available width | Data-dense surfaces: tables with many columns, traces, observability, log views. Linear lists, W&B, Datadog, Grafana. |
 | **Reading cap (nested inside above)** | **640–720** (`max-w-prose` / `max-w-2xl`) | Forms, settings panes, long-form docs. Apply as an *inner* cap, not as the page cap. |
 
+**Cap value: `1536px`, declared as `--page-max-width` in `apps/portal/src/app/globals.css`.** The token name is the source of truth; references in markup use the utility class below.
+
 **Centering:** center the content region inside its container (`mx-auto`) so the cap behaves predictably on ultrawide monitors. Do not left-align against the sidebar — text drifts away from the user's cursor as viewport widens.
 
-**Padding inside the content region:** **24–32** (`px-6` to `px-8`) horizontal, **24–40** vertical. Tighter (16) is acceptable for data-dense screens.
+**Implementation:** Wrap `(app)/**` page content in a container with the `page-shell` utility class. `page-shell` packs the centered cap + responsive horizontal padding ladder + default `gap-8 py-6` vertical layout. Pages override `gap-` / `py-` / `pt-` as needed by appending Tailwind utilities.
+
+**Padding ladder inside `page-shell`:**
+
+| Breakpoint | Horizontal padding | Note |
+|---|---|---|
+| default (`<768px`) | `px-4` (16px) | |
+| `md` (768px+) | `px-6` (24px) | |
+| `lg` (1024px+) | `px-8` (32px) | |
+| `xl` (1280px+) | `px-20` (80px) | |
+
+These values are baked into `page-shell`'s internal media queries — do not list the responsive Tailwind classes on each wrapper directly.
+
+**Where the utility lives:** `apps/portal/src/app/globals.css` (portal-specific, not `@repo/ui`). The design-system primitives stay in `packages/ui`; `page-shell` is app chrome.
+
+**Sticky-header carve-out pattern** (for pages with a sticky filter/toolbar row):
+
+```jsx
+{/* Outer: full-height scroll region, no padding */}
+<div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+  {/* Sticky header: inherits page-shell horizontal padding but no vertical */}
+  <div className="page-shell sticky top-0 z-10 py-0 border-b">
+    <FilterBar />
+  </div>
+  {/* Body: page-shell with override for top padding already consumed above */}
+  <div className="page-shell flex-1 overflow-y-auto pt-4">
+    <ContentGrid />
+  </div>
+</div>
+```
+
+The `py-0` / `pt-4` appended utilities show the override pattern — append after `page-shell`, never replace it.
 
 ### Right inspector / content sidebar
 
@@ -129,9 +162,10 @@ Do not narrow the sidebar to gain content width — users perceive narrower nav 
 | Sidebar width? | **256** unless deep tree (then 280–320) |
 | Sidebar collapsed? | **56–64** |
 | Topbar height? | **56** |
-| Content cap on dashboards? | **1280** (`max-w-7xl`) |
+| Content cap on dashboards? | **1536px** — token `--page-max-width`, utility `page-shell` |
 | Content cap on tables / traces? | **Fluid** |
 | Content cap on forms / settings? | **640–720** nested inside the dashboard cap |
+| Horizontal padding ladder? | 16 / 24 / 32 / 80 (default / md / lg / xl) — baked into `page-shell`; do not list responsive classes on wrappers directly |
 | Right inspector width? | **360** standard, **480–560** for rich detail |
 | When to use sidebar + topbar? | Enterprise SaaS with workspace switcher in topbar + deep nav in sidebar |
 | When to drop the sidebar? | ≤3 destinations, or single-canvas tools |
@@ -170,6 +204,26 @@ Do not narrow the sidebar to gain content width — users perceive narrower nav 
 
 - H1 → subtitle: `mt-1` (4px). Tight coupling so the subtitle reads as a direct modifier of the H1, not a separate element. They fuse into one display unit.
 - Header block → first content section: `gap-8` (32px). Separates the title group from the content group. Large enough to signal a hierarchy break; small enough not to add ceremony to the transition.
+
+---
+
+## 9. Main scroll-region backdrop
+
+HUD portal renders a subtle dot/grid backdrop behind the main scroll region to give the surface depth without competing with content.
+
+**Token and utility location:** Both `--color-grid-line` and the `@utility bg-grid-backdrop` are defined in `apps/portal/src/app/globals.css`. They are **not** in `packages/ui/src/styles/theme.css` or `packages/ui/src/styles/utilities.css`. Rationale: the grid is portal-specific app chrome (AppShell decoration), not a design-system primitive that other consumers of `@repo/ui` would need.
+
+**Specification (do not change these values):**
+
+| Property | Value |
+|---|---|
+| Block size (grid cell) | **56px** |
+| Line alpha (light mode) | **0.01** |
+| Line alpha (dark mode) | **0.008** |
+| Scroll behavior | Default (backdrop scrolls with content — no `background-attachment: fixed`) |
+| Applies to | Main scroll region only — not sidebar, not topbar |
+
+**Usage:** Apply `bg-grid-backdrop` to the `<main>` scroll container inside the AppShell. Do not apply it to cards, panels, or any nested surface — the backdrop is a single layer behind all content.
 
 ---
 

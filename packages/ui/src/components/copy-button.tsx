@@ -62,7 +62,9 @@ const CopyButton = React.forwardRef<HTMLButtonElement, CopyButtonProps>(
               onClick={disabled ? undefined : copy}
               className={cn(
                 disabled && "opacity-mid",
-                copied ? "text-state-scored-text" : undefined,
+                copied
+                  ? "text-state-scored-text"
+                  : "text-meta-foreground hover:text-foreground",
                 className,
               )}
             >
