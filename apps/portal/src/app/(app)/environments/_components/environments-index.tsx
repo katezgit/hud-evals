@@ -1,14 +1,11 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
-import Link from "next/link";
 import {
   ChevronDown,
   ChevronRight,
-  BookOpen,
   LayoutGrid,
   List,
-  Plus,
   SlidersHorizontal,
 } from "lucide-react";
 import { Button } from "@repo/ui/components/button";
@@ -20,7 +17,6 @@ import {
   DropdownMenuTrigger,
 } from "@repo/ui/components/dropdown-menu";
 import { EmptyState } from "@repo/ui/components/empty-state";
-import { IconButton } from "@repo/ui/components/icon-button";
 import { MultiSelect } from "@repo/ui/components/multi-select";
 import { SearchInput } from "@repo/ui/components/search-input";
 import { SegmentedControl } from "@repo/ui/components/segmented-control";
@@ -44,8 +40,8 @@ import { MobileFiltersSheet } from "./mobile-filters-sheet";
 
 // My Team default sort. "Last active" is timestamp-based (lastActiveAt) and
 // communicates operational state at team scale; sortable as a control alongside
-// the rest. Explore uses an ambient "Most active" pill that maps to the
-// existing runsLast24h-descending behaviour and does not surface as a dropdown.
+// the rest. Explore has no sort control surface — it sorts runsLast24h
+// descending by default ("last-activity") with no user-facing dropdown.
 const SORT_OPTIONS: ReadonlyArray<{ value: SortKey; label: string }> = [
   { value: "last-active", label: "Last active" },
   { value: "starred-first", label: "Starred first" },
@@ -76,14 +72,31 @@ const ALL_TYPE_VALUES: ReadonlyArray<EnvType> = TYPE_OPTIONS.map((o) => o.value)
 
 const VIEW_STORAGE_KEY = "hud.environments.view";
 
-// Per-tab default sort. Explore has no surface for the user to change sort —
-// the ambient "Most active" pill is read-only — so its key maps onto the
-// existing runsLast24h-descending behaviour ("last-activity"). My Team
-// defaults to timestamp-based "last-active" (the new key).
+// Per-tab default sort. Explore has no surface for the user to change sort,
+// so its key maps onto the existing runsLast24h-descending behaviour
+// ("last-activity"). My Team defaults to timestamp-based "last-active"
+// (the new key).
 const DEFAULT_SORT_BY_TAB: Record<TabKey, SortKey> = {
   explore: "last-activity",
   team: "last-active",
 };
+
+// Owner values come from the team-tab scope only; deduped + first-seen order.
+// Used both for the initial ownerFilter state (lazy init) and the dropdown
+// options so the "all selected" default and the option list stay aligned.
+function deriveTeamOwnerValues(
+  environments: ReadonlyArray<Environment>,
+): ReadonlyArray<string> {
+  const seen = new Set<string>();
+  const ordered: Array<string> = [];
+  for (const env of environments) {
+    if (env.visibility !== "team") continue;
+    if (seen.has(env.owner)) continue;
+    seen.add(env.owner);
+    ordered.push(env.owner);
+  }
+  return ordered;
+}
 
 interface EnvironmentsIndexProps {
   environments: ReadonlyArray<Environment>;
@@ -105,7 +118,12 @@ export function EnvironmentsIndex({
   const [groupKey, setGroupKey] = useState<GroupKey>("none");
   const [typeFilter, setTypeFilter] =
     useState<ReadonlyArray<EnvType>>(ALL_TYPE_VALUES);
-  const [ownerFilter, setOwnerFilter] = useState<ReadonlyArray<string>>([]);
+  // Default = all team owners selected (mirrors typeFilter's full-set
+  // convention). Empty array is the user's explicit "clear" state, not the
+  // initial state. Lazy init so the derivation runs once per mount.
+  const [ownerFilter, setOwnerFilter] = useState<ReadonlyArray<string>>(
+    () => deriveTeamOwnerValues(environments),
+  );
   const [debouncedQuery, setDebouncedQuery] = useState("");
   const [collapsedGroups, setCollapsedGroups] = useState<ReadonlySet<string>>(
     () => new Set(),
@@ -122,7 +140,7 @@ export function EnvironmentsIndex({
     setSortKey(DEFAULT_SORT_BY_TAB[next]);
     setGroupKey("none");
     setTypeFilter(ALL_TYPE_VALUES);
-    setOwnerFilter([]);
+    setOwnerFilter(allOwnerValues);
   };
 
   // matchMedia-driven mobile flag. Justified despite the no-single-use-hook
@@ -180,10 +198,15 @@ export function EnvironmentsIndex({
   const visible = useMemo(() => {
     const q = debouncedQuery.trim().toLowerCase();
     const typeSet = new Set(typeFilter);
-    // Owner filter only exists on the Team tab. An empty selection means
-    // "no owner filter applied" — the same convention the Type filter uses
-    // when the array is the full set.
+    // Owner filter only applies on Team — Explore envs have owners outside
+    // the team-owner set, so the default "all team owners selected" state
+    // would hide every public env. Empty selection on Team = user explicitly
+    // cleared; surface that via the muted "All owners" placeholder and treat
+    // it as "no owner filter applied" (parity with the Type-filter all-set
+    // convention).
     const ownerSet = new Set(ownerFilter);
+    const ownerFilterActive =
+      activeTab === "team" && ownerSet.size > 0;
     let rows = tabScope.filter((env) => {
       if (q) {
         const haystack =
@@ -191,7 +214,7 @@ export function EnvironmentsIndex({
         if (!haystack.includes(q)) return false;
       }
       if (typeSet.size > 0 && !typeSet.has(env.type)) return false;
-      if (ownerSet.size > 0 && !ownerSet.has(env.owner)) return false;
+      if (ownerFilterActive && !ownerSet.has(env.owner)) return false;
       return true;
     });
 
@@ -225,27 +248,19 @@ export function EnvironmentsIndex({
     });
 
     return rows;
-  }, [tabScope, debouncedQuery, typeFilter, ownerFilter, sortKey]);
+  }, [tabScope, debouncedQuery, typeFilter, ownerFilter, sortKey, activeTab]);
 
   // Owner options come from the team-tab scope so the dropdown only lists
   // owners that actually have envs in the visible catalog. Deduped + ordered
   // by appearance to match the canonical TEAM_OWNERS ordering when present.
-  const ownerOptions = useMemo(() => {
-    const teamScope = environments.filter((e) => e.visibility === "team");
-    const seen = new Set<string>();
-    const ordered: Array<string> = [];
-    for (const env of teamScope) {
-      if (!seen.has(env.owner)) {
-        seen.add(env.owner);
-        ordered.push(env.owner);
-      }
-    }
-    return ordered.map((value) => ({ value, label: value }));
-  }, [environments]);
-
   const allOwnerValues = useMemo(
-    () => ownerOptions.map((o) => o.value),
-    [ownerOptions],
+    () => deriveTeamOwnerValues(environments),
+    [environments],
+  );
+
+  const ownerOptions = useMemo(
+    () => allOwnerValues.map((value) => ({ value, label: value })),
+    [allOwnerValues],
   );
 
   // Activity total reflects the currently-visible set so the header bar
@@ -277,7 +292,9 @@ export function EnvironmentsIndex({
     (typeFilter.length !== ALL_TYPE_VALUES.length ? 1 : 0) +
     (sortKey !== tabDefaultSort ? 1 : 0) +
     (groupKey !== "none" ? 1 : 0) +
-    (activeTab === "team" && ownerFilter.length > 0 ? 1 : 0);
+    (activeTab === "team" && ownerFilter.length !== allOwnerValues.length
+      ? 1
+      : 0);
 
   // List view is forced at mobile. Spec §13: the toggle is not a preference
   // the user adjusts on mobile; storage is preserved so resizing up restores
@@ -286,27 +303,27 @@ export function EnvironmentsIndex({
 
   return (
     <div className="isolate flex flex-col pb-10">
-      {/* Sticky chrome — pt-10 lives inside the sticky element so its natural
-          top sits at scroll y=0. The single sticky container holds page header
-          + activity bar + tab strip so they pin as one band (no second offset
-          to compute). The TabsList's own `w-fit` underline (variant=underline)
-          carries the lower-edge separation with the active-tab indicator
-          painting on top. z-page-chrome (=20) matches env-detail-shell so the
-          pinned chrome paints above tab-content stickies (z-sticky=10) and any
-          raw z-10/z-20 inside scrolling siblings; body-portaled popovers /
-          dialogs / toasts use higher tiers (z-overlay=50) and still win.
+      {/* Sticky chrome — holds activity bar + tab strip only. The page H1 +
+          CTA live in the route's page.tsx and scroll away with the page. The
+          TabsList's own `w-fit` underline (variant=underline) carries the
+          lower-edge separation with the active-tab indicator painting on top.
+          z-page-chrome (=20) matches env-detail-shell so the pinned chrome
+          paints above tab-content stickies (z-sticky=10) and any raw z-10/z-20
+          inside scrolling siblings; body-portaled popovers / dialogs / toasts
+          use higher tiers (z-overlay=50) and still win.
 
           Chrome (bg + border + shadow) is FULL-BLEED across <main>; only the
           visible header content is capped at 1536 via the inner wrapper. See
-          docs/design/guidelines/app-shell-layout.md §2. */}
-      {/* `will-change:transform` promotes the sticky band to its own
+          docs/design/guidelines/app-shell-layout.md §2.
+
+          `will-change:transform` promotes the sticky band to its own
           compositor layer in Chromium, eliminating the subpixel jitter that
           can appear when scrolling causes the sticky element to repaint
           against the cards underneath. */}
       <div
         ref={stickyRef}
         className={cn(
-          "sticky top-0 z-page-chrome bg-background pt-6 md:pt-10 will-change-transform",
+          "sticky top-0 z-page-chrome bg-background pt-4 will-change-transform",
           // Scroll-cue: border slot is always occupied (border-b) so flipping
           // border-color does not shift layout. Mirrors DialogHeader.
           "border-b",
@@ -316,70 +333,30 @@ export function EnvironmentsIndex({
         )}
       >
         <div className="page-shell block py-0">
-        {/* Header row holds ONLY H1 + docs icon + CTA (mobile icon-only or
-            desktop labeled). `items-center` aligns the `+` button vertically
-            with the H1 row — never with the composite header block. The
-            activity bar below is a sibling, not a child of this flex row. */}
-        <header className="flex items-center justify-between gap-3 md:gap-6">
-          <div className="flex items-center gap-2">
-            <h1 className="text-display font-semibold text-foreground">
-              Environments
-            </h1>
-            <Link
-              href="https://docs.hud.ai/platform/environments"
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label="Environments documentation, opens in new tab"
-              className="inline-flex items-center justify-center rounded-sm text-muted-foreground hover:text-foreground focus-visible:shadow-focus-ring outline-hidden"
-            >
-              <BookOpen aria-hidden="true" className="size-3.5" />
-            </Link>
-          </div>
-          {/* Mobile: icon-only `+` (spec §13 decision 1). Tablet+ keeps the
-              full-label primary button. Two elements with CSS visibility —
-              IconButton requires `aria-label` at the type level. */}
-          <IconButton
-            asChild
-            variant="primary"
-            aria-label="New Environment"
-            className="md:hidden"
+          <ActivityBar runs={visibleRuns} activeNow={activity.activeNow} />
+
+          <Tabs
+            value={activeTab}
+            onValueChange={(v) => handleTabChange(v as TabKey)}
+            className="mt-4 gap-0"
           >
-            <Link href="/environments/new">
-              <Plus aria-hidden="true" />
-            </Link>
-          </IconButton>
-          <Button asChild variant="primary" className="hidden md:inline-flex">
-            <Link href="/environments/new">
-              <Plus aria-hidden="true" className="size-3.5" />
-              New Environment
-            </Link>
-          </Button>
-        </header>
-
-        <ActivityBar runs={visibleRuns} activeNow={activity.activeNow} />
-
-        <Tabs
-          value={activeTab}
-          onValueChange={(v) => handleTabChange(v as TabKey)}
-          className="mt-4 gap-0"
-        >
-          <TabsList variant="underline">
-            <TabsTrigger value="explore">
-              Explore
-              <span className="ml-1.5 font-mono text-caption tabular-nums text-muted-foreground">
-                {tabCounts.explore}
-              </span>
-              <span className="sr-only"> items</span>
-            </TabsTrigger>
-            <TabsTrigger value="team">
-              My Team
-              <span className="ml-1.5 font-mono text-caption tabular-nums text-muted-foreground">
-                {tabCounts.team}
-              </span>
-              <span className="sr-only"> items</span>
-            </TabsTrigger>
-          </TabsList>
-        </Tabs>
+            <TabsList variant="underline">
+              <TabsTrigger value="explore">
+                Explore
+                <span className="ml-1.5 font-mono text-caption tabular-nums text-muted-foreground">
+                  {tabCounts.explore}
+                </span>
+                <span className="sr-only"> items</span>
+              </TabsTrigger>
+              <TabsTrigger value="team">
+                My Team
+                <span className="ml-1.5 font-mono text-caption tabular-nums text-muted-foreground">
+                  {tabCounts.team}
+                </span>
+                <span className="sr-only"> items</span>
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
         </div>
       </div>
 
@@ -424,11 +401,11 @@ export function EnvironmentsIndex({
       </div>
 
       {/* Desktop / tablet filter row — tab-aware. Each tab gets its own bar:
-          Explore renders search + ambient "Most active" pill + view toggle
-          (no type/group/sort dropdowns — see refinement HTML, n=9 makes them
-          noise). My Team renders the full control set including the Owner
-          filter, with the default sort flipped to "Last active". State is
-          parent-owned so the bar components stay presentational. */}
+          Explore renders search + view toggle (no type/group/sort dropdowns —
+          see refinement HTML, n=9 makes them noise). My Team renders the full
+          control set including the Owner filter, with the default sort flipped
+          to "Last active". State is parent-owned so the bar components stay
+          presentational. */}
       <div className="page-shell block py-0">
       {activeTab === "explore" ? (
         <ExploreFilterBar
@@ -573,20 +550,6 @@ function ExploreFilterBar({
       </div>
 
       <div className="flex items-center gap-2">
-        {/* Ambient sort label — communicates the default ordering, not a
-            control. Discovery on n=9 has one correct order; a dropdown with 8
-            options reads as a decision the user does not have. */}
-        <div
-          aria-hidden="true"
-          className={cn(
-            "inline-flex h-8 items-center rounded-md px-2.5",
-            "border border-border bg-muted",
-            "font-mono text-meta text-meta-foreground",
-          )}
-        >
-          Most active
-        </div>
-
         <SegmentedControl
           aria-label="View"
           value={view}

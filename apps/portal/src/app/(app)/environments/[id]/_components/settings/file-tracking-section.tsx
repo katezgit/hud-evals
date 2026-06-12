@@ -81,7 +81,10 @@ export function FileTrackingSection() {
       <Card
         id="file-tracking"
         aria-labelledby="file-tracking-title"
-        className="scroll-mt-32"
+        className={cn(
+          "scroll-mt-32 transition-colors duration-fast ease-out-standard",
+          drawerOpen && "border-primary bg-primary-glow",
+        )}
       >
         <CardContent className="flex items-center justify-between gap-4">
           <div className="flex min-w-0 flex-col gap-0.5">
