@@ -33,6 +33,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@repo/ui/components/select";
+import { cn } from "@repo/ui/lib/cn";
 
 type SaveState = "idle" | "saving" | "saved" | "error";
 
@@ -112,7 +113,10 @@ export function PodConfigSection() {
       <Card
         id="pod-config"
         aria-labelledby="pod-config-title"
-        className="scroll-mt-32"
+        className={cn(
+          "scroll-mt-32 transition-colors duration-fast ease-out-standard",
+          drawerOpen && "border-primary bg-primary-glow",
+        )}
       >
         <CardContent>
           <button

@@ -102,7 +102,10 @@ export function BuildConfigurationSection() {
       <Card
         id="build-configuration"
         aria-labelledby="build-configuration-title"
-        className="scroll-mt-32"
+        className={cn(
+          "scroll-mt-32 transition-colors duration-fast ease-out-standard",
+          drawerOpen && "border-primary bg-primary-glow",
+        )}
       >
         <CardContent>
           <button
