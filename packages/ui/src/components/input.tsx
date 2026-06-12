@@ -45,11 +45,13 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
             "w-full min-w-0",
             formFieldBoxVariants({ size: "md" }),
             // focus-within: shell div is not focusable itself; only the inner input is.
-            "focus-within:outline-none focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2",
+            // shadow-focus-ring matches the global *:focus-visible halo+ring (base.css) so slotted inputs
+            // read identically to plain inputs in both modes.
+            "focus-within:outline-none focus-within:shadow-focus-ring",
             // Lift to form-field surface on focus — light: #FFFFFF, dark: #11161F. Tracks --color-panel.
             "focus-within:bg-form-field-surface",
             "has-[[aria-invalid=true]]:border-state-errored",
-            "has-[[aria-invalid=true]]:focus-within:ring-state-errored",
+            "has-[[aria-invalid=true]]:focus-within:shadow-focus-ring-errored",
             className
           )}
         >

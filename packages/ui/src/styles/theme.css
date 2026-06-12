@@ -245,8 +245,10 @@
   --shadow-sw-thumb-off: 0 1px 2px light-dark(rgba(28,32,36,.30), rgba(0,0,0,.60)),
                          0 2px 6px  light-dark(rgba(28,32,36,.18), rgba(0,0,0,.44));
   --shadow-focus-errored: 0 0 0 3px light-dark(rgba(220,62,66,.12), rgba(255,91,82,.18));
-  /* Matches base.css *:focus-visible exactly — #fff is intentional; do not replace with a token. */
-  --shadow-focus-ring:    0 0 0 2px #fff, 0 0 0 4px var(--color-ring);
+  /* Matches base.css *:focus-visible exactly — halo: #fff (dark, bright lift) ↔ pale teal-tinted white (light, frosted brand glow). */
+  --shadow-focus-ring:         0 0 0 2px light-dark(color-mix(in srgb, var(--teal-500) 18%, white), #fff), 0 0 0 4px var(--color-ring);
+  /* Errored counterpart — same halo + state-errored outer; mirrors [aria-invalid="true"]:focus-visible in base.css. */
+  --shadow-focus-ring-errored: 0 0 0 2px light-dark(color-mix(in srgb, var(--teal-500) 18%, white), #fff), 0 0 0 4px var(--color-state-errored);
 
   --shadow-card:        var(--shadow-1);
   --shadow-popover:     var(--shadow-2);
