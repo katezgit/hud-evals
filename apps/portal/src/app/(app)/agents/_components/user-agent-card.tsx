@@ -7,7 +7,13 @@ import type { LucideIcon } from "lucide-react";
 import { cn } from "@repo/ui/lib/cn";
 import type { AgentKind, UserAgent } from "@/lib/mock/agents";
 
-export function UserAgentCard({ agent }: { agent: UserAgent }) {
+export function UserAgentCard({
+  agent,
+  selected = false,
+}: {
+  agent: UserAgent;
+  selected?: boolean;
+}) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -26,14 +32,20 @@ export function UserAgentCard({ agent }: { agent: UserAgent }) {
       type="button"
       onClick={handleUseAgent}
       className={cn(
-        "group flex h-full w-full flex-col gap-3 rounded-lg border border-border bg-panel p-4 text-left",
+        "group flex h-full w-full flex-col gap-3 rounded-lg border p-4 text-left",
         "cursor-pointer transition-colors duration-fast",
         "hover:border-border-strong",
         "focus-visible:shadow-focus-ring outline-hidden",
+        selected ? "border-primary bg-primary-glow" : "border-border bg-panel",
       )}
     >
       <div className="flex items-start justify-between gap-2">
-        <span className="min-w-0 flex-1 truncate font-mono text-body font-semibold text-foreground">
+        <span
+          className={cn(
+            "min-w-0 flex-1 truncate font-mono text-body font-semibold",
+            selected ? "text-primary" : "text-foreground",
+          )}
+        >
           {agent.name}
         </span>
         <span className="inline-flex shrink-0 items-center gap-1 rounded bg-muted-surface px-1.5 py-0.5 font-mono text-meta uppercase tracking-wide text-muted-foreground">
@@ -42,7 +54,7 @@ export function UserAgentCard({ agent }: { agent: UserAgent }) {
         </span>
       </div>
 
-      <p className="line-clamp-2 text-label text-muted-foreground">
+      <p className="line-clamp-2 text-body text-muted-foreground">
         {agent.description}
       </p>
 
@@ -51,7 +63,7 @@ export function UserAgentCard({ agent }: { agent: UserAgent }) {
           {agent.scenarioId}
         </span>
 
-        <span className="shrink-0 text-caption text-muted-foreground transition-colors duration-fast group-hover:text-foreground group-hover:underline">
+        <span className="shrink-0 rounded px-1.5 py-0.5 text-caption text-muted-foreground transition-colors duration-fast group-hover:bg-primary group-hover:text-primary-foreground">
           {ctaLabel} →
         </span>
       </div>
@@ -61,7 +73,7 @@ export function UserAgentCard({ agent }: { agent: UserAgent }) {
 
 const KIND_BADGE: Record<AgentKind, string> = {
   qa: "QA",
-  automation: "AUTO",
+  automation: "Automation",
   chat: "CHAT",
 };
 

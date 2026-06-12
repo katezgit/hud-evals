@@ -260,7 +260,7 @@ function CommittedRow({
       </div>
       <IconButton
         variant="ghost"
-        size="xs"
+        size="sm"
         aria-label={`Mark for removal: ${name}`}
         onClick={onMarkRemove}
         className="text-meta-foreground group-hover:text-foreground focus-visible:text-foreground"
@@ -290,7 +290,7 @@ function PendingAddRow({
       </div>
       <IconButton
         variant="ghost"
-        size="xs"
+        size="sm"
         aria-label={`Remove pending attachment: ${name}`}
         onClick={onUndo}
       >
