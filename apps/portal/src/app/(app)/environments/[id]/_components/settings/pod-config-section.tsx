@@ -124,7 +124,7 @@ export function PodConfigSection() {
             onClick={() => setDrawerOpen(true)}
             aria-haspopup="dialog"
             aria-expanded={drawerOpen}
-            className="flex w-full items-center justify-between gap-4 text-left outline-hidden focus-visible:shadow-focus-ring rounded-md -m-1 p-1"
+            className="flex w-full items-center justify-between gap-4 text-left cursor-pointer outline-hidden focus-visible:shadow-focus-ring rounded-md -m-1 p-1"
           >
             <div className="flex min-w-0 flex-col gap-0.5">
               <h2
