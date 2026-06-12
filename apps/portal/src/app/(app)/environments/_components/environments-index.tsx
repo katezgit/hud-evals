@@ -315,7 +315,7 @@ export function EnvironmentsIndex({
           "transition-[border-color,box-shadow] prop-(--motion-state-change)",
         )}
       >
-        <div className="mx-auto w-full max-w-[1536px] px-4 md:px-6 lg:px-8 xl:px-20">
+        <div className="page-shell block py-0">
         {/* Header row holds ONLY H1 + docs icon + CTA (mobile icon-only or
             desktop labeled). `items-center` aligns the `+` button vertically
             with the H1 row — never with the composite header block. The
@@ -385,7 +385,7 @@ export function EnvironmentsIndex({
 
       {/* Mobile filter row — search (row A) + `[⚙ Filters]` trigger (row B).
           Stacks full-width, scrolls with content per spec §13. */}
-      <div className="mx-auto w-full max-w-[1536px] px-4 md:px-6 lg:px-8 xl:px-20 mt-4 flex flex-col gap-2 md:hidden">
+      <div className="page-shell py-0 gap-2 mt-4 md:hidden">
         <SearchInput
           defaultValue=""
           onValueChange={setDebouncedQuery}
@@ -429,7 +429,7 @@ export function EnvironmentsIndex({
           noise). My Team renders the full control set including the Owner
           filter, with the default sort flipped to "Last active". State is
           parent-owned so the bar components stay presentational. */}
-      <div className="mx-auto w-full max-w-[1536px] px-4 md:px-6 lg:px-8 xl:px-20">
+      <div className="page-shell block py-0">
       {activeTab === "explore" ? (
         <ExploreFilterBar
           searchPlaceholder={searchPlaceholder}
@@ -463,7 +463,7 @@ export function EnvironmentsIndex({
       )}
       </div>
 
-      <div className="mx-auto w-full max-w-[1536px] px-4 md:px-6 lg:px-8 xl:px-20 mt-4 md:mt-6">
+      <div className="page-shell block py-0 mt-4 md:mt-6">
         <Results
           visible={visible}
           view={effectiveView}

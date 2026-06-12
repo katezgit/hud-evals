@@ -1,5 +1,49 @@
 /* Portal stylesheet entry. The full token + base + utilities stack ships from
  * @repo/ui — importing it here generates every utility this app uses. Do NOT
  * re-declare tokens in this file; if a value is missing, add it upstream in
- * packages/ui/src/styles/, then it lights up here automatically. */
+ * packages/ui/src/styles/, then it lights up here automatically.
+ *
+ * EXCEPTIONS — portal-specific (not in @repo/ui because no other app uses them):
+ *   - --page-max-width    : AppShell page-shell width cap
+ *   - --color-grid-line   : AppShell main-area grid backdrop hairline color
+ *   - @utility page-shell : canonical (app)/** page wrapper
+ *   - @utility bg-grid-backdrop : main scroll-region grid pattern */
 @import "@repo/ui/styles.css";
+
+@theme {
+  /* Width of the (app)/** page shell. Centered + capped at this value.
+   * 1536px is chosen so 1920px monitor with 248px sidebar uses ~1540px content
+   * region cleanly; 1280 (max-w-7xl) would clip dense tables on 1440 laptops. */
+  --page-max-width: 1536px;
+
+  /* Grid backdrop hairline color — alpha-only over the existing border-seed primitives.
+   * Light .01 / dark .008 is intentionally near-subliminal: the grid is ambient
+   * texture, not measurement scaffolding. Operator-tuned through three iterations. */
+  --color-grid-line: light-dark(
+    rgb(var(--border-seed-light) / .01),
+    rgb(var(--border-seed-dark)  / .008)
+  );
+}
+
+/* ─── Page shell ─────────────────────────────────────────────────────────────
+ * Canonical (app)/** page wrapper. Packs the centered cap + responsive horizontal
+ * padding ladder + default vertical layout. Pages override gap-/py-/pt- as needed
+ * by appending later utilities. Sticky-header inner caps drop py-6 and use pt-10.
+ *
+ * Spec: docs/design/guidelines/app-shell-layout.md §2.
+ */
+@utility page-shell {
+  @apply mx-auto w-full max-w-(--page-max-width) flex flex-col gap-8 px-4 md:px-6 lg:px-8 xl:px-20 py-6;
+}
+
+/* ─── Main scroll-region backdrop ─────────────────────────────────────────────
+ * Subtle 56px hairline grid for the AppShell <main> element.
+ * background-attachment: fixed is intentionally OMITTED (perf: trace/table scroll).
+ * Spec: docs/design/guidelines/app-shell-layout.md §9. */
+@utility bg-grid-backdrop {
+  background-color: var(--color-background);
+  background-image:
+    linear-gradient(to right,  var(--color-grid-line) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--color-grid-line) 1px, transparent 1px);
+  background-size: 56px 56px;
+}

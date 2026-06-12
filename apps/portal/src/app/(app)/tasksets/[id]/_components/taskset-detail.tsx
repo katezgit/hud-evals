@@ -82,7 +82,7 @@ export default function TasksetDetail({ taskset }: TasksetDetailProps) {
             "transition-[border-color,box-shadow] prop-(--motion-state-change)",
           )}
         >
-          <div className="mx-auto w-full max-w-[1536px] px-4 md:px-6 lg:px-8 xl:px-20">
+          <div className="page-shell block py-0">
             <TasksetDetailHeader taskset={taskset} />
             <TabsList variant="underline" className="border-b-0">
               <TabsTrigger value="overview">Overview</TabsTrigger>
@@ -94,27 +94,27 @@ export default function TasksetDetail({ taskset }: TasksetDetailProps) {
           </div>
         </div>
         <TabsContent value="overview" className="pt-6">
-          <div className="mx-auto w-full max-w-[1536px] px-4 md:px-6 lg:px-8 xl:px-20">
+          <div className="page-shell block py-0">
             <OverviewTab taskset={taskset} />
           </div>
         </TabsContent>
         <TabsContent value="tasks" className="pt-6">
-          <div className="mx-auto w-full max-w-[1536px] px-4 md:px-6 lg:px-8 xl:px-20">
+          <div className="page-shell block py-0">
             <TasksTab taskset={taskset} />
           </div>
         </TabsContent>
         <TabsContent value="jobs" className="pt-6">
-          <div className="mx-auto w-full max-w-[1536px] px-4 md:px-6 lg:px-8 xl:px-20">
+          <div className="page-shell block py-0">
             <JobsTab taskset={taskset} />
           </div>
         </TabsContent>
         <TabsContent value="performance" className="pt-6">
-          <div className="mx-auto w-full max-w-[1536px] px-4 md:px-6 lg:px-8 xl:px-20">
+          <div className="page-shell block py-0">
             <PerformanceTab taskset={taskset} />
           </div>
         </TabsContent>
         <TabsContent value="settings" className="pt-6">
-          <div className="mx-auto w-full max-w-[1536px] px-4 md:px-6 lg:px-8 xl:px-20">
+          <div className="page-shell block py-0">
             <SettingsTab taskset={taskset} />
           </div>
         </TabsContent>
