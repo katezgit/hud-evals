@@ -3,8 +3,9 @@
 // Button applies [&_svg]:size-4 globally which would override the spec's size-3.5 leading icon.
 // We replicate Button's base + secondary variant classes directly.
 //
-// Accessible name: count is included via aria-label ("GPU (12)" not "GPU" + decorative span)
-// so screen-reader users hear the full context without extra navigation.
+// Accessible name: computed from visible content (label span + optional count span).
+// A visually-hidden ", " separator is inserted before the count for screen-reader prosody.
+// This is the canonical AccName pattern — single source of truth, satisfies WCAG 2.5.3.
 
 import * as React from "react"
 import { Check } from "lucide-react"
@@ -41,7 +42,7 @@ const filterChipVariants = cva(
 )
 
 export interface FilterChipProps
-  extends Omit<React.ComponentPropsWithoutRef<"button">, "children" | "aria-label"> {
+  extends Omit<React.ComponentPropsWithoutRef<"button">, "children"> {
   label: string
   selected: boolean
   onSelectedChange: (next: boolean) => void
@@ -56,7 +57,6 @@ const FilterChip = React.forwardRef<HTMLButtonElement, FilterChipProps>(
     ref,
   ) => {
     const hasCount = typeof count === "number"
-    const ariaLabel = hasCount ? `${label} (${count})` : label
 
     function handleClick(e: React.MouseEvent<HTMLButtonElement>) {
       onClick?.(e)
@@ -70,7 +70,6 @@ const FilterChip = React.forwardRef<HTMLButtonElement, FilterChipProps>(
         ref={ref}
         type="button"
         aria-pressed={selected}
-        aria-label={ariaLabel}
         disabled={disabled}
         className={cn(filterChipVariants({ selected }), className)}
         onClick={handleClick}
@@ -81,15 +80,17 @@ const FilterChip = React.forwardRef<HTMLButtonElement, FilterChipProps>(
         )}
         <span>{label}</span>
         {hasCount && (
-          <span
-            aria-hidden="true"
-            className={cn(
-              "font-mono text-meta tabular-nums",
-              selected ? "text-foreground" : "text-meta-foreground",
-            )}
-          >
-            {count}
-          </span>
+          <>
+            <span className="sr-only">, </span>
+            <span
+              className={cn(
+                "font-mono text-meta tabular-nums",
+                selected ? "text-foreground" : "text-muted-foreground",
+              )}
+            >
+              {count}
+            </span>
+          </>
         )}
       </button>
     )
