@@ -83,7 +83,7 @@ export default function MembersTable({ members, renderRowActions }: MembersTable
 
 function RolePill({ role }: { role: Role }) {
   return (
-    <Badge variant={role === "owner" ? "success" : "neutral"}>
+    <Badge variant={role === "owner" ? "success" : "neutral"} size="sm">
       {ROLE_LABEL[role]}
     </Badge>
   );

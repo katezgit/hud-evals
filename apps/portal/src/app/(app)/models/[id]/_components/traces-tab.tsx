@@ -375,7 +375,7 @@ function TraceList({ traces }: { traces: ReadonlyArray<Trace> }) {
         id: "score",
         header: () => <span>Score</span>,
         cell: (info) => (
-          <Badge variant={scoreVariant(info.getValue())} size="default">
+          <Badge variant={scoreVariant(info.getValue())} size="sm">
             {Math.round(info.getValue())}%
           </Badge>
         ),
