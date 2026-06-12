@@ -33,6 +33,7 @@ import {
   DrawerTrigger,
 } from "@repo/ui/components/drawer";
 import { EmptyState } from "@repo/ui/components/empty-state";
+import { FilterChip } from "@repo/ui/components/filter-chip";
 import { MultiSelect } from "@repo/ui/components/multi-select";
 import { SearchInput } from "@repo/ui/components/search-input";
 import {
@@ -637,19 +638,19 @@ export default function ModelsCatalog() {
               meaningful axis). */}
           <div className="hidden flex-1 flex-wrap items-center gap-3 xl:flex">
             {!isPrivateTab && (
-              <ToggleFilterChip
+              <FilterChip
                 label="Trainable"
-                active={filters.trainable}
+                selected={filters.trainable}
                 count={toggleCounts.trainable}
-                onToggle={() => updateFilters({ trainable: !filters.trainable })}
+                onSelectedChange={(next) => updateFilters({ trainable: next })}
               />
             )}
 
-            <ToggleFilterChip
+            <FilterChip
               label="Reasoning"
-              active={filters.reasoning}
+              selected={filters.reasoning}
               count={toggleCounts.reasoning}
-              onToggle={() => updateFilters({ reasoning: !filters.reasoning })}
+              onSelectedChange={(next) => updateFilters({ reasoning: next })}
             />
 
             {isPrivateTab ? (
@@ -686,13 +687,11 @@ export default function ModelsCatalog() {
               />
             )}
 
-            <ToggleFilterChip
+            <FilterChip
               label="Favorites"
-              active={filters.favoritesOnly}
+              selected={filters.favoritesOnly}
               count={toggleCounts.favorites}
-              onToggle={() =>
-                updateFilters({ favoritesOnly: !filters.favoritesOnly })
-              }
+              onSelectedChange={(next) => updateFilters({ favoritesOnly: next })}
             />
 
             <div className="ml-auto flex items-center gap-2">
@@ -1014,41 +1013,6 @@ export default function ModelsCatalog() {
         </Card>
       </div>
     </div>
-  );
-}
-
-function ToggleFilterChip({
-  label,
-  active,
-  count,
-  onToggle,
-}: {
-  label: string;
-  active: boolean;
-  count: number;
-  onToggle: () => void;
-}) {
-  return (
-    <Button
-      type="button"
-      variant="secondary"
-      size="sm"
-      aria-pressed={active}
-      onClick={onToggle}
-      className={cn(active && "bg-selected-surface hover:bg-selected-surface")}
-    >
-      {label}
-      {count > 0 ? (
-        <span
-          className={cn(
-            "font-mono text-meta tabular-nums",
-            active ? "text-foreground" : "text-meta-foreground",
-          )}
-        >
-          {count}
-        </span>
-      ) : null}
-    </Button>
   );
 }
 

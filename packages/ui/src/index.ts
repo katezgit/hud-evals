@@ -56,4 +56,5 @@ export * from "./components/tabs";
 export * from "./components/textarea";
 export * from "./components/star-count";
 export * from "./components/copy-button";
+export * from "./components/filter-chip";
 export * from "./components/visibility-icon";
