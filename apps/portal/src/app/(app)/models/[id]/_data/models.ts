@@ -517,6 +517,8 @@ interface TraceSeed {
   readonly idSuffix: string;
   readonly tasksetId: string;
   readonly tasksetName: string;
+  /** Checkpoint that produced this trace; `null` for gateway/base Models. */
+  readonly checkpointId: string | null;
   readonly steps: number;
   readonly score: number;
   readonly minutesAgo: number;
@@ -530,36 +532,43 @@ function makeTraces(seeds: ReadonlyArray<TraceSeed>): ReadonlyArray<Trace> {
     id: `trc_${seed.idSuffix}`,
     tasksetId: seed.tasksetId,
     tasksetName: seed.tasksetName,
+    checkpointId: seed.checkpointId,
     steps: seed.steps,
     score: seed.score,
     createdAt: new Date(now - seed.minutesAgo * 60_000).toISOString(),
   }));
 }
 
+// Gateway Models don't have checkpoints — every base-model trace is keyed
+// against the model's API name itself so the Checkpoint filter surfaces a
+// single sensible option instead of a useless empty list.
 const BASE_MODEL_TRACE_SEEDS: ReadonlyArray<TraceSeed> = [
-  { idSuffix: "a3b2f9", tasksetId: "ts_web_nav", tasksetName: "Web nav", steps: 12, score: 94, minutesAgo: 8 },
-  { idSuffix: "c9d147", tasksetId: "ts_web_nav", tasksetName: "Web nav", steps: 8, score: 31, minutesAgo: 27 },
-  { idSuffix: "e7f482", tasksetId: "ts_web_nav", tasksetName: "Web nav", steps: 24, score: 88, minutesAgo: 41 },
-  { idSuffix: "g2h8d1", tasksetId: "ts_web_nav", tasksetName: "Web nav", steps: 5, score: 12, minutesAgo: 63 },
-  { idSuffix: "j5k223", tasksetId: "ts_code_gen", tasksetName: "Code gen", steps: 18, score: 76, minutesAgo: 95 },
-  { idSuffix: "m1n4ab", tasksetId: "ts_code_gen", tasksetName: "Code gen", steps: 14, score: 52, minutesAgo: 122 },
-  { idSuffix: "p7q1c0", tasksetId: "ts_code_gen", tasksetName: "Code gen", steps: 22, score: 99, minutesAgo: 180 },
-  { idSuffix: "r3s9e5", tasksetId: "ts_code_gen", tasksetName: "Code gen", steps: 6, score: 38, minutesAgo: 240 },
+  { idSuffix: "a3b2f9", tasksetId: "ts_web_nav", tasksetName: "Web nav", checkpointId: "claude-sonnet-4-5", steps: 12, score: 94, minutesAgo: 8 },
+  { idSuffix: "c9d147", tasksetId: "ts_web_nav", tasksetName: "Web nav", checkpointId: "claude-sonnet-4-5", steps: 8, score: 31, minutesAgo: 27 },
+  { idSuffix: "e7f482", tasksetId: "ts_web_nav", tasksetName: "Web nav", checkpointId: "claude-sonnet-4-5", steps: 24, score: 88, minutesAgo: 41 },
+  { idSuffix: "g2h8d1", tasksetId: "ts_web_nav", tasksetName: "Web nav", checkpointId: "claude-sonnet-4-5", steps: 5, score: 12, minutesAgo: 63 },
+  { idSuffix: "j5k223", tasksetId: "ts_code_gen", tasksetName: "Code gen", checkpointId: "claude-sonnet-4-5", steps: 18, score: 76, minutesAgo: 95 },
+  { idSuffix: "m1n4ab", tasksetId: "ts_code_gen", tasksetName: "Code gen", checkpointId: "claude-sonnet-4-5", steps: 14, score: 52, minutesAgo: 122 },
+  { idSuffix: "p7q1c0", tasksetId: "ts_code_gen", tasksetName: "Code gen", checkpointId: "claude-sonnet-4-5", steps: 22, score: 99, minutesAgo: 180 },
+  { idSuffix: "r3s9e5", tasksetId: "ts_code_gen", tasksetName: "Code gen", checkpointId: "claude-sonnet-4-5", steps: 6, score: 38, minutesAgo: 240 },
 ];
 
+// User-trained model has multiple checkpoints (matches the logs fixture seeds:
+// `ckpt_a93f`, `ckpt_b72e`, `ckpt_c51d`). Distribute traces across them so the
+// filter surfaces real differentiation.
 const USER_MODEL_TRACE_SEEDS: ReadonlyArray<TraceSeed> = [
-  { idSuffix: "ua81f3", tasksetId: "ts_web_nav", tasksetName: "Web nav", steps: 11, score: 91, minutesAgo: 3 },
-  { idSuffix: "ub2c70", tasksetId: "ts_web_nav", tasksetName: "Web nav", steps: 15, score: 84, minutesAgo: 9 },
-  { idSuffix: "uc4d61", tasksetId: "ts_web_nav", tasksetName: "Web nav", steps: 9, score: 47, minutesAgo: 18 },
-  { idSuffix: "ud8e22", tasksetId: "ts_web_nav", tasksetName: "Web nav", steps: 6, score: 22, minutesAgo: 33 },
-  { idSuffix: "ue5f99", tasksetId: "ts_code_gen", tasksetName: "Code gen", steps: 19, score: 95, minutesAgo: 45 },
-  { idSuffix: "uf91a8", tasksetId: "ts_code_gen", tasksetName: "Code gen", steps: 25, score: 88, minutesAgo: 64 },
-  { idSuffix: "ug3b77", tasksetId: "ts_code_gen", tasksetName: "Code gen", steps: 13, score: 71, minutesAgo: 88 },
-  { idSuffix: "uh6c40", tasksetId: "ts_code_gen", tasksetName: "Code gen", steps: 17, score: 56, minutesAgo: 110 },
-  { idSuffix: "ui2d05", tasksetId: "ts_code_gen", tasksetName: "Code gen", steps: 8, score: 34, minutesAgo: 145 },
-  { idSuffix: "uj7e18", tasksetId: "ts_browser_qa", tasksetName: "Browser QA", steps: 21, score: 82, minutesAgo: 200 },
-  { idSuffix: "uk4f63", tasksetId: "ts_browser_qa", tasksetName: "Browser QA", steps: 16, score: 67, minutesAgo: 260 },
-  { idSuffix: "ul9a55", tasksetId: "ts_browser_qa", tasksetName: "Browser QA", steps: 12, score: 41, minutesAgo: 320 },
+  { idSuffix: "ua81f3", tasksetId: "ts_web_nav", tasksetName: "Web nav", checkpointId: "ckpt_c51d", steps: 11, score: 91, minutesAgo: 3 },
+  { idSuffix: "ub2c70", tasksetId: "ts_web_nav", tasksetName: "Web nav", checkpointId: "ckpt_c51d", steps: 15, score: 84, minutesAgo: 9 },
+  { idSuffix: "uc4d61", tasksetId: "ts_web_nav", tasksetName: "Web nav", checkpointId: "ckpt_b72e", steps: 9, score: 47, minutesAgo: 18 },
+  { idSuffix: "ud8e22", tasksetId: "ts_web_nav", tasksetName: "Web nav", checkpointId: "ckpt_a93f", steps: 6, score: 22, minutesAgo: 33 },
+  { idSuffix: "ue5f99", tasksetId: "ts_code_gen", tasksetName: "Code gen", checkpointId: "ckpt_c51d", steps: 19, score: 95, minutesAgo: 45 },
+  { idSuffix: "uf91a8", tasksetId: "ts_code_gen", tasksetName: "Code gen", checkpointId: "ckpt_b72e", steps: 25, score: 88, minutesAgo: 64 },
+  { idSuffix: "ug3b77", tasksetId: "ts_code_gen", tasksetName: "Code gen", checkpointId: "ckpt_b72e", steps: 13, score: 71, minutesAgo: 88 },
+  { idSuffix: "uh6c40", tasksetId: "ts_code_gen", tasksetName: "Code gen", checkpointId: "ckpt_a93f", steps: 17, score: 56, minutesAgo: 110 },
+  { idSuffix: "ui2d05", tasksetId: "ts_code_gen", tasksetName: "Code gen", checkpointId: "ckpt_a93f", steps: 8, score: 34, minutesAgo: 145 },
+  { idSuffix: "uj7e18", tasksetId: "ts_browser_qa", tasksetName: "Browser QA", checkpointId: "ckpt_c51d", steps: 21, score: 82, minutesAgo: 200 },
+  { idSuffix: "uk4f63", tasksetId: "ts_browser_qa", tasksetName: "Browser QA", checkpointId: "ckpt_b72e", steps: 16, score: 67, minutesAgo: 260 },
+  { idSuffix: "ul9a55", tasksetId: "ts_browser_qa", tasksetName: "Browser QA", checkpointId: "ckpt_a93f", steps: 12, score: 41, minutesAgo: 320 },
 ];
 
 const TRACE_SEEDS_BY_MODEL: Readonly<Record<string, ReadonlyArray<TraceSeed>>> = {

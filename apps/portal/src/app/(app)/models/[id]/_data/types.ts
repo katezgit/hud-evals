@@ -102,6 +102,8 @@ export interface Trace {
   /** Taskset this Trace was produced under. Drives the filter chip. */
   tasksetId: string;
   tasksetName: string;
+  /** Checkpoint slug that produced this Trace, or `null` for gateway/base Models. */
+  checkpointId: string | null;
   /** Number of steps the agent took before terminating. */
   steps: number;
   /** Final eval score 0..100. Drives the score badge color. */

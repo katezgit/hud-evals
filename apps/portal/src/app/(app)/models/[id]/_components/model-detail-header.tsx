@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ChevronRight, GitFork, Play } from "lucide-react";
+import { ChevronRight, GitFork, GraduationCap } from "lucide-react";
 import { Button } from "@repo/ui/components/button";
 import { IconButton } from "@repo/ui/components/icon-button";
 import { VisibilityIcon } from "@repo/ui/components/visibility-icon";
@@ -41,7 +41,7 @@ export function ModelDetailHeader({
             <h1 className="truncate text-display font-semibold text-foreground">
               {model.displayName}
             </h1>
-            <ModelStatusBadge status={model.status} />
+            <ModelStatusBadge status={model.status} size="sm" />
             <VisibilityIcon visibility={model.isPrivate ? "private" : "public"} />
           </div>
           <HeaderSubtitle model={model} />
@@ -54,7 +54,7 @@ export function ModelDetailHeader({
                 <IconButton
                   variant="secondary"
                   size="sm"
-                  aria-label="Fork Model"
+                  aria-label="Fork"
                   className="md:hidden"
                 >
                   <GitFork aria-hidden="true" />
@@ -65,7 +65,7 @@ export function ModelDetailHeader({
                   className="hidden md:inline-flex"
                 >
                   <GitFork aria-hidden="true" />
-                  Fork Model
+                  Fork
                 </Button>
               </>
             )}
@@ -77,14 +77,14 @@ export function ModelDetailHeader({
                   aria-label="Train Model"
                   className="md:hidden"
                 >
-                  <Play aria-hidden="true" />
+                  <GraduationCap aria-hidden="true" />
                 </IconButton>
                 <Button
                   variant="primary"
                   size="sm"
                   className="hidden md:inline-flex"
                 >
-                  <Play aria-hidden="true" />
+                  <GraduationCap aria-hidden="true" />
                   Train Model
                 </Button>
               </>
