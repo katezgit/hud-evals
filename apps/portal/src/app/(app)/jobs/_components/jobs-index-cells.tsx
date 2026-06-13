@@ -205,15 +205,3 @@ export function CostCell({ cost }: { cost: string }) {
   );
 }
 
-export function WhenCell({ when }: { when: string | null }) {
-  if (!when) {
-    return (
-      <span className="text-meta-foreground font-mono text-meta">live</span>
-    );
-  }
-  return (
-    <span className="text-meta-foreground font-mono text-meta tabular-nums">
-      {when} ago
-    </span>
-  );
-}

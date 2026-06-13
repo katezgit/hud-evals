@@ -12,14 +12,13 @@ import {
   RewardCell,
   StatusCell,
   TasksetCell,
-  WhenCell,
 } from "./jobs-index-cells";
 
 // Cross-taskset grid: same axis as the within-taskset table + a Taskset column.
 // Flat rows only — grouping accordion (hyperparameter sweep collapse) deferred
 // per brief; will re-introduce when operator confirms density-vs-grouping trade.
 export const GRID_COLS =
-  "grid grid-cols-[112px_minmax(220px,1fr)_160px_152px_136px_92px_72px_72px_26px] items-center gap-4";
+  "grid grid-cols-[112px_minmax(220px,1fr)_160px_152px_136px_92px_72px_26px] items-center gap-4";
 
 interface JobsIndexRowProps {
   job: HomeJobRow;
@@ -41,7 +40,6 @@ export function JobsIndexRow({ job }: JobsIndexRowProps) {
         <RewardCell job={job} />
         <DeltaCell delta={job.delta} />
         <CostCell cost={job.cost} />
-        <WhenCell when={job.when} />
         <div className="justify-self-end">
           <ChevronRight
             aria-hidden="true"

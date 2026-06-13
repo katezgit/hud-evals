@@ -4,7 +4,7 @@ import { Toaster } from "@repo/ui/components/toast";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: { default: "Portal", template: "%s | Portal" },
+  title: { default: "HUD", template: "%s | HUD" },
   description: "Authed dashboard.",
 };
 
