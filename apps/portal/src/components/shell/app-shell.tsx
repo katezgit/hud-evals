@@ -9,7 +9,6 @@ import {
   Bot,
   Box,
   BrainCircuit,
-  Home,
   ListChecks,
   Menu,
   ShoppingBag,
@@ -54,7 +53,7 @@ interface NavItem {
 }
 
 const WORKSPACE_ITEMS: ReadonlyArray<NavItem> = [
-  { href: "/", label: "Home", Icon: Home },
+  { href: "/jobs", label: "Jobs", Icon: ListChecks },
   { href: "/tasksets", label: "Tasksets", Icon: ListChecks, count: 12 },
   { href: "/environments", label: "Environments", Icon: Box, count: 8 },
   { href: "/models", label: "Models", Icon: BrainCircuit, count: 5 },
@@ -88,7 +87,7 @@ export function AppShell({ email, name, children }: AppShellProps) {
   const creditState = useCreditsBalance();
   const { hasActive } = useActiveJobs();
   const workspaceItems = WORKSPACE_ITEMS.map((item) =>
-    item.href === "/" ? { ...item, live: hasActive } : item,
+    item.href === "/jobs" ? { ...item, live: hasActive } : item,
   );
 
   return (
