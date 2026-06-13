@@ -53,7 +53,7 @@ interface NavItem {
 }
 
 const WORKSPACE_ITEMS: ReadonlyArray<NavItem> = [
-  { href: "/jobs", label: "Jobs", Icon: ListChecks },
+  { href: "/jobs", label: "Jobs", Icon: BarChart3 },
   { href: "/tasksets", label: "Tasksets", Icon: ListChecks, count: 12 },
   { href: "/environments", label: "Environments", Icon: Box, count: 8 },
   { href: "/models", label: "Models", Icon: BrainCircuit, count: 5 },

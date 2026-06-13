@@ -260,8 +260,7 @@ function TelemetryStrip({
         <Tile
           label="Failed"
           value={failed}
-          // Per resolved design call: neutral fg when 0, errored color when >0.
-          valueClassName={failed > 0 ? "text-state-errored-text" : "text-foreground"}
+          valueClassName="text-state-errored-text"
         />
         <Tile
           label="Completed"
