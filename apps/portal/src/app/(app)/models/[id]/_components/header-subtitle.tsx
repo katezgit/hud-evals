@@ -1,4 +1,7 @@
 import Link from "next/link";
+import { Sparkles } from "lucide-react";
+import type { Capability } from "@/lib/mock/explore-models";
+import UnknownIndicator from "../../_components/unknown-indicator";
 import type { Model } from "../_data/types";
 
 /**
@@ -18,16 +21,24 @@ import type { Model } from "../_data/types";
 interface BaseModelSubtitleProps {
   apiName: string;
   provider: string;
+  kind: Capability<"chat" | "reasoning">;
+  reasoning: Capability<boolean>;
 }
 
-export function BaseModelSubtitle({ apiName, provider }: BaseModelSubtitleProps) {
+export function BaseModelSubtitle({ apiName, provider, kind, reasoning }: BaseModelSubtitleProps) {
   return (
     <div className="flex flex-wrap items-center gap-1.5 text-body text-muted-foreground">
       <span>{provider}</span>
       <Separator />
-      <span>Base model</span>
+      <KindLabel kind={kind} />
       <Separator />
       <span className="font-mono">{apiName}</span>
+      {reasoning === true && (
+        <>
+          <Separator />
+          <ReasoningChip />
+        </>
+      )}
     </div>
   );
 }
@@ -35,23 +46,29 @@ export function BaseModelSubtitle({ apiName, provider }: BaseModelSubtitleProps)
 interface UserTrainedModelSubtitleProps {
   apiName: string;
   provider: string;
+  kind: Capability<"chat" | "reasoning">;
   forkedFromApiName: string;
   forkedFromModelId: string;
   activeCheckpointId: string;
   activeCheckpointStep: number;
+  reasoning: Capability<boolean>;
 }
 
 export function UserTrainedModelSubtitle({
   apiName,
   provider,
+  kind,
   forkedFromApiName,
   forkedFromModelId,
   activeCheckpointId,
   activeCheckpointStep,
+  reasoning,
 }: UserTrainedModelSubtitleProps) {
   return (
     <div className="flex flex-wrap items-center gap-1.5 text-body text-muted-foreground">
       <span>{provider}</span>
+      <Separator />
+      <KindLabel kind={kind} />
       <Separator />
       <span>
         forked from{" "}
@@ -70,6 +87,12 @@ export function UserTrainedModelSubtitle({
       </span>
       <Separator />
       <span className="font-mono">{apiName}</span>
+      {reasoning === true && (
+        <>
+          <Separator />
+          <ReasoningChip />
+        </>
+      )}
     </div>
   );
 }
@@ -85,16 +108,41 @@ export function HeaderSubtitle({ model }: { model: Model }) {
       <UserTrainedModelSubtitle
         apiName={model.apiName}
         provider={model.provider}
+        kind={model.kind}
         forkedFromApiName={model.forkedFrom.apiName}
         forkedFromModelId={model.forkedFrom.modelId}
         activeCheckpointId={model.activeCheckpointId}
         activeCheckpointStep={model.activeCheckpointStep}
+        reasoning={model.reasoning}
       />
     );
   }
-  return <BaseModelSubtitle apiName={model.apiName} provider={model.provider} />;
+  return (
+    <BaseModelSubtitle
+      apiName={model.apiName}
+      provider={model.provider}
+      kind={model.kind}
+      reasoning={model.reasoning}
+    />
+  );
 }
 
 function Separator() {
   return <span aria-hidden="true" className="text-meta-foreground">·</span>;
+}
+
+function KindLabel({ kind }: { kind: Capability<"chat" | "reasoning"> }) {
+  if (kind === "unknown") {
+    return <UnknownIndicator label="Kind not published by provider" />;
+  }
+  return <span>{kind === "chat" ? "Chat" : "Reasoning"}</span>;
+}
+
+function ReasoningChip() {
+  return (
+    <span className="flex items-center gap-1">
+      <Sparkles aria-hidden="true" className="size-3" />
+      Reasoning
+    </span>
+  );
 }

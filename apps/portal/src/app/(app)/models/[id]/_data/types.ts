@@ -14,6 +14,8 @@
  *   4. `activeTrainingJobsCount`   — 0 | ≥1
  */
 
+import type { Capability } from "@/lib/mock/explore-models";
+
 export type Persona = "rl-researcher" | "agent-engineer";
 
 export type OwnershipClass =
@@ -68,6 +70,10 @@ export interface Model {
   ownerUserId: string | null;
   /** True when the Model can be forked / trained against. */
   trainable: boolean;
+  /** Reasoning-capable (extended thinking / RL-tuned chains). 'unknown' renders no chip. */
+  reasoning: Capability<boolean>;
+  /** Product kind. 'chat' = general-purpose; 'reasoning' = reasoning-specialized. `'unknown'` renders as `?`. */
+  kind: Capability<"chat" | "reasoning">;
   /** Private to the current org (vs public catalog). Drives the header visibility icon. */
   isPrivate: boolean;
   /** Number of checkpoints. 0 implies a base/gateway Model. */

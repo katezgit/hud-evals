@@ -47,6 +47,8 @@ export interface CatalogModel {
   usageSparkline: ReadonlyArray<number>;
   /** Reasoning-capable (extended-thinking / RL-tuned chains). `"unknown"` → `?`. */
   reasoning: Capability<boolean>;
+  /** Product kind. 'chat' = general-purpose chat/instruct; 'reasoning' = reasoning-specialized. `"unknown"` → `?`. */
+  kind: Capability<"chat" | "reasoning">;
   /** Relative latency tier — three bars. `"unknown"` → `?`. */
   speed: Capability<SpeedTier>;
   /**
@@ -91,6 +93,7 @@ export const catalogModels: ReadonlyArray<CatalogModel> = [
     usage: 3_700_000,
     usageSparkline: spark(101),
     reasoning: true,
+    kind: "chat",
     speed: "high",
     // AA tier estimate via Claude Sonnet 4.6 (max)
     tokensPerSecond: 45,
@@ -106,6 +109,7 @@ export const catalogModels: ReadonlyArray<CatalogModel> = [
     usage: 2_900_000,
     usageSparkline: spark(102),
     reasoning: true,
+    kind: "chat",
     speed: "medium",
     tokensPerSecond: 43,
     priceIn: 15,
@@ -120,6 +124,7 @@ export const catalogModels: ReadonlyArray<CatalogModel> = [
     usage: 1_840_000,
     usageSparkline: spark(103),
     reasoning: true,
+    kind: "chat",
     speed: "medium",
     // AA tier estimate via Claude Opus 4.5
     tokensPerSecond: 45,
@@ -135,6 +140,7 @@ export const catalogModels: ReadonlyArray<CatalogModel> = [
     usage: 1_240_000,
     usageSparkline: spark(104),
     reasoning: true,
+    kind: "chat",
     speed: "medium",
     tokensPerSecond: 47,
     priceIn: 15,
@@ -149,6 +155,7 @@ export const catalogModels: ReadonlyArray<CatalogModel> = [
     usage: 916_000,
     usageSparkline: spark(105),
     reasoning: true,
+    kind: "chat",
     speed: "high",
     tokensPerSecond: 45,
     priceIn: 3,
@@ -163,6 +170,7 @@ export const catalogModels: ReadonlyArray<CatalogModel> = [
     usage: 780_000,
     usageSparkline: spark(106),
     reasoning: false,
+    kind: "chat",
     speed: "high",
     tokensPerSecond: 94,
     priceIn: 0.8,
@@ -178,6 +186,7 @@ export const catalogModels: ReadonlyArray<CatalogModel> = [
     usage: 612_000,
     usageSparkline: spark(107),
     reasoning: true,
+    kind: "chat",
     speed: "high",
     // AA tier estimate via Claude Sonnet 4.6
     tokensPerSecond: 45,
@@ -195,6 +204,7 @@ export const catalogModels: ReadonlyArray<CatalogModel> = [
     usage: 1_420_000,
     usageSparkline: spark(201),
     reasoning: true,
+    kind: "chat",
     speed: "high",
     tokensPerSecond: 143,
     priceIn: 2.5,
@@ -209,6 +219,7 @@ export const catalogModels: ReadonlyArray<CatalogModel> = [
     usage: 1_050_000,
     usageSparkline: spark(202),
     reasoning: false,
+    kind: "chat",
     speed: "high",
     // AA tier estimate via Gemini 3.5 Flash
     tokensPerSecond: 176,
@@ -224,6 +235,7 @@ export const catalogModels: ReadonlyArray<CatalogModel> = [
     usage: 880_000,
     usageSparkline: spark(203),
     reasoning: true,
+    kind: "chat",
     speed: "high",
     // AA tier estimate via Gemini 3.1 Pro Preview
     tokensPerSecond: 143,
@@ -239,6 +251,7 @@ export const catalogModels: ReadonlyArray<CatalogModel> = [
     usage: 312_000,
     usageSparkline: spark(204),
     reasoning: true,
+    kind: "chat",
     speed: "medium",
     // AA tier estimate via Gemini 2.5 Pro — CUA is latency-bound; likely overstates
     tokensPerSecond: 133,
@@ -254,6 +267,7 @@ export const catalogModels: ReadonlyArray<CatalogModel> = [
     usage: 480_000,
     usageSparkline: spark(205),
     reasoning: true,
+    kind: "chat",
     speed: "high",
     tokensPerSecond: 133,
     priceIn: 1.25,
@@ -270,6 +284,7 @@ export const catalogModels: ReadonlyArray<CatalogModel> = [
     usage: 2_100_000,
     usageSparkline: spark(301),
     reasoning: true,
+    kind: "chat",
     speed: "high",
     // AA tier estimate via GPT-5.5 (high)
     tokensPerSecond: 59,
@@ -285,6 +300,7 @@ export const catalogModels: ReadonlyArray<CatalogModel> = [
     usage: 1_580_000,
     usageSparkline: spark(302),
     reasoning: true,
+    kind: "chat",
     speed: "high",
     // AA tier estimate via GPT-5.5 (xhigh)
     tokensPerSecond: 61,
@@ -301,6 +317,7 @@ export const catalogModels: ReadonlyArray<CatalogModel> = [
     usage: 1_320_000,
     usageSparkline: spark(303),
     reasoning: false,
+    kind: "chat",
     speed: "high",
     // AA tier estimate via GPT-4.1 nano (closest non-reasoning)
     tokensPerSecond: 188,
@@ -316,6 +333,7 @@ export const catalogModels: ReadonlyArray<CatalogModel> = [
     usage: 1_180_000,
     usageSparkline: spark(304),
     reasoning: true,
+    kind: "chat",
     speed: "high",
     // AA tier estimate via GPT-5.5 (medium)
     tokensPerSecond: 55,
@@ -331,6 +349,7 @@ export const catalogModels: ReadonlyArray<CatalogModel> = [
     usage: 740_000,
     usageSparkline: spark(305),
     reasoning: true,
+    kind: "chat",
     speed: "high",
     // AA tier estimate via GPT-5.5 (high)
     tokensPerSecond: 59,
@@ -346,6 +365,7 @@ export const catalogModels: ReadonlyArray<CatalogModel> = [
     usage: 198_000,
     usageSparkline: spark(306),
     reasoning: true,
+    kind: "chat",
     speed: "medium",
     // CUA/Operator not benchmarked on AA
     tokensPerSecond: null,
@@ -361,6 +381,7 @@ export const catalogModels: ReadonlyArray<CatalogModel> = [
     usage: 530_000,
     usageSparkline: spark(307),
     reasoning: false,
+    kind: "chat",
     speed: "high",
     // AA tier estimate via o3-mini (closest small/fast)
     tokensPerSecond: 209,
@@ -378,6 +399,7 @@ export const catalogModels: ReadonlyArray<CatalogModel> = [
     usage: 420_000,
     usageSparkline: spark(401),
     reasoning: true,
+    kind: "chat",
     speed: "medium",
     tokensPerSecond: 196,
     priceIn: 4,
@@ -392,6 +414,7 @@ export const catalogModels: ReadonlyArray<CatalogModel> = [
     usage: 360_000,
     usageSparkline: spark(402),
     reasoning: true,
+    kind: "chat",
     speed: "medium",
     tokensPerSecond: 146,
     priceIn: 4,
@@ -406,6 +429,7 @@ export const catalogModels: ReadonlyArray<CatalogModel> = [
     usage: 240_000,
     usageSparkline: spark(403),
     reasoning: false,
+    kind: "chat",
     speed: "high",
     // AA tier estimate via Grok 4.20 0309
     tokensPerSecond: 195,
@@ -423,6 +447,7 @@ export const catalogModels: ReadonlyArray<CatalogModel> = [
     usage: 168_000,
     usageSparkline: spark(501),
     reasoning: true,
+    kind: "chat",
     speed: "medium",
     // AA tier estimate via DeepSeek V4 Pro (Max)
     tokensPerSecond: 47,
@@ -440,6 +465,7 @@ export const catalogModels: ReadonlyArray<CatalogModel> = [
     usage: 92_000,
     usageSparkline: spark(601),
     reasoning: "unknown",
+    kind: "unknown",
     speed: "unknown",
     // Tinker hosting not measured on AA
     tokensPerSecond: null,
@@ -456,6 +482,7 @@ export const catalogModels: ReadonlyArray<CatalogModel> = [
     usage: 64_000,
     usageSparkline: spark(602),
     reasoning: "unknown",
+    kind: "unknown",
     speed: "unknown",
     // Tinker hosting not measured on AA
     tokensPerSecond: null,
@@ -471,6 +498,7 @@ export const catalogModels: ReadonlyArray<CatalogModel> = [
     usage: 38_000,
     usageSparkline: spark(603),
     reasoning: "unknown",
+    kind: "unknown",
     speed: "unknown",
     // Tinker hosting not measured on AA
     tokensPerSecond: null,
@@ -488,6 +516,7 @@ export const catalogModels: ReadonlyArray<CatalogModel> = [
     usage: 88_000,
     usageSparkline: spark(701),
     reasoning: false,
+    kind: "chat",
     speed: "high",
     // AA tier estimate via Nova 2.0 Pro Preview
     tokensPerSecond: 117,
