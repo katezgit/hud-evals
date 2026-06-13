@@ -38,7 +38,7 @@ export default async function ModelDetailPage({
 
   return (
     <div className="page-shell min-h-full gap-2">
-      <ModelDetailHeader model={model} viewer={viewer} />
+      <ModelDetailHeader model={model} />
       <ModelDetailTabs
         model={model}
         viewer={viewer}
