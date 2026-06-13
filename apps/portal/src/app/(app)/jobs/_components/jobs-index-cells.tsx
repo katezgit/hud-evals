@@ -1,5 +1,3 @@
-"use client";
-
 // Cells for the cross-taskset Jobs index. Derived from the within-taskset
 // jobs-table-cells.tsx at apps/portal/src/app/(app)/tasksets/[id]/_components/.
 // Per project no-over-abstract rule: copied at the new call site rather than

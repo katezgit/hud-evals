@@ -123,8 +123,6 @@ export function NewJobButton() {
   );
 }
 
-// ─── Filter bar ───────────────────────────────────────────────────────────
-
 interface FilterBarProps {
   scope: Scope;
   onScopeChange: (next: Scope) => void;
@@ -225,8 +223,6 @@ function FilterBar({
     </div>
   );
 }
-
-// ─── Table ────────────────────────────────────────────────────────────────
 
 interface JobsTableProps {
   rows: ReadonlyArray<HomeJobRow>;

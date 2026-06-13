@@ -71,7 +71,6 @@ function spark(seed: number): ReadonlyArray<number> {
 }
 
 export const TRAINING_MODELS: ReadonlyArray<TrainingModelRow> = [
-  // ── My Models (user-owned) ─────────────────────────────────────────────────
   {
     id: "kate-im-gpt-5-2",
     name: "Kate Im's GPT 5 (2)",
@@ -107,7 +106,6 @@ export const TRAINING_MODELS: ReadonlyArray<TrainingModelRow> = [
     checkpoints: 1,
   },
 
-  // ── Trainable Base Models ──────────────────────────────────────────────────
   {
     id: "gpt-5",
     name: "GPT 5",
@@ -186,8 +184,6 @@ export function getTrainingModel(id: string): TrainingModelRow | undefined {
   return TRAINING_MODELS.find((m) => m.id === id);
 }
 
-// ── Baseline coverage ────────────────────────────────────────────────────────
-
 export type BaselineState = "evaluated" | "partial" | "none";
 
 export interface BaselineCoverage {
@@ -237,8 +233,6 @@ export function getBaselineCoverage(
   if (hit) return hit;
   return { state: "none", totalTasks: fallbackTotalTasks, evaluatedTasks: 0 };
 }
-
-// ── Cost & method derivation ─────────────────────────────────────────────────
 
 export interface TrainingEstimate {
   estimatedTime: string;

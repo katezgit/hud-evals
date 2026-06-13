@@ -92,7 +92,6 @@ export function TrainingWizard({
     : null;
   const taskset = tasksetId ? (getTaskset(tasksetId) ?? null) : null;
 
-  // ── Navigation derivations
   const stepIndex = STEP_ORDER.indexOf(step);
   const nextStep = STEP_ORDER[stepIndex + 1] ?? null;
   const prevStep = STEP_ORDER[stepIndex - 1] ?? null;

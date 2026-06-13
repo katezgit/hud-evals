@@ -27,7 +27,6 @@ export interface EvalModelGroup {
 }
 
 export const EVAL_MODELS: ReadonlyArray<EvalModelRow> = [
-  // ── Anthropic ─────────────────────────────────────────────────────────────
   { id: "anthropic/claude-opus-4-5", name: "claude-opus-4-5", provider: "Anthropic", context: "200k" },
   { id: "anthropic/claude-sonnet-4-5", name: "claude-sonnet-4-5", provider: "Anthropic", context: "200k" },
   { id: "anthropic/claude-haiku-4-5", name: "claude-haiku-4-5", provider: "Anthropic", context: "200k" },
@@ -38,7 +37,6 @@ export const EVAL_MODELS: ReadonlyArray<EvalModelRow> = [
   { id: "anthropic/claude-3-5-sonnet", name: "claude-3-5-sonnet", provider: "Anthropic", context: "200k" },
   { id: "anthropic/claude-3-5-haiku", name: "claude-3-5-haiku", provider: "Anthropic", context: "200k" },
 
-  // ── OpenAI ────────────────────────────────────────────────────────────────
   { id: "openai/gpt-5", name: "gpt-5", provider: "OpenAI", context: "128k" },
   { id: "openai/gpt-5-mini", name: "gpt-5-mini", provider: "OpenAI", context: "128k" },
   { id: "openai/gpt-5-nano", name: "gpt-5-nano", provider: "OpenAI", context: "128k" },
@@ -46,7 +44,6 @@ export const EVAL_MODELS: ReadonlyArray<EvalModelRow> = [
   { id: "openai/gpt-4o-mini", name: "gpt-4o-mini", provider: "OpenAI", context: "128k" },
   { id: "openai/gpt-4-turbo", name: "gpt-4-turbo", provider: "OpenAI", context: "128k" },
 
-  // ── Tinker (OSS-hosted) ───────────────────────────────────────────────────
   { id: "tinker/gpt-oss-20b", name: "gpt-oss-20b", provider: "Tinker", context: "32k" },
   { id: "tinker/gpt-oss-120b", name: "gpt-oss-120b", provider: "Tinker", context: "32k" },
   { id: "tinker/qwen-2-5-7b", name: "qwen-2.5-7b", provider: "Tinker", context: "128k" },

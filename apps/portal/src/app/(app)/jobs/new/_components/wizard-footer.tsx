@@ -32,9 +32,7 @@ export interface WizardFooterProps {
   launchLabel?: ReactNode;
   /** Optional leading icon on the launch CTA. No trailing arrow — Launch is a commit, not navigation. */
   launchIcon?: ReactNode;
-  /** Discard-confirmation dialog title. */
   discardTitle?: string;
-  /** Discard-confirmation dialog body copy. */
   discardBody?: ReactNode;
 }
 
