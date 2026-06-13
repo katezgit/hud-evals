@@ -2,7 +2,7 @@
 
 import { useState, type ReactNode } from "react";
 import {
-  Activity,
+  // Activity,
   ArrowUpRightIcon,
   BarChart3,
   BookOpen,
@@ -61,10 +61,10 @@ const WORKSPACE_ITEMS: ReadonlyArray<NavItem> = [
   { href: "/library", label: "Library", Icon: BookOpen },
 ];
 
-const RESOURCE_ITEMS: ReadonlyArray<NavItem> = [
-  { href: "/dashboard", label: "Dashboard", Icon: BarChart3 },
-  { href: "/progress", label: "Progress", Icon: Activity },
-];
+// const RESOURCE_ITEMS: ReadonlyArray<NavItem> = [
+//   { href: "/dashboard", label: "Dashboard", Icon: BarChart3 },
+//   { href: "/progress", label: "Progress", Icon: Activity },
+// ];
 
 const EXTERNAL_ITEMS = [
   { href: "https://vendor.hud.ai", label: "Marketplace", Icon: ShoppingBag },
@@ -246,12 +246,12 @@ function SidebarBody({
           items={workspaceItems}
           collapsed={collapsed}
         />
-        <NavZone
+        {/* <NavZone
           label="Observe"
           items={RESOURCE_ITEMS}
           collapsed={collapsed}
           className="mt-5"
-        />
+        /> */}
 
         <div className="mt-auto flex flex-col">
           {collapsed ? <MarketDocsRowCollapsed /> : <MarketDocsRow />}
