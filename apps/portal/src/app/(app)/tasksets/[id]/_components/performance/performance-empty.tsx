@@ -1,9 +1,15 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { Play } from "lucide-react";
+import { ChevronDown, GraduationCap, Play } from "lucide-react";
 import { Button } from "@repo/ui/components/button";
 import { CodeBlock } from "@repo/ui/components/code-block";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@repo/ui/components/dropdown-menu";
 
 interface PerformanceEmptyProps {
   tasksetId: string;
@@ -33,14 +39,29 @@ export default function PerformanceEmpty({ tasksetId }: PerformanceEmptyProps) {
           code={`hud eval ${tasksetId} -m <model>`}
         />
       </div>
-      <Button
-        type="button"
-        variant="primary"
-        onClick={handleRun}
-      >
-        <Play aria-hidden="true" />
-        Run Taskset
-      </Button>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button type="button" variant="primary">
+            <Play aria-hidden="true" />
+            Run on taskset
+            <ChevronDown aria-hidden="true" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="start">
+          <DropdownMenuItem onSelect={handleRun}>
+            <Play aria-hidden="true" />
+            Run evaluation
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            onSelect={() =>
+              router.push(`/jobs/new?type=training&taskset=${tasksetId}`)
+            }
+          >
+            <GraduationCap aria-hidden="true" />
+            Run Training job
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
     </div>
   );
 }

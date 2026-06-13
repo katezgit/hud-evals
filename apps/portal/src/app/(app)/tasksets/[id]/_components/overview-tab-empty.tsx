@@ -1,8 +1,15 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
+import { ChevronDown, GraduationCap, Play } from "lucide-react";
 import { Button } from "@repo/ui/components/button";
 import { CodeBlock } from "@repo/ui/components/code-block";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@repo/ui/components/dropdown-menu";
 import type { Taskset } from "@/lib/mock/tasksets";
 
 // Two zero-states keyed on whether tasks exist yet:
@@ -47,6 +54,15 @@ export function OverviewEmptyNoTasks({ tasksetId }: { tasksetId: string }) {
 }
 
 export function OverviewEmptyNoRuns({ tasksetId }: { tasksetId: string }) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const handleRun = () => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("run", "1");
+    router.replace(`/tasksets/${tasksetId}?${params.toString()}`, {
+      scroll: false,
+    });
+  };
   return (
     <div className="flex flex-col items-center gap-3 px-6 py-10 text-center">
       <h3 className="text-body font-medium text-foreground">
@@ -56,6 +72,29 @@ export function OverviewEmptyNoRuns({ tasksetId }: { tasksetId: string }) {
         Use the HUD CLI to launch a run against this taskset.
       </p>
       <CodeBlock code={`hud eval ${tasksetId}`} />
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button type="button" variant="primary" size="sm">
+            <Play aria-hidden="true" />
+            Run on taskset
+            <ChevronDown aria-hidden="true" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="center">
+          <DropdownMenuItem onSelect={handleRun}>
+            <Play aria-hidden="true" />
+            Run evaluation
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            onSelect={() =>
+              router.push(`/jobs/new?type=training&taskset=${tasksetId}`)
+            }
+          >
+            <GraduationCap aria-hidden="true" />
+            Run Training job
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
     </div>
   );
 }
