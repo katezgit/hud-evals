@@ -1,52 +1,72 @@
 "use client";
 
+import { Input } from "@repo/ui/components/input";
 import { Label } from "@repo/ui/components/label";
-import { SegmentedControl } from "@repo/ui/components/segmented-control";
-
-const GROUP_SIZES = [1, 3, 4, 5, 8, 10, 12, 16, 20, 40] as const;
-
-// ±X% confidence at sample size n — locked table; do not extrapolate.
-export const CONFIDENCE_BY_N: Record<number, number> = {
-  1: 70,
-  3: 37,
-  4: 31,
-  5: 28,
-  8: 22,
-  10: 20,
-  12: 18,
-  16: 15,
-  20: 13,
-  40: 9,
-};
+import { Slider } from "@repo/ui/components/slider";
+import { cn } from "@repo/ui/lib/cn";
 
 interface GroupSizeControlProps {
   value: number;
   onValueChange: (n: number) => void;
 }
 
+const MIN = 1;
+const MAX = 40;
+const TICKS = [1, 10, 20, 40] as const;
+// Amber above this MoE %; neutral fill once we drop to/under it.
+const MOE_AMBER_THRESHOLD_PCT = 20;
+
+// 95% CI, p̂=0.5 (worst-case) → MoE = 1.96 * sqrt(0.25 / n)
+function marginOfErrorPct(n: number): number {
+  if (n <= 0) return 0;
+  return Math.round(1.96 * Math.sqrt(0.25 / n) * 100);
+}
+
+function clamp(n: number): number {
+  if (Number.isNaN(n)) return MIN;
+  return Math.max(MIN, Math.min(MAX, Math.round(n)));
+}
+
 export default function GroupSizeControl({ value, onValueChange }: GroupSizeControlProps) {
-  const confidence = CONFIDENCE_BY_N[value] ?? 70;
-  // Bar fill: 100% → 0%, i.e. lower confidence interval → fuller bar.
-  // Anchor: ±70% (n=1) is empty (0% fill); ±9% (n=40) is full (100% fill).
-  const fillPct = Math.round(((70 - confidence) / (70 - 9)) * 100);
+  const moePct = marginOfErrorPct(value);
+  // Bar length encodes magnitude: ±~98% (n=1) → ~100% full; lower n→lower fill.
+  const fillPct = Math.min(100, Math.round((moePct / 98) * 100));
+  const isAmber = moePct > MOE_AMBER_THRESHOLD_PCT;
 
   return (
     <div className="flex flex-col gap-3">
       <div className="flex flex-col gap-1.5">
-        <Label id="run-taskset-group-size-label">Group Size (n)</Label>
-        <SegmentedControl
-          size="sm"
-          value={String(value)}
-          onValueChange={(v) => onValueChange(Number(v))}
-          aria-labelledby="run-taskset-group-size-label"
-          className="w-fit"
-        >
-          {GROUP_SIZES.map((n) => (
-            <SegmentedControl.Item key={n} value={String(n)} className="font-mono">
-              {n}
-            </SegmentedControl.Item>
-          ))}
-        </SegmentedControl>
+        <Label htmlFor="run-taskset-group-size">Group Size (n)</Label>
+        <p className="text-caption text-muted-foreground">
+          Trials per task. Higher n shrinks the margin of error.
+        </p>
+        <div className="flex items-center gap-2">
+          <Input
+            id="run-taskset-group-size"
+            type="number"
+            min={MIN}
+            max={MAX}
+            value={value}
+            onChange={(e) => onValueChange(clamp(e.target.valueAsNumber))}
+            className="h-7 w-14 rounded-md px-2 text-right text-label font-mono tabular-nums"
+          />
+          <div className="flex h-7 flex-1 flex-col justify-between">
+            <Slider
+              className="h-4"
+              value={value}
+              onValueChange={onValueChange}
+              min={MIN}
+              max={MAX}
+              step={1}
+              aria-label="Group size slider"
+            />
+            <div className="flex justify-between font-mono text-meta leading-none text-meta-foreground">
+              {TICKS.map((t) => (
+                <span key={t}>{t}</span>
+              ))}
+            </div>
+          </div>
+        </div>
       </div>
       <div className="flex flex-col gap-1.5">
         <span className="text-label font-medium text-muted-foreground">
@@ -55,15 +75,23 @@ export default function GroupSizeControl({ value, onValueChange }: GroupSizeCont
         <div className="flex items-center gap-2">
           <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-secondary-surface">
             <div
-              className="h-full rounded-full bg-state-warning"
+              className={cn(
+                "h-full rounded-full transition-[width,background-color] duration-subtle ease-out-standard",
+                isAmber ? "bg-state-warning" : "bg-muted-foreground",
+              )}
               style={{ width: `${fillPct}%` }}
             />
           </div>
-          <span className="whitespace-nowrap font-mono text-label font-medium text-state-warning-text">
-            ±{confidence}%
+          <span
+            className={cn(
+              "whitespace-nowrap font-mono text-label font-medium tabular-nums",
+              isAmber ? "text-state-warning-text" : "text-muted-foreground",
+            )}
+          >
+            ±{moePct}%
           </span>
         </div>
-        <span className="font-mono text-meta text-meta-foreground">
+        <span className="font-mono text-caption text-meta-foreground">
           at n={value} · 95% CI · p̂≈0.5
         </span>
       </div>

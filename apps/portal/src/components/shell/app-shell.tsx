@@ -2,14 +2,13 @@
 
 import { useState, type ReactNode } from "react";
 import {
-  Activity,
+  // Activity,
   ArrowUpRightIcon,
   BarChart3,
   BookOpen,
   Bot,
   Box,
   BrainCircuit,
-  Home,
   ListChecks,
   Menu,
   ShoppingBag,
@@ -54,7 +53,7 @@ interface NavItem {
 }
 
 const WORKSPACE_ITEMS: ReadonlyArray<NavItem> = [
-  { href: "/", label: "Home", Icon: Home },
+  { href: "/jobs", label: "Jobs", Icon: BarChart3 },
   { href: "/tasksets", label: "Tasksets", Icon: ListChecks, count: 12 },
   { href: "/environments", label: "Environments", Icon: Box, count: 8 },
   { href: "/models", label: "Models", Icon: BrainCircuit, count: 5 },
@@ -62,10 +61,10 @@ const WORKSPACE_ITEMS: ReadonlyArray<NavItem> = [
   { href: "/library", label: "Library", Icon: BookOpen },
 ];
 
-const RESOURCE_ITEMS: ReadonlyArray<NavItem> = [
-  { href: "/dashboard", label: "Dashboard", Icon: BarChart3 },
-  { href: "/progress", label: "Progress", Icon: Activity },
-];
+// const RESOURCE_ITEMS: ReadonlyArray<NavItem> = [
+//   { href: "/dashboard", label: "Dashboard", Icon: BarChart3 },
+//   { href: "/progress", label: "Progress", Icon: Activity },
+// ];
 
 const EXTERNAL_ITEMS = [
   { href: "https://vendor.hud.ai", label: "Marketplace", Icon: ShoppingBag },
@@ -88,7 +87,7 @@ export function AppShell({ email, name, children }: AppShellProps) {
   const creditState = useCreditsBalance();
   const { hasActive } = useActiveJobs();
   const workspaceItems = WORKSPACE_ITEMS.map((item) =>
-    item.href === "/" ? { ...item, live: hasActive } : item,
+    item.href === "/jobs" ? { ...item, live: hasActive } : item,
   );
 
   return (
@@ -247,12 +246,12 @@ function SidebarBody({
           items={workspaceItems}
           collapsed={collapsed}
         />
-        <NavZone
+        {/* <NavZone
           label="Observe"
           items={RESOURCE_ITEMS}
           collapsed={collapsed}
           className="mt-5"
-        />
+        /> */}
 
         <div className="mt-auto flex flex-col">
           {collapsed ? <MarketDocsRowCollapsed /> : <MarketDocsRow />}

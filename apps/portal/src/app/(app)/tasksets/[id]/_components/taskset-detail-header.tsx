@@ -3,13 +3,13 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
+  ChevronDown,
   ChevronRight,
   Download,
+  GraduationCap,
   MoreHorizontal,
   Play,
   Plus,
-  Share2,
-  Sparkles,
   Upload,
 } from "lucide-react";
 import { Button } from "@repo/ui/components/button";
@@ -81,24 +81,65 @@ export default function TasksetDetailHeader({ taskset }: TasksetDetailHeaderProp
         </div>
 
         <div className="flex shrink-0 items-center gap-2">
-          <IconButton
-            variant="primary"
-            size="sm"
-            aria-label="Run Taskset"
-            className="md:hidden"
-            onClick={openRunDialog}
-          >
-            <Play aria-hidden="true" />
-          </IconButton>
-          <Button
-            variant="primary"
-            size="sm"
-            className="hidden md:inline-flex"
-            onClick={openRunDialog}
-          >
-            <Play aria-hidden="true" />
-            Run Taskset
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <IconButton
+                variant="primary"
+                size="sm"
+                aria-label="Run on taskset"
+                className="md:hidden"
+                type="button"
+              >
+                <Play aria-hidden="true" />
+              </IconButton>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onSelect={openRunDialog}>
+                <Play aria-hidden="true" />
+                Run evaluation
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onSelect={() =>
+                  router.push(
+                    `/jobs/new?type=training&taskset=${taskset.id}`,
+                  )
+                }
+              >
+                <GraduationCap aria-hidden="true" />
+                Run Training job
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="primary"
+                size="sm"
+                className="hidden md:inline-flex"
+                type="button"
+              >
+                <Play aria-hidden="true" />
+                Run on taskset
+                <ChevronDown aria-hidden="true" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onSelect={openRunDialog}>
+                <Play aria-hidden="true" />
+                Run evaluation
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onSelect={() =>
+                  router.push(
+                    `/jobs/new?type=training&taskset=${taskset.id}`,
+                  )
+                }
+              >
+                <GraduationCap aria-hidden="true" />
+                Run Training job
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <IconButton
@@ -120,16 +161,8 @@ export default function TasksetDetailHeader({ taskset }: TasksetDetailHeaderProp
                 Upload Tasks
               </DropdownMenuItem>
               <DropdownMenuItem onSelect={() => {}}>
-                <Share2 aria-hidden="true" />
-                Share
-              </DropdownMenuItem>
-              <DropdownMenuItem onSelect={() => {}}>
                 <Download aria-hidden="true" />
                 Export JSON
-              </DropdownMenuItem>
-              <DropdownMenuItem onSelect={() => {}}>
-                <Sparkles aria-hidden="true" />
-                Train on taskset
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

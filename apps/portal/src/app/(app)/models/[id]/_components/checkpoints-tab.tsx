@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import {
   createColumnHelper,
   flexRender,
@@ -53,6 +54,7 @@ export function CheckpointsTab({
         <CheckpointsTable
           rows={checkpoints}
           activeCheckpointId={model.activeCheckpointId}
+          modelId={model.id}
         />
       </div>
     </div>
@@ -64,9 +66,11 @@ const columnHelper = createColumnHelper<Checkpoint>();
 function CheckpointsTable({
   rows,
   activeCheckpointId,
+  modelId,
 }: {
   rows: ReadonlyArray<Checkpoint>;
   activeCheckpointId: string | null;
+  modelId: string;
 }) {
   const columns: ColumnDef<Checkpoint, unknown>[] = [
     columnHelper.accessor("id", {
@@ -108,7 +112,13 @@ function CheckpointsTable({
           columnHelper.display({
             id: "fork",
             header: () => <span className="sr-only">Fork action</span>,
-            cell: (info) => <ForkCell checkpoint={info.row.original} />,
+            cell: (info) =>
+              info.row.original.id !== activeCheckpointId && (
+                <TrainCell
+                  checkpoint={info.row.original}
+                  modelId={modelId}
+                />
+              ),
           }),
         ]
       : []),
@@ -176,18 +186,26 @@ function CreatedCell({ iso }: { iso: string }) {
   );
 }
 
-function ForkCell({ checkpoint }: { checkpoint: Checkpoint }) {
-  // Pending operator confirmation (model-detail.wireframe.md → Pending
-  // confirmations #3): the Fork target route is not yet implemented. Render
-  // as a non-navigating button until the route lands.
+function TrainCell({
+  checkpoint,
+  modelId,
+}: {
+  checkpoint: Checkpoint;
+  modelId: string;
+}) {
+  const router = useRouter();
   return (
     <Button
       variant="ghost"
       size="sm"
-      onClick={(event) => event.preventDefault()}
-      aria-label={`Fork from checkpoint ${checkpoint.id}`}
+      onClick={() =>
+        router.push(
+          `/jobs/new?type=training&modelId=${modelId}&forkFrom=${checkpoint.id}`,
+        )
+      }
+      aria-label={`Fork and train from checkpoint ${checkpoint.id}`}
     >
-      Fork from this checkpoint
+      Train
     </Button>
   );
 }

@@ -208,11 +208,9 @@ export default function TasksTab({ taskset }: TasksTabProps) {
 
 function CustomColumnHeader({ column }: { column: TasksetCustomColumn }) {
   return (
-    <span className="inline-flex items-center gap-1.5">
-      <span className="text-label font-medium text-muted-foreground">
-        {column.label}
-      </span>
-      <Badge size="sm" variant="neutral">
+    <span className="inline-flex items-baseline gap-1.5">
+      <span>{column.label}</span>
+      <Badge size="sm" variant="neutral" className="border-transparent bg-transparent px-0 py-0 opacity-70">
         {column.type}
       </Badge>
     </span>
