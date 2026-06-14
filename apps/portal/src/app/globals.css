@@ -48,6 +48,16 @@
   background-size: 56px 56px;
 }
 
+/* Same 56px grid as bg-grid-backdrop but without the background-color clamp,
+ * so it composes over any surface utility (e.g. bg-elevated-surface on the
+ * onboarding form panel). Pair with a base surface class — never use alone. */
+@utility bg-grid-overlay {
+  background-image:
+    linear-gradient(to right,  var(--color-grid-line) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--color-grid-line) 1px, transparent 1px);
+  background-size: 56px 56px;
+}
+
 /* ─── Row-action reveal ──────────────────────────────────────────────────────
  * Hover/focus-reveal pattern for secondary row affordances (copy, kebab, etc.)
  * inside a `.group/row` table row. Lives here, not in @repo/ui, because the
