@@ -2,6 +2,7 @@
 
 import { Input } from "@repo/ui/components/input";
 import { Label } from "@repo/ui/components/label";
+import { Progress } from "@repo/ui/components/progress";
 import { Slider } from "@repo/ui/components/slider";
 import { cn } from "@repo/ui/lib/cn";
 
@@ -73,13 +74,12 @@ export default function GroupSizeControl({ value, onValueChange }: GroupSizeCont
           Margin of error
         </span>
         <div className="flex items-center gap-2">
-          <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-secondary-surface">
-            <div
-              className={cn(
-                "h-full rounded-full transition-[width,background-color] duration-subtle ease-out-standard",
-                isAmber ? "bg-state-warning" : "bg-muted-foreground",
-              )}
-              style={{ width: `${fillPct}%` }}
+          <div className="flex-1">
+            <Progress
+              value={fillPct}
+              state={isAmber ? "warning" : "neutral"}
+              size="md"
+              aria-label="Margin of error"
             />
           </div>
           <span
