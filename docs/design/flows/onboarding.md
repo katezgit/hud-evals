@@ -29,12 +29,12 @@ Post-signup through the Get Started dashboard landing. The two forced wizard scr
 [ 1. Create org ]           ← /onboarding/org
   Name + slug
   Logo optional
-  "Skip onboarding" link available
+  No skip affordance — org creation is required
         │
         ▼
 [ 2. Invite members ]       ← /onboarding/invite
   Email(s) + role
-  "Skip" link at equal visual weight
+  "Skip" text-link below CTA (single skip path)
   Inline success on send — no separate confirmation screen
   ┌─────┴───────┐
   Skip       Send invitations
@@ -42,12 +42,12 @@ Post-signup through the Get Started dashboard landing. The two forced wizard scr
   └─────┬─────────┘
         │
         ▼
-[ 3. Get Started landing ]  ← / (Home, first session)
+[ 3. Get Started landing ]  ← / (Home — persistent for new users)
   "Get started with HUD" heading
   Optional intro video
   Two cards: "Use an Environment template" (Most popular) | "Read the docs"
-  "Skip / or go to your dashboard →" dismiss link
-  Dismissible Setup panel (collapsed by default)
+  "Skip / or go to your dashboard →" → navigates to /jobs, no flag written
+  Dismissible Setup panel (collapsed by default, dismiss is in-session only)
   Install uv / API key / first Environment accordion — user-initiated
         │
         ├─── "Use an Environment template" ──→ template picker → CLI flow
@@ -55,7 +55,7 @@ Post-signup through the Get Started dashboard landing. The two forced wizard scr
         │
         ├─── "Read the docs" ──→ docs.hud.ai (new tab)
         │
-        └─── "Skip" ──→ empty dashboard
+        └─── "Skip / go to your dashboard →" ──→ /jobs (sidebar nav also available at any time)
 ```
 
 ---
@@ -66,13 +66,11 @@ Post-signup through the Get Started dashboard landing. The two forced wizard scr
 
 **Who**: All users, immediately after email verification / OAuth callback.
 
-**Screen**: `/onboarding/org` — single centered card. Two required fields (org name, slug) and one optional affordance (logo upload). "Skip onboarding" text-link top-right of card header.
+**Screen**: `/onboarding/org` — single centered card. Two required fields (org name, slug) and one optional affordance (logo upload). No skip affordance — org creation is the only forced step.
 
 **Action that ends the step**: User clicks "Create organization" with a valid org name + slug.
 
 **System response**: Org record created. User record attached to org as Owner. Session scoped to new org.
-
-**On "Skip onboarding"**: Org record not created at skip time. User lands on the dashboard with a deferred "Finish setting up your org" header prompt. No forced wizard.
 
 **Success criterion**: Org exists in the system with slug; user is Owner.
 
@@ -84,7 +82,7 @@ Post-signup through the Get Started dashboard landing. The two forced wizard scr
 
 **Who**: All users, immediately after Step 1.
 
-**Screen**: `/onboarding/invite` — single centered card. Chip-style email input (comma-separated or Enter-to-add). Role selector (default: Member). "Send invitations" primary CTA. "Skip" text-link directly below the CTA at equal visual weight. "Skip onboarding" text-link top-right of card header.
+**Screen**: `/onboarding/invite` — single centered card. Chip-style email input (comma-separated or Enter-to-add). Role selector (default: Member). "Send invitations" primary CTA. "Skip" text-link directly below the CTA at equal visual weight. No header-level skip link — one skip path only (the in-card link below the CTA).
 
 **Action that ends the step**:
 - "Skip" text-link → proceeds to Get Started landing. No invites queued. ~1 click.
@@ -100,23 +98,23 @@ Post-signup through the Get Started dashboard landing. The two forced wizard scr
 
 ---
 
-### Step 3 — Get Started landing (`/`, first session)
+### Step 3 — Get Started landing (`/`)
 
-**Who**: All users who completed Steps 1–2, or who signed up and the dashboard is loading fresh.
+**Who**: All users who completed Steps 1–2.
 
-**Surface**: Standard dashboard layout (sidebar + global nav restored). First-session overlay on the Home route — not a separate route, not a wizard screen. Wizard chrome is gone.
+**Surface**: Standard dashboard layout (sidebar + global nav restored). The Get Started landing is the persistent home for new users — it always renders on first load of `/`. Not a wizard screen; wizard chrome is gone. There is no completion flag and no auto-redirect away from `/` for returning users. Returning users reach `/jobs` and other surfaces via the sidebar at any time.
 
 **Contents**:
 - Heading: "Get started with HUD"
 - Optional intro video block (16:9 embed; omitted if no video asset)
 - Question: "How do you want to get started?"
 - Two cards: "Use an Environment template" (badge: "Most popular") and "Read the docs" (links `docs.hud.ai`)
-- "Skip / or go to your dashboard →" text-link below the cards (one click to empty dashboard)
-- Dismissible Setup panel: collapsed by default, title row "SET UP" with expand toggle and Dismiss ×. Expanding reveals the five-item accordion (Install uv, Install HUD Tool, Get and Set API Keys, Create Your First Environment, Explore Documentation) mirroring production screenshot `00d`. Each item has a self-report "I've done this" affordance.
+- "Skip / or go to your dashboard →" text-link below the cards — navigates to `/jobs`. Writes no persistent state (no localStorage, no session flag).
+- Dismissible Setup panel: collapsed by default, title row "SET UP" with expand toggle and Dismiss ×. "Dismiss ×" hides the panel for the current in-session view only — does NOT gate the landing on future loads (no localStorage write). Expanding reveals the five-item accordion (Install uv, Install HUD Tool, Get and Set API Keys, Create Your First Environment, Explore Documentation) mirroring production screenshot `00d`. Each item has a self-report "I've done this" affordance.
 
-**Action that ends the step**: Any of the three paths (template card, docs card, skip link). The Get Started surface does not re-appear after dismissal.
+**Action that ends the step**: The user navigates away voluntarily — via any card, the skip link, or the sidebar. No gate, no forced redirect.
 
-**System response**: User's chosen path initiates downstream flow (template picker, docs tab, or empty dashboard). `onboarding_complete` event fires on first navigation away from this surface.
+**System response**: User's chosen path initiates downstream flow (template picker, docs tab, or `/jobs`).
 
 **Success criterion**: User has entered the dashboard and chosen an initial path.
 
@@ -129,9 +127,9 @@ Post-signup through the Get Started dashboard landing. The two forced wizard scr
 | Step | Alex (Frontier RL Researcher) | Sam (Applied Agent Engineer) | Riley (RL Env Vendor) |
 |---|---|---|---|
 | Create org | Pre-filled name → one click. Logo skipped. ~20 sec. | May rename to team/company. Still ≤30 sec. | Own name or company. Same as Alex. |
-| Invite members | Clicks "Skip". 1 click. | Enters ~5 teammate emails, sends. ~30–60 sec. | Clicks "Skip". Solo contractor. |
-| Get Started landing | Clicks "Use an Environment template" → picks Coding or Blank template → CLI. Ignores setup panel. | May expand Setup panel for API key, then clicks template card. | Clicks "Skip / go to dashboard" → navigates to Environments directly. |
-| Total to template/CLI | 3 clicks (create org → skip invite → template card) | ~2 min (create org → invite teammates → template card) | 3 clicks (create org → skip invite → skip landing) |
+| Invite members | Clicks "Skip" (in-card link). 1 click. | Enters ~5 teammate emails, sends. ~30–60 sec. | Clicks "Skip" (in-card link). Solo contractor. |
+| Get Started landing | Clicks "Use an Environment template" → picks Coding or Blank template → CLI. Ignores setup panel. | May expand Setup panel for API key, then clicks template card. | Clicks "Skip / go to your dashboard →" → uses sidebar to navigate to Environments directly. |
+| Total to template/CLI | 3 clicks (create org → skip invite → template card) | ~2 min (create org → invite teammates → template card) | 3 clicks (create org → skip invite → sidebar nav) |
 
 **Alex path critical rule**: If Alex ran `hud init` before opening the dashboard, the system treats the account as "not new" and skips onboarding entirely. The Get Started landing does not appear. Dashboard shows the standard Home with the first Job already seeded.
 
@@ -176,7 +174,7 @@ Five funnel events from `docs/design/guidelines/onboarding.md` Rule 7 plus HUD-s
 | `invites_sent` | User clicks "Send invitations" on Step 2 | `/onboarding/invite` | `invite_count`, `org_id` |
 | `env_deployed` | Environment deployed via template flow | Template picker → deploy action | `template_id`, `env_id`, `org_id` |
 | `first_trace_returned` | First Run in an Eval Job completes | Job execution — fires on first completed Run | `job_id`, `trace_id`, `org_id`, `time_since_signup_ms` |
-| `onboarding_complete` | User first navigates away from the Get Started landing | Dashboard routing | `org_id`, `path_taken` (template / docs / skip), `ttfhw_ms` |
+| `onboarding_complete` | User first navigates away from the Get Started landing (via card, skip link, or sidebar) | Dashboard routing | `org_id`, `path_taken` (template / docs / skip / sidebar), `ttfhw_ms` |
 
 **Funnel event surface mapping (the five mandated events)**:
 

@@ -10,16 +10,18 @@ Cross-link: [`docs/design/flows/onboarding.md`](../flows/onboarding.md)
 
 Centered-card layout. No global sidebar. No top nav. `bg-muted` page, card `variant="elevated"`. The shell signals "you are outside the app" without a dark-page inversion.
 
-**Progress strip**: Two dots only — one for org-create, one for invite. Shown on Step 1 and Step 2. Not shown on the post-onboarding Get Started landing (Step 3 is the dashboard, not a wizard step).
+**BrandMark**: `BrandMark sm` (24px), horizontally centered, at the top of the shell above the progress strip. One instance per onboarding screen — belongs to the shell, not the card.
+
+**Progress strip**: Two dots only — one for org-create, one for invite. Shown on Step 1 and Step 2. Not shown on the post-onboarding Get Started landing (Step 3 is the dashboard, not a wizard step). Sits below the BrandMark, `mb-6` above the card.
 
 ```
+          [HUD]   ← BrandMark sm, centered
+
 Step dots:  ● ○
             Org  Invite
 ```
 
-Two dots, not seven. No percentage text. No step-count label. Positioned above the card, centered, `mb-6`.
-
-**Skip onboarding**: Text link at top-right of the card header on both wizard screens (Step 1 and Step 2). Mirrors current production pattern from screenshot `00d`. One click drops the user directly to the empty dashboard. Copy: "Skip onboarding".
+Two dots, not seven. No percentage text. No step-count label.
 
 **Card width**: `max-w-[480px]`.
 
@@ -33,15 +35,14 @@ Two dots, not seven. No percentage text. No step-count label. Positioned above t
 ┌──────────────────────────────────────────────────────────────────┐
 │                 PAGE: bg-muted (full viewport)                    │
 │                                                                  │
+│                    [HUD]  ← BrandMark sm, centered               │
+│                                                                  │
 │         ●  ○   ← step progress strip (2 dots)                    │
 │                                                                  │
 │         ┌────────────────────────────────────────┐              │
 │         │  CARD variant="elevated"  max-w-[480px] │              │
 │         │                                        │              │
 │         │  CARD HEADER  px-6 pt-6               │              │
-│         │  ┌───┐                  Skip onboarding│              │
-│         │  │HUD│  BrandMark sm (24px)    text-link│              │
-│         │  └───┘  mb-4               muted-fg    │              │
 │         │                                        │              │
 │         │  Create your organization              │              │
 │         │  text-title font-medium                │              │
@@ -87,7 +88,7 @@ Two dots, not seven. No percentage text. No step-count label. Positioned above t
 - "Create organization" disabled until org name is non-empty and slug is valid (letters, numbers, hyphens, ≥2 chars).
 - No role picker — user is always Owner at org creation.
 - Logo upload is optional and has an explicit label calling it optional. If skipped, the org placeholder initial is used everywhere.
-- "Skip onboarding" at top-right drops to `/` with no wizard steps completed. Org record is not created on skip — user lands on dashboard with a deferred "Finish setting up your org" prompt in the header. (Same pattern current production 00d uses for the Setup accordion.)
+- No skip affordance on this screen. Org creation is the only forced step. The user must create the org to proceed.
 - `signup` funnel event fires on the OAuth callback / magic-link verification. This screen does not fire an event — it's the first dashboard interaction post-signup.
 
 **Persona notes**:
@@ -103,6 +104,8 @@ Two dots, not seven. No percentage text. No step-count label. Positioned above t
 ┌──────────────────────────────────────────────────────────────────┐
 │                 PAGE: bg-muted (full viewport)                    │
 │                                                                  │
+│                    [HUD]  ← BrandMark sm, centered               │
+│                                                                  │
 │         ●  ●   ← step progress strip (2 dots, both active)       │
 │         ← Back                                                   │
 │                                                                  │
@@ -110,9 +113,6 @@ Two dots, not seven. No percentage text. No step-count label. Positioned above t
 │         │  CARD variant="elevated"  max-w-[480px] │              │
 │         │                                        │              │
 │         │  CARD HEADER  px-6 pt-6               │              │
-│         │  ┌───┐                  Skip onboarding│              │
-│         │  │HUD│  BrandMark sm (24px)    text-link│              │
-│         │  └───┘  mb-4               muted-fg    │              │
 │         │                                        │              │
 │         │  Invite members                        │              │
 │         │  text-title font-medium                │              │
@@ -166,6 +166,7 @@ Two dots, not seven. No percentage text. No step-count label. Positioned above t
 **After "Skip"**: No invite queued. Proceeds directly to the Get Started landing.
 
 **Annotations**:
+- Skip affordance: one path only — the "Skip" text-link below the "Send invitations" button. The card header has no "Skip onboarding" link here. The header link was dropped because the in-card link already sits in the correct visual context (contrasted against the primary CTA) and a second affordance at the header adds noise without reducing friction. One skip path is sufficient.
 - "Skip" is a text-link directly below the "Send invitations" button. Same card, same visual plane. Not hidden in small type — same size as card supporting copy. Skipping is one click.
 - Chip-style email input: chips render as the user types and presses comma or Enter. Chips are deletable (× on each chip). Fallback: plain comma-separated text input if the chip library is not yet available.
 - Role selector default: Member. Admin option for users who want to give billing / settings access from day one.
@@ -182,7 +183,7 @@ Two dots, not seven. No percentage text. No step-count label. Positioned above t
 
 ---
 
-## Step 3 — Get Started landing (`/`, first session)
+## Step 3 — Get Started landing (`/`)
 
 This is the dashboard, not a wizard screen. Wizard chrome (progress strip, card shell) is gone. The standard sidebar and global nav appear for the first time.
 
@@ -257,11 +258,13 @@ This is the dashboard, not a wizard screen. Wizard chrome (progress strip, card 
 
 **Annotations**:
 - This is the dashboard, not a wizard screen. The two-dot progress strip does not appear here.
-- "Get started with HUD" heading is the entire onboarding carry-over at this stage. It replaces the standard Home empty state for the first session only.
-- Cards: "Use an Environment template" links to the template picker flow (mirrors screenshot `00f` — eight template tiles: Blank Environment, Browser, Coding, Deep Research, Remote Browser, Data Science, Verilog Coding, Rubrics). "Read the docs" opens `docs.hud.ai` in a new tab.
+- The Get Started landing is the persistent home for new users in this demo. It always renders on `/` on first load. There is no completion flag and no auto-redirect away from `/` for returning users. The user reaches `/jobs`, Environments, or any other surface voluntarily via the sidebar at any time.
+- "Get started with HUD" heading is the entire onboarding carry-over at this stage. It replaces the standard Home empty state.
+- Cards: "Use an Environment template" links to the template picker flow (mirrors screenshot `00f` — eight template tiles: Blank Environment, Browser, Coding, Deep Research, Remote Browser, Data Science, Verilog Coding, Rubrics). Clicking this card navigates to the template flow — no flag written.
+- "Read the docs" opens `docs.hud.ai` in a new tab.
 - "Most popular" badge on the template card — follows operator-endorsed vocabulary from the Get Started screen reference.
-- "Skip / or go to your dashboard →" text-link below the two cards. One click shows the empty dashboard directly. The Get Started landing does not re-appear after dismissal (persisted state).
-- Setup panel: collapsed by default. Title row shows "SET UP" in monospace uppercase + expand toggle + "Dismiss ×". Dismiss × permanently removes the panel. Expanding shows the same five-item accordion as production `00d`. This is where install-uv, API key, first-environment steps live — not in the forced wizard.
+- "Skip / or go to your dashboard →" text-link below the two cards. One click navigates to `/jobs`. Does not write any persistent state — no localStorage, no session flag.
+- Setup panel: collapsed by default. Title row shows "SET UP" in monospace uppercase + expand toggle + "Dismiss ×". "Dismiss ×" hides the panel for the current in-session view only — does NOT gate the landing on future loads (no localStorage write). Expanding shows the same five-item accordion as production `00d`. This is where install-uv, API key, first-environment steps live — not in the forced wizard.
 - `api_key_issued` event fires from within the setup panel's "Get and Set API Keys" accordion item (key generated on expand or on button click).
 - `env_deployed` and `first_call_from_deployed_code` fire from the template flow (reached via "Use an Environment template" card), not from the onboarding wizard.
 
@@ -276,9 +279,10 @@ This is the dashboard, not a wizard screen. Wizard chrome (progress strip, card 
 
 | Screen | DS primitives | Notes |
 |---|---|---|
-| Step 1 (Org create) | `Card variant="elevated"`, `FormField`, `Input`, `Button variant="outline" size="sm"` (logo), `Button variant="primary" full`, text-link | Progress strip: 2-dot lightweight component. Logo upload optional affordance. |
-| Step 2 (Invite) | `Card variant="elevated"`, chip `Input`, `Select` (role), `Button variant="primary" full`, text-link | Inline success replaces form on send — no new screen. |
-| Step 3 (Get Started) | Standard layout shell + sidebar, `Card variant="interactive"` (×2), `Badge sm`, dismissible accordion panel (`bg-elevated border`) | Not a wizard screen. Dashboard shell with first-session get-started surface. |
+| Layout shell (Steps 1–2) | `BrandMark sm`, 2-dot `ProgressStrip` | Shell-level primitives, centered above the card. Not inside the card. |
+| Step 1 (Org create) | `Card variant="elevated"`, `FormField`, `Input`, `Button variant="outline" size="sm"` (logo), `Button variant="primary" full` | No skip affordance. No in-card brandmark. Card header: title + description only. |
+| Step 2 (Invite) | `Card variant="elevated"`, chip `Input`, `Select` (role), `Button variant="primary" full`, text-link | No in-card brandmark. Skip affordance: single text-link below CTA only. Inline success replaces form on send — no new screen. |
+| Step 3 (Get Started) | Standard layout shell + sidebar, `Card variant="interactive"` (×2), `Badge sm`, dismissible accordion panel (`bg-elevated border`) | Not a wizard screen. Persistent dashboard landing for new users — always renders on `/`. No BrandMark or ProgressStrip. |
 
 ---
 
