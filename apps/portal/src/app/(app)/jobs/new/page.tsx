@@ -60,7 +60,7 @@ function renderJobBody({
 function JunctionLayout({ invalidType }: { invalidType?: string }) {
   return (
     <div className="flex h-full min-h-0 flex-col">
-      <div className="shrink-0 border-b border-border bg-background pt-6">
+      <div className="shrink-0 bg-background pt-6">
         <div className="page-shell block py-0">
           <header className="flex flex-col gap-3 pt-2 pb-6">
             <nav
