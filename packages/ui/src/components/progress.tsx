@@ -42,10 +42,12 @@ const progressFillVariants = cva(
         success:  "bg-state-scored",
         warning:  "bg-state-warning",
         error:    "bg-state-errored",
-        // bg-muted-foreground used as surface fill per operator override 2026-06-13:
+        // bg-progress-fill-neutral: PINNED to #B3BFCE in both themes per operator override 2026-06-13.
         // --color-secondary-surface failed WCAG 1.4.11 (1.12:1 dark / 1.11:1 light).
-        // bg-muted-foreground: 9.08:1 dark (#B3BFCE vs #161D28), 7.18:1 light (#3D5269 vs #F0F2F6).
-        neutral:  "bg-muted-foreground",
+        // --color-muted-foreground was used briefly (9.08:1 dark / 7.18:1 light) but made light fill
+        // read text-token-loud (#3D5269). Operator pinned to #B3BFCE (dark step) for visual identity:
+        // quiet lighter-grey wash regardless of theme. Light contrast ~1.6:1 — known WCAG 1.4.11 variance.
+        neutral:  "bg-progress-fill-neutral",
       },
     },
     defaultVariants: {

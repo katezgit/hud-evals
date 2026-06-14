@@ -76,8 +76,8 @@ export const States: Story = {
         <Progress value={60} state="error" />
       </div>
       <div className="flex flex-col gap-2">
-        <span className="text-caption text-muted-foreground">neutral — secondary-surface (passive reading, no glow)</span>
-        <Progress value={18} state="neutral" />
+        <span className="text-caption text-muted-foreground">neutral — #B3BFCE pinned (passive reading, no glow)</span>
+        <Progress value={18} state="neutral" label="MoE" valueLabel="18%" />
       </div>
     </div>
   ),

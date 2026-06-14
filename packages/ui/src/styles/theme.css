@@ -67,6 +67,14 @@
    *   border-strong: +10pp alpha for selected/active edges */
   --color-border:        light-dark(rgb(var(--border-seed-light) / .17),  rgb(var(--border-seed-dark) / .08));
   --color-border-strong: light-dark(rgb(var(--border-seed-light) / .28),  rgb(var(--border-seed-dark) / .18));
+  /* Progress neutral fill — PINNED across both themes.
+   * #B3BFCE = --ink-100 (dark muted-foreground step).
+   * Operator override 2026-06-13: neutral must read as a quiet lighter-grey wash in BOTH themes;
+   * using the theme-aware --color-muted-foreground made light fill read text-token-loud (#3D5269).
+   * Light-theme contrast vs --color-muted track: ~1.6:1 — known WCAG 1.4.11 variance, accepted.
+   * Dark-theme contrast vs --color-muted track: ~9.08:1 (passes). */
+  --color-progress-fill-neutral: #B3BFCE; /* PINNED — see comment above */
+
   /* Code block surface — PINNED flat literals; always dark in both themes.
    * Light mode: high-contrast pop against page bg.
    * Dark mode: --ink-900 (#18212E) reads visibly lighter than --surface-bg-dark (#0C1016). */

@@ -82,10 +82,10 @@ describe("Progress", () => {
 
   // ── neutral state ─────────────────────────────────────────────────────────
 
-  it("neutral state applies bg-muted-foreground fill class to the indicator", () => {
+  it("neutral state applies bg-progress-fill-neutral fill class to the indicator", () => {
     render(<Progress state="neutral" value={50} aria-label="neutral progress" />)
     const indicator = document.querySelector("[data-slot='progress-indicator']")
-    expect(indicator).toHaveClass("bg-muted-foreground")
+    expect(indicator).toHaveClass("bg-progress-fill-neutral")
   })
 
   it("neutral state at value===max does not receive the complete glow class", () => {
