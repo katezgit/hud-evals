@@ -1,0 +1,52 @@
+"use client";
+
+import { useRouter, useSearchParams } from "next/navigation";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@repo/ui/components/tabs";
+import { LibraryJobs } from "./library-jobs";
+import { LibraryTraces } from "./library-traces";
+
+type TabKey = "jobs" | "traces";
+const TAB_KEYS: ReadonlyArray<TabKey> = ["jobs", "traces"];
+
+function parseTab(raw: string | null): TabKey {
+  return TAB_KEYS.includes(raw as TabKey) ? (raw as TabKey) : "jobs";
+}
+
+export function LibraryShell() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const activeTab = parseTab(searchParams.get("tab"));
+
+  const handleTabChange = (next: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (next === "jobs") {
+      params.delete("tab");
+    } else {
+      params.set("tab", next);
+    }
+    const query = params.toString();
+    router.replace(query ? `/library?${query}` : "/library", { scroll: false });
+  };
+
+  // flex-1 min-h-0 lets Tabs claim the remaining height inside page-shell;
+  // TabsList is shrink-0 and each TabsContent flex-cols its toolbar + scroll
+  // region. Tabs ships flex-col by default — only the sizing changes here.
+  return (
+    <Tabs
+      value={activeTab}
+      onValueChange={handleTabChange}
+      className="min-h-0 flex-1 gap-4"
+    >
+      <TabsList variant="underline" className="shrink-0">
+        <TabsTrigger value="jobs">Jobs</TabsTrigger>
+        <TabsTrigger value="traces">Traces</TabsTrigger>
+      </TabsList>
+      <TabsContent value="jobs" className="flex min-h-0 flex-col">
+        <LibraryJobs />
+      </TabsContent>
+      <TabsContent value="traces" className="flex min-h-0 flex-col">
+        <LibraryTraces />
+      </TabsContent>
+    </Tabs>
+  );
+}
