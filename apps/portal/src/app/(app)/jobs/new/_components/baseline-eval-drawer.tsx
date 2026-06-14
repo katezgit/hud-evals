@@ -84,6 +84,14 @@ function BaselineEvalDrawerBody({
         label: "View eval job →",
         onClick: () => router.push(`/jobs/${jobId}`),
       },
+      // Override Sonner's default filled action button to match the wizard's
+      // ActionLink affordance (baseline-hint-card.tsx) — same primary-colored
+      // text + hover underline pattern, so the user sees one affordance class
+      // repeated. ! beats Sonner's [data-button] base rule.
+      classNames: {
+        actionButton:
+          "!bg-transparent !text-primary !px-0 hover:!underline focus-visible:!shadow-focus-ring",
+      },
     });
   };
 
