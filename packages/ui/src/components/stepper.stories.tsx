@@ -28,42 +28,16 @@ export default meta
 type Story = StoryObj<typeof meta>
 
 /* ─── Playground ───────────────────────────────────────────────────────────── */
+// Default args: currentStep=2 on a 4-step sequence — shows completed (step 1),
+// active (step 2), and pending (steps 3–4) simultaneously.
+// Use the currentStep control to reach boundary states (1 = no completed, 4 = all completed).
 
 export const Playground: Story = {}
 
-/* ─── StepStates ───────────────────────────────────────────────────────────── */
-// All three circle states (completed / active / pending) visible simultaneously.
-// 4 steps, currentStep=2 — matches the operator screenshot.
-
-export const StepStates: Story = {
-  args: {
-    steps: [...FOUR_STEPS],
-    currentStep: 2,
-  },
-}
-
-/* ─── FirstStep ────────────────────────────────────────────────────────────── */
-// No completed steps — all connectors muted.
-
-export const FirstStep: Story = {
-  args: {
-    steps: [...FOUR_STEPS],
-    currentStep: 1,
-  },
-}
-
-/* ─── LastStep ─────────────────────────────────────────────────────────────── */
-// All but final completed; final active — all connectors teal.
-
-export const LastStep: Story = {
-  args: {
-    steps: [...FOUR_STEPS],
-    currentStep: 4,
-  },
-}
-
 /* ─── WithoutDescriptions ──────────────────────────────────────────────────── */
-// description is optional — label-only steps omit row B entirely.
+// Steps with no description prop — the description row is omitted entirely,
+// collapsing the layout to a single-row indicator. Not reachable from Playground
+// controls because the steps array is fixed in meta args.
 
 export const WithoutDescriptions: Story = {
   args: {
@@ -73,49 +47,6 @@ export const WithoutDescriptions: Story = {
       { label: "Tasks" },
       { label: "Review" },
     ],
-    currentStep: 2,
-  },
-}
-
-/* ─── ThreeSteps ───────────────────────────────────────────────────────────── */
-
-export const ThreeSteps: Story = {
-  args: {
-    steps: [
-      { label: "Configure", description: "Set up your environment." },
-      { label: "Run",        description: "Execute the evaluation." },
-      { label: "Review",     description: "Inspect results." },
-    ],
-    currentStep: 2,
-  },
-}
-
-/* ─── FiveSteps ────────────────────────────────────────────────────────────── */
-
-export const FiveSteps: Story = {
-  args: {
-    steps: [
-      { label: "Model",      description: "Choose checkpoint." },
-      { label: "Taskset",    description: "Select taskset." },
-      { label: "Tasks",      description: "Pick tasks." },
-      { label: "Config",     description: "Set hyperparameters." },
-      { label: "Review",     description: "Confirm and launch." },
-    ],
-    currentStep: 3,
-  },
-}
-
-/* ─── InWizardContext ──────────────────────────────────────────────────────── */
-// Stepper mounted inside a card-like container — mirrors the wizard shell layout.
-
-export const InWizardContext: Story = {
-  render: (args) => (
-    <div className="max-w-3xl rounded-lg border border-border bg-panel p-6">
-      <Stepper {...args} />
-    </div>
-  ),
-  args: {
-    steps: [...FOUR_STEPS],
     currentStep: 2,
   },
 }
