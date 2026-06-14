@@ -14,7 +14,7 @@ const meta: Meta<typeof Progress> = {
     },
     state: {
       control: "select",
-      options: ["default", "success", "warning", "error"],
+      options: ["default", "success", "warning", "error", "neutral"],
     },
     indeterminate: { control: "boolean" },
     label: { control: "text" },
@@ -74,6 +74,10 @@ export const States: Story = {
       <div className="flex flex-col gap-2">
         <span className="text-caption text-muted-foreground">error — state-errored</span>
         <Progress value={60} state="error" />
+      </div>
+      <div className="flex flex-col gap-2">
+        <span className="text-caption text-muted-foreground">neutral — #B3BFCE pinned (passive reading, no glow)</span>
+        <Progress value={18} state="neutral" label="MoE" valueLabel="18%" />
       </div>
     </div>
   ),

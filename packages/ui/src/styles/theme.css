@@ -67,6 +67,9 @@
    *   border-strong: +10pp alpha for selected/active edges */
   --color-border:        light-dark(rgb(var(--border-seed-light) / .17),  rgb(var(--border-seed-dark) / .08));
   --color-border-strong: light-dark(rgb(var(--border-seed-light) / .28),  rgb(var(--border-seed-dark) / .18));
+  /* Progress neutral fill — PINNED both themes; see Progress spec Q10. */
+  --color-progress-fill-neutral: #B3BFCE; /* PINNED */
+
   /* Code block surface — PINNED flat literals; always dark in both themes.
    * Light mode: high-contrast pop against page bg.
    * Dark mode: --ink-900 (#18212E) reads visibly lighter than --surface-bg-dark (#0C1016). */

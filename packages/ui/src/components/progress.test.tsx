@@ -79,4 +79,32 @@ describe("Progress", () => {
     render(<Progress data-testid="track" value={40} className="my-custom-class" />)
     expect(screen.getByTestId("track")).toHaveClass("my-custom-class")
   })
+
+  // ── neutral state ─────────────────────────────────────────────────────────
+
+  it("neutral state applies bg-progress-fill-neutral fill class to the indicator", () => {
+    render(<Progress state="neutral" value={50} aria-label="neutral progress" />)
+    const indicator = document.querySelector("[data-slot='progress-indicator']")
+    expect(indicator).toHaveClass("bg-progress-fill-neutral")
+  })
+
+  it("neutral state at value===max does not receive the complete glow class", () => {
+    render(<Progress state="neutral" value={100} max={100} aria-label="neutral complete" />)
+    const indicator = document.querySelector("[data-slot='progress-indicator']")
+    expect(indicator).not.toHaveClass("shadow-[0_0_8px_var(--color-primary-glow)]")
+  })
+
+  it("default state at value===max receives the complete glow class", () => {
+    render(<Progress state="default" value={100} max={100} aria-label="default complete" />)
+    const indicator = document.querySelector("[data-slot='progress-indicator']")
+    expect(indicator).toHaveClass("shadow-[0_0_8px_var(--color-primary-glow)]")
+  })
+
+  it("neutral state exposes correct ARIA semantics", () => {
+    render(<Progress state="neutral" value={42} aria-label="MoE" />)
+    const bar = screen.getByRole("progressbar", { name: "MoE" })
+    expect(bar).toHaveAttribute("aria-valuenow", "42")
+    expect(bar).toHaveAttribute("aria-valuemin", "0")
+    expect(bar).toHaveAttribute("aria-valuemax", "100")
+  })
 })
