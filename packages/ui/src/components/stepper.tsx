@@ -85,14 +85,13 @@ const Stepper = React.forwardRef<HTMLDivElement, StepperProps>(
                   <span
                     aria-hidden="true"
                     className={cn(
-                      "inline-flex size-8 shrink-0 items-center justify-center rounded-full",
-                      isActive &&
-                        "bg-primary text-primary-foreground text-body font-semibold",
+                      "inline-flex size-8 shrink-0 items-center justify-center rounded-full text-body font-semibold",
+                      isActive && "bg-primary text-primary-foreground",
                       isCompleted &&
                         "border-2 border-primary bg-panel text-primary",
                       !isActive &&
                         !isCompleted &&
-                        "border-[1.5px] border-border-strong bg-transparent text-body font-medium text-text-disabled", // eslint-disable-line no-restricted-syntax -- 1.5px is the spec-mandated pending circle border; no token exists between border(1px) and border-2(2px)
+                        "border-[1.5px] border-border-strong bg-transparent font-medium text-text-disabled", // eslint-disable-line no-restricted-syntax -- 1.5px is the spec-mandated pending circle border; no token exists between border(1px) and border-2(2px)
                     )}
                   >
                     {isCompleted ? (
@@ -124,7 +123,7 @@ const Stepper = React.forwardRef<HTMLDivElement, StepperProps>(
 
                 {/* ml-10 = size-8 (32px) + gap-2 (8px) — aligns left edge under step label */}
                 {step.description && (
-                  <span className="ml-10 mt-0.5 text-caption text-muted-foreground">
+                  <span className="ml-10 mt-0 text-body text-muted-foreground">
                     {step.description}
                   </span>
                 )}
