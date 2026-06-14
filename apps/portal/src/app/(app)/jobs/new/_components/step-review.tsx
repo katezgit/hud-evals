@@ -1,5 +1,6 @@
 "use client";
 
+import { useId } from "react";
 import { TriangleAlertIcon } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@repo/ui/components/alert";
 import { ScrollArea } from "@repo/ui/components/scroll-area";
@@ -18,15 +19,30 @@ export interface StepReviewProps {
   // Accepted but unused — orphan state in training-wizard awaits a separate cleanup pass.
   reasoningEffort?: ReasoningEffort;
   onReasoningEffortChange?: (next: ReasoningEffort) => void;
+  maxToolCalls: number;
+  onMaxToolCallsChange: (next: number) => void;
 }
 
-export function StepReview({ model, taskset }: StepReviewProps) {
+export function StepReview({
+  model,
+  taskset,
+  maxToolCalls,
+  onMaxToolCallsChange,
+}: StepReviewProps) {
   const method = deriveTrainingMethod(model.provider);
   const estimate = estimateTraining();
 
   return (
     <ScrollArea className="h-full">
       <div className="flex flex-col gap-6 px-1">
+        <section className="flex flex-col gap-3">
+          <SectionLabel>Configuration</SectionLabel>
+          <MaxToolCallsField
+            value={maxToolCalls}
+            onChange={onMaxToolCallsChange}
+          />
+        </section>
+
         <SummaryBlock model={model} taskset={taskset} method={method} />
 
         <SectionLabel>Estimates</SectionLabel>
@@ -79,6 +95,42 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
     <h3 className="text-meta font-semibold uppercase tracking-wider text-meta-foreground">
       {children}
     </h3>
+  );
+}
+
+function MaxToolCallsField({
+  value,
+  onChange,
+}: {
+  value: number;
+  onChange: (next: number) => void;
+}) {
+  const id = useId();
+  return (
+    <div className="flex flex-col gap-1.5">
+      <label htmlFor={id} className="text-caption font-medium text-foreground">
+        Max tool calls
+      </label>
+      <p className="text-caption text-muted-foreground">
+        Maximum tool calls per task step. Default is 30.
+      </p>
+      <input
+        id={id}
+        type="number"
+        min={1}
+        max={200}
+        value={value}
+        onChange={(e) => {
+          const n = Number.parseInt(e.target.value, 10);
+          if (Number.isFinite(n)) onChange(n);
+        }}
+        className={cn(
+          "w-32 h-8 rounded-md border border-border-strong bg-background px-3",
+          "font-mono tabular-nums text-body text-foreground",
+          "outline-hidden focus-visible:shadow-focus-ring",
+        )}
+      />
+    </div>
   );
 }
 

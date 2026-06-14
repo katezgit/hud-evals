@@ -81,6 +81,7 @@ export function TrainingWizard({
 
   const [reasoningEffort, setReasoningEffort] =
     useState<ReasoningEffort>("medium");
+  const [maxToolCalls, setMaxToolCalls] = useState<number>(30);
 
   // Baseline eval is a side-quest from Step 2: open over the dimmed wizard so
   // training config state is preserved when the user returns.
@@ -123,7 +124,8 @@ export function TrainingWizard({
     modelId !== resolvedPrefilledModelId ||
     tasksetId !== prefilledTasksetId ||
     !taskSelectionIsDefault ||
-    reasoningEffort !== "medium";
+    reasoningEffort !== "medium" ||
+    maxToolCalls !== 30;
 
   const goToStep = (next: StepKey) => {
     setStep(next);
@@ -255,6 +257,8 @@ export function TrainingWizard({
                 taskset={taskset}
                 reasoningEffort={reasoningEffort}
                 onReasoningEffortChange={setReasoningEffort}
+                maxToolCalls={maxToolCalls}
+                onMaxToolCallsChange={setMaxToolCalls}
               />
             )}
           </div>
