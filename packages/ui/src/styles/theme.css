@@ -183,23 +183,24 @@
   --color-state-not-run-subtle: light-dark(var(--surface-muted-light), var(--surface-muted-dark));
 
   /* Alert backgrounds — quieter than state-*-subtle to match primary-glow intensity.
-   * state-*-subtle runs at 10–12% alpha; alert-*-bg runs at 7%/8% to match the
-   * perceived saturation of primary-glow (teal at 12%) across warmer hues. */
+   * state-*-subtle runs at 10–12% alpha; alert-*-bg runs at 3%/4% to compensate
+   * for warm-hue perceived intensity at equal alpha — calibrated against sidebar
+   * selected-link at 12% teal. */
   --color-alert-destructive-bg: light-dark(
-    color-mix(in srgb, var(--errored-600)  7%, transparent),
-    color-mix(in srgb, var(--errored-400)  8%, transparent)
+    color-mix(in srgb, var(--errored-600)  3%, transparent),
+    color-mix(in srgb, var(--errored-400)  4%, transparent)
   );
   --color-alert-warning-bg:     light-dark(
-    color-mix(in srgb, var(--warning-600)  7%, transparent),
-    color-mix(in srgb, var(--warning-400)  8%, transparent)
+    color-mix(in srgb, var(--warning-600)  3%, transparent),
+    color-mix(in srgb, var(--warning-400)  4%, transparent)
   );
   --color-alert-success-bg:     light-dark(
-    color-mix(in srgb, var(--scored-600)   7%, transparent),
-    color-mix(in srgb, var(--scored-400)   8%, transparent)
+    color-mix(in srgb, var(--scored-600)   3%, transparent),
+    color-mix(in srgb, var(--scored-400)   4%, transparent)
   );
   --color-alert-info-bg:        light-dark(
-    color-mix(in srgb, var(--running-600)  7%, transparent),
-    color-mix(in srgb, var(--running-400)  8%, transparent)
+    color-mix(in srgb, var(--running-600)  3%, transparent),
+    color-mix(in srgb, var(--running-400)  4%, transparent)
   );
 
   /* ═══════════════════════════════════════════════════════════════════════════
