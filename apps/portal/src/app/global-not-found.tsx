@@ -1,6 +1,7 @@
 // https://nextjs.org/docs/app/api-reference/file-conventions/not-found#global-not-found
 // Renders outside the root layout — must define its own <html> and <body>.
 
+import Link from "next/link";
 import { Home } from "lucide-react";
 import { Button, BrandMarkSquare } from "@repo/ui";
 import "./globals.css";
@@ -29,10 +30,10 @@ export default function GlobalNotFound() {
             </div>
 
             <Button asChild variant="secondary">
-              <a href="/">
+              <Link href="/">
                 <Home />
                 Home
-              </a>
+              </Link>
             </Button>
 
             <p className="text-body text-muted-foreground">

@@ -92,7 +92,6 @@ export function AutomationForm({
         <FormField id="automation-name" label="Name" required>
           <Input
             type="text"
-            size="md"
             placeholder="My automation…"
             autoComplete="off"
             spellCheck={false}

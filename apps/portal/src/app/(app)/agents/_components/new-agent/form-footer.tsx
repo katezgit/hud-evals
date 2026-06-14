@@ -18,7 +18,7 @@ export function FormFooter({
 }: FormFooterProps) {
   return (
     <div className="mt-6 flex items-center justify-between pt-4">
-      <Button type="button" variant="ghost" size="md" onClick={onBack}>
+      <Button type="button" variant="ghost" onClick={onBack}>
         <ArrowLeft aria-hidden="true" />
         Back
       </Button>
@@ -26,7 +26,6 @@ export function FormFooter({
         <Button
           type="button"
           variant="ghost"
-          size="md"
           onClick={onCancel}
           disabled={submitting}
         >
@@ -35,7 +34,6 @@ export function FormFooter({
         <Button
           type="submit"
           variant="primary"
-          size="md"
           disabled={!canSubmit}
           aria-disabled={!canSubmit}
         >

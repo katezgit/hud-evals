@@ -44,7 +44,6 @@ export function OverviewEmptyNoTasks({ tasksetId }: { tasksetId: string }) {
       <Button
         type="button"
         variant="primary"
-        size="sm"
         onClick={handleGoToTasks}
       >
         Go to Tasks tab
@@ -74,7 +73,7 @@ export function OverviewEmptyNoRuns({ tasksetId }: { tasksetId: string }) {
       <CodeBlock code={`hud eval ${tasksetId}`} />
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button type="button" variant="primary" size="sm">
+          <Button type="button" variant="primary">
             <Play aria-hidden="true" />
             Run on taskset
             <ChevronDown aria-hidden="true" />

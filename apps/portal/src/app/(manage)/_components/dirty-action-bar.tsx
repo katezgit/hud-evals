@@ -37,13 +37,12 @@ export default function DirtyActionBar({
       )}
     >
       {isDirty && (
-        <Button variant="secondary" size="md" onClick={onCancel} disabled={saving}>
+        <Button variant="secondary" onClick={onCancel} disabled={saving}>
           Cancel
         </Button>
       )}
       <Button
         variant="primary"
-        size="md"
         onClick={onSave}
         disabled={saving || disableSave}
       >

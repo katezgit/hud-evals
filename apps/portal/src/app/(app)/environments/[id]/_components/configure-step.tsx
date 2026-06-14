@@ -54,7 +54,7 @@ export default function ConfigureStep({
             Configure environment variables
           </h3>
           <p className="text-body text-muted-foreground">
-            These variables are required to run this scenario. Values provided here will be saved to this environment's <span className="font-semibold text-foreground">Settings &gt;  Environment Variables</span> for all future runs.
+            These variables are required to run this scenario. Values provided here will be saved to this environment&apos;s <span className="font-semibold text-foreground">Settings &gt;  Environment Variables</span> for all future runs.
           </p>
         </div>
         <section

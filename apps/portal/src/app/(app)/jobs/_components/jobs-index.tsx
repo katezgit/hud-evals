@@ -99,7 +99,7 @@ export function NewJobButton() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="primary" size="sm" type="button">
+        <Button variant="primary" type="button">
           <Plus aria-hidden="true" />
           New Job
           <ChevronDown aria-hidden="true" />
@@ -163,7 +163,6 @@ function FilterBar({
 
       <SegmentedControl
         aria-label="Scope"
-        size="sm"
         value={scope}
         onValueChange={(v) => onScopeChange(v as Scope)}
         className="hidden md:ml-auto md:flex md:shrink-0"
@@ -175,7 +174,6 @@ function FilterBar({
 
       <SegmentedControl
         aria-label="Time window"
-        size="sm"
         value={window}
         onValueChange={(v) => onWindowChange(v as Window)}
         className="hidden md:flex md:shrink-0"
@@ -265,7 +263,7 @@ function JobsEmpty() {
       <p className="text-body text-muted-foreground">
         No jobs match the current filter.
       </p>
-      <Button variant="primary" size="sm" asChild>
+      <Button variant="primary" asChild>
         <Link href="/jobs/new?type=eval">
           <Play aria-hidden="true" />
           Run Evaluation

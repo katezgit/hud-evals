@@ -23,7 +23,6 @@ export function ForkAndTrainButton({ modelId }: { modelId: string }) {
       </IconButton>
       <Button
         variant="primary"
-        size="sm"
         className="hidden md:inline-flex"
         aria-label="Fork and train this model"
         onClick={onClick}

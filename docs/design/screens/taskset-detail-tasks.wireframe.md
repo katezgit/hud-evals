@@ -96,17 +96,19 @@ Rationale: The Scenario name is context for the Task ID — you read them togeth
 
 ### Decision 5: Row actions by variant
 
+**Row click target (all owner variants):** Row click opens the **Task drawer** (right-side slide-over), NOT the Task detail page. This is a deliberate change from the prior spec. Justification: Alex's forensics flow is row-by-row — he sorts Reward ascending, clicks Task 47 to see the low-reward trace, glances at Recent Runs, then moves to Task 48. A full-page navigation destroys scroll position and resets filter state on every drill. The drawer preserves both. Riley's bulk-triage is the same pattern: scan flagged rows, peek at args + trace, decide re-run vs re-author, continue. The Task detail page remains available via the `[Open in Task detail page ↗]` link in the drawer header for deeper edits.
+
 **Private owner / Public owner (Variants A and C):**
-- Row click → Task detail page (edit mode).
-- Hover → reveal chevron `⋯` menu at row right: `Edit · Duplicate · Delete · Re-run`. No inline icon buttons — one overflow menu keeps the row uncluttered at 500-row density.
+- Row click → **Task drawer** (edit-capable, drawer body shows edit links).
+- Hover → reveal `⋯` menu at row right: `Edit · Duplicate · Delete · Re-run`. No inline icon buttons — one overflow menu keeps the row uncluttered at 500-row density.
 - `+ Create Task` button: lives in the page header overflow `≡` per anchor spec. Owner-variant Task creation flows exclusively through the page header overflow `≡` menu — no trailing row affordance in the table.
 
 **Public non-owner (Variant B):**
-- Row click → Task detail page (view-only mode).
+- Row click → **Task drawer** (view-only mode — no edit links, no Re-run).
 - No hover affordance. No `⋯` menu. No `+ Add Task` trailing row.
 - Bulk-select column absent.
 
-**Persona reason:** Alex (owner of his Private Taskset) edits Tasks in place. Riley (owner delivering a Private Taskset) needs Duplicate (bulk-author via duplication) and Delete (prune failed tasks). Public non-owner (Alex browsing a community Taskset) is read-only — no affordances that imply editability.
+**Persona reason:** Alex (owner of his Private Taskset) edits Tasks in place via the drawer header's `[Open in Task detail page ↗]` link when needed. Riley (owner delivering a Private Taskset) triages rows fast — drawer gives her args + traces without losing the filtered table. Public non-owner (Alex browsing a community Taskset) is read-only — drawer is still the click target but shows no edit affordances.
 
 ### Decision 6: QA Agent integration (Riley's primary workflow)
 
@@ -204,6 +206,87 @@ The Tasks tab body occupies the scrollable region below the sticky tab bar. The 
 
 ---
 
+## §2b Filters popover — stats-aggregation scope
+
+**HUD-side question:** The inline chips in §2 filter which *rows* show. But the Reward / Dist / Runs values themselves are aggregated across traces for that Task. Which traces should aggregate? Alex wants to scope stats to a specific model. Riley wants to exclude training runs from vendor deliverable metrics. These are orthogonal axes — both must ship, neither replaces the other.
+
+**Axis separation:**
+- **Inline chips (§2)** — row-level filters: control which Tasks appear in the table.
+- **Filters popover (§2b)** — stats-scope filters: control which traces count when computing Reward, Dist, and Runs for the visible rows.
+
+The two are additive. Example: Riley filters rows to `QA Status = Flagged` (chip), then scopes stats to `Latest job only` + `pass@K = 8` (popover) to see the vendor-deliverable score on those flagged Tasks.
+
+### Trigger placement
+
+The `[Filters]` button sits in the toolbar row — top-right, peer to `[+ Add Column]`. It is NOT inside the inline-chip filter row (§2). This keeps the two axes visually separated at the layout level.
+
+```
+TOOLBAR ROW  (sits between tab bar and the filter row)
+
+[N Tasks · Sort: Reward ▾]  (left)           [Filters ▾]  [+ Add Column]  (right)
+```
+
+When filters are non-default, the button shows an active-count badge: `[Filters · 3]` (3 = number of controls away from default). Badge suppressed when all controls are at default.
+
+**What counts toward the badge:** Model (any selection), Environment (any selection), Earliest env version (any selection), Trace display set to "Latest job only", Traces per task (any value other than default 8), Include training runs (switched on). Clear resets all to default → badge disappears.
+
+### Popover anatomy
+
+Opens as a `Popover` anchored below the `[Filters]` button, right-aligned. Width ~320px. No backdrop — table and chips remain interactive behind it.
+
+```
+┌────────────────────────────────────────────┐
+│  Stats scope                               │
+│  ──────────────────────────────────────    │
+│  Model                                     │
+│  [All models                          ▾]   │
+│                                            │
+│  Environment                               │
+│  [All environments                    ▾]   │
+│                                            │
+│  Earliest env version                      │
+│  [Any version                         ▾]   │
+│                                            │
+│  Trace display                             │
+│  [ All jobs ] [ Latest job only ]          │
+│                                            │
+│  Traces per task  (pass@K)                 │
+│  [ 4 ] [ 5 ] [ 8 ] [ 10 ] [ 12 ] [ 16 ]   │
+│                                            │
+│  Include training runs                     │
+│  ○────────────────                [Switch] │
+│                                            │
+│  ──────────────────────────────────────    │
+│  [Clear]               [Cancel]  [Apply]   │
+└────────────────────────────────────────────┘
+```
+
+**Control defaults and annotations:**
+
+| Control | Component | Default | Persona reason |
+|---|---|---|---|
+| Model | Dropdown (single-select + "All models") | All models | Alex scopes to a specific checkpoint model to compare its per-Task score against the Taskset mean. "All models" default requires no extra clicks for users who don't need scoping. |
+| Environment | Dropdown (single-select + "All environments") | All environments | Scoping to one env isolates whether a score change is model-driven or env-driven — Alex's core forensics question during Week 3 regression triage. |
+| Earliest env version | Dropdown (single-select + "Any version") | Any version | Riley sets a minimum env version to exclude traces from pre-release Environment builds, ensuring vendor deliverables reflect only production-quality runs. |
+| Trace display | `Segmented` (2 options) | All jobs | Alex's default: aggregate across all Jobs he's run. "Latest job only" is for regression debugging — "did my last training run regress this Task?" |
+| Traces per task (pass@K) | `Segmented` (6 options: 4 / 5 / 8 / 10 / 12 / 16) | 8 | pass@K is fundamental to Alex's eval workflow: he runs N traces per Task and the pass rate uses the top-K. K=8 is the most common production default. Riley's vendor deliverables specify a K — often 16 for high-confidence QA. |
+| Include training runs | `Switch` | Off (excluded) | Riley's vendor deliverable must exclude training-run traces — those runs are intermediate RL steps, not finished evaluations. Alex may toggle on during debugging to see raw training signal. Default off keeps public eval stats clean. |
+
+### Open/close behavior
+
+| Action | Result |
+|---|---|
+| `[Apply]` | Commits changes. Popover closes. Stats recompute. Badge updates. |
+| `[Cancel]` or click outside | Discards in-progress changes. Popover closes. Stats unchanged. |
+| `ESC` | Same as Cancel. |
+| `[Clear]` | Resets all controls to defaults. Popover stays open (user confirms before applying). |
+
+### Persistence
+
+Stats-scope filters persist per-Taskset in `localStorage` keyed by Taskset ID. Alex re-opens the same Taskset weekly with the same eval configuration — restoring scope removes a re-configuration step on every visit. Cleared explicitly via `[Clear] → [Apply]`.
+
+---
+
 ## §3 Table anatomy
 
 ```
@@ -248,9 +331,10 @@ The Tasks tab body occupies the scrollable region below the sticky tab bar. The 
 - Checkbox becomes fully visible (no opacity fade).
 
 **Row click target:**
-- Entire row except the checkbox, copy buttons, and Scenario name link navigates to Task detail.
-- Checkbox is its own click target.
-- Scenario name (line 2 of Task cell) links to the Scenario's Environment — not to the Task detail.
+- Entire row except the checkbox and Scenario name link opens the **Task drawer** (see §4b).
+- Checkbox is its own click target (toggles row selection).
+- Scenario name (line 2 of Task cell) links to the Scenario's Environment — not to the drawer.
+- `⋯` overflow menu items are their own click targets — do not open the drawer.
 
 ---
 
@@ -284,6 +368,118 @@ Appears pinned above the filter row when ≥1 row is selected. The filter row re
 47 rows visible are selected. Select all 500 Tasks in this Taskset?  [Select all 500]
 ```
 Appears as an inline notice directly below the bulk action bar. Dismissed when `[Select all 500]` is clicked (selection expands to all Tasks) or when `[× Cancel]` clears the selection.
+
+---
+
+## §4b Task drawer — row-click detail
+
+**HUD-side question:** Alex's forensics flow is row-by-row: sort Reward ascending, click Task 47, read its recent traces to confirm the failure cause, move to Task 48. A full-page navigation loses scroll position and resets filter state on every drill. Riley's bulk-triage is identical in shape: scan flagged rows, peek at args + trace output, decide re-run vs re-author, continue. A drawer preserves both scroll position and active filters, making the next row click instant and contextual.
+
+### Trigger
+
+Row click anywhere on the row — **except** the checkbox, the Scenario name link (line 2 of Task cell), and the `⋯` overflow menu — opens the drawer. These three are independent click targets with their own behavior and must not trigger the drawer.
+
+### Position and size
+
+Right-side slide-over `Drawer` anchored to the viewport right edge. Width ~480px — wide enough to display a Trace summary and the Recent Runs list without horizontal scrolling; narrow enough that the leftmost table columns (Checkbox, #, Task) remain visible behind the drawer. Light scrim behind the drawer allows the user to confirm filter context without closing.
+
+```
+┌────────────────────────────────────────────┬───────────────────────────────────────┐
+│  TASK TABLE  (partially visible)            │  TASK DRAWER  (~480px)                │
+│                                             │                                       │
+│  [☐] │ # │ TASK             │ PROGRESS │..  │  [0047 | 1]           [Open ↗]  [×]   │
+│  ─────────────────────────────────────── │  │  browser:2048-near-win                │
+│  [☐] │ 1 │ [0000 | 1]       │ ●──●──○  │..  │  ─────────────────────────────────   │
+│  [☐] │47 │ [0047 | 1] ←sel  │ ●──○──○  │..  │  [BODY — see sections below]         │
+│  ...                                        │                                       │
+└────────────────────────────────────────────┴───────────────────────────────────────┘
+```
+
+### Header
+
+```
+┌──────────────────────────────────────────────────────────┐
+│  [0047 | 1]    browser:2048-near-win    [Open ↗]    [×]  │
+└──────────────────────────────────────────────────────────┘
+```
+
+- Task ID pill (left) — same format as table cell.
+- Scenario name — plain text, not a link (the Scenario link is already available in the table row behind the drawer).
+- `[Open in Task detail page ↗]` — navigates to the full Task detail page in current tab. This is the escape hatch for deep edits that the drawer does not support.
+- `[×]` close button (right) — closes drawer, returns focus to the originating row.
+
+### Body sections (top-down)
+
+**Task summary**
+```
+Args
+  target = "2048-near-win"
+  steps  = 25
+
+Expected output
+  {"status": "win", "score": ≥0.9}
+
+Scorer
+  LLMJudgeGrader
+```
+Shows the `task(arg=value)` invocation verbatim, the expected output, and the scorer name. Read-only display; no inline editing — edit flows through `[Open ↗]`.
+
+**Reward and Dist**
+```
+Reward    0.3412          Runs  10
+[██░░░░░░░░░░░░░░░░░░]  (Dist mini-bar, full width)
+Pass 2 · Partial 3 · Fail 5
+```
+Large reward float (4 decimal), Dist mini-bar at full drawer width, counts for each band. Same band thresholds as Decision 7 (Pass ≥0.75, Partial 0.25–0.74, Fail <0.25). Stat values are scoped by the active stats-scope filters (§2b) — drawer reflects the same aggregation axis as the table.
+
+**Recent Runs** (last ~10 traces, newest first)
+```
+Reward    Model                     When       Action
+0.2500    gpt-4o-mini-2024-07-18    3h ago     [View trace ↗]
+0.5000    gpt-4o-mini-2024-07-18    1d ago     [View trace ↗]
+0.0000    claude-3-5-sonnet         2d ago     [View trace ↗]
+...
+```
+Each row: reward float, model name, relative timestamp, `[View trace ↗]` link to the Trace viewer. This list is the load-bearing benefit of the drawer — Alex can scan 10 traces without a page navigation for each one. `[View trace ↗]` opens the Trace viewer in a new tab, so drawer context is preserved.
+
+**Jobs that ran this Task**
+```
+Job name                 Run date      
+training-run-v12         4d ago         [→]
+baseline-eval-003        7d ago         [→]
+```
+Small list: Job name, run date, `[→]` link to the Job detail page. Gives Alex and Riley the upstream context for why this Task has these traces.
+
+### Close behavior
+
+| Action | Result |
+|---|---|
+| `[×]` button | Drawer closes. Focus returns to originating row. |
+| `ESC` | Same as `[×]`. |
+| Click backdrop (scrim outside drawer) | Same as `[×]`. |
+| Click a different row in the table | Drawer content replaces with the newly selected row — no close+reopen flash. Selected row highlight moves to the new row. |
+
+### Empty state — Task with zero Runs
+
+Drawer opens. Task summary section renders normally (args, expected output, scorer are present regardless of Runs). Recent Runs section shows:
+
+```
+No Runs yet.
+Run this Task via the CLI or attach it to a Job.
+```
+
+Reward and Dist section shows `—` in place of float and mini-bar, with `aria-label="No Runs yet"`.
+
+### Keyboard navigation
+
+| Key | Behavior |
+|---|---|
+| `↓` (when drawer is open) | Moves row selection to the next row in the table. Drawer content updates to that row. |
+| `↑` (when drawer is open) | Moves row selection to the previous row. Drawer content updates. |
+| `ESC` | Closes drawer. Focus returns to the originating row. |
+| `Tab` | Cycles focus within the drawer (header, body links, close button). |
+
+Arrow key navigation makes Alex's row-by-row scan fully keyboard-operable: sort by Reward asc, press ↓ through low-reward Tasks, read trace context in the drawer without touching the mouse.
 
 ---
 
@@ -418,7 +614,7 @@ Filter row: chips may wrap to a second line if all five don't fit. Sort control 
 | Decision 2: Bulk-select (owner only) | Never uses bulk select — reads the table row by row. Checkbox column is visually minimal in unchecked state and does not obstruct. | Rarely uses bulk select — may re-run a batch after a regression, but not the primary flow. | Load-bearing. Select 47 flagged Tasks → Apply QA Agent in 3 actions. The "Select all 500" banner is specifically for Riley's batch scale. |
 | Decision 3: Two-line Task cell | Task ID pill on line 1 = the string Alex pastes when referencing a task in a team discussion. Scenario name on line 2 = context he reads simultaneously. Fewer eye-movement hops than two columns. | Scenario name on line 2 is Sam's primary filter target — he scans it to find which Scenario class produced the failing Tasks. | Task ID pill is Riley's per-task identifier in QA reports. Scenario name confirms the task belongs to the right Scenario. |
 | Decision 4: Filter row chips | Reward range chip is Alex's primary tool for finding weak Tasks. | Scenario + Updated (via sort) cover Sam's regression triage. | QA Status chip is Riley's primary tool. Scenario chip scopes triage to a single contract deliverable. |
-| Decision 5: Row actions by variant | Row click → Task detail. Hover `⋯` for Edit/Re-run on owned Tasks. | Row click → Task detail (view-only on Public Tasksets). | Hover `⋯` for Edit/Duplicate/Delete — Riley authors at scale; all three actions are high-frequency. |
+| Decision 5: Row actions by variant | Row click → **Task drawer**. Drawer shows Recent Runs inline — core forensics scan without page navigation. `[Open ↗]` in drawer header for deep edits. | Row click → Task drawer (view-only mode on Public Tasksets). Drawer gives Sam the trace context he needs for regression triage without leaving the filter state. | Row click → Task drawer. Riley's bulk-triage: peek at args + traces, decide re-run vs re-author, move to next row. Drawer preserves filter context (e.g., QA Status = Flagged) throughout the triage session. |
 | Decision 6: QA Agent integration | Not applicable — Alex does not apply QA Agents on Tasks. | Not applicable — Sam uses QA Agents on Automation flows, not per-Task bulk apply. | Load-bearing. Bulk apply → auto-insert QA Status column → filter to Flagged → re-author → re-run QA Agent is the core delivery loop. |
 | Decision 7: Dist band semantics | Identical bands to model-detail Results tab — cross-tab consistency for Alex's forensics session. | Same benefit — Sam switches between model-detail and Taskset Tasks during regression work. | Reward Hacking detection in QA Status is the primary quality gate. Dist bands are a secondary sanity check. |
 | Decision 8: Virtualized scroll | Imperceptible at 10–50-task Tasksets Alex typically owns. No cost. | Imperceptible at typical Sam Taskset sizes. | Required. Riley's 500-task Tasksets cannot use paginated scroll without breaking the "Select all 500" bulk-select model. |
@@ -440,6 +636,14 @@ Filter row: chips may wrap to a second line if all five don't fit. Sort control 
 6. **Delete Task on a Public Taskset (owner):** Variant C is Public owner. If Riley deletes a Task from a Public Taskset, does this affect external users who have run Jobs against that Task? Confirm whether Task deletion is soft (hidden) or hard (permanent) and whether it requires a stronger warning for Public Tasksets.
 
 7. **`+ Create Task` in header overflow only:** The anchor spec places `+ Create Task` in the page header overflow `≡`. This wireframe no longer surfaces a trailing table row — owner-variant Task creation flows exclusively through the overflow menu. Confirmed: no trailing row.
+
+8. **Filters popover — Traces per task (pass@K) default:** This wireframe defaults pass@K to 8 based on observed production behavior. Confirm this is the right default or whether it should be pulled from the Taskset's Job configuration.
+
+9. **Filters popover — Model dropdown data shape:** The Model dropdown lists models that have Runs on this Taskset. Is this the full model registry or filtered to models that have actually executed at least one Run on this Taskset? Scoping to "models with Runs here" is more useful but requires a per-Taskset model list endpoint.
+
+10. **Task drawer — Recent Runs count:** This spec uses "last ~10 traces." Confirm the right count. Too few misses the pattern; too many makes the drawer body too tall. 10 is a reasonable default but should be validated against typical Alex session data.
+
+11. **Task drawer — edit capability:** The drawer is specced as read-only with `[Open ↗]` for deep edits. If the inline drawer should support any in-place editing (e.g., editing Task args directly), that is a scope expansion requiring a separate wireframe for the edit state. Confirm read-only is correct for the drawer body.
 
 ---
 
@@ -466,6 +670,10 @@ Filter row: chips may wrap to a second line if all five don't fit. Sort control 
 - **QA Status column lifecycle: absent by default, auto-inserted on first run.** Production screenshot (Image #29) does not show a QA Status column. This wireframe introduces it as an auto-inserted column triggered by the first QA Agent bulk action. Justified: the column is meaningless before any QA Agent has run (all values would be `Not run`). Auto-inserting it when it first carries signal reduces default column noise.
 
 - **Removed trailing `+ Add Task` row from Tasks table.** Production shows an inline trailing row for in-flow Task creation. This wireframe removes it. Reason: domain-review FAIL — Alex anti-pattern (`personas.md:10`). Alex authors Tasks via `hud taskset add-task` or Python, never via a form. All Task creation surfaces for owners flow through the page header overflow `≡` menu. Production has the trailing row; this is intentional divergence justified by persona discipline.
+
+- **Row click → Task drawer (not Task detail page).** Production and prior Decision 5 spec both sent row click to the Task detail page. This wireframe changes that to a right-side slide-over drawer. Justified: Alex's forensics scan is row-by-row — full-page navigation destroys scroll position and resets filter state on every drill. The drawer preserves both, enabling a keyboard-navigable scan (↑/↓ moves row selection with drawer updating live). Task detail page remains accessible via `[Open ↗]` in the drawer header for deep edits. Variant B (non-owner) behavior is unchanged in principle — drawer opens in view-only mode.
+
+- **Filters popover added alongside inline chips.** Production has a single `[🔽 Filters]` button. The prior Decision 4 drift entry replaced it entirely with inline chips. This wireframe restores the Filters button as a separate stats-scope control (§2b), orthogonal to the inline row-filter chips (§2). Justified: the two axes — which rows show vs which traces aggregate — serve different jobs and should not be merged into a single filter surface. The inline chips control row visibility (Riley's QA Status, Alex's Reward range); the Filters popover controls stat aggregation scope (Alex's pass@K and model scope, Riley's training run exclusion). Producing a single merged filter surface would require the user to navigate both axes from one panel, adding cognitive overhead on the most-used filters.
 
 ---
 

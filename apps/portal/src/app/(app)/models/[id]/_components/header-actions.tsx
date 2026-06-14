@@ -31,7 +31,6 @@ export function HeaderActions({
         </IconButton>
         <Button
           variant="primary"
-          size="sm"
           className="hidden md:inline-flex"
           onClick={onClick}
         >
@@ -61,7 +60,6 @@ export function HeaderActions({
       </IconButton>
       <Button
         variant="secondary"
-        size="sm"
         className="hidden md:inline-flex"
         onClick={onFork}
       >
@@ -79,7 +77,6 @@ export function HeaderActions({
       </IconButton>
       <Button
         variant="primary"
-        size="sm"
         className="hidden md:inline-flex"
         onClick={onTrain}
       >

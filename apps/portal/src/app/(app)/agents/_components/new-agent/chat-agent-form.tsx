@@ -85,7 +85,6 @@ export function ChatAgentForm({
         <FormField id="chat-name" label="Name" required>
           <Input
             type="text"
-            size="md"
             placeholder="e.g. Browser debug assistant"
             autoComplete="off"
             spellCheck={false}

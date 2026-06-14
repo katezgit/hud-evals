@@ -57,7 +57,6 @@ export default function ModelPicker({
         <div className="sticky top-0 z-20 border-b border-border bg-elevated-surface p-2">
           <SearchInput
             id="run-taskset-model-search"
-            size="sm"
             placeholder="Search models…"
             aria-labelledby="run-taskset-model-search-label"
             defaultValue={searchQuery}

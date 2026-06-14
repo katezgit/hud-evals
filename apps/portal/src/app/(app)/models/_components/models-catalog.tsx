@@ -617,7 +617,6 @@ export default function ModelsCatalog() {
         <div className="flex flex-wrap items-center gap-3">
           <div className="w-full flex-none xl:w-64">
             <SearchInput
-              size="sm"
               defaultValue=""
               onLiveChange={setInputQuery}
               onValueChange={setDebouncedQuery}
@@ -663,7 +662,6 @@ export default function ModelsCatalog() {
                     baseModelIds: all ? new Set() : new Set(v),
                   });
                 }}
-                emptyMeansAll
                 placeholder="All Base models"
                 searchPlaceholder="Search base models…"
                 className="w-48"
@@ -680,7 +678,6 @@ export default function ModelsCatalog() {
                     providers: all ? new Set() : new Set(v as ModelProvider[]),
                   });
                 }}
-                emptyMeansAll
                 placeholder="All Providers"
                 searchPlaceholder="Search providers…"
                 className="w-44"
@@ -731,7 +728,7 @@ export default function ModelsCatalog() {
               onOpenChange={setMobileFiltersOpen}
             >
               <DrawerTrigger asChild>
-                <Button type="button" variant="secondary" size="sm">
+                <Button type="button" variant="secondary">
                   <SlidersHorizontalIcon aria-hidden="true" className="size-3.5" />
                   Filters
                   {activeFilterCount > 0 && (
@@ -893,7 +890,7 @@ export default function ModelsCatalog() {
                 </DrawerBody>
                 <DrawerFooter>
                   <DrawerClose asChild>
-                    <Button type="button" variant="primary" size="sm" className="w-full">
+                    <Button type="button" variant="primary" className="w-full">
                       Done
                     </Button>
                   </DrawerClose>

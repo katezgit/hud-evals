@@ -233,7 +233,6 @@ export default function JobsTab({ taskset }: JobsTabProps) {
           key={searchInputKey}
           ref={searchInputRef}
           aria-label="Search jobs"
-          size="sm"
           placeholder="Search jobs, models, ids…"
           className="w-72 shrink-0"
           onLiveChange={setSearch}
@@ -246,7 +245,6 @@ export default function JobsTab({ taskset }: JobsTabProps) {
 
         <SegmentedControl
           aria-label="Filter by job type"
-          size="sm"
           value={typeFilter}
           onValueChange={(v) => setTypeFilter(v as TypeFilter)}
           className="shrink-0"

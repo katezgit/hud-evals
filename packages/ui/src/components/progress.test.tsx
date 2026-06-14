@@ -91,13 +91,13 @@ describe("Progress", () => {
   it("neutral state at value===max does not receive the complete glow class", () => {
     render(<Progress state="neutral" value={100} max={100} aria-label="neutral complete" />)
     const indicator = document.querySelector("[data-slot='progress-indicator']")
-    expect(indicator).not.toHaveClass("shadow-[0_0_8px_var(--color-primary-glow)]")
+    expect(indicator).not.toHaveClass("shadow-[0_0_8px_var(--color-primary-glow)]") // eslint-disable-line no-restricted-syntax -- asserts on the same bespoke glow class disabled in progress.tsx
   })
 
   it("default state at value===max receives the complete glow class", () => {
     render(<Progress state="default" value={100} max={100} aria-label="default complete" />)
     const indicator = document.querySelector("[data-slot='progress-indicator']")
-    expect(indicator).toHaveClass("shadow-[0_0_8px_var(--color-primary-glow)]")
+    expect(indicator).toHaveClass("shadow-[0_0_8px_var(--color-primary-glow)]") // eslint-disable-line no-restricted-syntax -- asserts on the same bespoke glow class disabled in progress.tsx
   })
 
   it("neutral state exposes correct ARIA semantics", () => {

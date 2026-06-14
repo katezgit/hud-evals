@@ -49,7 +49,7 @@ export function NotificationsForm() {
           title="GitHub"
           description="Manage GitHub access for building environments from your repositories."
           control={
-            <Button variant="secondary" size="sm">
+            <Button variant="secondary">
               Manage on GitHub
             </Button>
           }
@@ -58,7 +58,7 @@ export function NotificationsForm() {
           title="Slack"
           description="Connect Slack to mention HUD in messages."
           control={
-            <Button variant="secondary" size="sm">
+            <Button variant="secondary">
               Connect Slack
             </Button>
           }

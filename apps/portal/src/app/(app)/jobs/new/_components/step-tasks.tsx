@@ -151,7 +151,6 @@ export function StepTasks({
 
   const toolbar = (
     <Toolbar
-      query={query}
       onQueryChange={setQuery}
       prefixFilter={prefixFilter}
       onPrefixFilterChange={setPrefixFilter}
@@ -292,7 +291,6 @@ function TasksHeading({ taskset }: { taskset: Taskset }) {
 }
 
 function Toolbar({
-  query,
   onQueryChange,
   prefixFilter,
   onPrefixFilterChange,
@@ -303,7 +301,6 @@ function Toolbar({
   hasAnySelected,
   onToggleAllInView,
 }: {
-  query: string;
   onQueryChange: (next: string) => void;
   prefixFilter: string | null;
   onPrefixFilterChange: (next: string | null) => void;

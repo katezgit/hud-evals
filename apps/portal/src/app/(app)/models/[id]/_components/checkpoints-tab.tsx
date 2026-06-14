@@ -197,7 +197,6 @@ function TrainCell({
   return (
     <Button
       variant="ghost"
-      size="sm"
       onClick={() =>
         router.push(
           `/jobs/new?type=training&modelId=${modelId}&forkFrom=${checkpoint.id}`,

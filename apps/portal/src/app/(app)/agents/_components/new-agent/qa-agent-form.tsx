@@ -81,7 +81,6 @@ export function QaAgentForm({
         <FormField id="qa-agent-name" label="Name" required>
           <Input
             type="text"
-            size="md"
             placeholder="My QA agent…"
             autoComplete="off"
             spellCheck={false}

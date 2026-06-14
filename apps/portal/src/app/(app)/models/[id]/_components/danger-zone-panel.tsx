@@ -53,7 +53,6 @@ export function DangerZonePanel({ model }: { model: Model }) {
           <Button
             type="button"
             variant="destructive"
-            size="md"
             onClick={() => setOpen(true)}
           >
             Delete
