@@ -1,23 +1,15 @@
 "use client";
 
 import * as React from "react";
-import { ChevronsUpDownIcon, LockIcon } from "lucide-react";
+import { LockIcon } from "lucide-react";
 import { Button } from "@repo/ui/components/button";
 import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandItem,
-  CommandList,
-  CommandSeparator,
-} from "@repo/ui/components/command";
-import {
-  Popover,
-  PopoverAnchor,
-  PopoverContent,
-} from "@repo/ui/components/popover";
+  Combobox,
+  ComboboxTwoLineOption,
+  type ComboboxGroup,
+  type ComboboxOption,
+} from "@repo/ui/components/combobox";
 import { VisibilityIcon } from "@repo/ui/components/visibility-icon";
-import { cn } from "@repo/ui/lib/cn";
 import type { Taskset } from "@/lib/mock/tasksets";
 import { getTaskset } from "@/lib/mock/tasksets";
 import { getBaselineCoverage } from "@/lib/mock/job-create";
@@ -136,11 +128,10 @@ function TasksetMetaLine({ taskset }: { taskset: Taskset }) {
 }
 
 // ── Taskset picker ────────────────────────────────────────────────────────────
-// Grouped, enriched-option combobox. The shared @repo/ui Combobox renders each
-// option as a single-line label string and cannot express the two-line metadata
-// the designer recommendation requires. We compose Popover + Command primitives
-// locally — same building blocks the shared Combobox uses — to render two-line
-// items grouped by ownership.
+// Grouped, two-line combobox built on the shared @repo/ui Combobox (renderOption
+// + groups, shipped in PR #47). Filtering matches against taskset name only
+// (Combobox runs match-sorter on label + value); owner-name search is not
+// supported here — accepted minor regression vs the previous local impl.
 //
 // Grouping predicate matches the Tasksets index (tasksets-index.tsx):
 //   • My Tasksets    → ownership === "team" || ownership === "user"
@@ -150,18 +141,13 @@ interface TasksetPickerProps {
   tasksets: ReadonlyArray<Taskset>;
   value: string | null;
   onValueChange: (id: string) => void;
-  // Bumped by parent on unlock — picker opens and focuses the input on the
-  // matching render. Re-armable via increment so a second unlock works.
+  // Bumped by parent on unlock — picker focuses the trigger input on the
+  // matching render. The shared Combobox opens on focus.
   autoOpenToken?: number;
 }
 
 function isMine(t: Taskset): boolean {
   return t.ownership === "team" || t.ownership === "user";
-}
-
-function nameOf(value: string | null, tasksets: ReadonlyArray<Taskset>): string {
-  if (value === null) return "";
-  return tasksets.find((t) => t.id === value)?.name ?? "";
 }
 
 function TasksetPicker({
@@ -170,284 +156,65 @@ function TasksetPicker({
   onValueChange,
   autoOpenToken,
 }: TasksetPickerProps) {
-  const [open, setOpen] = React.useState(false);
-  const [query, setQuery] = React.useState(() => nameOf(value, tasksets));
-  const inputRef = React.useRef<HTMLInputElement | null>(null);
-  const openRef = React.useRef(false);
-  const blurTimeoutRef = React.useRef<ReturnType<typeof setTimeout> | null>(
-    null,
-  );
+  const inputRef = React.useRef<HTMLInputElement>(null);
 
-  // Auto-open + focus on mount (and on subsequent token bumps) when the parent
-  // signals an unlock-to-pick flow. RAF defers focus until after the popover
-  // has mounted so the input keeps focus and the popover stays open.
+  // Auto-focus on token bump — shared Combobox opens on focus. RAF defers
+  // focus until after mount so the popover stays open through the first paint.
   React.useEffect(() => {
     if (autoOpenToken === undefined || autoOpenToken === 0) return;
-    openRef.current = true;
-    setOpen(true);
     const raf = requestAnimationFrame(() => {
       inputRef.current?.focus();
     });
     return () => cancelAnimationFrame(raf);
   }, [autoOpenToken]);
 
-  // External value sync — caller may set value programmatically.
-  const prevValueRef = React.useRef<string | null | undefined>(undefined);
-  React.useEffect(() => {
-    if (prevValueRef.current === undefined) {
-      prevValueRef.current = value;
-      return;
-    }
-    if (value !== prevValueRef.current) {
-      prevValueRef.current = value;
-      setQuery(nameOf(value, tasksets));
-    }
-  }, [value, tasksets]);
+  const tasksetById = React.useMemo(
+    () => new Map(tasksets.map((t) => [t.id, t])),
+    [tasksets],
+  );
 
-  const closeAndRevert = React.useCallback(() => {
-    setQuery(nameOf(value, tasksets));
-    openRef.current = false;
-    setOpen(false);
-  }, [value, tasksets]);
+  const groups = React.useMemo<ComboboxGroup[]>(() => {
+    const mine = tasksets.filter(isMine);
+    const publicTs = tasksets.filter(
+      (t) => !isMine(t) && t.visibility === "public",
+    );
+    const toOption = (t: Taskset): ComboboxOption => ({
+      value: t.id,
+      label: t.name,
+    });
+    const out: ComboboxGroup[] = [];
+    if (mine.length > 0)
+      out.push({ heading: "My Tasksets", options: mine.map(toOption) });
+    if (publicTs.length > 0)
+      out.push({
+        heading: "Public Tasksets",
+        options: publicTs.map(toOption),
+      });
+    return out;
+  }, [tasksets]);
 
-  const commit = React.useCallback(
-    (id: string, name: string) => {
-      onValueChange(id);
-      setQuery(name);
-      openRef.current = false;
-      setOpen(false);
+  const renderOption = React.useCallback(
+    (option: ComboboxOption) => {
+      const t = tasksetById.get(option.value);
+      const secondary = t
+        ? `${t.taskCount} tasks · ${t.visibility} · by ${t.ownerName}`
+        : "";
+      return (
+        <ComboboxTwoLineOption primary={option.label} secondary={secondary} />
+      );
     },
-    [onValueChange],
+    [tasksetById],
   );
-
-  const handleOpenChange = React.useCallback(
-    (next: boolean) => {
-      if (next) {
-        openRef.current = true;
-        setOpen(true);
-      } else {
-        closeAndRevert();
-      }
-    },
-    [closeAndRevert],
-  );
-
-  const handleFocus = React.useCallback(() => {
-    if (blurTimeoutRef.current) {
-      clearTimeout(blurTimeoutRef.current);
-      blurTimeoutRef.current = null;
-    }
-    if (!openRef.current) {
-      openRef.current = true;
-      setOpen(true);
-    }
-  }, []);
-
-  const handleBlur = React.useCallback(() => {
-    // 150ms race window — let item mousedown commit before blur closes.
-    blurTimeoutRef.current = setTimeout(() => {
-      if (!openRef.current) return;
-      closeAndRevert();
-    }, 150);
-  }, [closeAndRevert]);
-
-  React.useEffect(
-    () => () => {
-      if (blurTimeoutRef.current) clearTimeout(blurTimeoutRef.current);
-    },
-    [],
-  );
-
-  // When query matches the selected taskset's name verbatim we are showing the
-  // post-commit name, not an active search — treat as "no filter" so all groups
-  // remain visible on re-open.
-  const q = query.trim().toLowerCase();
-  const isFiltering =
-    q.length > 0 && q !== nameOf(value, tasksets).toLowerCase();
-
-  const matches = (t: Taskset) =>
-    !isFiltering ||
-    t.name.toLowerCase().includes(q) ||
-    t.ownerName.toLowerCase().includes(q);
-
-  const mine = tasksets.filter((t) => isMine(t) && matches(t));
-  const publicTs = tasksets.filter(
-    (t) => !isMine(t) && t.visibility === "public" && matches(t),
-  );
-  const hasResults = mine.length + publicTs.length > 0;
-
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if ((e.key === "ArrowDown" || e.key === "ArrowUp") && !openRef.current) {
-      openRef.current = true;
-      setOpen(true);
-      e.preventDefault();
-    }
-    if (e.key === "Escape" && openRef.current) {
-      e.preventDefault();
-      closeAndRevert();
-    }
-  };
-
-  const handleQueryChange = (next: string) => {
-    setQuery(next);
-    if (!openRef.current) {
-      openRef.current = true;
-      setOpen(true);
-    }
-  };
 
   return (
-    <Popover open={open} onOpenChange={handleOpenChange}>
-      <Command
-        shouldFilter={false}
-        className={cn(
-          // Suppress wrapped Command's border/shadow/bg — Popover provides them.
-          // !shadow-none is required: tailwind-merge does not recognize the custom
-          // shadow-popover token as a shadow utility, so without ! both rules ship
-          // and shadow-popover wins by stylesheet order, lifting the trigger.
-          "relative w-full rounded-none border-0 bg-transparent !shadow-none",
-        )}
-      >
-        <PopoverAnchor asChild>
-          <div
-            data-slot="combobox-trigger-wrapper"
-            data-state={open ? "open" : "closed"}
-            className="relative flex h-8 w-full items-center"
-          >
-            <input
-              ref={inputRef}
-              data-slot="combobox-trigger"
-              type="text"
-              role="combobox"
-              aria-expanded={open}
-              aria-autocomplete="list"
-              aria-haspopup="listbox"
-              autoComplete="off"
-              value={query}
-              placeholder="Pick a taskset"
-              onChange={(e) => handleQueryChange(e.target.value)}
-              onKeyDown={handleKeyDown}
-              onFocus={handleFocus}
-              onBlur={handleBlur}
-              data-state={open ? "open" : "closed"}
-              className={cn(
-                "flex h-8 w-full items-center rounded-lg px-2.5 pr-8",
-                "border border-border bg-background",
-                "focus:bg-form-field-surface data-[state=open]:bg-form-field-surface",
-                "text-body text-foreground placeholder:text-meta-foreground",
-                "transition-[background-color,border-color,box-shadow] duration-fast ease-out-standard",
-              )}
-            />
-            <ChevronsUpDownIcon
-              aria-hidden="true"
-              className={cn(
-                "pointer-events-none absolute right-2.5 size-4 shrink-0 text-muted-foreground opacity-mid",
-                query.length > 0 && "opacity-0",
-              )}
-            />
-          </div>
-        </PopoverAnchor>
-
-        <PopoverContent
-          variant="action"
-          align="start"
-          sideOffset={8}
-          onOpenAutoFocus={(e) => e.preventDefault()}
-          onCloseAutoFocus={(e) => e.preventDefault()}
-          onInteractOutside={(e) => {
-            const target = e.target as Node | null;
-            if (
-              inputRef.current?.contains(target) ||
-              inputRef.current === target
-            ) {
-              e.preventDefault();
-              return;
-            }
-            handleOpenChange(false);
-          }}
-          onEscapeKeyDown={(e) => {
-            e.preventDefault();
-            closeAndRevert();
-          }}
-          // Match trigger width and lift the default max-w-80 cap.
-          style={{ width: "var(--radix-popover-trigger-width)" }}
-          className="max-w-none"
-        >
-          <CommandList>
-            <CommandEmpty>
-              <span className="block py-6 text-center text-body text-muted-foreground">
-                No tasksets match.
-              </span>
-            </CommandEmpty>
-
-            {hasResults && mine.length > 0 && (
-              <CommandGroup
-                heading="My Tasksets"
-                className="[&_[cmdk-group-heading]]:text-[11px] [&_[cmdk-group-heading]]:font-normal [&_[cmdk-group-heading]]:text-meta-foreground"
-              >
-                {mine.map((t) => (
-                  <TasksetOption
-                    key={t.id}
-                    taskset={t}
-                    selected={value === t.id}
-                    onCommit={commit}
-                  />
-                ))}
-              </CommandGroup>
-            )}
-
-            {hasResults && mine.length > 0 && publicTs.length > 0 && (
-              <CommandSeparator className="my-3" />
-            )}
-
-            {hasResults && publicTs.length > 0 && (
-              <CommandGroup
-                heading="Public Tasksets"
-                className="[&_[cmdk-group-heading]]:text-[11px] [&_[cmdk-group-heading]]:font-normal [&_[cmdk-group-heading]]:text-meta-foreground"
-              >
-                {publicTs.map((t) => (
-                  <TasksetOption
-                    key={t.id}
-                    taskset={t}
-                    selected={value === t.id}
-                    onCommit={commit}
-                  />
-                ))}
-              </CommandGroup>
-            )}
-          </CommandList>
-        </PopoverContent>
-      </Command>
-    </Popover>
-  );
-}
-
-function TasksetOption({
-  taskset,
-  selected,
-  onCommit,
-}: {
-  taskset: Taskset;
-  selected: boolean;
-  onCommit: (id: string, name: string) => void;
-}) {
-  return (
-    <CommandItem
-      value={taskset.id}
-      role="option"
-      id={taskset.id}
-      aria-selected={selected}
-      onMouseDown={(e) => e.preventDefault()}
-      onSelect={() => onCommit(taskset.id, taskset.name)}
-      className="flex-col items-start gap-0.5 py-2"
-    >
-      <span className="text-body font-medium text-foreground">
-        {taskset.name}
-      </span>
-      <span className="text-meta text-muted-foreground">
-        {taskset.taskCount} tasks · {taskset.visibility} · by{" "}
-        {taskset.ownerName}
-      </span>
-    </CommandItem>
+    <Combobox
+      ref={inputRef}
+      groups={groups}
+      value={value}
+      onValueChange={(id) => id && onValueChange(id)}
+      placeholder="Pick a taskset"
+      emptyText="No tasksets match."
+      renderOption={renderOption}
+    />
   );
 }
