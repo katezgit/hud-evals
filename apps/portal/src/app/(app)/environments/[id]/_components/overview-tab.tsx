@@ -149,7 +149,6 @@ export function OverviewTab({
               <Button
                 type="button"
                 variant="ghost"
-                size="sm"
                 onClick={onSwitchToScenariosTab}
               >
                 View all {totalScenarios} scenarios

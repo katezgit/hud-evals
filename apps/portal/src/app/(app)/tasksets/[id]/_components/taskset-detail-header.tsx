@@ -114,7 +114,6 @@ export default function TasksetDetailHeader({ taskset }: TasksetDetailHeaderProp
             <DropdownMenuTrigger asChild>
               <Button
                 variant="primary"
-                size="sm"
                 className="hidden md:inline-flex"
                 type="button"
               >

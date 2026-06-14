@@ -118,7 +118,6 @@ export function AgentsCatalog({
             <div className="flex flex-wrap items-center justify-end gap-3">
               <div className="w-full max-w-sm">
                 <SearchInput
-                  size="sm"
                   defaultValue=""
                   onValueChange={setQuery}
                   placeholder="Search agents…"
@@ -372,7 +371,7 @@ function useOpenNewAgentDrawer() {
 function NewAgentButton() {
   const handleClick = useOpenNewAgentDrawer();
   return (
-    <Button variant="primary" size="sm" onClick={handleClick}>
+    <Button variant="primary" onClick={handleClick}>
       <Plus aria-hidden="true" />
       Add Agent
     </Button>

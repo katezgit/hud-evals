@@ -151,7 +151,7 @@ export function ApiKeysClient({ initialKeys }: ApiKeysClientProps) {
   return (
     <>
       <ManagePageAction>
-        <Button variant="primary" size="sm" onClick={() => setCreateOpen(true)}>
+        <Button variant="primary" onClick={() => setCreateOpen(true)}>
           <PlusIcon aria-hidden="true" className="size-3.5" />
           Create New Key
         </Button>

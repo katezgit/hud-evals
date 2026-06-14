@@ -24,7 +24,6 @@ import {
   SelectValue,
 } from "@repo/ui/components/select";
 import { Switch } from "@repo/ui/components/switch";
-import { cn } from "@repo/ui/lib/cn";
 
 import { EVAL_MODEL_GROUPS } from "@/lib/mock/eval-models";
 

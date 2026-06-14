@@ -25,7 +25,6 @@ export function ThemeToggle() {
       aria-label="Theme"
       value={activeValue}
       onValueChange={(value) => setTheme(value as ThemeChoice)}
-      size="sm"
     >
       <SegmentedControl.Item value="light" aria-label="Light theme">
         <Sun aria-hidden="true" className="size-3.5" />

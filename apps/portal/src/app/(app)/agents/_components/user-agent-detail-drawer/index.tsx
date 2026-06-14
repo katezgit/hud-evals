@@ -262,7 +262,6 @@ function UserAgentDetailDrawerBody({ agent, onClose }: DrawerBodyProps) {
               <Button
                 type="button"
                 variant="ghost"
-                size="sm"
                 onClick={onClose}
                 disabled={isSaving}
               >
@@ -271,7 +270,6 @@ function UserAgentDetailDrawerBody({ agent, onClose }: DrawerBodyProps) {
               <Button
                 type="button"
                 variant="primary"
-                size="sm"
                 onClick={handleSave}
                 disabled={!isDirty || isSaving}
                 aria-disabled={!isDirty || isSaving}

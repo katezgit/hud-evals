@@ -14,7 +14,7 @@ export default function SecretsPage() {
   return (
     <AdminGate>
       <ManagePageAction>
-        <Button variant="primary" size="sm">
+        <Button variant="primary">
           <PlusIcon aria-hidden="true" className="size-3.5" />
           Add Secret
         </Button>

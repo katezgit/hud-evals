@@ -36,7 +36,7 @@ export function NewMenu() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="primary" size="sm">
+        <Button variant="primary">
           <PlusIcon className="size-3.5" />
           New
           <ChevronDownIcon className="size-3.5" />

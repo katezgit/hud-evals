@@ -214,7 +214,6 @@ function TracesToolbar({
     <div className="flex flex-wrap items-center gap-3">
       <div className="w-full flex-none sm:w-56">
         <SearchInput
-          size="sm"
           defaultValue=""
           onValueChange={onQueryChange}
           placeholder="Search by trace ID…"
@@ -256,7 +255,6 @@ function TracesToolbar({
         aria-label="View mode"
         value={view}
         onValueChange={(value) => onViewChange(value as ViewMode)}
-        size="md"
       >
         <SegmentedControl.Item value="grid" aria-label="Grid view">
           <LayoutGrid aria-hidden="true" className="size-4" />

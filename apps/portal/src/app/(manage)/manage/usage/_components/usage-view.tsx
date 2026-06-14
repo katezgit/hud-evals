@@ -22,7 +22,7 @@ export function UsageView() {
     <>
       {isAdmin ? (
         <div className="mb-4 flex justify-end">
-          <Button asChild variant="ghost" size="sm">
+          <Button asChild variant="ghost">
             <Link href="/manage/billing">
               Billing &amp; plan
               <ArrowRightIcon aria-hidden="true" className="size-3.5" />
@@ -65,7 +65,7 @@ export function UsageView() {
         title="Limits"
         action={
           isAdmin ? (
-            <Button asChild variant="ghost" size="sm">
+            <Button asChild variant="ghost">
               <Link href="/manage/limits">
                 Manage limits
                 <ArrowRightIcon aria-hidden="true" className="size-3.5" />

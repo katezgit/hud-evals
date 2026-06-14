@@ -152,7 +152,6 @@ function EditableConfigurationPanel({ model }: { model: Model }) {
           <Button
             type="button"
             variant="secondary"
-            size="md"
             disabled={!isDirty || isSubmitting}
             onClick={() => reset()}
           >
@@ -161,7 +160,6 @@ function EditableConfigurationPanel({ model }: { model: Model }) {
           <Button
             type="submit"
             variant="primary"
-            size="md"
             disabled={!isDirty || !isValid || isSubmitting}
           >
             {isSubmitting ? "Saving…" : "Save"}
@@ -279,7 +277,7 @@ function EditableTagsField({
             <IconButton
               type="button"
               variant="ghost"
-              size="xs"
+              size="sm"
               aria-label={`Remove tag ${tag}`}
               onClick={() => remove(tag)}
               className="size-4 text-meta-foreground"

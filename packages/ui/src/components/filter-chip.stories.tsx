@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react"
+import * as React from "react"
 import { useState } from "react"
 import { FilterChip } from "./filter-chip"
 
@@ -24,67 +25,92 @@ const meta: Meta<typeof FilterChip> = {
 export default meta
 type Story = StoryObj<typeof meta>
 
+/* ─── Story components (hooks require named components) ─────────────────────── */
+
+function PlaygroundDemo({ selected: initialSelected = false, ...args }: React.ComponentProps<typeof FilterChip>) {
+  const [selected, setSelected] = useState(initialSelected)
+  return (
+    <FilterChip
+      {...args}
+      selected={selected}
+      onSelectedChange={setSelected}
+    />
+  )
+}
+
+function DefaultDemo() {
+  const [selected, setSelected] = useState(false)
+  return (
+    <FilterChip label="Trainable" selected={selected} onSelectedChange={setSelected} />
+  )
+}
+
+function SelectedDemo() {
+  const [selected, setSelected] = useState(true)
+  return (
+    <FilterChip label="Trainable" selected={selected} onSelectedChange={setSelected} />
+  )
+}
+
+function WithCountDemo() {
+  const [selected, setSelected] = useState(false)
+  return (
+    <FilterChip label="Trainable" count={16} selected={selected} onSelectedChange={setSelected} />
+  )
+}
+
+function WithCountSelectedDemo() {
+  const [selected, setSelected] = useState(true)
+  return (
+    <FilterChip label="Trainable" count={16} selected={selected} onSelectedChange={setSelected} />
+  )
+}
+
+function FilterRowDemo() {
+  const [trainable, setTrainable] = useState(false)
+  const [reasoning, setReasoning] = useState(false)
+  const [favorites, setFavorites] = useState(false)
+  return (
+    <div className="flex items-center gap-2">
+      <FilterChip label="Trainable" count={16} selected={trainable} onSelectedChange={setTrainable} />
+      <FilterChip label="Reasoning" count={18} selected={reasoning} onSelectedChange={setReasoning} />
+      <FilterChip label="Favorites" count={4} selected={favorites} onSelectedChange={setFavorites} />
+    </div>
+  )
+}
+
 /* ─── Playground ───────────────────────────────────────────────────────────── */
 
 export const Playground: Story = {
-  render: (args) => {
-    const [selected, setSelected] = useState(args.selected ?? false)
-    return (
-      <FilterChip
-        {...args}
-        selected={selected}
-        onSelectedChange={setSelected}
-      />
-    )
-  },
+  render: (args) => <PlaygroundDemo {...args} />,
 }
 
 /* ─── Default ──────────────────────────────────────────────────────────────── */
 // Baseline visual — single chip, unselected, no count.
 
 export const Default: Story = {
-  render: () => {
-    const [selected, setSelected] = useState(false)
-    return (
-      <FilterChip label="Trainable" selected={selected} onSelectedChange={setSelected} />
-    )
-  },
+  render: () => <DefaultDemo />,
 }
 
 /* ─── Selected ─────────────────────────────────────────────────────────────── */
 // Leading check icon + filled surface render.
 
 export const Selected: Story = {
-  render: () => {
-    const [selected, setSelected] = useState(true)
-    return (
-      <FilterChip label="Trainable" selected={selected} onSelectedChange={setSelected} />
-    )
-  },
+  render: () => <SelectedDemo />,
 }
 
 /* ─── WithCount ────────────────────────────────────────────────────────────── */
 // Trailing count slot wired — unselected state, muted count color.
 
 export const WithCount: Story = {
-  render: () => {
-    const [selected, setSelected] = useState(false)
-    return (
-      <FilterChip label="Trainable" count={16} selected={selected} onSelectedChange={setSelected} />
-    )
-  },
+  render: () => <WithCountDemo />,
 }
 
 /* ─── WithCountSelected ────────────────────────────────────────────────────── */
 // selected=true + count → count shifts to text-foreground (a11y contrast fix).
 
 export const WithCountSelected: Story = {
-  render: () => {
-    const [selected, setSelected] = useState(true)
-    return (
-      <FilterChip label="Trainable" count={16} selected={selected} onSelectedChange={setSelected} />
-    )
-  },
+  render: () => <WithCountSelectedDemo />,
 }
 
 /* ─── Disabled ─────────────────────────────────────────────────────────────── */
@@ -104,18 +130,7 @@ export const Disabled: Story = {
 // Production usage — three independently-controlled chips as used on the models page.
 
 export const FilterRow: Story = {
-  render: () => {
-    const [trainable, setTrainable] = useState(false)
-    const [reasoning, setReasoning] = useState(false)
-    const [favorites, setFavorites] = useState(false)
-    return (
-      <div className="flex items-center gap-2">
-        <FilterChip label="Trainable" count={16} selected={trainable} onSelectedChange={setTrainable} />
-        <FilterChip label="Reasoning" count={18} selected={reasoning} onSelectedChange={setReasoning} />
-        <FilterChip label="Favorites" count={4} selected={favorites} onSelectedChange={setFavorites} />
-      </div>
-    )
-  },
+  render: () => <FilterRowDemo />,
 }
 
 /* ─── AllStates ────────────────────────────────────────────────────────────── */

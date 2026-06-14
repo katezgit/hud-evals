@@ -38,13 +38,13 @@ export function EmptyState() {
         </p>
       </div>
       <div className="flex flex-wrap items-center justify-center gap-2">
-        <Button asChild variant="primary" size="sm">
+        <Button asChild variant="primary">
           <Link href="/environments">Browse Scenarios</Link>
         </Button>
         {/* Upload is dispatched from the kebab menu in the page header in a
             future step; here it surfaces as a placeholder no-op so the empty
             state still presents the canonical two-CTA shape. */}
-        <Button type="button" variant="secondary" size="sm" disabled>
+        <Button type="button" variant="secondary" disabled>
           Upload Tasks
         </Button>
       </div>

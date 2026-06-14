@@ -20,7 +20,7 @@ export default function BillingPage() {
       <Panel
         title="Plan"
         action={
-          <Button variant="secondary" size="sm">
+          <Button variant="secondary">
             Manage plan
           </Button>
         }

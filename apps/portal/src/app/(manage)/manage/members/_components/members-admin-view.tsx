@@ -21,7 +21,7 @@ export function MembersAdminView() {
   return (
     <>
       <ManagePageAction>
-        <Button variant="primary" size="sm" onClick={() => setInviting(true)}>
+        <Button variant="primary" onClick={() => setInviting(true)}>
           <PlusIcon aria-hidden="true" className="size-3.5" />
           Invite Member
         </Button>

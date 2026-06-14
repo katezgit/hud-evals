@@ -168,7 +168,7 @@ function ProgressCell({
 }) {
   if (row.runStats === null) {
     return (
-      <Button variant="secondary" size="sm" asChild>
+      <Button variant="secondary" asChild>
         <a href={`/jobs/new?taskset_id=${row.tasksetId}&model_id=${modelId}`}>Run</a>
       </Button>
     );

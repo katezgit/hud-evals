@@ -28,7 +28,6 @@ export function JobsEmptyNoTasks({ tasksetId }: ZeroNoTasksProps) {
       <Button
         type="button"
         variant="primary"
-        size="sm"
         onClick={handleGoToTasks}
       >
         Go to Tasks tab
@@ -71,7 +70,6 @@ export function JobsEmptyFiltered({ onClearFilters }: FilteredEmptyProps) {
       <Button
         type="button"
         variant="link"
-        size="sm"
         onClick={onClearFilters}
       >
         Clear filters

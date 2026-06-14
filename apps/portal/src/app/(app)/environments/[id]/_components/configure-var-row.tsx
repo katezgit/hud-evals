@@ -57,7 +57,6 @@ export function ConfigureVarRow({
           value={value}
           onChange={(event) => onChange(event.target.value)}
           placeholder={spec.required ? "Value" : "Optional"}
-          size="sm"
           aria-label={spec.key}
           aria-required={spec.required}
           autoComplete="off"

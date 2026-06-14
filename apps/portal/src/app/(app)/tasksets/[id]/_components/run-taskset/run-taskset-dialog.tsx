@@ -174,7 +174,6 @@ export default function RunTasksetDialog({ taskset }: RunTasksetDialogProps) {
                 <Button
                   type="button"
                   variant="ghost"
-                  size="sm"
                   className="w-fit -ml-2.5 text-muted-foreground"
                 >
                   <ChevronRight
@@ -202,13 +201,12 @@ export default function RunTasksetDialog({ taskset }: RunTasksetDialogProps) {
             <Button
               type="button"
               variant="ghost"
-              size="sm"
               onClick={() => handleOpenChange(false)}
             >
               Cancel
             </Button>
             {canRun ? (
-              <Button type="button" variant="primary" size="sm" onClick={handleRun}>
+              <Button type="button" variant="primary" onClick={handleRun}>
                 <Play aria-hidden="true" />
                 Run {taskset.taskCount} Tasks
               </Button>
@@ -219,7 +217,6 @@ export default function RunTasksetDialog({ taskset }: RunTasksetDialogProps) {
                     <Button
                       type="button"
                       variant="primary"
-                      size="sm"
                       disabled
                       aria-disabled="true"
                     >

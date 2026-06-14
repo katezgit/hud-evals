@@ -151,7 +151,6 @@ function LogsView({ logs }: { logs: ReadonlyArray<Log> }) {
       <div className="flex flex-wrap items-center gap-3">
         <div className="w-full flex-none sm:w-64">
           <SearchInput
-            size="sm"
             defaultValue=""
             onValueChange={setQuery}
             placeholder="Search by model, ID, or user…"
