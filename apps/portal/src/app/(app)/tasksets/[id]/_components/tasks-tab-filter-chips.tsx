@@ -2,7 +2,6 @@
 
 import { XIcon } from "lucide-react";
 
-import { Button } from "@repo/ui/components/button";
 import { cn } from "@repo/ui/lib/cn";
 
 import { EVAL_MODELS } from "@/lib/mock/eval-models";
@@ -94,13 +93,13 @@ export function TasksTabFilterChips({
           <XIcon aria-hidden="true" className="size-3" />
         </button>
       ))}
-      <Button
+      <button
         type="button"
-        variant="ghost"
         onClick={() => onChange(DEFAULT_STATS_FILTERS)}
+        className="text-label text-primary cursor-pointer hover:underline"
       >
         Clear all
-      </Button>
+      </button>
     </div>
   );
 }
