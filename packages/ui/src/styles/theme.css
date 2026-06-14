@@ -98,8 +98,6 @@
   --color-brand-foreground: var(--ink-900);                                    /* AA contrast on brand */
   --color-brand-hover:      #D49A0E; /* PINNED — darkened gold for hover; not a palette step */
   --color-brand-glow:       color-mix(in srgb, var(--gold) 16%, transparent);
-  /* Brand panel — PINNED dark teal, never flips with theme; foreground is pure white at varied alpha. */
-  --color-brand-surface:    #055E55; /* PINNED */
 
   /* ═══════════════════════════════════════════════════════════════════════════
    * STATE — interaction + status. Status hues follow the triplet pattern:
