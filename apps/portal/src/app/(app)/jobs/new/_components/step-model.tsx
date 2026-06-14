@@ -203,7 +203,7 @@ export function StepModel({
               </div>
             ) : (
               <div
-                className={cn("flex flex-col gap-2")}
+                className={cn("flex flex-col gap-4")}
                 role="radiogroup"
                 aria-label="Model"
               >
