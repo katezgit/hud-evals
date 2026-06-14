@@ -72,3 +72,22 @@ export const InContext: Story = {
     </span>
   ),
 }
+
+/* ─── Misuse ────────────────────────────────────────────────────────────────── */
+
+/**
+ * ANTI-PATTERN — do not copy. Without an adjacent numeric `<span>{value}%</span>`,
+ * the bar is invisible to screen readers and conveys score tier via color alone.
+ * See README §Accessibility for the composition contract.
+ */
+export const Misuse_NoNumericLabel: Story = {
+  parameters: {
+    docs: {
+      description: {
+        story:
+          "**ANTI-PATTERN — do not copy.** Without an adjacent numeric `<span>{value}%</span>`, the bar is invisible to screen readers and conveys score tier via color alone. See README §Accessibility for the composition contract.",
+      },
+    },
+  },
+  render: () => <ScoreBar value={47} />,
+}
