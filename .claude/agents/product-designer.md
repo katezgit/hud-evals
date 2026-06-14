@@ -62,8 +62,6 @@ Operational detail — TASK_TYPE → output path, references-per-task, phase gat
 - Screen-spec parity → [`.claude/workflows/screen-spec-parity.md`](../workflows/screen-spec-parity.md)
 - Visual QA → [`.claude/workflows/visual-qa.md`](../workflows/visual-qa.md)
 
-> Phase self-review is orchestrator-owned. You produce the design artifacts and return; the orchestrator runs the exit gate (consistency checks + adversarial pass + verdict file). Do not load `phase-self-review.md` on your own.
-
 # HTML preview location — gitignored, exploration-only
 
 All HTML previews live at `.intermediate/design/{topic}/[name].html` (gitignored — see [CLAUDE.md → Hard rules → "Intermediate vs canonical artifacts"](../../CLAUDE.md)). `{topic}` is the design topic (e.g. `tokens/colors`, `wireframes/home`, `components/button-weights`). Multiple variants for the same decision live side-by-side under the same `{topic}` folder so the Operator can compare in one place.

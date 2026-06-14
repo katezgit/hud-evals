@@ -1,10 +1,15 @@
 # Phase Self-Review Workflow
 
-> **Audience: orchestrator only.** Load this doc when a phase is about to exit (all planned outputs exist) or before dispatching the first agent of the next phase. Phase-owning agents (designer, engineer) do NOT load this doc — they produce artifacts and return; the orchestrator runs the gate. This keeps designer/engineer dispatches lean.
+> **Audience: orchestrator.** Load this doc when a phase is about to exit (all planned outputs exist) or before dispatching the first agent of the next phase.
 
 ## The contract
 
-Every design phase exits through a **self-review pass run by the orchestrator** against the phase owner's outputs. The self-review file is the artifact the human reviews — not the raw outputs. No phase transition is proposed without one.
+Every design phase exits through a self-review gate combining two passes:
+
+1. **Phase-owner pass** — orchestrator extracts the phase-specific checks below, inlines them in a brief dispatched to the phase owner (designer/engineer), receives PASS/FAIL + drift log + open questions. The phase owner's producer context lights up the semantic checks.
+2. **Adversarial pass** — orchestrator spawns a fresh sub-agent with no producer context for the worst-enemy review.
+
+The orchestrator aggregates both into the verdict file at `.intermediate/reviews/{phase}-self-review-{YYYY-MM-DD}.md`. The aggregated file is the artifact the human reviews — not the raw outputs. No phase transition is proposed without it.
 
 ## Reference templates
 
@@ -31,14 +36,22 @@ grep -rEn '\{\{[A-Z_]+\}\}|TODO\(agent\)' <files-touched-this-phase>
 
 > **Note:** the grep MUST NOT scan `.claude/workflows/templates/` — those files are reference and may legitimately contain marker-like text. Scope the grep to project files only (`docs/`, `apps/`, `packages/*/src/`, etc.).
 
-## Trigger (orchestrator-side)
+## Trigger
 
-The orchestrator detects either condition and runs the gate. Phase-owning agents (designer, engineer) play no role here — they have already returned with artifacts.
-
-1. **Exit check** — the phase owner has returned and all planned outputs for the current phase exist → run the self-review pass for *this* phase before posting the human-approval ping.
-2. **Entry check** — about to dispatch the first agent of the next phase → verify the previous phase's self-review exists and has verdict `ready-for-human-review` AND the human approved it (recorded in `state.md` → Phase history).
+1. **Exit check** — phase owner has returned and all planned outputs for the current phase exist → run the gate for *this* phase before posting the human-approval ping.
+2. **Entry check** — about to dispatch the first agent of the next phase → verify the previous phase's verdict file exists with `ready-for-human-review` AND human approval recorded in `state.md` → Phase history.
 
 If either gate fails, do not proceed. Escalate via `agent:{topic}` task.
+
+### Detecting "all planned outputs exist"
+
+Three signals, in order of reliability:
+
+1. **Task list** (multi-output phases — wireframes, screens, components). Per CLAUDE.md task discipline, the orchestrator creates a task per planned artifact when entering the phase. All those tasks marked `completed` → all artifacts exist.
+2. **Exit-artifact path check** (single-output phases — `personality.md`, `motion.md`, `flows/[feature].md`). File at the canonical path exists → phase complete.
+3. **Operator signal** — explicit ("done with wireframes, move to screens") or implicit ("last artifact looks good, what's next") — overrides both above.
+
+If signal 1 is ambiguous (e.g., wireframes might need one more sibling), ask the operator before running the gate. Do not infer scope silently.
 
 ## Self-review file
 

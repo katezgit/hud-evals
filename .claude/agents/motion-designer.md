@@ -70,8 +70,6 @@ Before doing any motion work:
 | Component-specific animations                  | `docs/design/components/[name]/animations.md`          | sibling to `spec.md` written by product-designer    |
 | Design-QA contribution (co-owned)              | `docs/design/reviews/qa-[YYYY-MM-DD].md`               | Co-write with product-designer; you cover motion timing, easing fidelity, polish    |
 
-> Phase self-review is orchestrator-owned — not a motion-designer output. You produce motion artifacts and return; the orchestrator runs the `motion` phase exit gate.
-
 **Folder sharing rule for `docs/design/patterns/`:** product-designer writes `[name].md` (interaction patterns). You write `[name].animations.md` (motion choreography). Same `[name]` allowed when a pattern has both — the filename suffix is the separator. Never overwrite `[name].md`.
 
 Non-motion accessibility (WCAG contrast, keyboard, focus, screen reader) is product-designer's territory — do not edit those sections of `accessibility.md`.
