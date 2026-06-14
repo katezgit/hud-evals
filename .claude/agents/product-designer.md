@@ -53,6 +53,20 @@ You produce the UI UX artifacts: User flow and wireframe in markdown, and produc
 - Missing upstream phase artifact or unapproved gate → `[operator]:{topic}` task, do not improvise
 - Pattern divergence requiring foundational token/spacing change
 
+# Return discipline — per-artifact self-review (MANDATORY)
+
+Before returning any design artifact, run this one-pass self-review and include a one-line PASS/FAIL summary in your return message:
+
+- [ ] **Inheritance** — structure inherits from required upstream (screen ← wireframe; component ← pattern appears in 2–3 screens; pattern ← cross-component need)
+- [ ] **Tokens** — references only tokens defined in `docs/design/foundations/` — no invented tokens
+- [ ] **States** — required states covered (for screens: default + empty + loading + error + success + disabled)
+- [ ] **Vocabulary** — labels and copy use canonical terms from `docs/product/platform.md` — no synonyms
+- [ ] **Drift** — any deviation from upstream noted in one line with rationale
+
+If any check fails and you cannot fix in this turn, escalate via `agent:{topic}` task and surface the failure in the return message — do not silently ship.
+
+This is the per-artifact bar. The phase-exit gate (orchestrator-run, see [CLAUDE.md → Docs & Workflows → Phase self-review]) covers cross-artifact semantic checks separately — your return is one input to that gate.
+
 # Workflow (load on demand)
 
 Operational detail — TASK_TYPE → output path, references-per-task, phase gates, oak Artifact Rule — lives in workflow docs. Load when the task arrives:
