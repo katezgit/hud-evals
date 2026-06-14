@@ -20,7 +20,7 @@
 | 7 | Indeterminate | Sweep gradient, not pulse | v1 fill is `linear-gradient(90deg, var(--accd), var(--acc))`. Indeterminate uses this same gradient on the sweeping bar to maintain visual language continuity. Keep `translateX(-100% → 350%)` sweep mechanics, swap fill to gradient. |
 | 8 | Status variants | Yes: default / success / warning / error | HUD eval runs carry scored/warning/errored states throughout the pipeline. Consistency requires status fills that match badge semantics. Fill swaps only — track, radius, height unchanged. |
 | 9 | Size variants | `sm` (4px) and `md` (6px) | `sm` is the primary instrument default; `md` for standalone prominent meters. |
-| 10 | Neutral state fill token | `--color-secondary-surface` | Engineers used `--color-muted-foreground` (a text token) as neutral fill in the MoE bar — cross-role contamination. `--color-border` is alpha-only and too transparent over the `bg-muted` track. `--color-text-disabled` implies non-interactivity, not passive measurement. `--color-secondary-surface` is the strongest neutral surface token (`#E2E7ED` light / `#1E2733` dark), defined as "stronger neutral fill" in theme.css — legitimate surface role, visibly distinct from the `bg-muted` track in both themes, does not compete with `warning` amber or any semantic state color. No new token needed. |
+| 10 | Neutral state fill token | `--color-muted-foreground` | WCAG 1.4.11 (3:1) failed for `--color-secondary-surface` against `--color-muted` track (1.12:1 dark / 1.11:1 light — operator-confirmed override, 2026-06-13). Switched to `--color-muted-foreground` — clears 3:1 in both themes (9.08:1 dark / 7.18:1 light). Cross-role concern (text-token used as surface fill) accepted as the right trade: pristine semantic < WCAG compliance. |
 
 ---
 
@@ -171,7 +171,7 @@ Status tints fill color only. Track, size, radius, and layout are unchanged.
 | `success` | flat | `--color-state-scored` | `#35C46B` | `#2E9E43` |
 | `warning` | flat | `--color-state-warning` | `#E5A52E` | `#C47A0A` |
 | `error` | flat | `--color-state-errored` | `#FF5B52` | `#D23B2C` |
-| `neutral` | flat | `--color-secondary-surface` | `#1E2733` | `#E2E7ED` |
+| `neutral` | flat | `--color-muted-foreground` | `#B3BFCE` | `#3D5269` |
 
 Status variants use flat fills — gradients on semantic colors read decorative, not functional. Glow suppressed on `warning` and `error`.
 
@@ -223,7 +223,7 @@ Not applicable. Progress is a read-only display element — no interactive disab
 | `--color-state-scored` | `success` variant |
 | `--color-state-warning` | `warning` variant |
 | `--color-state-errored` | `error` variant |
-| `--color-secondary-surface` | `neutral` variant — passive measurement fill; no glow, no complete bump |
+| `--color-muted-foreground` | `neutral` variant — passive measurement fill; no glow, no complete bump. Cross-role (text-tier token as surface fill) — operator-accepted per a11y override 2026-06-13. |
 
 **Radius:** `3px` hardcoded (`rounded-[3px]`). Not a semantic radius token — `--radius-sm` is 2px (too tight), `--radius-md` is 6px (too large); 3px matches the v1 mockup value exactly.
 
@@ -253,3 +253,4 @@ Code in `packages/ui/src/components/progress.tsx` matches this spec. Key impleme
 ## Updated 2026-06-13
 
 - Added `neutral` status variant (gap from /jobs/new redesign session — engineers in `group-size-control.tsx` locally rolled a `<div>` track with `bg-muted-foreground` fill because no neutral state existed in the shared component). Token chosen: `--color-secondary-surface`.
+- Token swap from `--color-secondary-surface` to `--color-muted-foreground` per a11y contrast failure + operator override. `--color-secondary-surface` scored 1.12:1 dark / 1.11:1 light against `--color-muted` track, failing WCAG 1.4.11 (3:1). `--color-muted-foreground` scores 9.08:1 dark / 7.18:1 light. Cross-role use (text-token as surface fill) accepted by operator as the right trade (contrast > pristine semantic).

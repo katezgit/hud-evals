@@ -42,7 +42,10 @@ const progressFillVariants = cva(
         success:  "bg-state-scored",
         warning:  "bg-state-warning",
         error:    "bg-state-errored",
-        neutral:  "bg-secondary-surface",
+        // bg-muted-foreground used as surface fill per operator override 2026-06-13:
+        // --color-secondary-surface failed WCAG 1.4.11 (1.12:1 dark / 1.11:1 light).
+        // bg-muted-foreground: 9.08:1 dark (#B3BFCE vs #161D28), 7.18:1 light (#3D5269 vs #F0F2F6).
+        neutral:  "bg-muted-foreground",
       },
     },
     defaultVariants: {
