@@ -6,45 +6,27 @@ import { useRouter } from "next/navigation";
 import { BookOpenIcon, ChevronRight, PlayIcon } from "lucide-react";
 import { toast } from "sonner";
 import { tasksets, getTaskset } from "@/lib/mock/tasksets";
+import { Stepper, type StepperStep } from "@repo/ui/components/stepper";
 import { StepEvalModels } from "./step-eval-models";
 import { StepTaskset } from "./step-taskset";
 import { StepEvalReview } from "./step-eval-review";
-import {
-  StepperHeader,
-  type StepDef,
-  type StepKey,
-} from "./stepper-header";
 import { WizardFooter } from "./wizard-footer";
 
 export interface EvalWizardProps {
   prefilledTasksetId: string | null;
 }
 
-const EVAL_STEPS: ReadonlyArray<StepDef> = [
-  {
-    key: "taskset",
-    label: "Taskset",
-    description: "Pick a taskset to evaluate against.",
-    number: 1,
-  },
-  {
-    key: "model",
-    label: "Models",
-    description: "Pick models to evaluate.",
-    number: 2,
-  },
-  {
-    key: "review",
-    label: "Review",
-    description: "Review the settings and launch.",
-    number: 3,
-  },
+type StepKey = "taskset" | "model" | "review";
+
+const EVAL_STEPS: ReadonlyArray<StepperStep> = [
+  { label: "Taskset", description: "Pick a taskset to evaluate against." },
+  { label: "Models", description: "Pick models to evaluate." },
+  { label: "Review", description: "Review the settings and launch." },
 ];
 
 const EVAL_STEP_LABELS: Record<StepKey, string> = {
   model: "Models",
   taskset: "Taskset",
-  tasks: "Tasks",
   review: "Review",
 };
 
@@ -58,9 +40,6 @@ export function EvalWizard({ prefilledTasksetId }: EvalWizardProps) {
   const router = useRouter();
 
   const [step, setStep] = useState<StepKey>("taskset");
-  const [visited, setVisited] = useState<ReadonlySet<StepKey>>(
-    () => new Set(["taskset"]),
-  );
 
   const [modelSelection, setModelSelection] = useState<ReadonlySet<string>>(
     () => new Set(),
@@ -89,7 +68,6 @@ export function EvalWizard({ prefilledTasksetId }: EvalWizardProps) {
   const canAdvance: Record<StepKey, boolean> = {
     taskset: taskset !== null,
     model: modelCount > 0,
-    tasks: true,
     review: true,
   };
 
@@ -103,12 +81,6 @@ export function EvalWizard({ prefilledTasksetId }: EvalWizardProps) {
 
   const goToStep = (next: StepKey) => {
     setStep(next);
-    setVisited((prev) => {
-      if (prev.has(next)) return prev;
-      const out = new Set(prev);
-      out.add(next);
-      return out;
-    });
   };
 
   const goNext = () => {
@@ -177,12 +149,7 @@ export function EvalWizard({ prefilledTasksetId }: EvalWizardProps) {
 
       <div className="shrink-0 page-shell block py-0 pt-6">
         <div className="mx-auto w-full max-w-[1100px]">
-          <StepperHeader
-            activeStep={step}
-            steps={EVAL_STEPS}
-            visited={visited}
-            onStepClick={goToStep}
-          />
+          <Stepper steps={EVAL_STEPS} currentStep={stepIndex + 1} />
         </div>
       </div>
 

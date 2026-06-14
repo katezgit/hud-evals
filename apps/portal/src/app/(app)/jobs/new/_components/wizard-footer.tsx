@@ -11,12 +11,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@repo/ui/components/dialog";
-import type { StepKey } from "./stepper-header";
-
 export interface WizardFooterProps {
-  step: StepKey;
-  prevStep: StepKey | null;
-  nextStep: StepKey | null;
+  step: string;
+  prevStep: string | null;
+  nextStep: string | null;
   canAdvance: boolean;
   hasEdits: boolean;
   onCancel: () => void;
@@ -27,7 +25,7 @@ export interface WizardFooterProps {
    * Step labels — accepted for API compatibility; Previous/Next buttons render
    * as bare "Previous" / "Next" and no longer interpolate the step name.
    */
-  stepLabels?: Record<StepKey, string>;
+  stepLabels?: Record<string, string>;
   /** Launch CTA label (rendered on the review step). */
   launchLabel?: ReactNode;
   /** Optional leading icon on the launch CTA. No trailing arrow — Launch is a commit, not navigation. */

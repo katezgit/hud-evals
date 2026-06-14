@@ -7,8 +7,8 @@ import { BookOpenIcon, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 import { tasksets, getTaskset } from "@/lib/mock/tasksets";
 import { getTrainingModel, type TrainingModelRow } from "@/lib/mock/job-create";
+import { Stepper, type StepperStep } from "@repo/ui/components/stepper";
 import { BaselineEvalDrawer } from "./baseline-eval-drawer";
-import { StepperHeader, type StepKey } from "./stepper-header";
 import { StepModel } from "./step-model";
 import { StepTaskset } from "./step-taskset";
 import { StepTasks } from "./step-tasks";
@@ -22,11 +22,20 @@ export interface TrainingWizardProps {
 
 export type ReasoningEffort = "low" | "medium" | "high";
 
+type StepKey = "model" | "taskset" | "tasks" | "review";
+
 const STEP_ORDER: ReadonlyArray<StepKey> = [
   "model",
   "taskset",
   "tasks",
   "review",
+];
+
+const TRAINING_STEPS: ReadonlyArray<StepperStep> = [
+  { label: "Model", description: "Choose the model checkpoint to train." },
+  { label: "Taskset", description: "Select the taskset to train against." },
+  { label: "Tasks", description: "Pick which tasks to include." },
+  { label: "Review", description: "Confirm configuration and launch." },
 ];
 
 export function TrainingWizard({
@@ -36,9 +45,6 @@ export function TrainingWizard({
   const router = useRouter();
 
   const [step, setStep] = useState<StepKey>("model");
-  const [visited, setVisited] = useState<ReadonlySet<StepKey>>(
-    () => new Set(["model"]),
-  );
 
   // ── Form state. The taskset locked-from-URL boolean is stored once at mount
   // so the user can still hit [Change] to unlock without losing the original
@@ -129,12 +135,6 @@ export function TrainingWizard({
 
   const goToStep = (next: StepKey) => {
     setStep(next);
-    setVisited((prev) => {
-      if (prev.has(next)) return prev;
-      const out = new Set(prev);
-      out.add(next);
-      return out;
-    });
   };
 
   const goNext = () => {
@@ -209,11 +209,7 @@ export function TrainingWizard({
 
       <div className="shrink-0 page-shell block py-0 pt-6">
         <div className="mx-auto w-full max-w-[1100px]">
-          <StepperHeader
-            activeStep={step}
-            visited={visited}
-            onStepClick={goToStep}
-          />
+          <Stepper steps={TRAINING_STEPS} currentStep={stepIndex + 1} />
         </div>
       </div>
 
