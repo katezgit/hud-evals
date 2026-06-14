@@ -57,4 +57,5 @@ export * from "./components/textarea";
 export * from "./components/star-count";
 export * from "./components/copy-button";
 export * from "./components/filter-chip";
+export * from "./components/stepper";
 export * from "./components/visibility-icon";
