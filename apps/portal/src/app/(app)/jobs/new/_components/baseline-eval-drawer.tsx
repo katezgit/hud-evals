@@ -79,19 +79,18 @@ function BaselineEvalDrawerBody({
   const handleStart = () => {
     const jobId = `job_${Math.random().toString(36).slice(2, 8)}`;
     onClose();
-    toast.success("Eval started. Returning to training config.", {
-      action: {
-        label: "View eval job →",
-        onClick: () => router.push(`/jobs/${jobId}`),
-      },
-      // Override Sonner's default filled action button to match the wizard's
-      // ActionLink affordance (baseline-hint-card.tsx) — same primary-colored
-      // text + hover underline pattern, so the user sees one affordance class
-      // repeated. ! beats Sonner's [data-button] base rule.
-      classNames: {
-        actionButton:
-          "!bg-transparent !text-primary !px-0 hover:!underline focus-visible:!shadow-focus-ring",
-      },
+    const toastId = toast.success("Eval started. Returning to training config.", {
+      action: (
+        <Button
+          variant="link"
+          onClick={() => {
+            toast.dismiss(toastId);
+            router.push(`/jobs/${jobId}`);
+          }}
+        >
+          View eval job →
+        </Button>
+      ),
     });
   };
 
