@@ -1,7 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
-import { FilterIcon, PlusIcon } from "lucide-react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   createColumnHelper,
   flexRender,
@@ -10,7 +9,6 @@ import {
 } from "@tanstack/react-table";
 
 import { Badge } from "@repo/ui/components/badge";
-import { Button } from "@repo/ui/components/button";
 import {
   tableBodyClass,
   tableCellVariants,
@@ -20,12 +18,24 @@ import {
   tableRowVariants,
 } from "@repo/ui/components/table";
 import { cn } from "@repo/ui/lib/cn";
+
 import type {
   Taskset,
   TasksetCustomColumn,
   TasksetTaskRow,
 } from "@/lib/mock/tasksets";
+
 import { EmptyState } from "./tasks-tab-empty";
+import { DistBars } from "./tasks-tab-cells";
+import { TaskDrawer } from "./task-drawer";
+import { TasksTabFilterChips } from "./tasks-tab-filter-chips";
+import { TasksTabFiltersPopover } from "./tasks-tab-filters-popover";
+import {
+  DEFAULT_STATS_FILTERS,
+  loadStatsFilters,
+  saveStatsFilters,
+  type TasksetStatsFilters,
+} from "./tasks-tab-filters";
 
 interface TasksTabProps {
   taskset: Taskset;
@@ -35,6 +45,66 @@ const columnHelper = createColumnHelper<TasksetTaskRow>();
 
 export default function TasksTab({ taskset }: TasksTabProps) {
   const customColumns = taskset.customColumns;
+  const tasks = taskset.tasks;
+
+  // SSR + first client render: defaults (no localStorage access). After mount,
+  // load persisted filters from localStorage. Keeping SSR and first CSR markup
+  // identical avoids the hydration mismatch on the trigger's count badge + chip
+  // row when persisted filters are non-default.
+  const [statsFilters, setStatsFilters] = useState<TasksetStatsFilters>(
+    DEFAULT_STATS_FILTERS,
+  );
+  useEffect(() => {
+    setStatsFilters(loadStatsFilters(taskset.id));
+  }, [taskset.id]);
+
+  const handleStatsFiltersChange = useCallback(
+    (next: TasksetStatsFilters) => {
+      setStatsFilters(next);
+      saveStatsFilters(taskset.id, next);
+    },
+    [taskset.id],
+  );
+
+  const environments = useMemo(
+    () => extractEnvironmentPrefixes(tasks),
+    [tasks],
+  );
+
+  const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
+  const selectedIndex = useMemo(
+    () =>
+      selectedTaskId === null
+        ? -1
+        : tasks.findIndex((t) => t.taskId === selectedTaskId),
+    [selectedTaskId, tasks],
+  );
+  const selectedTask =
+    selectedIndex >= 0 ? (tasks[selectedIndex] ?? null) : null;
+
+  useEffect(() => {
+    if (selectedTask === null) return;
+    function onKey(e: KeyboardEvent) {
+      if (e.key !== "ArrowDown" && e.key !== "ArrowUp") return;
+      // Don't hijack arrow keys when the user is interacting with a real input
+      // — selects, segmented controls, search inputs all need them.
+      const target = e.target as HTMLElement | null;
+      const tag = target?.tagName.toLowerCase();
+      if (tag === "input" || tag === "textarea" || tag === "select") return;
+      if (target?.isContentEditable) return;
+      if (selectedIndex < 0) return;
+      e.preventDefault();
+      const delta = e.key === "ArrowDown" ? 1 : -1;
+      const next = Math.max(
+        0,
+        Math.min(tasks.length - 1, selectedIndex + delta),
+      );
+      const nextTask = tasks[next];
+      if (nextTask) setSelectedTaskId(nextTask.taskId);
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [selectedTask, selectedIndex, tasks]);
 
   const columns = useMemo(
     () => [
@@ -52,7 +122,7 @@ export default function TasksTab({ taskset }: TasksTabProps) {
         },
       }),
       columnHelper.accessor("tr", {
-        header: "Tr",
+        header: "Runs",
         cell: (info) => (
           <span className="font-mono text-code tabular-nums text-foreground">
             {info.getValue()}
@@ -69,9 +139,14 @@ export default function TasksTab({ taskset }: TasksTabProps) {
         cell: (info) => {
           const r = info.row.original;
           return (
-            <Badge size="sm" variant="neutral">
-              {r.taskId} | v{r.taskVersion}
-            </Badge>
+            <div className="flex flex-col items-start gap-1">
+              <Badge size="sm" variant="neutral">
+                {r.taskId} | v{r.taskVersion}
+              </Badge>
+              <span className="font-mono text-code text-muted-foreground">
+                {r.scenario}
+              </span>
+            </div>
           );
         },
       }),
@@ -96,14 +171,6 @@ export default function TasksTab({ taskset }: TasksTabProps) {
           </span>
         ),
       }),
-      columnHelper.accessor("scenario", {
-        header: "Scenario",
-        cell: (info) => (
-          <span className="font-mono text-code text-foreground">
-            {info.getValue()}
-          </span>
-        ),
-      }),
       ...customColumns.map((col) =>
         columnHelper.display({
           id: `custom-${col.key}`,
@@ -112,9 +179,7 @@ export default function TasksTab({ taskset }: TasksTabProps) {
             const raw = info.row.original.customColumns?.[col.key];
             if (raw === undefined || raw === null) {
               return (
-                <span className="text-body text-meta-foreground">
-                  —
-                </span>
+                <span className="text-body text-meta-foreground">—</span>
               );
             }
             return (
@@ -127,28 +192,35 @@ export default function TasksTab({ taskset }: TasksTabProps) {
     [customColumns],
   );
 
+  // Stable mutable copy — TanStack Table resets its row model whenever the
+  // `data` reference changes, so it must be referentially stable across renders.
+  const tableData = useMemo(() => [...tasks], [tasks]);
   const table = useReactTable({
-    data: [...taskset.tasks],
+    data: tableData,
     columns,
     getCoreRowModel: getCoreRowModel(),
   });
 
-  if (taskset.tasks.length === 0) {
+  if (tasks.length === 0) {
     return <EmptyState />;
   }
 
   return (
     <div className="flex flex-col gap-3 pb-4">
-      <div className="flex items-center justify-end gap-2">
-        <Button type="button" variant="ghost" size="sm">
-          <PlusIcon aria-hidden="true" />
-          Add Column
-        </Button>
-        <Button type="button" variant="secondary" size="sm">
-          <FilterIcon aria-hidden="true" />
-          Filters
-        </Button>
+      <div className="flex items-center gap-2">
+        <TasksTabFilterChips
+          applied={statsFilters}
+          onChange={handleStatsFiltersChange}
+        />
+        <div className="ml-auto flex items-center gap-2">
+          <TasksTabFiltersPopover
+            applied={statsFilters}
+            environments={environments}
+            onApply={handleStatsFiltersChange}
+          />
+        </div>
       </div>
+
 
       <div className="overflow-x-auto rounded-lg border border-border bg-card">
         <table className={tableClass}>
@@ -182,35 +254,80 @@ export default function TasksTab({ taskset }: TasksTabProps) {
             ))}
           </thead>
           <tbody className={tableBodyClass}>
-            {table.getRowModel().rows.map((row) => (
-              <tr key={row.id} className={tableRowVariants()}>
-                {row.getVisibleCells().map((cell) => {
-                  const meta = cell.column.columnDef.meta as
-                    | { cellClassName?: string }
-                    | undefined;
-                  return (
-                    <td
-                      key={cell.id}
-                      className={cn(tableCellVariants(), meta?.cellClassName)}
-                    >
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                    </td>
-                  );
-                })}
-              </tr>
-            ))}
+            {table.getRowModel().rows.map((row) => {
+              const isSelected = row.original.taskId === selectedTaskId;
+              return (
+                <tr
+                  key={row.id}
+                  data-state={isSelected ? "selected" : undefined}
+                  onClick={() => setSelectedTaskId(row.original.taskId)}
+                  className={cn(
+                    tableRowVariants(),
+                    "cursor-pointer",
+                    "border-l-2 border-l-transparent",
+                  )}
+                >
+                  {row.getVisibleCells().map((cell) => {
+                    const meta = cell.column.columnDef.meta as
+                      | { cellClassName?: string }
+                      | undefined;
+                    return (
+                      <td
+                        key={cell.id}
+                        className={cn(
+                          tableCellVariants(),
+                          meta?.cellClassName,
+                        )}
+                      >
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext(),
+                        )}
+                      </td>
+                    );
+                  })}
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
+
+      <TaskDrawer
+        task={selectedTask}
+        onClose={() => setSelectedTaskId(null)}
+      />
     </div>
   );
+}
+
+function extractEnvironmentPrefixes(
+  tasks: ReadonlyArray<TasksetTaskRow>,
+): ReadonlyArray<string> {
+  const seen = new Set<string>();
+  const out: Array<string> = [];
+  for (const t of tasks) {
+    const idx = t.scenario.indexOf(":");
+    const prefix = idx === -1 ? t.scenario : t.scenario.slice(0, idx);
+    if (!seen.has(prefix)) {
+      seen.add(prefix);
+      out.push(prefix);
+    }
+  }
+  return out;
 }
 
 function CustomColumnHeader({ column }: { column: TasksetCustomColumn }) {
   return (
     <span className="inline-flex items-baseline gap-1.5">
-      <span>{column.label}</span>
-      <Badge size="sm" variant="neutral" className="border-transparent bg-transparent px-0 py-0 opacity-70">
+      <span className="font-medium normal-case tracking-normal">
+        {column.label}
+      </span>
+      <Badge
+        size="sm"
+        variant="neutral"
+        className="border-transparent bg-transparent px-0 py-0 opacity-70"
+      >
         {column.type}
       </Badge>
     </span>
@@ -277,48 +394,4 @@ function RewardBadge({ value }: { value: number }) {
       {pct}%
     </Badge>
   );
-}
-
-function DistBars({ value }: { value: number }) {
-  const bars = 5;
-  // Active count grows with value; ≥1 lights everything.
-  const active = Math.max(0, Math.min(bars, Math.round(value * bars)));
-  const width = 40;
-  const height = 14;
-  const gap = 1.5;
-  const barWidth = (width - gap * (bars - 1)) / bars;
-
-  return (
-    <svg
-      viewBox={`0 0 ${width} ${height}`}
-      width={width}
-      height={height}
-      role="img"
-      aria-label={`Distribution ${Math.round(value * 100)}%`}
-    >
-      {Array.from({ length: bars }).map((_, i) => {
-        const x = i * (barWidth + gap);
-        const isActive = i < active;
-        const barHeight = height * (0.4 + ((i + 1) / bars) * 0.6);
-        const y = height - barHeight;
-        return (
-          <rect
-            key={i}
-            x={x}
-            y={y}
-            width={barWidth}
-            height={barHeight}
-            className={isActive ? distBarClass(value) : "fill-muted"}
-            rx={0.5}
-          />
-        );
-      })}
-    </svg>
-  );
-}
-
-function distBarClass(value: number): string {
-  if (value >= 0.66) return "fill-state-scored";
-  if (value >= 0.33) return "fill-state-warning";
-  return "fill-state-errored";
 }
