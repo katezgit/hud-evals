@@ -4,8 +4,9 @@
  * packages/ui/src/styles/, then it lights up here automatically.
  *
  * EXCEPTIONS — portal-specific (not in @repo/ui because no other app uses them):
- *   - --page-max-width    : AppShell page-shell width cap
- *   - --color-grid-line   : AppShell main-area grid backdrop hairline color
+ *   - --page-max-width      : AppShell page-shell width cap
+ *   - --color-grid-line     : AppShell main-area grid backdrop hairline color
+ *   - --color-brand-surface : Onboarding brand panel pinned dark teal
  *   - @utility page-shell : canonical (app)/** page wrapper
  *   - @utility bg-grid-backdrop : main scroll-region grid pattern */
 @import "@repo/ui/styles.css";
@@ -23,6 +24,11 @@
     rgb(var(--border-seed-light) / .01),
     rgb(var(--border-seed-dark)  / .008)
   );
+
+  /* Brand panel — PINNED dark teal, never flips with theme; foreground is pure
+   * white at varied alpha. App-scoped because the only consumer is the onboarding
+   * brand panel; the DS does not need this color. */
+  --color-brand-surface: #055E55; /* PINNED */
 }
 
 /* ─── Page shell ─────────────────────────────────────────────────────────────
