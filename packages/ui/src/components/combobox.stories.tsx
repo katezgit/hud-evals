@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react"
 import * as React from "react"
 
-import { Combobox } from "./combobox"
+import { Combobox, ComboboxTwoLineOption } from "./combobox"
 import type { ComboboxOption, ComboboxGroup } from "./combobox"
 
 // ── Fixtures ──────────────────────────────────────────────────────────────────
@@ -216,4 +216,43 @@ export const MaxWidthLongLabel: Story = {
 export const MaxWidthLongPlaceholder: Story = {
   name: "Max-width — long placeholder truncates",
   render: () => <MaxWidthLongPlaceholderDemo />,
+}
+
+type TasksetOption = ComboboxOption & { taskCount: number; visibility: string; owner: string }
+
+const TASKSET_OPTIONS: TasksetOption[] = [
+  { value: "ts-webqa-001", label: "WebQA Benchmark", taskCount: 240, visibility: "public", owner: "riley" },
+  { value: "ts-webqa-002", label: "WebQA Benchmark", taskCount: 18, visibility: "private", owner: "alex" },
+  { value: "ts-browsergym", label: "BrowserGym Suite", taskCount: 512, visibility: "public", owner: "hud-team" },
+  { value: "ts-osworld", label: "OSWorld", taskCount: 369, visibility: "public", owner: "hud-team" },
+  { value: "ts-custom-rl", label: "Custom RL Env", taskCount: 64, visibility: "private", owner: "alex" },
+]
+
+function TwoLineOptionsDemo() {
+  const [value, setValue] = React.useState<string | null>("ts-webqa-001")
+  return (
+    <div style={{ width: 320 }}>
+      <Combobox
+        options={TASKSET_OPTIONS}
+        value={value}
+        onValueChange={setValue}
+        placeholder="Select taskset…"
+        emptyText="No tasksets match"
+        renderOption={(opt) => {
+          const ts = opt as TasksetOption
+          return (
+            <ComboboxTwoLineOption
+              primary={ts.label}
+              secondary={`${ts.taskCount} tasks · ${ts.visibility} · by ${ts.owner}`}
+            />
+          )
+        }}
+      />
+    </div>
+  )
+}
+
+export const TwoLineOptions: Story = {
+  name: "Two-line options (renderOption)",
+  render: () => <TwoLineOptionsDemo />,
 }

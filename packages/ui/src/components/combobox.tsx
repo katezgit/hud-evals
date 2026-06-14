@@ -28,6 +28,13 @@ type ComboboxPropsBase = {
   disabled?: boolean
   size?: "sm" | "md"
   className?: string
+  /**
+   * Custom row content renderer. Returns the node rendered left of the
+   * checkmark. Omit → default single-line label. Checkmark is always
+   * Combobox-owned; do not include it in the return value.
+   * Use `ComboboxTwoLineOption` for the canonical two-line layout.
+   */
+  renderOption?: (option: ComboboxOption) => React.ReactNode
 }
 
 export type ComboboxProps =
@@ -38,6 +45,28 @@ export type ComboboxProps =
 type ComboboxInternalProps = ComboboxPropsBase & {
   options?: ComboboxOption[]
   groups?: ComboboxGroup[]
+}
+
+export interface ComboboxTwoLineOptionProps {
+  /** Primary label — text-body 14px font-medium text-foreground. Truncates. */
+  primary: string
+  /** Secondary metadata line — text-meta 12px font-normal text-muted-foreground. Wraps. */
+  secondary: string
+}
+
+/**
+ * Drop-in content for `renderOption` when an option needs a primary name +
+ * secondary metadata line. Implements the token contract from spec §3a exactly.
+ * Pass this inside `renderOption`; Combobox owns the surrounding CommandItem
+ * and the trailing CheckIcon.
+ */
+export function ComboboxTwoLineOption({ primary, secondary }: ComboboxTwoLineOptionProps) {
+  return (
+    <span className="flex flex-col items-start gap-0.5 flex-1 min-w-0">
+      <span className="text-body font-medium text-foreground truncate w-full">{primary}</span>
+      <span className="text-meta font-normal text-muted-foreground">{secondary}</span>
+    </span>
+  )
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -155,7 +184,7 @@ TriggerInput.displayName = "ComboboxTriggerInput"
 export const Combobox = React.forwardRef<HTMLInputElement, ComboboxProps>((props, ref) => {
   const {
     value, onValueChange, placeholder, emptyText, disabled = false, size = "md",
-    className, options: optionsProp = [], groups: groupsProp,
+    className, options: optionsProp = [], groups: groupsProp, renderOption,
   } = props as ComboboxInternalProps
 
   const allOptions = React.useMemo(
@@ -295,6 +324,9 @@ export const Combobox = React.forwardRef<HTMLInputElement, ComboboxProps>((props
     [value, firstFilteredItem, commit]
   )
 
+  // CheckIcon is always Combobox-owned (not by renderOption consumer) — opacity-toggle
+  // and self-center alignment must be consistent regardless of which renderer is active.
+  // py-2 override: two-line rows are taller than single-line (py-1.5); conditional on renderOption.
   const renderItems = (items: ComboboxOption[]) =>
     items.map((option) => (
       <CommandItem
@@ -306,11 +338,18 @@ export const Combobox = React.forwardRef<HTMLInputElement, ComboboxProps>((props
         aria-selected={value === option.value}
         onMouseDown={(e) => e.preventDefault()}
         onSelect={() => commit(option)}
+        className={cn(renderOption && "py-2")}
       >
-        <span className="flex-1 truncate">{option.label}</span>
+        {renderOption
+          ? renderOption(option)
+          : <span className="flex-1 truncate">{option.label}</span>
+        }
         <CheckIcon
           aria-hidden="true"
-          className={cn("size-4 shrink-0", value === option.value ? "opacity-100" : "opacity-0")}
+          className={cn(
+            "size-4 shrink-0 self-center",
+            value === option.value ? "opacity-100" : "opacity-0",
+          )}
         />
       </CommandItem>
     ))
