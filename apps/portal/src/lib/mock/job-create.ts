@@ -260,8 +260,8 @@ export function deriveTrainingMethod(provider: string): {
 /** Fixed estimate matching the production screenshot scenario. */
 export function estimateTraining(): TrainingEstimate {
   return {
-    estimatedTime: "~0–6 hours",
-    hourlyRate: "$250.00/hr",
-    estimatedCost: "~$0–$1,417",
+    estimatedTime: "Up to ~6 hours",
+    hourlyRate: "$250/hr",
+    estimatedCost: "Up to ~$1,400",
   };
 }
