@@ -58,3 +58,4 @@ export * from "./components/star-count";
 export * from "./components/copy-button";
 export * from "./components/filter-chip";
 export * from "./components/visibility-icon";
+export * from "./components/score-bar";
