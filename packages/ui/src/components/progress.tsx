@@ -39,9 +39,10 @@ const progressFillVariants = cva(
           // glow: primary-glow is .10–.14 alpha — imperceptible in light, subtle in dark
           "shadow-[0_0_6px_var(--color-primary-glow)]", // eslint-disable-line no-restricted-syntax -- bespoke glow effect; no shadow token exists for primary-glow spread
         ].join(" "),
-        success: "bg-state-scored",
-        warning: "bg-state-warning",
-        error:   "bg-state-errored",
+        success:  "bg-state-scored",
+        warning:  "bg-state-warning",
+        error:    "bg-state-errored",
+        neutral:  "bg-secondary-surface",
       },
     },
     defaultVariants: {
@@ -57,8 +58,8 @@ type RadixProgressProps = React.ComponentProps<typeof ProgressPrimitive.Root>
 export interface ProgressProps
   extends RadixProgressProps,
     VariantProps<typeof progressTrackVariants> {
-  /** Semantic fill state. "default" renders the teal gradient (in-progress + complete). */
-  state?: "default" | "success" | "warning" | "error"
+  /** Semantic fill state. "default" renders the teal gradient (in-progress + complete). "neutral" renders a passive flat fill with no glow or complete bump. */
+  state?: "default" | "success" | "warning" | "error" | "neutral"
   /** Pass `true` (or omit `value`) to render the indeterminate sweep animation. */
   indeterminate?: boolean
   /** Left descriptor rendered above the track in a label row. */
