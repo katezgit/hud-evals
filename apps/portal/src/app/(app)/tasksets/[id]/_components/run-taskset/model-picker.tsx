@@ -44,9 +44,14 @@ export default function ModelPicker({
 
   return (
     <div className="flex flex-col gap-1.5">
-      <Label id="run-taskset-model-search-label" htmlFor="run-taskset-model-search">
-        Models
-      </Label>
+      <div className="flex flex-col gap-1">
+        <Label id="run-taskset-model-search-label" htmlFor="run-taskset-model-search">
+          Models
+        </Label>
+        <p className="text-body text-muted-foreground">
+          Pick models to evaluate.
+        </p>
+      </div>
 
       <div className="flex max-h-72 flex-col overflow-hidden rounded-md border border-border">
         <div className="sticky top-0 z-20 border-b border-border bg-elevated-surface p-2">

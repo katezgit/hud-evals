@@ -16,7 +16,8 @@ export function HeaderActions({
   if (!model.trainable) return null;
 
   if (model.checkpointCount === 0) {
-    const onClick = () => router.push(`/training/new?from=${model.id}`);
+    const onClick = () =>
+      router.push(`/jobs/new?type=training&modelId=${model.id}`);
     return (
       <div className="flex items-center gap-2">
         <IconButton
@@ -42,8 +43,10 @@ export function HeaderActions({
   }
 
   const forkSource = model.activeCheckpointId ?? model.id;
-  const onFork = () => router.push(`/training/new?from=${forkSource}`);
-  const onTrain = () => router.push(`/training/new?model=${model.id}`);
+  const onFork = () =>
+    router.push(`/jobs/new?type=training&modelId=${forkSource}`);
+  const onTrain = () =>
+    router.push(`/jobs/new?type=training&modelId=${model.id}`);
 
   return (
     <div className="flex items-center gap-2">

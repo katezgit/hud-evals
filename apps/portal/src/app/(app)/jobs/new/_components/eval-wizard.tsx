@@ -30,7 +30,7 @@ const EVAL_STEPS: ReadonlyArray<StepDef> = [
   {
     key: "model",
     label: "Models",
-    description: "Choose the models you want to compare.",
+    description: "Pick models to evaluate.",
     number: 2,
   },
   {
