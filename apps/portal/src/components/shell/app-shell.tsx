@@ -2,7 +2,6 @@
 
 import { useState, type ReactNode } from "react";
 import {
-  // Activity,
   ArrowUpRightIcon,
   BarChart3,
   BookOpen,
@@ -60,11 +59,6 @@ const WORKSPACE_ITEMS: ReadonlyArray<NavItem> = [
   { href: "/agents", label: "Agents", Icon: Bot, count: 4 },
   { href: "/library", label: "Library", Icon: BookOpen },
 ];
-
-// const RESOURCE_ITEMS: ReadonlyArray<NavItem> = [
-//   { href: "/dashboard", label: "Dashboard", Icon: BarChart3 },
-//   { href: "/progress", label: "Progress", Icon: Activity },
-// ];
 
 const EXTERNAL_ITEMS = [
   { href: "https://vendor.hud.ai", label: "Marketplace", Icon: ShoppingBag },
@@ -246,12 +240,6 @@ function SidebarBody({
           items={workspaceItems}
           collapsed={collapsed}
         />
-        {/* <NavZone
-          label="Observe"
-          items={RESOURCE_ITEMS}
-          collapsed={collapsed}
-          className="mt-5"
-        /> */}
 
         <div className="mt-auto flex flex-col">
           {collapsed ? <MarketDocsRowCollapsed /> : <MarketDocsRow />}
@@ -277,7 +265,7 @@ function SidebarBody({
 }
 
 interface NavZoneProps {
-  label: string;
+  label?: string;
   items: ReadonlyArray<NavItem>;
   collapsed: boolean;
   className?: string;
@@ -286,7 +274,7 @@ interface NavZoneProps {
 function NavZone({ label, items, collapsed, className }: NavZoneProps) {
   return (
     <div className={cn("flex flex-col", className)}>
-      {!collapsed && (
+      {label && !collapsed && (
         <div className="px-4 pt-3 pb-0 font-mono font-medium text-meta text-meta-foreground uppercase">
           {label}
         </div>

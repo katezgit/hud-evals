@@ -13,7 +13,7 @@ Cross-links:
 
 Two shells share a common structural contract (brand slot, user chip, sidebar rail, responsive collapse) but differ in their navigation content and contextual affordances.
 
-**AppShell** — wraps every authenticated route in the main application (`/(app)/...` route group). Responsible for: WORKSPACE + OBSERVE nav groups, Credits widget, external links (Marketplace, Documentation), and the full user chip with org switcher. This is the shell Alex lands in from any SDK deep-link. Navigation here is the primary way he orients before opening the trace viewer or kicking off a Job.
+**AppShell** — wraps every authenticated route in the main application (`/(app)/...` route group). Responsible for: WORKSPACE nav group, Credits widget, external links (Marketplace, Documentation), and the full user chip with org switcher. This is the shell Alex lands in from any SDK deep-link. Navigation here is the primary way he orients before opening the trace viewer or kicking off a Job.
 
 **ManageShell** — wraps every `/manage/...` route. Responsible for: "← Back to app" escape hatch, Settings header, PERSONAL + ORGANIZATION nav groups, and a simplified user chip (no org switcher). The user is already scoped to the org; switching orgs from within settings is not a valid action.
 
@@ -26,7 +26,7 @@ Two shells share a common structural contract (brand slot, user chip, sidebar ra
 - Skip-to-content link before the sidebar in DOM order
 
 **What they do not share:**
-- Nav group content (WORKSPACE/OBSERVE vs PERSONAL/ORGANIZATION)
+- Nav group content (WORKSPACE vs PERSONAL/ORGANIZATION)
 - Credits widget (AppShell only)
 - External links row (AppShell only)
 - "← Back to app" + Settings header (ManageShell only)
@@ -75,19 +75,10 @@ Two shells share a common structural contract (brand slot, user chip, sidebar ra
 │  │  [icon]  Agents    4 ││                                                    │
 │  └─────────────────────┘│                                                    │
 │  ┌─────────────────────┐│                                                    │
+│  │  [icon]  Jobs       ││  ← no count                                        │
+│  └─────────────────────┘│                                                    │
+│  ┌─────────────────────┐│                                                    │
 │  │  [icon]  Library    ││  ← no count                                        │
-│  └─────────────────────┘│                                                    │
-│                         │                                                    │
-│  ── OBSERVE ──────────  │                                                    │
-│  text-meta uppercase    │                                                    │
-│  muted-fg  tracking-wide│                                                    │
-│  px-4 mt-6 mb-1         │                                                    │
-│                         │                                                    │
-│  ┌─────────────────────┐│                                                    │
-│  │  [icon]  Dashboard  ││                                                    │
-│  └─────────────────────┘│                                                    │
-│  ┌─────────────────────┐│                                                    │
-│  │  [icon]  Progress   ││                                                    │
 │  └─────────────────────┘│                                                    │
 │                         │                                                    │
 │  ── SPACER (flex-1) ──  │                                                    │
@@ -128,12 +119,12 @@ Two shells share a common structural contract (brand slot, user chip, sidebar ra
 
 The selected nav item in AppShell uses a **leading accent bar** (vertical, ~`w-0.5`, accent color, full item height) + **label text in accent color** + unread dot (trailing, present when there is new/unread content on that surface, absent otherwise). The item row itself has a subtle background tint (`bg-sidebar-accent-subtle`) to reinforce selection without the full pill shape.
 
-This pattern is distinct from ManageShell's pill selection (see §2b). The divergence is intentional: AppShell nav items are dense and row-oriented — the leading bar with a tinted row is a lower-footprint selection signal that scans faster in a 7-item list. ManageShell has fewer, spaced-out items where the pill-bg reads unambiguously as selection without a separate bar marker. The two shells are visually different contexts; matching the treatment to the density is correct.
+This pattern is distinct from ManageShell's pill selection (see §2b). The divergence is intentional: AppShell nav items are dense and row-oriented — the leading bar with a tinted row is a lower-footprint selection signal that scans faster in a 8-item list. ManageShell has fewer, spaced-out items where the pill-bg reads unambiguously as selection without a separate bar marker. The two shells are visually different contexts; matching the treatment to the density is correct.
 
 **Count chips:**
 - Appear only on items with countable primitives (Tasksets, Environments, Models, Agents).
+- Jobs has no count — the org job list grows continuously; surfacing total count implies the user should track it, and they don't.
 - Library has no count — it is a view, not a primitive collection with a stable cardinality.
-- Dashboard and Progress have no count — they are observability surfaces, not inventories.
 - Count is the org's total owned items of that type (not filtered by user). Displayed as integer, no abbreviation unless >9999 (then `9999+`).
 - Count chips are `text-meta muted-fg`, right-aligned within the item row, flush to the sidebar right edge.
 
@@ -438,11 +429,12 @@ Sidebar is always visible. No toggle. Main content fills remaining horizontal sp
 │ [○]  │                                          │  ← Home icon (selected state:
 │ [○]  │                                          │    accent bg circle, no bar needed
 │ [○]  │                                          │    at this width — icon is the signal)
-│ [○]  │                                          │
-│ [○]  │                                          │
-│      │                                          │
-│ [○]  │                                          │  ← Dashboard
-│ [○]  │                                          │  ← Progress
+│ [○]  │                                          │  ← Tasksets
+│ [○]  │                                          │  ← Environments
+│ [○]  │                                          │  ← Models
+│ [○]  │                                          │  ← Agents
+│ [○]  │                                          │  ← Jobs
+│ [○]  │                                          │  ← Library
 │      │                                          │
 │ [flex│                                          │
 │  gap]│                                          │
@@ -540,9 +532,6 @@ Total at 375px: 12 + 36 + 24 + 51 + 4 + 32 + 12 = 171px · slack: 204px ✓
 │  │                                                     │          │
 │  │  ── WORKSPACE ───────────────────────────────────── │          │
 │  │  [full lg+ nav items, labels, counts, icons]        │          │
-│  │                                                     │          │
-│  │  ── OBSERVE ─────────────────────────────────────── │          │
-│  │  [Dashboard]  [Progress]                            │          │
 │  │                                                     │          │
 │  │  ── SPACER ──────────────────────────────────────── │          │
 │  │                                                     │          │
@@ -649,7 +638,7 @@ This file (app-shell) annotates these four items as `← new` in the ManageShell
 | Both | `<nav>` sidebar rail | `aria-label` distinguishes Main vs Settings navigation |
 | Both | Brand slot | Mark + wordmark at `lg+`; mark only at `md`; mark + wordmark in drawer at `sm` |
 | Both | User chip | `<button>` wrapping the full chip; `aria-haspopup` at AppShell |
-| AppShell | Nav groups (WORKSPACE, OBSERVE) | 7 items with icons, counts, unread dot |
+| AppShell | Nav items (WORKSPACE group) | 7 items with icons, counts, unread dot (Home, Tasksets, Environments, Models, Agents, Jobs, Library) |
 | AppShell | Credits widget | Clickable `<a>` or `<button>` linking to `/manage/usage` |
 | AppShell | External links row | Marketplace, Documentation — trailing `↗`, `target="_blank" rel="noopener"` |
 | AppShell | Org switcher popover | `role="menu"`, focus trap, Escape closes |
@@ -674,4 +663,4 @@ This file (app-shell) annotates these four items as `← new` in the ManageShell
 
 ---
 
-*Derived from: [`docs/product/personas.md`](../../product/personas.md), [`docs/product/platform.md`](../../product/platform.md), [`docs/product/personality.md`](../../product/personality.md). Visual references: operator-supplied screenshots Image #2 (AppShell) and Image #3 (ManageShell), Jun 2026. Sibling wireframes: [`manage.wireframe.md`](./manage.wireframe.md), [`onboarding.wireframe.md`](./onboarding.wireframe.md), [`post-signup-quickstart.wireframe.md`](./post-signup-quickstart.wireframe.md).*
+*Derived from: [`docs/product/personas.md`](../../product/personas.md), [`docs/product/platform.md`](../../product/platform.md), [`docs/product/personality.md`](../../product/personality.md). Visual references: operator-supplied screenshots Image #2 (AppShell) and Image #3 (ManageShell), Jun 2026. Sibling wireframes: [`manage.wireframe.md`](./manage.wireframe.md), [`onboarding.wireframe.md`](./onboarding.wireframe.md), [`post-signup-quickstart.wireframe.md`](./post-signup-quickstart.wireframe.md), [`library.wireframe.md`](./library.wireframe.md).*
