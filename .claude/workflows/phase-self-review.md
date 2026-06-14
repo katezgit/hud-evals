@@ -1,10 +1,10 @@
 # Phase Self-Review Workflow
 
-> **When to load this doc:** any agent that just read `.state/state.md` and is about to do work in (or exit) a design phase. This is the procedure — agents stay lean, the procedure lives here.
+> **Audience: orchestrator only.** Load this doc when a phase is about to exit (all planned outputs exist) or before dispatching the first agent of the next phase. Phase-owning agents (designer, engineer) do NOT load this doc — they produce artifacts and return; the orchestrator runs the gate. This keeps designer/engineer dispatches lean.
 
 ## The contract
 
-Every design phase exits through a **self-review pass written by the phase owner**. The self-review file is the artifact the human reviews — not the raw outputs. No phase transition is proposed without one.
+Every design phase exits through a **self-review pass run by the orchestrator** against the phase owner's outputs. The self-review file is the artifact the human reviews — not the raw outputs. No phase transition is proposed without one.
 
 ## Reference templates
 
@@ -21,7 +21,7 @@ The template seeds new projects with two kinds of markers that must NOT survive 
 | `{{PLACEHOLDER}}` | Atomic value the agent must replace (project name, paths, IDs, dates, ports) | Replace with the real value |
 | `<!-- TODO(agent): … -->` | Section the agent must generate following the embedded instruction | Generate content, remove the comment |
 
-**Before writing the self-review file, run this grep against the files this phase produced or modified:**
+**Before writing the self-review file, the orchestrator runs this grep against the files this phase produced or modified:**
 
 ```bash
 grep -rEn '\{\{[A-Z_]+\}\}|TODO\(agent\)' <files-touched-this-phase>
@@ -31,12 +31,12 @@ grep -rEn '\{\{[A-Z_]+\}\}|TODO\(agent\)' <files-touched-this-phase>
 
 > **Note:** the grep MUST NOT scan `.claude/workflows/templates/` — those files are reference and may legitimately contain marker-like text. Scope the grep to project files only (`docs/`, `apps/`, `packages/*/src/`, etc.).
 
-## Trigger
+## Trigger (orchestrator-side)
 
-You just read `.state/state.md`. Before you produce new artifacts, check:
+The orchestrator detects either condition and runs the gate. Phase-owning agents (designer, engineer) play no role here — they have already returned with artifacts.
 
-1. Is the current phase about to exit? (i.e. all planned outputs exist) → run the self-review pass for *this* phase.
-2. Are you entering a new phase? → run the **entry check** for the new phase, which verifies the previous phase's self-review exists and has verdict `ready-for-human-review` AND the human approved it (recorded in `state.md` → Phase history).
+1. **Exit check** — the phase owner has returned and all planned outputs for the current phase exist → run the self-review pass for *this* phase before posting the human-approval ping.
+2. **Entry check** — about to dispatch the first agent of the next phase → verify the previous phase's self-review exists and has verdict `ready-for-human-review` AND the human approved it (recorded in `state.md` → Phase history).
 
 If either gate fails, do not proceed. Escalate via `agent:{topic}` task.
 
@@ -46,7 +46,7 @@ Path: `.intermediate/reviews/{phase}-self-review-{YYYY-MM-DD}.md`
 
 > Self-reviews are process artifacts — they document that the gate ran. Future agents read the actual deliverables (tokens, specs, screens), not the review. Keeping reviews in `.intermediate/` is consistent with [CLAUDE.md → "Intermediate vs canonical artifacts"](../../CLAUDE.md).
 
-> **Directory creation.** `.intermediate/reviews/` is gitignored and may not exist on disk yet (especially on a fresh project). Before writing, run `mkdir -p .intermediate/reviews/`. The agent producing the self-review owns this — do not assume an upstream step created it.
+> **Directory creation.** `.intermediate/reviews/` is gitignored and may not exist on disk yet (especially on a fresh project). Before writing, run `mkdir -p .intermediate/reviews/`. The orchestrator owns this — do not assume an upstream step created it.
 
 Required sections:
 
@@ -75,7 +75,7 @@ Required sections:
 (if needs-more-work, list what's blocking)
 ```
 
-After writing the file, follow the [Artifact Rule](../agents/product-designer.md#artifact-rule-runs-every-turn-that-produces-a-design-artifact) (Oak note → link to project → `[kate]:review` task → link note to task → verify each return).
+After writing the file, post a one-line human-approval ping referencing the verdict and the verdict file path. The self-review itself is a process artifact in `.intermediate/` and is not published via Oak — Oak publication is reserved for canonical artifacts in `docs/` (the phase outputs the human reviews alongside the verdict).
 
 ## Phase-specific checks
 

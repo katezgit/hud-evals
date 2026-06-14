@@ -68,8 +68,9 @@ Before doing any motion work:
 | Multi-component motion choreography (pattern)  | `docs/design/patterns/[name].animations.md`            | `.animations.md` suffix distinguishes from product-designer's `[name].md` patterns |
 | Reduced-motion fallbacks                       | `docs/design/guidelines/accessibility.md`              | reduced-motion sections only — never other sections |
 | Component-specific animations                  | `docs/design/components/[name]/animations.md`          | sibling to `spec.md` written by product-designer    |
-| Motion-phase self-review (phase exit gate)     | `.intermediate/reviews/motion-self-review-[YYYY-MM-DD].md` | Follow [`.claude/workflows/phase-self-review.md`](../workflows/phase-self-review.md) |
 | Design-QA contribution (co-owned)              | `docs/design/reviews/qa-[YYYY-MM-DD].md`               | Co-write with product-designer; you cover motion timing, easing fidelity, polish    |
+
+> Phase self-review is orchestrator-owned — not a motion-designer output. You produce motion artifacts and return; the orchestrator runs the `motion` phase exit gate.
 
 **Folder sharing rule for `docs/design/patterns/`:** product-designer writes `[name].md` (interaction patterns). You write `[name].animations.md` (motion choreography). Same `[name]` allowed when a pattern has both — the filename suffix is the separator. Never overwrite `[name].md`.
 

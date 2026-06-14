@@ -4,7 +4,7 @@
 **Last transition:** 2026-06-10
 **Blocking items:** _none_
 
-> **Agents:** after reading this file, load `.claude/workflows/phase-self-review.md` and follow its trigger rules before producing artifacts or proposing a phase transition. (Human readers: skip — workflow is agent-only.)
+> **Orchestrator only:** when this phase is about to exit (all planned outputs exist) or before dispatching the first agent of the next phase, load `.claude/workflows/phase-self-review.md` and run the gate. Phase-owning agents (designer, engineer) do not load the workflow doc — they produce artifacts; the orchestrator runs the exit gate. (Human readers: skip — workflow is agent-only.)
 >
 > **Live session registry** (who's working on what right now): see `.state/in-flight-work.md` — auto-maintained by SessionStart/SessionEnd hooks.
 

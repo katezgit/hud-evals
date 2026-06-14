@@ -59,9 +59,10 @@ Operational detail — TASK_TYPE → output path, references-per-task, phase gat
 
 - Phase gates and TASK_TYPE table → [`.claude/workflows/design-phases.md`](../workflows/design-phases.md)
 - Artifact Rule (oak note + review task + scheme-correct links) → [CLAUDE.md](../../CLAUDE.md#designer-artifact-rule)
-- Phase self-review → [`.claude/workflows/phase-self-review.md`](../workflows/phase-self-review.md)
 - Screen-spec parity → [`.claude/workflows/screen-spec-parity.md`](../workflows/screen-spec-parity.md)
 - Visual QA → [`.claude/workflows/visual-qa.md`](../workflows/visual-qa.md)
+
+> Phase self-review is orchestrator-owned. You produce the design artifacts and return; the orchestrator runs the exit gate (consistency checks + adversarial pass + verdict file). Do not load `phase-self-review.md` on your own.
 
 # HTML preview location — gitignored, exploration-only
 
