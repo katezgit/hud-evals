@@ -8,7 +8,7 @@ import { Badge } from "@repo/ui/components/badge";
  */
 export function OrganizationBadge({ name }: { name: string }) {
   return (
-    <Badge variant="neutral" size="sm">
+    <Badge variant="neutral">
       {name}
     </Badge>
   );

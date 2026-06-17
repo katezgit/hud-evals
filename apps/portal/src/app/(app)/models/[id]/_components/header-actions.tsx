@@ -1,10 +1,12 @@
 "use client";
 
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { GitFork, GraduationCap } from "lucide-react";
 import { Button } from "@repo/ui/components/button";
 import { IconButton } from "@repo/ui/components/icon-button";
 import type { Model } from "../_data/types";
+import { ForkModelDialog } from "./fork-model-dialog";
 
 export function HeaderActions({
   model,
@@ -12,6 +14,7 @@ export function HeaderActions({
   model: Model;
 }) {
   const router = useRouter();
+  const [forkOpen, setForkOpen] = useState(false);
 
   if (!model.trainable) return null;
 
@@ -41,48 +44,49 @@ export function HeaderActions({
     );
   }
 
-  const forkSource = model.activeCheckpointId ?? model.id;
-  const onFork = () =>
-    router.push(`/jobs/new?type=training&modelId=${forkSource}`);
   const onTrain = () =>
     router.push(`/jobs/new?type=training&modelId=${model.id}`);
+  const onFork = () => setForkOpen(true);
 
   return (
-    <div className="flex items-center gap-2">
-      <IconButton
-        variant="secondary"
-        size="sm"
-        aria-label="Fork"
-        className="md:hidden"
-        onClick={onFork}
-      >
-        <GitFork aria-hidden="true" />
-      </IconButton>
-      <Button
-        variant="secondary"
-        className="hidden md:inline-flex"
-        onClick={onFork}
-      >
-        <GitFork aria-hidden="true" />
-        Fork
-      </Button>
-      <IconButton
-        variant="primary"
-        size="sm"
-        aria-label="Train"
-        className="md:hidden"
-        onClick={onTrain}
-      >
-        <GraduationCap aria-hidden="true" />
-      </IconButton>
-      <Button
-        variant="primary"
-        className="hidden md:inline-flex"
-        onClick={onTrain}
-      >
-        <GraduationCap aria-hidden="true" />
-        Train
-      </Button>
-    </div>
+    <>
+      <div className="flex items-center gap-2">
+        <IconButton
+          variant="secondary"
+          size="sm"
+          aria-label="Fork"
+          className="md:hidden"
+          onClick={onFork}
+        >
+          <GitFork aria-hidden="true" />
+        </IconButton>
+        <Button
+          variant="secondary"
+          className="hidden md:inline-flex"
+          onClick={onFork}
+        >
+          <GitFork aria-hidden="true" />
+          Fork
+        </Button>
+        <IconButton
+          variant="primary"
+          size="sm"
+          aria-label="Train"
+          className="md:hidden"
+          onClick={onTrain}
+        >
+          <GraduationCap aria-hidden="true" />
+        </IconButton>
+        <Button
+          variant="primary"
+          className="hidden md:inline-flex"
+          onClick={onTrain}
+        >
+          <GraduationCap aria-hidden="true" />
+          Train
+        </Button>
+      </div>
+      <ForkModelDialog model={model} open={forkOpen} onOpenChange={setForkOpen} />
+    </>
   );
 }

@@ -75,13 +75,13 @@ export function ChatAgentForm({
       model: modelLabel(values.modelId),
       systemPrompt: values.systemPrompt?.trim() || undefined,
     });
-    toast.success(`Agent ${values.name.trim()} — added to My Agents`);
+    toast.success(`Agent ${values.name.trim()} — added to Your Agents`);
     onCreated();
   });
 
   return (
     <form onSubmit={onSubmit} noValidate className="flex h-full flex-col">
-      <div className="flex flex-1 flex-col gap-6">
+      <div className="flex flex-1 flex-col gap-4">
         <FormField id="chat-name" label="Name" required>
           <Input
             type="text"

@@ -1,0 +1,866 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Job Detail — Usage Tab (mockup)</title>
+  <style>
+    /* =========================================================================
+     * CSS CUSTOM PROPERTIES — verbatim from traces-tab.html <head><style>
+     * mirrors packages/ui/src/styles/primitive.css + theme.css (dark).
+     * ========================================================================= */
+    :root {
+      color-scheme: dark;
+
+      /* ── Primitives ── */
+      --white:              #FFFFFF;
+
+      /* Ink */
+      --ink-900: #18212E;
+      --ink-50:  #E8EEF5;
+      --ink-800: #3D5269;
+      --ink-100: #B3BFCE;
+      --ink-700: #6C7A8C;
+      --ink-200: #7A8494;
+      --ink-400: #A4ADB9;
+      --ink-500: #475260;
+
+      /* Surfaces */
+      --surface-bg-dark:        #0C1016;
+      --surface-panel-dark:     #11161F;
+      --surface-elevated-dark:  #161D28;
+      --surface-muted-dark:     #161D28;
+      --surface-secondary-dark: #1E2733;
+
+      /* Status primitives */
+      --scored-400:  #35C46B;
+      --running-400: #4FA8FF;
+      --errored-400: #FF5B52;
+      --warning-400: #E5A52E;
+      --teal-400:    #2BE0C8;
+      --teal-500:    #1A9183;
+
+      /* Border seed */
+      --border-seed-dark: 255 255 255;
+
+      /* ── Semantic tokens (dark mode resolved) ── */
+      --background:        var(--surface-bg-dark);
+      --card:              var(--surface-panel-dark);
+      --elevated-surface:  var(--surface-elevated-dark);
+      --muted-surface:     var(--surface-muted-dark);
+      --secondary-surface: var(--surface-secondary-dark);
+
+      --foreground:        var(--ink-50);
+      --muted-foreground:  var(--ink-100);
+      --meta-foreground:   var(--ink-200);
+      --text-disabled:     var(--ink-500);
+
+      --primary:           var(--teal-400);
+      --primary-soft:      rgba(43, 224, 200, 0.10);
+      --primary-border:    rgba(43, 224, 200, 0.25);
+
+      --border:            rgb(var(--border-seed-dark) / .08);
+      --border-strong:     rgb(var(--border-seed-dark) / .18);
+
+      /* State: scored/success */
+      --state-scored:         var(--scored-400);
+      --state-scored-subtle:  rgba(53, 196, 107, 0.12);
+      --state-scored-text:    var(--scored-400);
+
+      /* State: warning */
+      --state-warning:        var(--warning-400);
+      --state-warning-subtle: rgba(229, 165, 46, 0.12);
+      --state-warning-text:   var(--warning-400);
+
+      /* State: errored / destructive */
+      --state-errored:        var(--errored-400);
+      --state-errored-subtle: rgba(255, 91, 82, 0.12);
+      --state-errored-text:   var(--errored-400);
+
+      --alert-destructive-bg: rgba(255, 91, 82, 0.06);
+
+      --hover-surface: var(--surface-elevated-dark);
+
+      /* ── Typography scale ── */
+      /* text-display  → 20px / 700 */
+      /* text-subtitle → 16px / 600 */
+      /* text-body     → 14px / 400  ← default reading copy */
+      /* text-label    → 13px / 400 */
+      /* text-meta     → 11px / 500 uppercase tracking */
+      --font-sans: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", sans-serif;
+      --font-mono: "SF Mono", "Fira Code", "Cascadia Code", "JetBrains Mono", ui-monospace, monospace;
+
+      /* ── Usage-tab-only additions ── */
+
+      /* Split-bar: Inference segment uses --primary (teal accent) so the "my
+         model is expensive" lever reads as the primary optimization signal.
+         token: --primary (var(--teal-400)) */
+
+      /* Split-bar: Environment segment uses a desaturated ink-tone so it
+         reads as secondary without needing a new color.
+         token: --accent-secondary — PINNED to ink-700 (#6C7A8C); if a proper
+         secondary-accent token is added to the theme, swap var() here. */
+      --accent-secondary: var(--ink-700);
+
+      /* vs-avg-trace delta colors: above mean = more expensive = destructive (red);
+         below mean = cheaper = scored (green).
+         NOTE: this color-band mapping is app-level business logic — the
+         DS primitives (--state-errored-text, --state-scored-text) are reused
+         at the call site; do NOT move this logic into a DS component. */
+    }
+
+    /* ── Reset + base ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--background);
+      color: var(--foreground);
+      font-family: var(--font-sans);
+      font-size: 14px; /* text-body */
+      line-height: 1.5;
+      padding: 32px;
+      min-height: 100vh;
+    }
+
+    /* ── Utilities (verbatim from traces-tab) ── */
+    .font-mono          { font-family: var(--font-mono); }
+    .text-primary       { color: var(--primary); }
+    .text-foreground    { color: var(--foreground); }
+    .text-muted         { color: var(--muted-foreground); }
+    .text-meta          { color: var(--meta-foreground); }
+    .text-state-errored { color: var(--state-errored-text); }
+    .text-state-scored  { color: var(--state-scored-text); }
+    .text-state-warning { color: var(--state-warning-text); }
+    .text-xs   { font-size: 11px; }
+    .text-sm   { font-size: 13px; }
+    .text-base { font-size: 14px; }
+    .fw-medium { font-weight: 500; }
+    .fw-semi   { font-weight: 600; }
+    .fw-bold   { font-weight: 700; }
+    .uppercase { text-transform: uppercase; letter-spacing: 0.06em; }
+
+    .flex             { display: flex; }
+    .flex-col         { flex-direction: column; }
+    .items-center     { align-items: center; }
+    .items-baseline   { align-items: baseline; }
+    .justify-between  { justify-content: space-between; }
+    .gap-1  { gap: 4px; }
+    .gap-2  { gap: 8px; }
+    .gap-3  { gap: 12px; }
+    .gap-4  { gap: 16px; }
+    .gap-6  { gap: 24px; }
+    .ml-auto { margin-left: auto; }
+
+    /* ── Content container ── */
+    .usage-content {
+      max-width: 960px;
+      display: flex;
+      flex-direction: column;
+      gap: 28px;
+    }
+
+    /* ══════════════════════════════════════════════════════════════════════════
+     * (1) TAB-CONTENT HEADER ROW
+     * ══════════════════════════════════════════════════════════════════════════ */
+    .tab-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+    }
+    .tab-header-left {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .tab-title {
+      font-size: 20px; /* text-display */
+      font-weight: 700;
+      color: var(--foreground);
+    }
+    .tab-subtitle {
+      font-size: 13px; /* text-label */
+      color: var(--meta-foreground);
+    }
+    .tab-header-right {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+    .estimated-total-block {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 2px;
+    }
+    .estimated-total-value {
+      font-family: var(--font-mono);
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--foreground);
+      line-height: 1;
+    }
+    .estimated-total-label {
+      font-size: 11px; /* text-meta */
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--meta-foreground);
+    }
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .freshness-cue {
+      font-size: 11px; /* text-meta */
+      color: var(--meta-foreground);
+    }
+    .btn-export {
+      background: var(--secondary-surface);
+      border: 1px solid var(--border-strong);
+      border-radius: 6px;
+      color: var(--foreground);
+      font-size: 13px; /* text-label */
+      font-weight: 500;
+      padding: 6px 14px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+    }
+    .btn-export:hover {
+      background: var(--elevated-surface);
+    }
+    /* SVG icon inline helper */
+    .icon-sm {
+      width: 14px;
+      height: 14px;
+      flex-shrink: 0;
+    }
+
+    /* ══════════════════════════════════════════════════════════════════════════
+     * (2) INFRA SPLIT SUB-LINE — one-line muted text under total, no bar
+     * ══════════════════════════════════════════════════════════════════════════ */
+    .split-subline {
+      font-family: var(--font-mono);
+      font-size: 11px; /* text-meta */
+      color: var(--meta-foreground);
+      margin-top: 2px;
+    }
+
+    /* ══════════════════════════════════════════════════════════════════════════
+     * (3) BY MODEL CAPTION — single explanatory line above the table
+     * ══════════════════════════════════════════════════════════════════════════ */
+    .model-caption {
+      font-size: 11px; /* text-meta */
+      color: var(--muted-foreground);
+      font-style: italic;
+      margin-bottom: 10px;
+    }
+
+    /* ══════════════════════════════════════════════════════════════════════════
+     * (4) BY MODEL TABLE — totals row
+     * ══════════════════════════════════════════════════════════════════════════ */
+    .totals-row td {
+      border-top: 1px solid var(--border-strong);
+      border-bottom: none;
+      font-weight: 600;
+    }
+    .totals-row:hover td {
+      background: transparent;
+    }
+    /* Cost/success sub-count */
+    .cost-success-sub {
+      font-family: var(--font-mono);
+      font-size: 11px; /* text-meta */
+      color: var(--meta-foreground);
+      display: block;
+      margin-top: 1px;
+    }
+
+    /* ══════════════════════════════════════════════════════════════════════════
+     * (4b) PER-MODEL ROLLUP TABLE
+     * ══════════════════════════════════════════════════════════════════════════ */
+    .section-heading {
+      font-size: 13px; /* text-label */
+      font-weight: 600;
+      color: var(--foreground);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 10px;
+    }
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px; /* text-label */
+    }
+    .data-table thead tr {
+      border-bottom: 1px solid var(--border-strong);
+    }
+    .data-table th {
+      font-size: 11px; /* text-meta */
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--meta-foreground);
+      padding: 0 12px 8px 0;
+      text-align: left;
+      white-space: nowrap;
+    }
+    .data-table th:last-child,
+    .data-table td:last-child {
+      text-align: right;
+      padding-right: 0;
+    }
+    .data-table th:first-child,
+    .data-table td:first-child {
+      padding-left: 0;
+    }
+    .data-table td {
+      padding: 11px 12px 11px 0;
+      border-bottom: 1px solid var(--border);
+      vertical-align: middle;
+      color: var(--foreground);
+    }
+    .data-table tbody tr:last-child td {
+      border-bottom: none;
+    }
+    .data-table tbody tr:hover td {
+      background: var(--hover-surface);
+    }
+    /* Model name cell */
+    .model-name {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      color: var(--foreground);
+    }
+    /* Numeric cells */
+    .num-cell {
+      font-family: var(--font-mono);
+      font-size: 13px;
+    }
+    /* vs-avg-trace delta badge
+       NOTE: above-mean = more expensive → destructive token (red)
+             below-mean = cheaper       → scored token (green)
+       This coloring is app-level business logic; do NOT abstract into a DS
+       component with a "sign" prop — the color assignment belongs at the call site. */
+    .delta-badge {
+      display: inline-block;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 600;
+      padding: 2px 7px;
+      border-radius: 4px;
+    }
+    .delta-above {
+      /* token: bg-state-errored-subtle + text-state-errored-text */
+      background: var(--state-errored-subtle);
+      color: var(--state-errored-text);
+    }
+    .delta-below {
+      /* token: bg-state-scored-subtle + text-state-scored-text */
+      background: var(--state-scored-subtle);
+      color: var(--state-scored-text);
+    }
+
+    /* ══════════════════════════════════════════════════════════════════════════
+     * (4b) WASTED-COST CALLOUT
+     * token: --alert-destructive-bg for bg; --state-errored-text for icon/amount;
+     *        --border-strong for the border tint (same as other borders)
+     * ══════════════════════════════════════════════════════════════════════════ */
+    .wasted-cost-callout {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      /* token: --alert-destructive-bg */
+      background: var(--alert-destructive-bg);
+      border: 1px solid rgba(255, 91, 82, 0.18);
+      border-radius: 6px;
+      padding: 8px 12px;
+      font-size: 13px;
+      color: var(--muted-foreground);
+    }
+    .wasted-cost-amount {
+      /* token: --state-errored-text */
+      color: var(--state-errored-text);
+      font-family: var(--font-mono);
+      font-weight: 600;
+    }
+    .wasted-cost-link {
+      /* ghost-destructive button style — no bg, destructive text */
+      background: none;
+      border: none;
+      padding: 0;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 500;
+      /* token: --state-errored-text */
+      color: var(--state-errored-text);
+      margin-left: auto;
+      white-space: nowrap;
+      text-decoration: none;
+    }
+    .wasted-cost-link:hover {
+      text-decoration: underline;
+    }
+
+    /* ══════════════════════════════════════════════════════════════════════════
+     * (5) PER-TRACE BREAKDOWN — grouped table
+     * ══════════════════════════════════════════════════════════════════════════ */
+    .section-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+    /* Group-by control */
+    .groupby-control {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      color: var(--meta-foreground);
+    }
+    /* token: --secondary-surface for the select background */
+    .groupby-select {
+      appearance: none;
+      background: var(--secondary-surface);
+      border: 1px solid var(--border-strong);
+      border-radius: 5px;
+      color: var(--foreground);
+      font-family: var(--font-sans);
+      font-size: 13px;
+      padding: 4px 28px 4px 10px;
+      cursor: pointer;
+      /* inline chevron via background-image */
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M2 4l4 4 4-4' stroke='%237A8494' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 8px center;
+    }
+    .groupby-select:focus { outline: none; box-shadow: 0 0 0 2px var(--primary-border); }
+
+    /* Group row (expandable header) */
+    .group-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 0;
+      cursor: pointer;
+      border-top: 1px solid var(--border);
+    }
+    .group-row:first-of-type { border-top: 1px solid var(--border-strong); }
+    .group-chevron {
+      font-size: 10px;
+      color: var(--meta-foreground);
+      width: 14px;
+      text-align: center;
+      flex-shrink: 0;
+    }
+    .group-label {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--foreground);
+    }
+    .group-meta {
+      font-size: 12px;
+      color: var(--meta-foreground);
+      margin-left: 4px;
+    }
+    .group-total {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--foreground);
+      margin-left: auto;
+      padding-right: 0;
+    }
+
+    /* Trace rows within an expanded group */
+    .trace-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      margin-bottom: 4px;
+    }
+    .trace-table th {
+      font-size: 11px;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--meta-foreground);
+      padding: 6px 12px 6px 28px; /* indent under group chevron */
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+      background: var(--card);
+    }
+    .trace-table th.align-right,
+    .trace-table td.align-right {
+      text-align: right;
+    }
+    .trace-table th:last-child {
+      padding-right: 0;
+    }
+    .trace-table td {
+      padding: 9px 12px 9px 28px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: middle;
+      color: var(--foreground);
+    }
+    .trace-table td:last-child { padding-right: 0; }
+    .trace-table tbody tr:last-child td { border-bottom: none; }
+    .trace-table tbody tr:hover td { background: var(--hover-surface); }
+
+    /* Errored row tint — very low alpha, don't shout */
+    .trace-row-errored td {
+      /* token: --alert-destructive-bg (rgba 255,91,82, 0.06) */
+      background: var(--alert-destructive-bg);
+    }
+    .trace-row-errored:hover td {
+      background: rgba(255, 91, 82, 0.10);
+    }
+
+    /* Trace id */
+    .trace-id {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--primary); /* token: text-primary — run/trace ids */
+      cursor: pointer;
+    }
+    /* Status pill */
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 12px;
+      font-weight: 500;
+      padding: 2px 8px;
+      border-radius: 4px;
+    }
+    .status-scored {
+      /* token: bg-state-scored-subtle + text-state-scored-text */
+      background: var(--state-scored-subtle);
+      color: var(--state-scored-text);
+    }
+    .status-errored {
+      /* token: bg-state-errored-subtle + text-state-errored-text */
+      background: var(--state-errored-subtle);
+      color: var(--state-errored-text);
+    }
+    .status-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: currentColor;
+      flex-shrink: 0;
+    }
+    /* env cost sub-label */
+    .env-sub {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--meta-foreground);
+      display: block;
+      margin-top: 1px;
+    }
+
+    /* Sort indicator */
+    .sort-indicator {
+      font-size: 10px;
+      color: var(--foreground);
+      margin-left: 3px;
+    }
+
+    /* Collapsed group row (no child table) */
+    .group-collapsed td {
+      opacity: 0.75;
+    }
+
+    /* ══════════════════════════════════════════════════════════════════════════
+     * (6) SHOW ALL link
+     * ══════════════════════════════════════════════════════════════════════════ */
+    .show-all-row {
+      padding-top: 12px;
+      text-align: center;
+    }
+    .show-all-btn {
+      background: none;
+      border: 1px solid var(--border-strong);
+      border-radius: 6px;
+      color: var(--muted-foreground);
+      font-size: 13px;
+      font-weight: 500;
+      padding: 7px 20px;
+      cursor: pointer;
+    }
+    .show-all-btn:hover {
+      background: var(--secondary-surface);
+      color: var(--foreground);
+    }
+
+    /* ── Divider ── */
+    .divider {
+      border: none;
+      border-top: 1px solid var(--border);
+    }
+  </style>
+</head>
+<body>
+
+<div class="usage-content">
+
+  <!-- ════════════════════════════════════════════════════════════════════════
+       (1) TAB-CONTENT HEADER ROW
+       ════════════════════════════════════════════════════════════════════════ -->
+  <div class="tab-header">
+
+    <div class="tab-header-left">
+      <h1 class="tab-title">Usage</h1>
+      <span class="tab-subtitle">18 traces &middot; 145 inference calls</span>
+    </div>
+
+    <div class="tab-header-right">
+      <div class="estimated-total-block">
+        <span class="estimated-total-value">$1.57</span>
+        <span class="estimated-total-label">Estimated Total</span>
+        <span class="split-subline">$0.82 inference &middot; $0.75 environment</span>
+      </div>
+      <div class="header-actions">
+        <!-- Nit B: single freshness cue, footer line dropped -->
+        <span class="freshness-cue">Cost calculated 32 minutes ago</span>
+        <button class="btn-export">
+          <!-- download icon -->
+          <svg class="icon-sm" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M7 1v8M4 6l3 3 3-3M2 11h10" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          Export
+        </button>
+      </div>
+    </div>
+
+  </div><!-- /tab-header -->
+
+  <!-- ════════════════════════════════════════════════════════════════════════
+       (2) BY MODEL — headline block (promoted above old metric cards)
+       Caption defines success threshold; table has new COST / SUCCESS column
+       and a Job-total row closing the comparison.
+       Sort: TOTAL descending (Opus first); totals row pinned at bottom.
+       ════════════════════════════════════════════════════════════════════════ -->
+  <div>
+    <p class="section-heading">By model</p>
+    <!-- Caption: only place on page that defines the success threshold -->
+    <p class="model-caption">Comparing models by cost-to-reach-target. Cost&thinsp;/&thinsp;Success = total spend &divide; traces scoring &ge;0.5.</p>
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Model</th>
+          <th>Traces</th>
+          <th>Avg&thinsp;/&thinsp;Trace</th>
+          <th>Cost&thinsp;/&thinsp;Success</th>
+          <th>Total</th>
+          <th style="text-align:right;">vs Avg Trace</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Row 1: claude-opus-4-6 — $1.05 total (highest, sorts first) -->
+        <tr>
+          <td><span class="model-name">claude-opus-4-6</span></td>
+          <td class="num-cell">9</td>
+          <td class="num-cell">$0.12</td>
+          <td class="num-cell">
+            $0.15
+            <span class="cost-success-sub">(7 of 9)</span>
+          </td>
+          <td class="num-cell">$1.05</td>
+          <td style="text-align:right;">
+            <!-- App-level: above job avg → more expensive → destructive token -->
+            <span class="delta-badge delta-above">+33%</span>
+          </td>
+        </tr>
+        <!-- Row 2: claude-haiku-4-5 — $0.52 total -->
+        <tr>
+          <td><span class="model-name">claude-haiku-4-5</span></td>
+          <td class="num-cell">9</td>
+          <td class="num-cell">$0.05</td>
+          <td class="num-cell">
+            $0.07
+            <span class="cost-success-sub">(7 of 9)</span>
+          </td>
+          <td class="num-cell">$0.52</td>
+          <td style="text-align:right;">
+            <!-- App-level: below job avg → cheaper → scored token -->
+            <span class="delta-badge delta-below">&minus;44%</span>
+          </td>
+        </tr>
+        <!-- Job-total row — border-t separator, bolder weight, pinned at bottom -->
+        <tr class="totals-row">
+          <td><span class="model-name" style="color: var(--muted-foreground);">Job total</span></td>
+          <td class="num-cell" style="color: var(--muted-foreground);">18</td>
+          <td class="num-cell" style="color: var(--muted-foreground);">$0.09</td>
+          <td class="num-cell" style="color: var(--muted-foreground);">
+            $0.11
+            <span class="cost-success-sub">(14 of 18)</span>
+          </td>
+          <td class="num-cell" style="color: var(--muted-foreground);">$1.57</td>
+          <td style="text-align:right; color: var(--meta-foreground);">&mdash;</td>
+        </tr>
+      </tbody>
+    </table>
+  </div><!-- /by-model -->
+
+  <!-- ════════════════════════════════════════════════════════════════════════
+       (4) WASTED-COST CALLOUT — between BY MODEL and the trace breakdown
+       token: --alert-destructive-bg bg; --state-errored-text for amount + link
+       ════════════════════════════════════════════════════════════════════════ -->
+  <div class="wasted-cost-callout">
+    <span>&#9888;</span>
+    <span><span class="wasted-cost-amount">$0.13</span> spent on 1 errored trace</span>
+    <a href="#" class="wasted-cost-link">Jump to trace &rarr;</a>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════════════════════════
+       (5) PER-TRACE BREAKDOWN — grouped by Model (group-by: Model selected)
+           Rendered state: opus group expanded, haiku group collapsed.
+       ════════════════════════════════════════════════════════════════════════ -->
+  <div>
+
+    <div class="section-row">
+      <p class="section-heading" style="margin-bottom:0;">Per-Trace Breakdown</p>
+      <!-- Group-by dropdown — active value = Model -->
+      <!-- token: --secondary-surface for select background -->
+      <div class="groupby-control">
+        <span>Group by:</span>
+        <select class="groupby-select">
+          <option>None</option>
+          <option>Task</option>
+          <option selected>Model</option>
+          <option>Status</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- GROUP 1: claude-opus-4-6 — EXPANDED -->
+    <div class="group-row" style="margin-top: 12px;">
+      <span class="group-chevron">&#9660;</span>
+      <span class="group-label">claude-opus-4-6</span>
+      <span class="group-meta">9 traces</span>
+      <span class="group-total">$1.05</span>
+    </div>
+
+    <!-- Expanded trace table for opus -->
+    <!-- Fix 3: sorted by TOTAL descending; Fix 6: REWARD column added between STATUS and INFERENCE -->
+    <table class="trace-table">
+      <thead>
+        <tr>
+          <th>Trace</th>
+          <th>Status</th>
+          <th class="align-right">Reward</th>
+          <th>Inference</th>
+          <th>Environment</th>
+          <!-- Fix 3: sort indicator ▼ on TOTAL header -->
+          <th class="align-right">Total <span class="sort-indicator">&#9660;</span></th>
+        </tr>
+      </thead>
+      <tbody>
+
+        <!-- Row 1: highest cost — $0.17 -->
+        <tr>
+          <td><span class="trace-id">a72f08b1</span></td>
+          <td><span class="status-pill status-scored"><span class="status-dot"></span>Scored</span></td>
+          <!-- Fix 6: REWARD cell — success, high reward -->
+          <td class="num-cell align-right">0.73</td>
+          <td class="num-cell">$0.13</td>
+          <td class="num-cell">
+            $0.04
+            <span class="env-sub">5m base</span>
+          </td>
+          <td class="num-cell align-right">$0.17</td>
+        </tr>
+
+        <!-- Row 2: $0.16 -->
+        <tr>
+          <td><span class="trace-id">c3d190f4</span></td>
+          <td><span class="status-pill status-scored"><span class="status-dot"></span>Scored</span></td>
+          <!-- Fix 6: success, reward ≥0.5 -->
+          <td class="num-cell align-right">1.00</td>
+          <td class="num-cell">$0.12</td>
+          <td class="num-cell">
+            $0.04
+            <span class="env-sub">5m base</span>
+          </td>
+          <td class="num-cell align-right">$0.16</td>
+        </tr>
+
+        <!-- Row 3: $0.15 -->
+        <tr>
+          <td><span class="trace-id">3415257e</span></td>
+          <td><span class="status-pill status-scored"><span class="status-dot"></span>Scored</span></td>
+          <!-- Fix 6: success, reward ≥0.5 -->
+          <td class="num-cell align-right">0.88</td>
+          <td class="num-cell">$0.11</td>
+          <td class="num-cell">
+            $0.04
+            <span class="env-sub">5m base</span>
+          </td>
+          <td class="num-cell align-right">$0.15</td>
+        </tr>
+
+        <!-- Row 4: $0.14 — reward <0.5, failure for cost-per-success math -->
+        <tr>
+          <td><span class="trace-id">8e4b22ad</span></td>
+          <td><span class="status-pill status-scored"><span class="status-dot"></span>Scored</span></td>
+          <!-- Fix 6: below 0.5 — counted as failure -->
+          <td class="num-cell align-right" style="color: var(--meta-foreground);">0.31</td>
+          <td class="num-cell">$0.10</td>
+          <td class="num-cell">
+            $0.04
+            <span class="env-sub">5m base</span>
+          </td>
+          <td class="num-cell align-right">$0.14</td>
+        </tr>
+
+        <!-- Row 5: errored trace $0.13 — Fix 4: subtle destructive-tint row bg -->
+        <!-- token: .trace-row-errored → background --alert-destructive-bg -->
+        <tr class="trace-row-errored">
+          <td><span class="trace-id">5bae77c7</span></td>
+          <td><span class="status-pill status-errored"><span class="status-dot"></span>Error</span></td>
+          <!-- Fix 6: errored → 0.00 reward -->
+          <td class="num-cell align-right" style="color: var(--meta-foreground);">0.00</td>
+          <td class="num-cell">$0.09</td>
+          <td class="num-cell">
+            $0.04
+            <span class="env-sub">5m base</span>
+          </td>
+          <td class="num-cell align-right">$0.13</td>
+        </tr>
+
+      </tbody>
+    </table>
+    <!-- 4 remaining traces omitted in preview; Show all 18 surfaces them -->
+
+    <!-- GROUP 2: claude-haiku-4-5 — COLLAPSED -->
+    <div class="group-row" style="border-bottom: 1px solid var(--border);">
+      <span class="group-chevron">&#9654;</span>
+      <span class="group-label" style="color: var(--muted-foreground);">claude-haiku-4-5</span>
+      <span class="group-meta">9 traces</span>
+      <span class="group-total" style="color: var(--muted-foreground);">$0.52</span>
+    </div>
+
+  </div><!-- /per-trace breakdown -->
+
+  <!-- ════════════════════════════════════════════════════════════════════════
+       (6) SHOW ALL LINK
+       ════════════════════════════════════════════════════════════════════════ -->
+  <div class="show-all-row">
+    <button class="show-all-btn">Show all 18 traces</button>
+  </div>
+
+  <!-- Nit B: footer line (CALCULATED timestamp) removed — header cue is sufficient -->
+
+</div><!-- /usage-content -->
+
+</body>
+</html>

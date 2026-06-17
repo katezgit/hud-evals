@@ -6,10 +6,10 @@ import { cva, type VariantProps } from "class-variance-authority"
 // because the data-attribute hook differs per primitive (data-[placeholder] for Select, etc.).
 export const formFieldBoxVariants = cva(
   [
-    "bg-background border border-border",
+    "bg-field-rest border border-form-field-border",
     "transition-[color,background-color,border-color,box-shadow,outline]",
     "duration-fast ease-out-standard",
-    "disabled:cursor-not-allowed disabled:bg-muted-surface disabled:border-border disabled:text-muted-foreground",
+    "disabled:cursor-not-allowed disabled:bg-muted-surface disabled:border-form-field-border disabled:text-muted-foreground",
     "aria-invalid:border-state-errored",
   ],
   {

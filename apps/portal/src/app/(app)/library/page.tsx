@@ -11,8 +11,8 @@ export default function LibraryPage() {
   // owns the inner scroll. Removes the brittle max-h-[calc(100vh-Xrem)] guess
   // — the scroll region is always exactly the remaining space.
   return (
-    <div className="page-shell h-full min-h-0 gap-6">
-      <header className="flex shrink-0 flex-col gap-1">
+    <div className="page-shell h-full min-h-0">
+      <header className="shrink-0 page-header">
         <h1 className="text-display font-semibold text-foreground">Library</h1>
         <p className="text-body text-muted-foreground">
           Saved jobs and traces

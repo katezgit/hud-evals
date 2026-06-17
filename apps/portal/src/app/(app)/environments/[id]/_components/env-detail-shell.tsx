@@ -115,7 +115,7 @@ export function EnvDetailShell({ env }: { env: Environment }) {
             // the visible header content is capped at 1536 via the inner
             // wrapper. See docs/design/guidelines/app-shell-layout.md §2.
             className={cn(
-              "sticky top-0 z-page-chrome bg-background pt-6",
+              "sticky top-0 z-page-chrome bg-panel pt-6",
               // Scroll-cue: border slot is always occupied (border-b) so
               // flipping border-color does not shift layout. Mirrors DialogHeader.
               "border-b",
@@ -128,7 +128,6 @@ export function EnvDetailShell({ env }: { env: Environment }) {
               <EnvDetailHeader
                 name={env.name}
                 type={env.type}
-                slug={env.id}
                 organization={env.organization}
                 visibility={env.visibility}
               />

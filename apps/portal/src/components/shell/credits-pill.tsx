@@ -80,7 +80,7 @@ export function CreditsPill({ state }: CreditsPillProps) {
         href="/manage/usage"
         aria-label={`Credits: ${balance} of ${total}. Click to view usage.`}
         className={cn(
-          "group/credits block rounded-md px-3 py-2.5 transition-colors duration-fast ease-out-standard hover:bg-hover-surface",
+          "sidebar-row-hover group/credits block rounded-md px-3 py-2.5",
           isActive && "bg-selected-surface",
         )}
       >
@@ -114,7 +114,7 @@ export function CreditsIconButton({ state }: CreditsPillProps) {
   const isZero = state.balance === 0;
 
   return (
-    <div className="px-1.5 pt-2 pb-1">
+    <div className="px-1.5 py-1">
       <Tooltip>
         <TooltipTrigger asChild>
           <Link
@@ -128,7 +128,7 @@ export function CreditsIconButton({ state }: CreditsPillProps) {
               "flex h-7 w-full items-center justify-center rounded-md",
               isZero
                 ? "text-destructive hover:bg-destructive/10"
-                : "text-meta-foreground hover:bg-hover-surface hover:text-foreground",
+                : "sidebar-row-hover text-meta-foreground",
               isActive && !isZero && "bg-selected-surface text-foreground",
               isActive && isZero && "bg-destructive/10",
             )}

@@ -10,6 +10,7 @@ import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
+import { CheckIcon } from "lucide-react";
 
 import {
   FieldHelper,
@@ -71,13 +72,13 @@ export function QaAgentForm({
       scenarioId: values.scenarioId,
       model: modelLabel(values.modelId),
     });
-    toast.success(`Agent ${values.name.trim()} — added to My Agents`);
+    toast.success(`Agent ${values.name.trim()} — added to Your Agents`);
     onCreated();
   });
 
   return (
     <form onSubmit={onSubmit} noValidate className="flex h-full flex-col">
-      <div className="flex flex-1 flex-col gap-6">
+      <div className="flex flex-1 flex-col gap-4">
         <FormField id="qa-agent-name" label="Name" required>
           <Input
             type="text"
@@ -136,7 +137,7 @@ export function QaAgentForm({
 
 function PerTraceBadge() {
   return (
-    <span className="inline-flex shrink-0 items-center rounded border border-border bg-muted-surface px-1.5 py-0.5 text-meta font-semibold uppercase tracking-wide text-muted-foreground">
+    <span className="inline-flex shrink-0 items-center rounded border border-border bg-muted-surface px-1.5 py-0.5 text-meta font-semibold text-muted-foreground">
       Per Trace
     </span>
   );
@@ -235,13 +236,14 @@ function ScenarioRadioGroup({
                 "flex flex-col gap-1 rounded-lg border bg-panel p-3 text-left",
                 "cursor-pointer transition-colors duration-fast",
                 selected
-                  ? "border-foreground bg-hover-surface"
+                  ? "border-primary"
                   : "border-border hover:border-border-strong",
                 "focus-visible:shadow-focus-ring outline-hidden",
               )}
             >
-              <div className="flex items-center gap-2">
-                <span className="font-mono text-body font-semibold text-foreground">
+              <div className="flex min-w-0 items-center gap-2">
+                <RadioGlyph selected={selected} />
+                <span className="min-w-0 flex-1 truncate font-mono text-body font-semibold text-foreground">
                   {s.name}
                 </span>
                 <PerTraceBadge />
@@ -262,4 +264,25 @@ function ScenarioRadioGroup({
 
 function modelLabel(modelId: string): string {
   return MODEL_REGISTRY.find((m) => m.id === modelId)?.id ?? modelId;
+}
+
+function RadioGlyph({ selected }: { selected: boolean }) {
+  return (
+    <span
+      aria-hidden="true"
+      className={cn(
+        "inline-flex size-4 shrink-0 items-center justify-center rounded-full border-2",
+        selected
+          ? "border-primary bg-primary"
+          : "border-border-strong bg-transparent",
+      )}
+    >
+      {selected && (
+        <CheckIcon
+          className="size-2.5 text-primary-foreground"
+          strokeWidth={3}
+        />
+      )}
+    </span>
+  );
 }

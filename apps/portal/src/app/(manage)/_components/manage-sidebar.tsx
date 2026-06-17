@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowLeftIcon, Lock, Settings } from "lucide-react";
+import { ChevronLeftIcon, Lock } from "lucide-react";
 import { Avatar, AvatarFallback } from "@repo/ui/components/avatar";
 import {
   Tooltip,
@@ -31,8 +31,8 @@ interface ManageSidebarBodyProps {
 }
 
 /**
- * Sidebar content (brand, back link, settings header, nav, user footer). Owns
- * NO width or outer `<aside>` — the parent provides the chrome:
+ * Sidebar content (brand, Manage header, nav, user footer). Owns NO width or
+ * outer `<aside>` — the parent provides the chrome:
  *  - ManageShell renders an `<aside>` with the breakpoint-correct width.
  *  - The mobile Drawer renders this body without a width wrapper (the Drawer
  *    panel already owns the width).
@@ -55,14 +55,13 @@ export function ManageSidebarBody({ user, headerTrailing }: ManageSidebarBodyPro
       ) : (
         <BrandMark collapsed={collapsed} />
       )}
-      {collapsed ? <BackToAppCollapsed /> : <BackToAppFull />}
-      {collapsed ? <SettingsHeaderCollapsed /> : <SettingsHeaderFull />}
+      {collapsed ? <ManageHeaderCollapsed /> : <ManageHeaderFull />}
 
       <nav
         aria-label="Settings navigation"
         className="flex flex-1 flex-col overflow-y-auto pb-3"
       >
-        <NavGroup label="Personal" items={PERSONAL_ROUTES} isAdmin={isAdmin} />
+        <NavGroup label="Account" items={PERSONAL_ROUTES} isAdmin={isAdmin} />
         <NavGroup
           label="Organization"
           items={ORG_ROUTES}
@@ -77,67 +76,34 @@ export function ManageSidebarBody({ user, headerTrailing }: ManageSidebarBodyPro
   );
 }
 
-function BackToAppFull() {
+function ManageHeaderFull() {
   return (
-    <Link
-      href="/jobs"
-      className="focus-inset flex h-12 shrink-0 items-center gap-2 border-b border-border px-4 text-label text-muted-foreground transition-colors duration-fast ease-out-standard hover:text-foreground"
-    >
-      <ArrowLeftIcon aria-hidden="true" className="size-3.5" />
-      Back to app
-    </Link>
+    <div className="mt-2 pr-2">
+      <Link
+        href="/jobs"
+        className="sidebar-row-hover focus-inset flex h-8 items-center gap-1.5 rounded-md px-2 text-body font-medium text-foreground"
+      >
+        <ChevronLeftIcon aria-hidden="true" className="size-4 shrink-0" />
+        Manage
+      </Link>
+    </div>
   );
 }
 
-function BackToAppCollapsed() {
+function ManageHeaderCollapsed() {
   return (
-    <div className="flex h-12 shrink-0 items-center justify-center border-b border-border">
+    <div className="flex items-center justify-center px-1.5">
       <Tooltip>
         <TooltipTrigger asChild>
           <Link
             href="/jobs"
             aria-label="Back to app"
-            className="focus-inset flex size-7 items-center justify-center rounded-md text-muted-foreground hover:bg-hover-surface hover:text-foreground"
+            className="sidebar-row-hover focus-inset flex h-8 w-full items-center justify-center rounded-md text-foreground"
           >
-            <ArrowLeftIcon aria-hidden="true" className="size-3.5" />
+            <ChevronLeftIcon aria-hidden="true" className="size-4" />
           </Link>
         </TooltipTrigger>
         <TooltipContent side="right">Back to app</TooltipContent>
-      </Tooltip>
-    </div>
-  );
-}
-
-function SettingsHeaderFull() {
-  // pl-[11px]: chip is 24px wide with a 14px glyph centered inside; offset by 5px
-  // (half the chip-glyph delta) so the glyph's visual left edge sits at 16px,
-  // aligned with section labels below. No 11px utility on the spacing scale.
-  return (
-    <div className="flex items-center gap-2 pt-3 pr-3 pb-1 pl-[11px]">
-      <span
-        aria-hidden="true"
-        className="flex size-6 items-center justify-center rounded-md bg-muted-surface text-muted-foreground"
-      >
-        <Settings className="size-3.5" />
-      </span>
-      <span className="text-body font-semibold text-foreground">Settings</span>
-    </div>
-  );
-}
-
-function SettingsHeaderCollapsed() {
-  return (
-    <div className="flex items-center justify-center px-1.5 pt-3 pb-1">
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <span
-            aria-label="Settings"
-            className="flex size-6 items-center justify-center rounded-md bg-muted-surface text-muted-foreground"
-          >
-            <Settings aria-hidden="true" className="size-3.5" />
-          </span>
-        </TooltipTrigger>
-        <TooltipContent side="right">Settings</TooltipContent>
       </Tooltip>
     </div>
   );

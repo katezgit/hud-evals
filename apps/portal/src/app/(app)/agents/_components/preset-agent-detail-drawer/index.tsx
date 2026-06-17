@@ -218,7 +218,7 @@ function PresetAgentDetailDrawerBody({ agent, onClose }: DrawerBodyProps) {
         <DrawerHeader>
           <div className="flex min-w-0 flex-wrap items-center gap-2">
             <DrawerTitle className="font-mono">{agent.name}</DrawerTitle>
-            <span className="inline-flex shrink-0 items-center gap-1 rounded bg-muted-surface px-1.5 py-0.5 font-mono text-meta uppercase tracking-wide text-muted-foreground">
+            <span className="inline-flex shrink-0 items-center gap-1 rounded bg-muted-surface px-1.5 py-0.5 font-mono text-meta text-muted-foreground">
               <ShieldCheck aria-hidden="true" className="size-3" />
               QA
             </span>
@@ -249,36 +249,34 @@ function PresetAgentDetailDrawerBody({ agent, onClose }: DrawerBodyProps) {
         </DrawerBody>
 
         <DrawerFooter className="flex-col items-stretch justify-start gap-3 border-t border-border">
+          <ConsequenceNote
+            pendingAddCount={pendingAddCount}
+            pendingRemoveCount={pendingRemoveCount}
+            costPerRun={agent.costPerRun}
+          />
           <FooterMetadata
             model={agent.model}
             provider={provider}
             costPerRun={agent.costPerRun}
           />
-          <div className="flex items-center justify-between gap-3">
-            <ConsequenceNote
-              pendingAddCount={pendingAddCount}
-              pendingRemoveCount={pendingRemoveCount}
-              costPerRun={agent.costPerRun}
-            />
-            <div className="flex items-center gap-2">
-              <Button
-                type="button"
-                variant="ghost"
-                onClick={onClose}
-                disabled={isSaving}
-              >
-                Close
-              </Button>
-              <Button
-                type="button"
-                variant="primary"
-                onClick={handleSave}
-                disabled={!isDirty || isSaving}
-                aria-disabled={!isDirty || isSaving}
-              >
-                {saveButtonLabel}
-              </Button>
-            </div>
+          <div className="flex items-center justify-end gap-2">
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={onClose}
+              disabled={isSaving}
+            >
+              Close
+            </Button>
+            <Button
+              type="button"
+              variant="primary"
+              onClick={handleSave}
+              disabled={!isDirty || isSaving}
+              aria-disabled={!isDirty || isSaving}
+            >
+              {saveButtonLabel}
+            </Button>
           </div>
         </DrawerFooter>
       </DrawerContent>

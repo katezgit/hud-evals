@@ -32,7 +32,7 @@ export const AvatarPill = forwardRef<HTMLButtonElement, AvatarPillProps>(
         aria-expanded={open}
         onClick={onClick}
         className={cn(
-          "flex w-full items-center justify-between gap-2.5 rounded-md px-2.5 py-2.5 text-left text-foreground transition-colors duration-fast ease-out-standard hover:bg-hover-surface",
+          "sidebar-row-hover flex w-full items-center justify-between gap-2.5 rounded-md px-2.5 py-2.5 text-left text-foreground",
           open && "bg-secondary-surface",
         )}
       >

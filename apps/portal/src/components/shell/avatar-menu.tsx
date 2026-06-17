@@ -2,27 +2,22 @@
 
 import Link from "next/link";
 import { forwardRef, useState, type ReactNode } from "react";
-import {
-  CheckIcon,
-  ChevronDownIcon,
-  ChevronRightIcon,
-  LogOutIcon,
-  PlusIcon,
-  Repeat2,
-  SettingsIcon,
-} from "lucide-react";
+import { LogOutIcon, SettingsIcon } from "lucide-react";
+import { useTheme } from "next-themes";
 import { Avatar, AvatarFallback } from "@repo/ui/components/avatar";
 import { Popover, PopoverContent, PopoverTrigger } from "@repo/ui/components/popover";
+import { SegmentedControl } from "@repo/ui/components/segmented-control";
 import { cn } from "@repo/ui/lib/cn";
 import { useRole } from "@/lib/mock/role-context";
 import { AvatarPill } from "@/components/shell/avatar-pill";
 import { signOut } from "@/lib/auth/actions";
-import type { Org, OrgMembership } from "@/lib/mock/types";
+import type { Org } from "@/lib/mock/types";
+
+type ThemeChoice = "system" | "light" | "dark";
 
 interface AvatarMenuProps {
   user: { name: string; email: string };
   currentOrg: Org;
-  orgs: ReadonlyArray<OrgMembership>;
 }
 
 export function AvatarMenu(props: AvatarMenuProps) {
@@ -64,9 +59,8 @@ interface AvatarMenuShellProps extends AvatarMenuProps {
   }) => ReactNode;
 }
 
-function AvatarMenuShell({ user, currentOrg, orgs, renderTrigger }: AvatarMenuShellProps) {
+function AvatarMenuShell({ user, currentOrg, renderTrigger }: AvatarMenuShellProps) {
   const [open, setOpen] = useState(false);
-  const [switcherOpen, setSwitcherOpen] = useState(false);
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -84,48 +78,36 @@ function AvatarMenuShell({ user, currentOrg, orgs, renderTrigger }: AvatarMenuSh
         variant="action"
         className="w-[272px] p-0 focus-inset"
       >
-        <div className="border-b border-border px-3.5 py-2.5">
+        <div className="border-b border-border px-3.5 py-3">
           <div className="text-label font-semibold text-foreground">{user.name}</div>
           <div className="mt-0.5 font-mono text-caption text-meta-foreground">
             {user.email}
           </div>
-        </div>
 
-        <div className="flex items-center gap-2.5 border-b border-border bg-muted-surface px-3.5 py-2.5">
-          <Avatar size="xs" shape="square">
-            <AvatarFallback>{currentOrg.avatarInitial}</AvatarFallback>
-          </Avatar>
-          <div className="flex min-w-0 flex-col leading-tight">
-            <span className="truncate text-label font-semibold text-foreground">
-              {currentOrg.name}
-            </span>
-            <span className="truncate font-mono text-caption text-meta-foreground">
-              {currentOrg.hint}
-            </span>
+          <div className="mt-2.5 flex items-center gap-2.5">
+            <Avatar size="xs" shape="square">
+              <AvatarFallback>{currentOrg.avatarInitial}</AvatarFallback>
+            </Avatar>
+            <div className="flex min-w-0 flex-col leading-tight">
+              <span className="truncate text-label font-medium text-foreground">
+                {currentOrg.name}
+              </span>
+              <span className="truncate font-mono text-caption text-meta-foreground">
+                {currentOrg.hint}
+              </span>
+            </div>
           </div>
         </div>
 
-        <OrgSwitcher
-          open={switcherOpen}
-          onToggle={() => setSwitcherOpen((prev) => !prev)}
-          orgs={orgs}
-          activeOrgId={currentOrg.id}
-        />
-
-        <MenuItem icon={<PlusIcon className="size-3.5" />} onClick={() => setOpen(false)}>
-          Create organization
-        </MenuItem>
-
         <MenuLink
-          href="/manage/profile"
+          href="/manage"
           icon={<SettingsIcon className="size-3.5" />}
-          trailing={<ChevronRightIcon className="size-3 text-meta-foreground" />}
           onSelect={() => setOpen(false)}
         >
-          Account settings
+          Manage settings
         </MenuLink>
 
-        <div className="h-px bg-border" role="separator" />
+        <ThemeRow />
 
         <MenuItem
           icon={<LogOutIcon className="size-3.5" />}
@@ -157,7 +139,7 @@ const AvatarTriggerCollapsed = forwardRef<HTMLButtonElement, AvatarTriggerCollap
         aria-expanded={open}
         onClick={onClick}
         className={cn(
-          "flex h-9 items-center justify-center rounded-md hover:bg-hover-surface",
+          "sidebar-row-hover flex h-7 w-full items-center justify-center rounded-md",
           open && "bg-secondary-surface",
         )}
       >
@@ -180,7 +162,7 @@ function MenuItem({ icon, children, onClick }: MenuItemProps) {
     <button
       type="button"
       onClick={onClick}
-      className="flex w-full items-center gap-2.5 px-3.5 py-2 text-label text-muted-foreground hover:bg-hover-surface hover:text-foreground"
+      className="flex w-full items-center gap-2.5 px-3.5 py-2 text-label text-muted-foreground hover:bg-sidebar-hover-manage hover:text-foreground"
     >
       <span aria-hidden="true" className="text-meta-foreground">
         {icon}
@@ -193,81 +175,49 @@ function MenuItem({ icon, children, onClick }: MenuItemProps) {
 interface MenuLinkProps {
   href: string;
   icon: React.ReactNode;
-  trailing?: React.ReactNode;
   children: React.ReactNode;
   onSelect: () => void;
 }
 
-function MenuLink({ href, icon, trailing, children, onSelect }: MenuLinkProps) {
+function MenuLink({ href, icon, children, onSelect }: MenuLinkProps) {
   return (
     <Link
       href={href}
       onClick={onSelect}
-      className="flex w-full items-center gap-2.5 px-3.5 py-2 text-label text-muted-foreground hover:bg-hover-surface hover:text-foreground"
+      className="flex w-full items-center gap-2.5 px-3.5 py-2 text-label text-muted-foreground hover:bg-sidebar-hover-manage hover:text-foreground"
     >
       <span aria-hidden="true" className="text-meta-foreground">
         {icon}
       </span>
       <span className="flex-1 text-left">{children}</span>
-      {trailing}
     </Link>
   );
 }
 
-interface OrgSwitcherProps {
-  open: boolean;
-  onToggle: () => void;
-  orgs: ReadonlyArray<OrgMembership>;
-  activeOrgId: string;
-}
-
-function OrgSwitcher({ open, onToggle, orgs, activeOrgId }: OrgSwitcherProps) {
+function ThemeRow() {
+  const { theme, setTheme } = useTheme();
+  // `theme` is undefined before next-themes hydrates from storage; fall back to
+  // "system" so the active segment renders sensibly on first paint.
+  const value = (theme ?? "system") as ThemeChoice;
   return (
-    <>
-      <button
-        type="button"
-        aria-expanded={open}
-        onClick={onToggle}
-        className="flex w-full items-center gap-2.5 px-3.5 py-2 text-label text-muted-foreground hover:bg-hover-surface hover:text-foreground"
+    <div className="flex items-center justify-between gap-2.5 px-3.5 py-2 text-label text-muted-foreground">
+      <span>Theme</span>
+      <SegmentedControl
+        aria-label="Theme"
+        value={value}
+        onValueChange={(next) => setTheme(next as ThemeChoice)}
+        className="h-7"
       >
-        <Repeat2 aria-hidden="true" className="size-3.5 text-meta-foreground" />
-        <span className="flex-1 text-left">Switch organization</span>
-        <ChevronDownIcon
-          aria-hidden="true"
-          className={cn(
-            "size-3 text-meta-foreground transition-transform duration-fast ease-out-standard",
-            open && "rotate-180",
-          )}
-        />
-      </button>
-      {open ? (
-        <div className="border-y border-border bg-background py-1">
-          {orgs.map(({ org }) => {
-            const isActive = org.id === activeOrgId;
-            return (
-              <button
-                key={org.id}
-                type="button"
-                className={cn(
-                  "flex w-full items-center gap-2.5 py-1.5 pr-3.5 pl-5 text-label text-muted-foreground hover:bg-hover-surface hover:text-foreground",
-                  isActive && "text-foreground",
-                )}
-              >
-                <Avatar size="xs" shape="square">
-                  <AvatarFallback>{org.avatarInitial}</AvatarFallback>
-                </Avatar>
-                <span className="flex-1 truncate text-left">{org.name}</span>
-                {isActive ? (
-                  <CheckIcon
-                    aria-label="Current organization"
-                    className="size-3.5 text-foreground"
-                  />
-                ) : null}
-              </button>
-            );
-          })}
-        </div>
-      ) : null}
-    </>
+        <SegmentedControl.Item value="system" className="px-2 text-caption">
+          System
+        </SegmentedControl.Item>
+        <SegmentedControl.Item value="light" className="px-2 text-caption">
+          Light
+        </SegmentedControl.Item>
+        <SegmentedControl.Item value="dark" className="px-2 text-caption">
+          Dark
+        </SegmentedControl.Item>
+      </SegmentedControl>
+    </div>
   );
 }

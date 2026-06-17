@@ -51,7 +51,7 @@ export function ProfileForm() {
           </Field>
         </FieldRow>
 
-        <FieldRow cols={1} className="mt-3">
+        <FieldRow cols={1} className="mt-4">
           <Field label="Email" error={errors.email?.message}>
             <Input
               type="email"

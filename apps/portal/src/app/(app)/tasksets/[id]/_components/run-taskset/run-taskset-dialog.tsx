@@ -127,10 +127,10 @@ export default function RunTasksetDialog({ taskset }: RunTasksetDialogProps) {
         <DrawerHeader>
           <div className="flex flex-wrap items-center gap-2 pr-8">
             <DrawerTitle>Run Taskset</DrawerTitle>
-            <Badge variant="neutral" size="sm">
+            <Badge variant="neutral">
               {taskset.id}
             </Badge>
-            <Badge variant="neutral" size="sm">
+            <Badge variant="neutral">
               {TASKSET_ENV}
             </Badge>
             <span aria-hidden="true" className="text-meta-foreground">

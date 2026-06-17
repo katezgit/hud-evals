@@ -5,7 +5,15 @@ import { TriangleAlertIcon } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@repo/ui/components/button";
 import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@repo/ui/components/card";
+import {
   Dialog,
+  DialogBody,
   DialogCancelButton,
   DialogConfirmButton,
   DialogContent,
@@ -101,75 +109,100 @@ export default function IdentitySection({
   const nameError = isNameDirty && isNameEmpty ? "Name cannot be empty." : undefined;
 
   return (
-    <section className="flex flex-col gap-5">
-      <h3 className="text-body font-semibold text-foreground">Identity</h3>
-
-      <FormField
-        id={nameInputId}
-        label="Name"
-        helper="This name is displayed throughout the platform."
-        error={nameError}
+    <>
+      <Card
+        id="taskset-identity"
+        aria-labelledby="taskset-identity-title"
+        className="scroll-mt-32"
       >
-        <Input
-          type="text"
-          value={nameDraft}
-          onChange={(e) => setNameDraft(e.target.value)}
-          disabled={pending}
-          autoComplete="off"
-          spellCheck={false}
-        />
-      </FormField>
+        <CardHeader>
+          <CardTitle>
+            <h2
+              id="taskset-identity-title"
+              className="text-subtitle font-semibold text-foreground"
+            >
+              Identity
+            </h2>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-col gap-4">
+            <FormField
+              id={nameInputId}
+              label="Name"
+              helper="This name is displayed throughout the platform."
+              error={nameError}
+            >
+              <Input
+                type="text"
+                value={nameDraft}
+                onChange={(e) => setNameDraft(e.target.value)}
+                disabled={pending}
+                autoComplete="off"
+                spellCheck={false}
+              />
+            </FormField>
 
-      <div data-slot="form-field" className="flex flex-col gap-1.5">
-        <Label id={purposeLabelId} htmlFor={purposeTriggerId}>
-          Purpose
-        </Label>
-        <Select
-          value={purposeDraft}
-          onValueChange={(v) => setPurposeDraft(v as TasksetPurpose)}
-          disabled={pending}
-        >
-          <SelectTrigger
-            id={purposeTriggerId}
-            aria-labelledby={purposeLabelId}
-            className="w-48"
-          >
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="benchmark">{PURPOSE_LABEL.benchmark}</SelectItem>
-            <SelectItem value="training">{PURPOSE_LABEL.training}</SelectItem>
-          </SelectContent>
-        </Select>
-        <p className="text-caption font-normal font-sans text-muted-foreground mt-1.5">
-          Benchmarks appear in model leaderboards and public listings. Training
-          Tasksets are surfaced when filtering for training data.
-        </p>
-      </div>
-
-      <div className="flex items-center justify-end gap-2 pt-1">
-        <Button
-          type="button"
-          variant="secondary"
-          onClick={onCancel}
-          aria-hidden={!isDirty}
-          tabIndex={!isDirty || pending ? -1 : undefined}
-          className={cn(
-            (!isDirty || pending) && "pointer-events-none opacity-0",
-          )}
-        >
-          Cancel
-        </Button>
-        <Button
-          type="button"
-          variant="primary"
-          disabled={pending}
-          onClick={onSave}
-          aria-label="Save Identity"
-        >
-          {pending ? "Saving…" : "Save"}
-        </Button>
-      </div>
+            <div data-slot="form-field" className="flex flex-col gap-1.5">
+              <Label id={purposeLabelId} htmlFor={purposeTriggerId}>
+                Purpose
+              </Label>
+              <Select
+                value={purposeDraft}
+                onValueChange={(v) => setPurposeDraft(v as TasksetPurpose)}
+                disabled={pending}
+              >
+                <SelectTrigger
+                  id={purposeTriggerId}
+                  aria-labelledby={purposeLabelId}
+                  className="w-48"
+                >
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="benchmark">
+                    {PURPOSE_LABEL.benchmark}
+                  </SelectItem>
+                  <SelectItem value="training">
+                    {PURPOSE_LABEL.training}
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-caption font-normal font-sans text-muted-foreground mt-1.5">
+                Benchmarks appear in model leaderboards and public listings.
+                Training Tasksets are surfaced when filtering for training data.
+              </p>
+            </div>
+          </div>
+        </CardContent>
+        <CardFooter className="flex-col items-stretch">
+          <div className="flex w-full flex-col gap-1.5">
+            <div className="flex items-center justify-end gap-2">
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={onCancel}
+                aria-hidden={!isDirty}
+                tabIndex={!isDirty || pending ? -1 : undefined}
+                className={cn(
+                  (!isDirty || pending) && "pointer-events-none opacity-0",
+                )}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="button"
+                variant="primary"
+                disabled={pending}
+                onClick={onSave}
+                aria-label="Save Identity"
+              >
+                {pending ? "Saving…" : "Save"}
+              </Button>
+            </div>
+          </div>
+        </CardFooter>
+      </Card>
 
       <Dialog
         open={confirmOpen}
@@ -186,11 +219,16 @@ export default function IdentitySection({
               />
               Change Taskset purpose?
             </DialogTitle>
-            <DialogDescription>
-              Changing to {PURPOSE_LABEL[purposeDraft]} may change where this
-              Taskset appears in filters and listings.
+            <DialogDescription className="sr-only">
+              Confirm changing Taskset purpose to {PURPOSE_LABEL[purposeDraft]}.
             </DialogDescription>
           </DialogHeader>
+          <DialogBody>
+            <p className="text-body text-foreground">
+              Changing to {PURPOSE_LABEL[purposeDraft]} may change where this
+              Taskset appears in filters and listings.
+            </p>
+          </DialogBody>
           <DialogFooter>
             <DialogCancelButton
               disabled={pending}
@@ -202,6 +240,6 @@ export default function IdentitySection({
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </section>
+    </>
   );
 }

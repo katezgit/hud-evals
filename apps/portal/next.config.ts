@@ -6,9 +6,17 @@ import type { NextConfig } from "next";
 // emitting a warning during build.
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  devIndicators: false,
   transpilePackages: ["@repo/ui", "@repo/libs"],
   turbopack: {
     root: path.resolve(__dirname, "../.."),
+  },
+  experimental: {
+    // Wraps client-side route changes in document.startViewTransition() so the
+    // app↔manage sidebar swap can choreograph via ::view-transition-* CSS.
+    // Choreography lives in app/globals.css; direction is tagged on <html>
+    // by RouteDirectionTagger in the root layout.
+    viewTransition: true,
   },
 };
 

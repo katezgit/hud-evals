@@ -82,13 +82,13 @@ export function AutomationForm({
       scenarioId: values.scenarioId,
       model: modelLabel(values.modelId),
     });
-    toast.success(`Agent ${values.name.trim()} — added to My Agents`);
+    toast.success(`Agent ${values.name.trim()} — added to Your Agents`);
     onCreated();
   });
 
   return (
     <form onSubmit={onSubmit} noValidate className="flex h-full flex-col">
-      <div className="flex flex-1 flex-col gap-6">
+      <div className="flex flex-1 flex-col gap-4">
         <FormField id="automation-name" label="Name" required>
           <Input
             type="text"

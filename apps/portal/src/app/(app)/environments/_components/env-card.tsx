@@ -103,13 +103,23 @@ export function EnvCard({ env, isStarred, starCount }: EnvCardProps) {
 function noopStarToggle() {}
 
 function RunsSubtitle({ runs }: { runs: number }) {
-  const label = runs > 0 ? `${runs} runs/24 hours` : "No runs/24 hours";
+  if (runs === 0) {
+    return (
+      <p
+        aria-live="polite"
+        className="ml-8 font-mono text-caption tabular-nums text-muted-foreground"
+      >
+        No runs/24 hours
+      </p>
+    );
+  }
   return (
     <p
       aria-live="polite"
-      className="ml-8 font-mono text-meta tabular-nums text-muted-foreground"
+      className="ml-8 font-mono text-caption tabular-nums text-muted-foreground"
     >
-      {label}
+      <span className="font-semibold text-foreground">{runs}</span>{" "}
+      runs/24 hours
     </p>
   );
 }

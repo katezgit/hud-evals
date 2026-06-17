@@ -33,6 +33,13 @@ const BROWSER_BUILDS: ReadonlyArray<Build> = [
     changedBy: "aman@researchlab.ai",
     duration: "2m 14s",
     deployedAt: "3h ago",
+    changes: {
+      toolsAdded: 7,
+      toolsRemoved: 0,
+      scenariosAdded: 1,
+      scenariosRemoved: 0,
+      filesChanged: 6,
+    },
   },
   {
     id: "b-1-4-1-building",
@@ -42,6 +49,13 @@ const BROWSER_BUILDS: ReadonlyArray<Build> = [
     changedBy: "ci-bot",
     duration: null,
     deployedAt: "started 12m ago",
+    changes: {
+      toolsAdded: 2,
+      toolsRemoved: 0,
+      scenariosAdded: 0,
+      scenariosRemoved: 0,
+      filesChanged: 14,
+    },
   },
   {
     id: "b-1-4-0-failed",
@@ -51,6 +65,13 @@ const BROWSER_BUILDS: ReadonlyArray<Build> = [
     changedBy: "aman@researchlab.ai",
     duration: "0m 41s",
     deployedAt: "5h ago",
+    changes: {
+      toolsAdded: 0,
+      toolsRemoved: 0,
+      scenariosAdded: 3,
+      scenariosRemoved: 0,
+      filesChanged: 21,
+    },
   },
   {
     id: "b-1-3-9-queued",
@@ -60,6 +81,7 @@ const BROWSER_BUILDS: ReadonlyArray<Build> = [
     changedBy: "ci-bot",
     duration: null,
     deployedAt: "queued 6h ago",
+    changes: null,
   },
   {
     id: "b-1-3-8",
@@ -69,32 +91,377 @@ const BROWSER_BUILDS: ReadonlyArray<Build> = [
     changedBy: "kate@hud.ai",
     duration: "1m 58s",
     deployedAt: "2d ago",
+    changes: {
+      toolsAdded: 5,
+      toolsRemoved: 1,
+      scenariosAdded: 2,
+      scenariosRemoved: 0,
+      filesChanged: 12,
+    },
   },
 ];
 
+/**
+ * Date helper for Instance fixtures. All times are UTC so SSR + client agree;
+ * the row formatter renders into the viewer's locale. MOCK_NOW (Jun 11 2026
+ * 10:00 UTC) is the anchor so "Last 7 days" and "Last 30 days" produce a
+ * stable set across reloads.
+ */
+function instAt(
+  month: number,
+  day: number,
+  hourUTC: number,
+  minuteUTC: number,
+): number {
+  return Date.UTC(2026, month, day, hourUTC, minuteUTC, 0);
+}
+
+/**
+ * 22 instances spanning Jun 11 → May 18 (≈25 days) against MOCK_NOW. Density
+ * targets:
+ *   Last 7 days → 16 entries (today 2, yesterday 4, Jun 8 8, Jun 5 2)
+ *   Last 30 days → 22 entries (+ May 28 3, May 24 2, May 18 1)
+ * Jun 8 cluster is mostly failed (7/8) to give the date-group header's
+ * "· N failed" suffix and the success-rate stat real signal.
+ */
 const BROWSER_INSTANCES: ReadonlyArray<Instance> = [
+  // ── Today (Jun 11) — 2 instances
   {
-    id: "inst-a7f3c2e",
+    id: "a7f3c2eb",
     status: "running",
+    startedAtMs: instAt(5, 11, 9, 48), // 09:48 UTC, 12 min before MOCK_NOW
+    duration: "12m 04s",
+    cost: "$0.03",
     modelOrAgent: "claude-opus-4-5",
-    startedAt: "12m ago",
-    duration: "12m 4s",
+    taskDescription:
+      "Create a new todo item with the title: \"check priorities\"",
+    scenarioName: "browser:answer",
+    user: { name: "Kate Im" },
+    resourceTier: "1 vCPU / 4GB",
+    sessionDuration: "10m",
   },
   {
-    id: "inst-b9d14f1",
-    status: "idle",
+    id: "9b8d44a1",
+    status: "completed",
+    startedAtMs: instAt(5, 11, 7, 30),
+    duration: "1m 52s",
+    cost: "$0.04",
+    modelOrAgent: "claude-opus-4-5",
+    taskDescription:
+      "Open google.com and search for \"hud evals\"",
+    scenarioName: "browser:answer",
+    score: 0.88,
+    user: { name: "Alex Park" },
+    resourceTier: "1 vCPU / 4GB",
+    sessionDuration: "10m",
+  },
+
+  // ── Yesterday (Jun 10) — 4 completed batch, mirrors screenshot density
+  {
+    id: "41e1826b",
+    status: "completed",
+    startedAtMs: instAt(5, 10, 17, 49),
+    duration: "2m 14s",
+    cost: "$0.04",
+    modelOrAgent: "claude-opus-4-5",
+    taskDescription:
+      "Create a new todo item with the title: \"check priorities\"",
+    scenarioName: "browser:answer",
+    score: 0.91,
+    user: { name: "Kate Im" },
+    resourceTier: "1 vCPU / 4GB",
+    sessionDuration: "10m",
+  },
+  {
+    id: "0a3f7c52",
+    status: "completed",
+    startedAtMs: instAt(5, 10, 17, 51),
+    duration: "1m 47s",
+    cost: "$0.04",
+    modelOrAgent: "claude-opus-4-5",
+    taskDescription:
+      "Find the founders of Anthropic and return the answer",
+    scenarioName: "browser:answer",
+    score: 0.84,
+    user: { name: "Kate Im" },
+    resourceTier: "1 vCPU / 4GB",
+    sessionDuration: "10m",
+  },
+  {
+    id: "5d2c9e10",
+    status: "completed",
+    startedAtMs: instAt(5, 10, 17, 53),
+    duration: "2m 38s",
+    cost: "$0.04",
+    modelOrAgent: "claude-opus-4-5",
+    taskDescription:
+      "Fill the contact form with test data and submit",
+    scenarioName: "browser:fill-record",
+    score: 0.79,
+    user: { name: "Alex Park" },
+    resourceTier: "1 vCPU / 4GB",
+    sessionDuration: "10m",
+  },
+  {
+    id: "7f4b1d63",
+    status: "completed",
+    startedAtMs: instAt(5, 10, 17, 55),
+    duration: "2m 02s",
+    cost: "$0.04",
+    modelOrAgent: "claude-opus-4-5",
+    taskDescription:
+      "Extract the top 3 headlines from hacker news",
+    scenarioName: "browser:answer",
+    score: 0.95,
+    user: { name: "Kate Im" },
+    resourceTier: "1 vCPU / 4GB",
+    sessionDuration: "10m",
+  },
+
+  // ── Jun 8 — 8-instance batch (7 failed + 1 completed)
+  {
+    id: "c1e4a708",
+    status: "failed",
+    startedAtMs: instAt(5, 8, 20, 14),
+    duration: "0m 47s",
+    cost: "$0.02",
+    modelOrAgent: "claude-opus-4-5",
+    taskDescription:
+      "Navigate from Kevin Bacon's Wikipedia page to Marie Curie's",
+    scenarioName: "browser:wiki-speedrun",
+    user: { name: "Alex Park" },
+    resourceTier: "1 vCPU / 4GB",
+    sessionDuration: "10m",
+  },
+  {
+    id: "3e9a2b85",
+    status: "failed",
+    startedAtMs: instAt(5, 8, 20, 15),
+    duration: "1m 02s",
+    cost: "$0.03",
+    modelOrAgent: "claude-opus-4-5",
+    taskDescription:
+      "Create a new todo item with the title: \"buy groceries\"",
+    scenarioName: "browser:answer",
+    user: { name: "Alex Park" },
+    resourceTier: "1 vCPU / 4GB",
+    sessionDuration: "10m",
+  },
+  {
+    id: "8c5d0e21",
+    status: "failed",
+    startedAtMs: instAt(5, 8, 20, 16),
+    duration: "0m 38s",
+    cost: "$0.02",
     modelOrAgent: "gpt-5-1",
-    startedAt: "1h ago",
-    duration: "58m 12s",
+    taskDescription:
+      "Find the cheapest flight from SFO to JFK next week",
+    scenarioName: "browser:answer",
+    user: { name: "Kate Im" },
+    resourceTier: "1 vCPU / 4GB",
+    sessionDuration: "10m",
   },
   {
-    id: "inst-e4c003b",
-    status: "terminated",
+    id: "b6f29317",
+    status: "failed",
+    startedAtMs: instAt(5, 8, 20, 17),
+    duration: "0m 52s",
+    cost: "$0.03",
+    modelOrAgent: "gpt-5-1",
+    taskDescription:
+      "Open google.com and search for \"hud evals\"",
+    scenarioName: "browser:answer",
+    user: { name: "Alex Park" },
+    resourceTier: "1 vCPU / 4GB",
+    sessionDuration: "10m",
+  },
+  {
+    id: "2a7e4c98",
+    status: "failed",
+    startedAtMs: instAt(5, 8, 20, 18),
+    duration: "1m 11s",
+    cost: "$0.04",
     modelOrAgent: "claude-haiku-4-5",
-    startedAt: "3h ago",
-    duration: "4m 33s",
+    taskDescription:
+      "Fill the contact form with test data and submit",
+    scenarioName: "browser:fill-record",
+    user: { name: "Kate Im" },
+    resourceTier: "1 vCPU / 4GB",
+    sessionDuration: "10m",
+  },
+  {
+    id: "ef038d44",
+    status: "failed",
+    startedAtMs: instAt(5, 8, 20, 19),
+    duration: "0m 26s",
+    cost: "$0.02",
+    modelOrAgent: "claude-haiku-4-5",
+    taskDescription:
+      "Extract the top 3 headlines from hacker news",
+    scenarioName: "browser:answer",
+    user: { name: "Alex Park" },
+    resourceTier: "1 vCPU / 4GB",
+    sessionDuration: "10m",
+  },
+  {
+    id: "44b9a17e",
+    status: "failed",
+    startedAtMs: instAt(5, 8, 20, 20),
+    duration: "2m 03s",
+    cost: "$0.06",
+    modelOrAgent: "claude-opus-4-5",
+    taskDescription:
+      "Navigate from Kevin Bacon's Wikipedia page to Marie Curie's",
+    scenarioName: "browser:wiki-speedrun",
+    user: { name: "Kate Im" },
+    resourceTier: "1 vCPU / 4GB",
+    sessionDuration: "10m",
+  },
+  {
+    id: "fa70d2bc",
+    status: "completed",
+    startedAtMs: instAt(5, 8, 20, 22),
+    duration: "1m 33s",
+    cost: "$0.05",
+    modelOrAgent: "claude-opus-4-5",
+    taskDescription:
+      "Find the founders of Anthropic and return the answer",
+    scenarioName: "browser:answer",
+    score: 0.82,
+    user: { name: "Alex Park" },
+    resourceTier: "1 vCPU / 4GB",
+    sessionDuration: "10m",
+  },
+
+  // ── Jun 5 — 2 mixed (1 idle + 1 completed)
+  {
+    id: "1c95607a",
+    status: "idle",
+    startedAtMs: instAt(5, 5, 14, 7),
+    duration: "58m 12s",
+    cost: "$0.18",
+    modelOrAgent: "gpt-5-1",
+    taskDescription:
+      "Fill the contact form with test data and submit",
+    scenarioName: "browser:fill-record",
+    user: { name: "Kate Im" },
+    resourceTier: "1 vCPU / 4GB",
+    sessionDuration: "10m",
+  },
+  {
+    id: "6e2a8f13",
+    status: "completed",
+    startedAtMs: instAt(5, 5, 9, 41),
+    duration: "3m 04s",
+    cost: "$0.07",
+    modelOrAgent: "claude-opus-4-5",
+    taskDescription:
+      "Navigate from Kevin Bacon's Wikipedia page to Marie Curie's",
+    scenarioName: "browser:wiki-speedrun",
+    score: 0.73,
+    user: { name: "Alex Park" },
+    resourceTier: "1 vCPU / 4GB",
+    sessionDuration: "10m",
+  },
+
+  // ── May 28 — 3 completed
+  {
+    id: "98c1de40",
+    status: "completed",
+    startedAtMs: instAt(4, 28, 22, 12),
+    duration: "1m 49s",
+    cost: "$0.04",
+    modelOrAgent: "claude-opus-4-5",
+    taskDescription:
+      "Open google.com and search for \"hud evals\"",
+    scenarioName: "browser:answer",
+    score: 0.89,
+    user: { name: "Kate Im" },
+    resourceTier: "1 vCPU / 4GB",
+    sessionDuration: "10m",
+  },
+  {
+    id: "75ab3f29",
+    status: "completed",
+    startedAtMs: instAt(4, 28, 21, 56),
+    duration: "2m 21s",
+    cost: "$0.05",
+    modelOrAgent: "claude-opus-4-5",
+    taskDescription:
+      "Extract the top 3 headlines from hacker news",
+    scenarioName: "browser:answer",
+    score: 0.92,
+    user: { name: "Alex Park" },
+    resourceTier: "1 vCPU / 4GB",
+    sessionDuration: "10m",
+  },
+  {
+    id: "3d51e60b",
+    status: "completed",
+    startedAtMs: instAt(4, 28, 11, 4),
+    duration: "1m 58s",
+    cost: "$0.04",
+    modelOrAgent: "claude-opus-4-5",
+    taskDescription:
+      "Find the founders of Anthropic and return the answer",
+    scenarioName: "browser:answer",
+    score: 0.86,
+    user: { name: "Kate Im" },
+    resourceTier: "1 vCPU / 4GB",
+    sessionDuration: "10m",
+  },
+
+  // ── May 24 — 2 mixed
+  {
+    id: "b2497c0d",
+    status: "failed",
+    startedAtMs: instAt(4, 24, 16, 33),
+    duration: "0m 41s",
+    cost: "$0.02",
+    modelOrAgent: "claude-haiku-4-5",
+    taskDescription:
+      "Create a new todo item with the title: \"draft Q3 plan\"",
+    scenarioName: "browser:answer",
+    user: { name: "Alex Park" },
+    resourceTier: "1 vCPU / 4GB",
+    sessionDuration: "10m",
+  },
+  {
+    id: "807f3eaa",
+    status: "completed",
+    startedAtMs: instAt(4, 24, 13, 19),
+    duration: "2m 47s",
+    cost: "$0.06",
+    modelOrAgent: "claude-opus-4-5",
+    taskDescription:
+      "Fill the contact form with test data and submit",
+    scenarioName: "browser:fill-record",
+    score: 0.81,
+    user: { name: "Kate Im" },
+    resourceTier: "1 vCPU / 4GB",
+    sessionDuration: "10m",
+  },
+
+  // ── May 18 — 1
+  {
+    id: "fe43c281",
+    status: "completed",
+    startedAtMs: instAt(4, 18, 19, 2),
+    duration: "1m 22s",
+    cost: "$0.03",
+    modelOrAgent: "gpt-5-1",
+    taskDescription:
+      "Navigate from Kevin Bacon's Wikipedia page to Marie Curie's",
+    scenarioName: "browser:wiki-speedrun",
+    score: 0.77,
+    user: { name: "Alex Park" },
+    resourceTier: "1 vCPU / 4GB",
+    sessionDuration: "10m",
   },
 ];
+
+/** Exported so the Instances tab can do date math against the same anchor. */
+export const ENVIRONMENTS_MOCK_NOW_MS = MOCK_NOW;
 
 const ENVIRONMENTS: ReadonlyArray<Environment> = [
   {
@@ -154,7 +521,8 @@ const ENVIRONMENTS: ReadonlyArray<Environment> = [
         description:
           "Generic task where agent browses and returns an answer. The agent explores the page(s), then yields a final answer which is compared against the expected value (if provided).",
         requiresVars: ["BROWSERBASE_API_KEY", "BROWSERBASE_PROJECT_ID"],
-        usedBy: "browsing-eval-v3",
+        usedBy: "hud-browser",
+        usedByTasksetId: "hud-browser",
         params: [
           { name: "query", type: "string", default: "Who founded Anthropic?" },
         ],
@@ -231,7 +599,8 @@ const ENVIRONMENTS: ReadonlyArray<Environment> = [
         description:
           "Navigate Wikipedia from start to target using only link clicks. The agent must navigate from one Wikipedia article to another by clicking links. Fewer clicks = higher reward.",
         requiresVars: ["BROWSERBASE_API_KEY", "BROWSERBASE_PROJECT_ID"],
-        usedBy: "speedrun-bench",
+        usedBy: "wikigames-2",
+        usedByTasksetId: "wikigames-2",
         params: [
           {
             name: "target",
@@ -454,7 +823,8 @@ print(result.transcript)`,
         description:
           "Navigate to about:blank, take a screenshot, close. Confirms the harness wiring end-to-end.",
         requiresVars: ["BROWSER_CONCURRENCY", "DEFAULT_TIMEOUT_MS"],
-        usedBy: "playwright-smoke",
+        usedBy: "menu-agent-regression",
+        usedByTasksetId: "menu-agent-regression",
         params: [
           { name: "target", type: "string", default: "about:blank" },
         ],
@@ -539,6 +909,13 @@ print(result.transcript)`,
         changedBy: "kate@hud.ai",
         duration: "1m 12s",
         deployedAt: "1d ago",
+        changes: {
+          toolsAdded: 3,
+          toolsRemoved: 0,
+          scenariosAdded: 0,
+          scenariosRemoved: 0,
+          filesChanged: 4,
+        },
       },
       {
         id: "pw-0-9-0",
@@ -548,6 +925,13 @@ print(result.transcript)`,
         changedBy: "kate@hud.ai",
         duration: "1m 5s",
         deployedAt: "4d ago",
+        changes: {
+          toolsAdded: 6,
+          toolsRemoved: 2,
+          scenariosAdded: 1,
+          scenariosRemoved: 1,
+          filesChanged: 9,
+        },
       },
     ],
     instances: [],
@@ -576,7 +960,8 @@ print(result.transcript)`,
         description:
           "Clone a repo, bisect to find the commit that introduced a regression, and write a one-line root-cause note.",
         requiresVars: [],
-        usedBy: "shell-debugging-bench",
+        usedBy: "swe-bench-verified",
+        usedByTasksetId: "swe-bench-verified",
         params: [
           {
             name: "target",

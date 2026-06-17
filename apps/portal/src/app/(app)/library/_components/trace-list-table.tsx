@@ -45,19 +45,19 @@ export function TraceListTable({ traces, onToggleStar }: TraceListTableProps) {
       <table className="w-full border-collapse">
         <thead className="sticky top-0 z-table-header bg-elevated-surface">
           <tr className="border-b border-border text-left">
-            <th className="px-4 py-2 font-mono text-meta text-meta-foreground uppercase">
+            <th className="px-4 py-2 font-mono text-meta text-meta-foreground">
               Task
             </th>
-            <th className="px-4 py-2 font-mono text-meta text-meta-foreground uppercase">
+            <th className="px-4 py-2 font-mono text-meta text-meta-foreground">
               Score
             </th>
-            <th className="px-4 py-2 font-mono text-meta text-meta-foreground uppercase">
+            <th className="px-4 py-2 font-mono text-meta text-meta-foreground">
               Status
             </th>
-            <th className="px-4 py-2 font-mono text-meta text-meta-foreground uppercase">
+            <th className="px-4 py-2 font-mono text-meta text-meta-foreground">
               Turns
             </th>
-            <th className="px-4 py-2 font-mono text-meta text-meta-foreground uppercase">
+            <th className="px-4 py-2 font-mono text-meta text-meta-foreground">
               Time
             </th>
             <th className="px-4 py-2" aria-label="Saved" />
@@ -116,7 +116,7 @@ export function TraceListTable({ traces, onToggleStar }: TraceListTableProps) {
                   aria-pressed={true}
                   aria-label={`Unstar trace ${trace.id.slice(0, 6)}`}
                   onClick={() => onToggleStar(trace.id)}
-                  className="inline-flex size-6 items-center justify-center rounded-sm text-state-warning-text outline-hidden hover:bg-foreground/5 focus-visible:shadow-focus-ring"
+                  className="inline-flex size-6 items-center justify-center rounded-sm text-brand outline-hidden hover:bg-foreground/5 focus-visible:shadow-focus-ring"
                 >
                   <Star aria-hidden="true" className="size-3.5 fill-current" />
                 </button>

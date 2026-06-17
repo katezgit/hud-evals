@@ -24,8 +24,15 @@ import {
   SelectItem,
   SelectTrigger,
 } from "@repo/ui/components/select";
+import {
+  Table,
+  TableBody,
+  TableHeader,
+  TableHeaderCell,
+  TableRow,
+} from "@repo/ui/components/table";
 import type { HomeJobRow } from "@/lib/mock/home-jobs";
-import { GRID_COLS, JobsIndexRow } from "./jobs-index-row";
+import { JobsIndexRow } from "./jobs-index-row";
 
 type Scope = "mine" | "team" | "org";
 type Window = "24h" | "7d" | "30d";
@@ -77,7 +84,7 @@ export default function JobsIndex({ rows }: JobsIndexProps) {
   }, [scopedRows, search]);
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-col gap-4">
       <FilterBar
         scope={scope}
         onScopeChange={setScope}
@@ -144,7 +151,7 @@ function FilterBar({
     <div
       role="toolbar"
       aria-label="Jobs filter bar"
-      className="flex flex-col gap-2 md:flex-row md:flex-wrap md:items-center"
+      className="flex flex-col gap-2 md:flex-row md:flex-wrap md:items-center md:gap-4"
     >
       <div className="relative w-full md:flex-1">
         <Search
@@ -228,32 +235,27 @@ interface JobsTableProps {
 
 function JobsTable({ rows }: JobsTableProps) {
   return (
-    <div className="bg-panel border-border overflow-hidden rounded-md border">
-      <div className="bg-elevated-surface border-border text-meta-foreground border-b px-4 py-2.5 font-mono text-meta">
-        <div className={GRID_COLS}>
-          <div>Status</div>
-          <div>Job</div>
-          <div>Taskset</div>
-          <div>Model · Owner</div>
-          <div>Reward</div>
-          <div>Δ</div>
-          <div>Cost</div>
-          <div />
-        </div>
-      </div>
-
-      {rows.length === 0 ? (
-        <JobsEmpty />
-      ) : (
-        <ul aria-label="Jobs" className="[&>li:last-child>a]:border-b-0">
-          {rows.map((job) => (
-            <li key={job.id}>
-              <JobsIndexRow job={job} />
-            </li>
-          ))}
-        </ul>
-      )}
-    </div>
+    <Table bordered totalCount={rows.length} pageOffset={0}>
+      <TableHeader>
+        <TableRow>
+          <TableHeaderCell label="Status" />
+          <TableHeaderCell label="Job" />
+          <TableHeaderCell label="Taskset" />
+          <TableHeaderCell label="Model · Owner" />
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {rows.length === 0 ? (
+          <tr>
+            <td colSpan={4} className="p-0">
+              <JobsEmpty />
+            </td>
+          </tr>
+        ) : (
+          rows.map((job) => <JobsIndexRow key={job.id} job={job} />)
+        )}
+      </TableBody>
+    </Table>
   );
 }
 

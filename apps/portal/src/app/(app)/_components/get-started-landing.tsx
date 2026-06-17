@@ -25,7 +25,7 @@ export function GetStartedLanding() {
   }
 
   return (
-    <div className="flex flex-col gap-8 px-8 pt-6 pb-12">
+    <div className="page-shell">
       <h1 className="text-display font-medium text-foreground">
         Get started with HUD
       </h1>
@@ -57,7 +57,7 @@ export function GetStartedLanding() {
               <span className="text-body font-semibold text-foreground">
                 Use an Environment template
               </span>
-              <Badge variant="brand-soft" size="sm">
+              <Badge variant="brand-soft">
                 Most popular
               </Badge>
             </div>
@@ -74,7 +74,7 @@ export function GetStartedLanding() {
               "no-underline",
               // Mirror Card variant="interactive" chrome inline for the anchor.
               "relative flex flex-col gap-3 rounded-surface border border-border bg-panel p-5",
-              "text-foreground transition-colors duration-fast hover:bg-hover-surface",
+              "text-foreground transition-colors duration-fast hover:border-border-strong hover:bg-hover-surface",
             )}
           >
             <FileText

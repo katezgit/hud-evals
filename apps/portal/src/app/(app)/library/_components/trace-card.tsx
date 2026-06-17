@@ -39,7 +39,7 @@ export function TraceCard({ trace, starred, onToggleStar }: TraceCardProps) {
     : `Star trace ${shortId}`;
 
   return (
-    <article className="group flex flex-col overflow-hidden rounded-lg border border-border bg-background transition-colors hover:border-border-strong">
+    <article className="group flex flex-col overflow-hidden rounded-lg border border-border bg-panel transition-colors hover:border-border-strong">
       <header
         className={cn(
           "flex items-center justify-between px-4 py-2",
@@ -57,13 +57,13 @@ export function TraceCard({ trace, starred, onToggleStar }: TraceCardProps) {
           aria-pressed={starred}
           aria-label={starLabel}
           onClick={() => onToggleStar(trace.id)}
-          className="inline-flex size-6 items-center justify-center rounded-sm text-current outline-hidden hover:bg-foreground/5 focus-visible:shadow-focus-ring"
+          className="inline-flex size-6 items-center justify-center rounded-sm outline-hidden hover:bg-foreground/5 focus-visible:shadow-focus-ring"
         >
           <Star
             aria-hidden="true"
             className={cn(
               "size-4",
-              starred && "fill-current",
+              starred ? "fill-brand text-brand" : "text-muted-foreground",
             )}
           />
         </button>

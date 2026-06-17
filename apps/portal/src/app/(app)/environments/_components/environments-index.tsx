@@ -330,7 +330,7 @@ export function EnvironmentsIndex({
       <div
         ref={stickyRef}
         className={cn(
-          "sticky top-0 z-page-chrome bg-background mt-4 pt-2 will-change-transform",
+          "sticky top-0 z-page-chrome bg-panel mt-4 pt-2 will-change-transform",
           // Scroll-cue: border slot is always occupied (border-b) so flipping
           // border-color does not shift layout. Mirrors DialogHeader.
           "border-b",
@@ -544,8 +544,8 @@ function ExploreFilterBar({
   onViewChange,
 }: CommonBarProps) {
   return (
-    <div className="isolate mt-6 hidden flex-wrap items-center gap-3 md:flex">
-      <div className="min-w-40 flex-1">
+    <div className="isolate mt-6 hidden flex-wrap items-center gap-4 md:flex">
+      <div className="min-w-40 flex-1 md:max-w-xs">
         <SearchInput
           defaultValue=""
           onValueChange={onSearchChange}
@@ -554,7 +554,7 @@ function ExploreFilterBar({
         />
       </div>
 
-      <div className="flex items-center gap-2">
+      <div className="ml-auto flex items-center gap-2">
         <SegmentedControl
           aria-label="View"
           value={view}
@@ -608,8 +608,8 @@ function TeamFilterBar({
   groupLabel,
 }: TeamFilterBarProps) {
   return (
-    <div className="isolate mt-6 hidden flex-wrap items-center gap-3 md:flex">
-      <div className="min-w-40 flex-1">
+    <div className="isolate mt-6 hidden flex-wrap items-center gap-4 md:flex">
+      <div className="min-w-40 flex-1 md:max-w-xs">
         <SearchInput
           defaultValue=""
           onValueChange={onSearchChange}
@@ -618,7 +618,7 @@ function TeamFilterBar({
         />
       </div>
 
-      <div className="flex items-center gap-2">
+      <div className="ml-auto flex items-center gap-2">
         <div className="w-40">
           <MultiSelect
             options={TYPE_OPTIONS.map((o) => ({

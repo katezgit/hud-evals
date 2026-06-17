@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Trash2, TriangleAlertIcon } from "lucide-react";
 import {
   Dialog,
+  DialogBody,
   DialogCancelButton,
   DialogContent,
   DialogDescription,
@@ -47,15 +48,20 @@ export function RevokeKeyButton({ name, onRevoke }: RevokeKeyButtonProps) {
               />
               Revoke API key
             </DialogTitle>
-            <DialogDescription>
+            <DialogDescription className="sr-only">
+              Confirm permanent revocation of API key {name}.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogBody>
+            <p className="text-body text-foreground">
               This permanently revokes the key{" "}
               <code className="font-mono text-label text-foreground">
                 {name}
               </code>
               . Any SDK still using it will stop authenticating. This action
               can&rsquo;t be undone.
-            </DialogDescription>
-          </DialogHeader>
+            </p>
+          </DialogBody>
           <DialogFooter>
             <DialogCancelButton />
             <DialogDestructiveButton onClick={handleConfirm}>

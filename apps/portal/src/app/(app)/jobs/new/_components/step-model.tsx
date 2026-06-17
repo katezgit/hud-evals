@@ -157,15 +157,15 @@ export function StepModel({
               className="hidden md:flex"
             >
               <SegmentedControl.Item value="user">
-                My Models{" "}
-                <span className="text-meta-foreground">
-                  ({allUserModels.length})
+                My Models
+                <span className="ml-1.5 font-mono text-meta tabular-nums text-meta-foreground">
+                  {allUserModels.length}
                 </span>
               </SegmentedControl.Item>
               <SegmentedControl.Item value="base">
-                Public Models{" "}
-                <span className="text-meta-foreground">
-                  ({allBaseModels.length})
+                Public Models
+                <span className="ml-1.5 font-mono text-meta tabular-nums text-meta-foreground">
+                  {allBaseModels.length}
                 </span>
               </SegmentedControl.Item>
             </SegmentedControl>

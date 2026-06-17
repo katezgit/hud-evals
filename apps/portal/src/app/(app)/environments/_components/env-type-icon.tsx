@@ -28,7 +28,7 @@ export function EnvTypeIcon({ type }: { type: EnvType }) {
   return (
     <span
       aria-hidden="true"
-      className="inline-flex size-6 shrink-0 items-center justify-center rounded bg-secondary-surface text-muted-foreground"
+      className="inline-flex size-6 shrink-0 items-center justify-center rounded bg-muted-surface text-muted-foreground"
     >
       <Icon className="size-3.5" />
     </span>

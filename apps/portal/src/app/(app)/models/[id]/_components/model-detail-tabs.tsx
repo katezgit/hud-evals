@@ -43,7 +43,7 @@ export function ModelDetailTabs({
       </TabsList>
 
       <TabsContent value="results">
-        <ResultsTab modelId={model.id} rows={tasksetResults} />
+        <ResultsTab rows={tasksetResults} />
       </TabsContent>
       <TabsContent value="traces">
         <TracesTab model={model} viewer={viewer} />

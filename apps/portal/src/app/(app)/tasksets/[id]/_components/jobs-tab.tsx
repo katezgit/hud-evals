@@ -227,8 +227,8 @@ export default function JobsTab({ taskset }: JobsTabProps) {
   const showPagination = totalCount > pageSize;
 
   return (
-    <div className="flex flex-col gap-3 pb-4">
-      <div className="flex flex-wrap items-center gap-3 py-1">
+    <div className="flex flex-col gap-4 pb-4">
+      <div className="flex flex-wrap items-center gap-4 py-1">
         <SearchInput
           key={searchInputKey}
           ref={searchInputRef}
@@ -297,9 +297,9 @@ export default function JobsTab({ taskset }: JobsTabProps) {
         ) : null}
       </div>
 
-      <div className="bg-panel border-border rounded-xl border">
+      <div className="bg-card border-border overflow-hidden rounded-md border">
         <div>
-          <div className="bg-elevated-surface border-border text-meta-foreground rounded-t-xl border-b px-4 py-2.5 font-mono text-meta uppercase">
+          <div className="bg-field-rest border-border text-muted-foreground border-b px-4 py-2.5 text-label font-medium">
             <div className={GRID_COLS}>
               <div>Status</div>
               <div>Job</div>
@@ -324,7 +324,7 @@ export default function JobsTab({ taskset }: JobsTabProps) {
               // can't gate on `last:`.
               <ul
                 aria-label="Jobs"
-                className="[&>li:last-child>a]:rounded-b-xl [&>li:last-child>a]:border-b-0"
+                className="[&>li:last-child>a]:border-b-0"
               >
                 {visibleJobs.map((job, i) => (
                   <li key={job.id}>

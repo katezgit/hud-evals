@@ -1,12 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { BrandMark } from "@repo/ui/components/brand-mark";
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-} from "@repo/ui/components/card";
 import LoginForm from "./login-form";
 
 export const metadata: Metadata = {
@@ -15,20 +9,16 @@ export const metadata: Metadata = {
 
 export default function LoginPage() {
   return (
-    <Card variant="elevated">
-      <CardHeader className="flex flex-col items-center gap-3 pt-6 pb-4">
-        <BrandMark size="sm" />
-        <h1 className="text-subtitle font-semibold text-foreground">
-          Sign in to HUD
-        </h1>
-      </CardHeader>
-
-      <CardContent className="p-6">
+    <div className="w-full max-w-[420px] rounded-lg bg-card p-6 lg:border lg:border-border lg:p-10">
+      <div className="flex flex-col gap-8">
+        <div className="flex flex-col items-center gap-3">
+          <BrandMark size="sm" />
+          <h1 className="text-subtitle font-semibold text-foreground">
+            Sign in to HUD
+          </h1>
+        </div>
         <LoginForm />
-      </CardContent>
-
-      <CardFooter className="justify-center text-caption text-muted-foreground">
-        <span>
+        <p className="text-center text-caption text-muted-foreground">
           Don&apos;t have an account?{" "}
           <Link
             href="/register"
@@ -36,8 +26,8 @@ export default function LoginPage() {
           >
             Sign up
           </Link>
-        </span>
-      </CardFooter>
-    </Card>
+        </p>
+      </div>
+    </div>
   );
 }

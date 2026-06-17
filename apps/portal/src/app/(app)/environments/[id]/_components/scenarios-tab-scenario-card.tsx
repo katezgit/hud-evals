@@ -1,8 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Braces, Code2, PlusIcon } from "lucide-react";
-import { Button } from "@repo/ui/components/button";
+import { ArrowRightIcon, Braces, Code2 } from "lucide-react";
 import { IconButton } from "@repo/ui/components/icon-button";
 import {
   Tooltip,
@@ -20,20 +19,18 @@ import type { Scenario, ScenarioSchemaEntry } from "../_data/types";
  * can tell at a glance which disclosures are active. Body: description +
  * schema/source blocks.
  *
- * Footer carries two parallel verbs:
- *  - Primary "+ Create Task" — creates a stored Task definition (Scenario
- *    instantiated with specific argument values) that populates a Taskset.
- *    The durable artifact action.
- *  - Secondary "Run Evaluation" — opens the one-shot run drawer (formerly
- *    "Load this scenario") to test the scenario before committing a Task.
+ * Action footer (stacked text-links, equal weight): "Create Task →" and "Run
+ * Evaluation →" sit one above the other as quiet text-links. No filled primary
+ * button, no card-wide click overlay — the card is a passive info container,
+ * and the user picks the action deliberately.
  *
  * Loaded state (this scenario's run-evaluation drawer is open):
- *  - Run Evaluation collapses to a disabled "Loaded" pill so the loaded-state
- *    visual language matches OverviewScenarioCard.
+ *  - Run Evaluation collapses to a muted "Loaded" label, no arrow,
+ *    cursor-default — matches OverviewScenarioCard's text-link loaded state.
  *  - Create Task remains enabled — authoring a Task definition is independent
  *    of whether the run drawer is open.
  *  - Card frame mirrors OverviewScenarioCard's loaded treatment exactly:
- *    `border-primary` + `bg-primary-glow` + teal title — so a card in either
+ *    `border-border-strong` + `bg-selected-surface`, so a card in either
  *    surface reads identically when it's the active "loaded" target.
  *
  * Sibling: OverviewScenarioCard (orient-and-validate surface).
@@ -65,23 +62,19 @@ export function ScenariosTabScenarioCard({
     <article
       aria-current={loaded ? "true" : undefined}
       className={cn(
-        "group/card flex h-full w-full flex-col gap-3 rounded-lg border p-4",
-        "transition-[box-shadow,background-color,border-color]",
+        "group/card relative isolate flex h-full w-full flex-col gap-3 rounded-lg border p-4",
+        "transition-colors duration-fast",
+        "focus-within:border-border-strong focus-within:shadow-focus-ring",
         loaded
-          ? "border-primary bg-primary-glow"
-          : "border-border bg-panel hover:shadow-(--shadow-card)",
+          ? "border-border-strong bg-selected-surface"
+          : "border-border bg-panel hover:border-border-strong hover:bg-hover-surface",
       )}
     >
-      <header className="flex items-start justify-between gap-2">
-        <h3
-          className={cn(
-            "font-mono text-body font-semibold truncate",
-            loaded ? "text-primary" : "text-foreground",
-          )}
-        >
+      <header className="flex items-center justify-between gap-2">
+        <h3 className="font-mono text-body font-semibold truncate text-foreground">
           {scenario.name}
         </h3>
-        <div className="flex shrink-0 items-center gap-1">
+        <div className="relative z-10 flex shrink-0 items-center gap-1">
           <Tooltip>
             <TooltipTrigger asChild>
               <IconButton
@@ -127,29 +120,46 @@ export function ScenariosTabScenarioCard({
       </p>
 
       {schemaOpen && scenario.schema.length > 0 && (
-        <SchemaBlock entries={scenario.schema} />
+        <div className="relative z-10">
+          <SchemaBlock entries={scenario.schema} />
+        </div>
       )}
 
-      {sourceOpen && <SourceBlock scenario={scenario} />}
+      {sourceOpen && (
+        <div className="relative z-10">
+          <SourceBlock scenario={scenario} />
+        </div>
+      )}
 
-      <footer className="mt-auto flex items-center justify-end gap-2">
-        <Button
+      <footer className="mt-auto flex flex-col gap-2">
+        <button
           type="button"
-          variant="primary"
           onClick={handleCreateTask}
+          className={cn(
+            "relative z-10 inline-flex w-fit items-center gap-1 text-body font-medium",
+            "rounded-sm outline-hidden focus-visible:shadow-focus-ring",
+            "cursor-pointer text-primary hover:underline",
+          )}
         >
-          <PlusIcon aria-hidden="true" />
           Create Task
-        </Button>
-        <Button
+          <ArrowRightIcon aria-hidden="true" className="size-4" />
+        </button>
+        <button
           type="button"
-          variant="secondary"
-          disabled={loaded}
           onClick={() => onLoad(scenario)}
+          disabled={loaded}
           aria-pressed={loaded}
+          className={cn(
+            "relative z-10 inline-flex w-fit items-center gap-1 text-body font-medium",
+            "rounded-sm outline-hidden focus-visible:shadow-focus-ring",
+            loaded
+              ? "cursor-default text-muted-foreground"
+              : "cursor-pointer text-primary hover:underline",
+          )}
         >
           {loaded ? "Loaded" : "Run Evaluation"}
-        </Button>
+          {!loaded && <ArrowRightIcon aria-hidden="true" className="size-4" />}
+        </button>
       </footer>
     </article>
   );

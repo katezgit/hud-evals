@@ -7,7 +7,7 @@ import {
   useSyncExternalStore,
 } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ArrowUpRight, MessageSquare, Play, ShieldCheck } from "lucide-react";
+import { MessageSquare, Play, ShieldCheck } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { toast } from "sonner";
 
@@ -21,6 +21,11 @@ import {
   DrawerHeader,
   DrawerTitle,
 } from "@repo/ui/components/drawer";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@repo/ui/components/tooltip";
 import type { AgentKind, UserAgent } from "@/lib/mock/agents";
 import {
   getAgentAttachments,
@@ -37,8 +42,8 @@ import { inferProviderFromModel } from "../infer-provider";
 
 const KIND_BADGE: Record<AgentKind, string> = {
   qa: "QA",
-  automation: "AUTO",
-  chat: "CHAT",
+  automation: "Automation",
+  chat: "Chat",
 };
 
 const KIND_ICON: Record<AgentKind, LucideIcon> = {
@@ -220,7 +225,7 @@ function UserAgentDetailDrawerBody({ agent, onClose }: DrawerBodyProps) {
         <DrawerHeader>
           <div className="flex min-w-0 flex-wrap items-center gap-2">
             <DrawerTitle className="font-mono">{agent.name}</DrawerTitle>
-            <span className="inline-flex shrink-0 items-center gap-1 rounded bg-muted-surface px-1.5 py-0.5 font-mono text-meta uppercase tracking-wide text-muted-foreground">
+            <span className="inline-flex shrink-0 items-center gap-1 rounded bg-muted-surface px-1.5 py-0.5 font-mono text-meta text-muted-foreground">
               <KindIcon aria-hidden="true" className="size-3" />
               {badgeLabel}
             </span>
@@ -247,36 +252,34 @@ function UserAgentDetailDrawerBody({ agent, onClose }: DrawerBodyProps) {
         </DrawerBody>
 
         <DrawerFooter className="flex-col items-stretch justify-start gap-3 border-t border-border">
+          <PendingNote
+            pendingAddCount={pendingAddCount}
+            pendingRemoveCount={pendingRemoveCount}
+          />
           {/* UserAgent has no `costPerRun` field; pass null so the cost row renders the "—" tooltip. */}
           <FooterMetadata
             model={agent.model}
             provider={provider}
             costPerRun={null}
           />
-          <div className="flex items-center justify-between gap-3">
-            <PendingNote
-              pendingAddCount={pendingAddCount}
-              pendingRemoveCount={pendingRemoveCount}
-            />
-            <div className="flex items-center gap-2">
-              <Button
-                type="button"
-                variant="ghost"
-                onClick={onClose}
-                disabled={isSaving}
-              >
-                Close
-              </Button>
-              <Button
-                type="button"
-                variant="primary"
-                onClick={handleSave}
-                disabled={!isDirty || isSaving}
-                aria-disabled={!isDirty || isSaving}
-              >
-                {saveButtonLabel}
-              </Button>
-            </div>
+          <div className="flex items-center justify-end gap-2">
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={onClose}
+              disabled={isSaving}
+            >
+              Close
+            </Button>
+            <Button
+              type="button"
+              variant="primary"
+              onClick={handleSave}
+              disabled={!isDirty || isSaving}
+              aria-disabled={!isDirty || isSaving}
+            >
+              {saveButtonLabel}
+            </Button>
           </div>
         </DrawerFooter>
       </DrawerContent>
@@ -315,11 +318,16 @@ function PendingNoteMessage({
     const word = pendingRemoveCount === 1 ? "detachment" : "detachments";
     parts.push(`${pendingRemoveCount} ${word} staged`);
   }
+  const body = parts.join(", ");
   return (
-    <div className="flex items-start gap-1.5 text-label text-muted-foreground">
-      <ArrowUpRight aria-hidden="true" className="mt-0.5 size-3" />
-      <span>{parts.join(", ")}</span>
-    </div>
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <span className="block truncate text-body text-foreground">
+          {body}
+        </span>
+      </TooltipTrigger>
+      <TooltipContent variant="truncation">{body}</TooltipContent>
+    </Tooltip>
   );
 }
 

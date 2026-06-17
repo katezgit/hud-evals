@@ -39,31 +39,22 @@ const STATE_TEXT: Record<TasksetJobState, string> = {
 
 interface StatusCellProps {
   state: TasksetJobState;
-  when: string | null;
 }
 
-export function StatusCell({ state, when }: StatusCellProps) {
-  const hideWhen = state === "running" || !when;
+export function StatusCell({ state }: StatusCellProps) {
   return (
-    <div className="flex min-w-0 flex-col gap-0.5">
-      <div className="flex items-center gap-2">
-        {state === "running" ? (
-          <RunningDot />
-        ) : (
-          <span
-            aria-hidden="true"
-            className={cn("size-2 shrink-0 rounded-full", STATE_DOT[state])}
-          />
-        )}
-        <span className={cn("font-mono text-caption", STATE_TEXT[state])}>
-          {STATE_LABEL[state]}
-        </span>
-      </div>
-      {!hideWhen && (
-        <span className="text-meta-foreground pl-4 font-mono text-meta tracking-normal tabular-nums">
-          {when} ago
-        </span>
+    <div className="flex min-w-0 items-center gap-2">
+      {state === "running" ? (
+        <RunningDot />
+      ) : (
+        <span
+          aria-hidden="true"
+          className={cn("size-2 shrink-0 rounded-full", STATE_DOT[state])}
+        />
       )}
+      <span className={cn("font-mono text-caption", STATE_TEXT[state])}>
+        {STATE_LABEL[state]}
+      </span>
     </div>
   );
 }
@@ -80,30 +71,36 @@ function RunningDot() {
 
 export function JobCell({ job }: { job: HomeJobRow }) {
   return (
-    <div className="min-w-0">
-      <div className="flex min-w-0 items-center gap-2">
-        <span className="text-meta-foreground shrink-0 font-mono text-meta uppercase">
-          {job.type === "train" ? "Train" : "Eval"}
-        </span>
-        <span className="text-foreground truncate text-body font-medium">
-          {job.title}
-        </span>
-        <span className="text-text-disabled shrink-0 font-mono text-meta tracking-normal">
-          {job.id}
-        </span>
-      </div>
-      {job.subtitle && (
-        <div
-          className={cn(
-            "mt-0.5 truncate font-mono text-meta tracking-normal",
-            job.state === "errored"
-              ? "text-state-errored-text"
-              : "text-meta-foreground",
-          )}
-        >
-          {job.subtitle}
-        </div>
-      )}
+    <div className="flex min-w-0 items-center gap-2">
+      <span className="text-meta-foreground shrink-0 font-mono text-meta uppercase">
+        {job.type === "train" ? "Train" : "Eval"}
+      </span>
+      <span className="min-w-0 truncate text-body">
+        <span className="text-foreground font-medium">{job.title}</span>
+        {job.subtitle && (
+          <>
+            <span
+              aria-hidden="true"
+              className="text-meta-foreground px-1.5"
+            >
+              ·
+            </span>
+            <span
+              className={cn(
+                "font-mono text-meta tracking-normal",
+                job.state === "errored"
+                  ? "text-state-errored-text"
+                  : "text-meta-foreground",
+              )}
+            >
+              {job.subtitle}
+            </span>
+          </>
+        )}
+      </span>
+      <span className="text-meta-foreground ml-auto shrink-0 font-mono text-meta tracking-normal">
+        {job.id}
+      </span>
     </div>
   );
 }
@@ -136,70 +133,6 @@ export function ModelOwnerCell({ job }: { job: TasksetJobRow }) {
         {job.ownerName}
       </div>
     </div>
-  );
-}
-
-export function RewardCell({ job }: { job: TasksetJobRow }) {
-  if (job.state === "errored" || job.state === "queued" || job.reward == null) {
-    return (
-      <div className="font-mono">
-        <span className="text-text-disabled text-body">—</span>
-      </div>
-    );
-  }
-  return (
-    <div className="min-w-0">
-      <div className="font-mono">
-        <span className="text-foreground text-body font-medium tabular-nums tracking-tight">
-          {job.reward.toFixed(4)}
-        </span>
-      </div>
-      {job.frac && (
-        <div className="text-meta-foreground mt-0.5 font-mono text-meta tracking-normal">
-          {job.frac}
-        </div>
-      )}
-    </div>
-  );
-}
-
-export function DeltaCell({ delta }: { delta: number | null }) {
-  if (delta == null) {
-    return (
-      <span className="text-text-disabled font-mono text-caption">—</span>
-    );
-  }
-  const positive = delta > 0;
-  const negative = delta < 0;
-  return (
-    <span
-      className={cn(
-        "font-mono text-caption tabular-nums",
-        positive && "text-state-scored-text",
-        negative && "text-state-errored-text",
-        !positive && !negative && "text-muted-foreground",
-      )}
-    >
-      {positive ? "+" : ""}
-      {delta.toFixed(4)}
-    </span>
-  );
-}
-
-export function CostCell({ cost }: { cost: string }) {
-  if (cost === "—") {
-    return (
-      <span className="text-meta-foreground font-mono text-caption">—</span>
-    );
-  }
-  return (
-    <span className="text-muted-foreground font-mono text-caption tabular-nums">
-      {cost}
-      <span className="text-meta-foreground text-meta tracking-normal">
-        {" "}
-        Cr
-      </span>
-    </span>
   );
 }
 

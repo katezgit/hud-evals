@@ -33,8 +33,8 @@ const cardVariants = cva(
         interactive: [
           "bg-panel",
           "cursor-pointer",
-          "transition-colors duration-150",
-          "hover:bg-hover-surface",
+          "transition-colors duration-fast",
+          "hover:border-border-strong hover:bg-hover-surface",
           // Focus ring — *:focus-visible in base.css (WCAG 2.4.11). No per-component override needed.
         ],
 

@@ -125,7 +125,7 @@ function TabsList({
             "bg-panel border border-secondary rounded-md",
           ],
           variant === "underline" && [
-            "flex w-fit border-b border-border",
+            "flex w-fit",
           ],
           className
         )}
@@ -181,8 +181,10 @@ function TabsTrigger({
         variant === "underline" && [
           "relative z-10 cursor-pointer",
           "px-1.5 py-2 text-body font-medium whitespace-nowrap",
-          // -mb-px keeps the underline variant's border-overlap layout correct.
-          "-mb-px",
+          // Per-trigger bottom border: transparent at rest, painted on inactive hover.
+          // Active trigger's bar is owned by the list's absolute indicator (h-0.5 = 2px).
+          "border-b-2 border-transparent",
+          "data-[state=inactive]:hover:border-border-strong",
           // Text color fades on --motion-state-change simultaneously with indicator slide.
           "transition-colors prop-(--motion-state-change)",
           // Inactive: muted text
