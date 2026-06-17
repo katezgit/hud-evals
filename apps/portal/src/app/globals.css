@@ -1,62 +1,63 @@
 /* Portal stylesheet entry. The full token + base + utilities stack ships from
- * @repo/ui — importing it here generates every utility this app uses. Do NOT
- * re-declare tokens in this file; if a value is missing, add it upstream in
- * packages/ui/src/styles/, then it lights up here automatically.
- *
- * EXCEPTIONS — portal-specific (not in @repo/ui because no other app uses them):
- *   - --page-max-width      : AppShell page-shell width cap
- *   - --color-grid-line     : AppShell main-area grid backdrop hairline color
- *   - --color-brand-surface : Onboarding brand panel pinned dark teal
- *   - @utility page-shell : canonical (app)/** page wrapper
- *   - @utility bg-grid-backdrop : main scroll-region grid pattern */
+ * @repo/ui — do not re-declare tokens here. If a value is missing, add it
+ * upstream in packages/ui/src/styles/, then it lights up here automatically. */
 @import "@repo/ui/styles.css";
 
 @theme {
-  /* Width of the (app)/** page shell. Centered + capped at this value.
-   * 1536px is chosen so 1920px monitor with 248px sidebar uses ~1540px content
-   * region cleanly; 1280 (max-w-7xl) would clip dense tables on 1440 laptops. */
+  /* 1536px caps content so a 1920px monitor minus the 248px sidebar lands
+   * cleanly; 1280 (max-w-7xl) clips dense tables on 1440 laptops. */
   --page-max-width: 1536px;
 
-  /* Grid backdrop hairline color — alpha-only over the existing border-seed primitives.
-   * Light .01 / dark .008 is intentionally near-subliminal: the grid is ambient
-   * texture, not measurement scaffolding. Operator-tuned through three iterations. */
+  /* Near-subliminal alpha — grid is ambient texture, not measurement
+   * scaffolding. */
   --color-grid-line: light-dark(
     rgb(var(--border-seed-light) / .01),
-    rgb(var(--border-seed-dark)  / .008)
+    rgb(var(--border-seed-dark)  / .002)
   );
 
-  /* Brand panel — PINNED dark teal, never flips with theme; foreground is pure
-   * white at varied alpha. App-scoped because the only consumer is the onboarding
-   * brand panel; the DS does not need this color. */
+  /* PINNED dark teal, never flips with theme. App-scoped because the only
+   * consumer is the onboarding brand panel. */
   --color-brand-surface: #055E55; /* PINNED */
 }
 
-/* ─── Page shell ─────────────────────────────────────────────────────────────
- * Canonical (app)/** page wrapper. Packs the centered cap + responsive horizontal
- * padding ladder + default vertical layout. Pages override gap-/py-/pt- as needed
- * by appending later utilities. Sticky-header inner caps drop py-6 and use pt-10.
- *
- * Spec: docs/design/guidelines/app-shell-layout.md §2.
- */
+/* Sticky-header inner caps drop py-6 and use pt-6.
+ * Spec: docs/design/guidelines/app-shell-layout.md §2. */
 @utility page-shell {
-  @apply mx-auto w-full max-w-(--page-max-width) flex flex-col gap-8 px-4 md:px-6 lg:px-8 xl:px-20 py-6;
+  @apply mx-auto w-full max-w-(--page-max-width) flex flex-col gap-6 px-4 md:px-6 lg:px-8 xl:px-20 py-6;
 }
 
-/* ─── Main scroll-region backdrop ─────────────────────────────────────────────
- * Subtle 56px hairline grid for the AppShell <main> element.
- * background-attachment: fixed is intentionally OMITTED (perf: trace/table scroll).
+/* Owns title → description/metadata-row rhythm (gap-1). Does NOT own the
+ * breadcrumb → title gap — that stays inline (gap-3) on call sites that
+ * have a breadcrumb, because index pages have none.
+ * Spec: docs/design/foundations/header-rhythm.md */
+@utility page-header {
+  @apply flex flex-col gap-1;
+}
+
+@utility page-header-meta {
+  @apply flex flex-wrap items-center gap-2 text-body text-muted-foreground;
+}
+
+/* Gap-0 is intentional: CopyButton (size-6 IconButton) supplies its own
+ * padding; any added gap creates dead space and breaks the flush "one
+ * unit" affordance. */
+@utility page-header-meta-group {
+  @apply inline-flex items-center gap-0;
+}
+
+/* background-attachment: fixed intentionally OMITTED (perf: trace/table scroll).
  * Spec: docs/design/guidelines/app-shell-layout.md §9. */
 @utility bg-grid-backdrop {
-  background-color: var(--color-background);
+  background-color: var(--color-panel);
   background-image:
     linear-gradient(to right,  var(--color-grid-line) 1px, transparent 1px),
     linear-gradient(to bottom, var(--color-grid-line) 1px, transparent 1px);
-  background-size: 56px 56px;
+  background-size: 48px 48px;
 }
 
-/* Same 56px grid as bg-grid-backdrop but without the background-color clamp,
- * so it composes over any surface utility (e.g. bg-elevated-surface on the
- * onboarding form panel). Pair with a base surface class — never use alone. */
+/* No background-color clamp, so it composes over any surface utility
+ * (e.g. bg-elevated-surface on the onboarding form panel). Pair with a
+ * base surface class — never use alone. */
 @utility bg-grid-overlay {
   background-image:
     linear-gradient(to right,  var(--color-grid-line) 1px, transparent 1px),
@@ -64,16 +65,69 @@
   background-size: 56px 56px;
 }
 
-/* ─── Row-action reveal ──────────────────────────────────────────────────────
- * Hover/focus-reveal pattern for secondary row affordances (copy, kebab, etc.)
- * inside a `.group/row` table row. Lives here, not in @repo/ui, because the
- * design system intentionally has no `opacity-*` utility scale — opacity is
- * reserved for disabled-state tokens (see packages/ui/src/styles/primitive.css).
+/* Do NOT use for popover items portaled outside the sidebar — they sit on
+ * bg-popover and use --color-sidebar-hover-manage. */
+@utility sidebar-row-hover {
+  transition: background-color var(--duration-fast) var(--ease-out-standard),
+              color            var(--duration-fast) var(--ease-out-standard);
+  &:hover {
+    background-color: var(--color-sidebar-hover);
+    color: var(--color-foreground);
+  }
+}
+
+/* ─── Sidebar route transition (app ↔ manage) ────────────────────────────────
+ * Spec: docs/design/foundations/animations/sidebar-route-transition.md
  *
- * Element stays in the tab order (opacity-only; no display/visibility tricks),
- * so keyboard users reveal it via `:focus-within` on the parent row. Touch
- * devices (no hover) get it permanently visible — Alex on a tablet doesn't
- * lose the affordance. */
+ * Direction is selected via html[data-route-direction], set by
+ * RouteDirectionTagger in the root layout. Default (no value match) is
+ * "none" — in-shell navigations (e.g. /manage/profile → /manage/billing)
+ * get an instant swap, not a half-applied slide.
+ *
+ * Reduced motion: --duration-fast and --duration-subtle collapse to 0ms
+ * under prefers-reduced-motion: reduce (see theme.css).
+ *
+ * Main content area is NOT tagged (spec §F) — it cross-fades only. */
+
+::view-transition-old(shell-sidebar),
+::view-transition-new(shell-sidebar) {
+  animation: none;
+}
+
+html[data-route-direction="to-manage"]::view-transition-old(shell-sidebar) {
+  animation: shell-sidebar-exit-left var(--duration-fast) var(--ease-in-accelerated) forwards;
+}
+html[data-route-direction="to-manage"]::view-transition-new(shell-sidebar) {
+  animation: shell-sidebar-enter-right var(--duration-subtle) var(--ease-out-emphasized) 50ms forwards;
+}
+
+html[data-route-direction="to-app"]::view-transition-old(shell-sidebar) {
+  animation: shell-sidebar-exit-right var(--duration-fast) var(--ease-in-accelerated) forwards;
+}
+html[data-route-direction="to-app"]::view-transition-new(shell-sidebar) {
+  animation: shell-sidebar-enter-left var(--duration-subtle) var(--ease-out-emphasized) 50ms forwards;
+}
+
+@keyframes shell-sidebar-exit-left {
+  to { transform: translateX(-100%); opacity: 0; }
+}
+@keyframes shell-sidebar-exit-right {
+  to { transform: translateX(100%); opacity: 0; }
+}
+@keyframes shell-sidebar-enter-right {
+  from { transform: translateX(100%); opacity: 0; }
+  to   { transform: translateX(0);    opacity: 1; }
+}
+@keyframes shell-sidebar-enter-left {
+  from { transform: translateX(-100%); opacity: 0; }
+  to   { transform: translateX(0);     opacity: 1; }
+}
+
+/* Lives here, not @repo/ui, because the DS intentionally has no opacity-*
+ * utility scale — opacity is reserved for disabled-state tokens.
+ * Opacity-only (no display/visibility) keeps the element in the tab order,
+ * so keyboard users reveal it via :focus-within on the parent row.
+ * Touch devices (no hover) get it permanently visible. */
 .row-action-reveal {
   opacity: 0;
   transition: opacity var(--motion-state-change);

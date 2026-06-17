@@ -9,7 +9,7 @@ import { cn } from "@repo/ui/lib/cn"
 
 const progressTrackVariants = cva(
   // base: track — 3px radius per v1 mockup (explicit, not rounded-full)
-  "relative w-full overflow-hidden rounded-[3px] bg-muted-surface", // eslint-disable-line no-restricted-syntax -- 3px radius is intentional design spec; no token exists between radius-none(0) and radius-sm(4px)
+  "relative w-full overflow-hidden rounded-[3px] bg-progress-track", // eslint-disable-line no-restricted-syntax -- 3px radius is intentional design spec; no token exists between radius-none(0) and radius-sm(4px)
   {
     variants: {
       size: {
@@ -46,7 +46,7 @@ const progressFillVariants = cva(
       },
     },
     defaultVariants: {
-      state: "default",
+      state: "neutral",
     },
   }
 )
@@ -81,7 +81,7 @@ const Progress = React.forwardRef<
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       max: _max,
       size,
-      state = "default",
+      state = "neutral",
       indeterminate,
       label,
       valueLabel,

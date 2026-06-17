@@ -169,10 +169,9 @@ export async function getViewer(): Promise<Viewer> {
 
 // ── Taskset fixtures (Results tab) ─────────────────────────────────────────────
 //
-// Three Tasksets cover the three Results-row states:
+// Two Tasksets cover the Results-row states with scored data:
 //   - Healthy Taskset with high scores (Web nav)
 //   - Mixed Taskset (Code gen)
-//   - Empty Taskset — no Runs, renders the inline `Run` button cell
 
 function distribution(scores: ReadonlyArray<number>): ReadonlyArray<number> {
   return scores;
@@ -192,10 +191,14 @@ const CODE_GEN_SCORES = distribution([
   99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99,
 ]);
 
+// Taskset IDs match canonical entries in `lib/mock/tasksets.ts` so the Results
+// rank links and Run-button deep links navigate to real Taskset detail pages
+// instead of 404ing.
 const TASKSET_RESULTS: ReadonlyArray<TasksetResult> = [
   {
-    tasksetId: "ts_web_nav",
-    tasksetName: "Web nav",
+    tasksetId: "hud-browser",
+    tasksetName: "hud-browser",
+    description: "Browser navigation & web workflows",
     taskCount: 120,
     runStats: {
       completed: 96,
@@ -205,10 +208,14 @@ const TASKSET_RESULTS: ReadonlyArray<TasksetResult> = [
       countAt40: WEB_NAV_SCORES.filter((s) => s >= 40).length,
       scoreDistribution: WEB_NAV_SCORES,
     },
+    rank: 4,
+    totalRanked: 27,
+    lastRunAt: isoDaysAgo(0.08),
   },
   {
-    tasksetId: "ts_code_gen",
-    tasksetName: "Code gen",
+    tasksetId: "rl-coding-eval",
+    tasksetName: "rl-coding-eval",
+    description: "RL training set — coding problems",
     taskCount: 40,
     runStats: {
       completed: 40,
@@ -218,17 +225,14 @@ const TASKSET_RESULTS: ReadonlyArray<TasksetResult> = [
       countAt40: 40,
       scoreDistribution: CODE_GEN_SCORES,
     },
-  },
-  {
-    tasksetId: "ts_browser_qa",
-    tasksetName: "Browser QA",
-    taskCount: 60,
-    runStats: null,
+    rank: 1,
+    totalRanked: 14,
+    lastRunAt: isoDaysAgo(1.2),
   },
 ];
 
 /**
- * Get the Results-tab rows for a given Model. Mocked: returns the same three
+ * Get the Results-tab rows for a given Model. Mocked: returns the same two
  * rows for every Model, so both fixtures exercise the same column rendering.
  */
 export async function getTasksetResults(modelId: string): Promise<ReadonlyArray<TasksetResult>> {
@@ -549,32 +553,32 @@ function makeTraces(seeds: ReadonlyArray<TraceSeed>): ReadonlyArray<Trace> {
 // against the model's API name itself so the Checkpoint filter surfaces a
 // single sensible option instead of a useless empty list.
 const BASE_MODEL_TRACE_SEEDS: ReadonlyArray<TraceSeed> = [
-  { idSuffix: "a3b2f9", tasksetId: "ts_web_nav", tasksetName: "Web nav", checkpointId: "claude-sonnet-4-5", steps: 12, score: 94, minutesAgo: 8 },
-  { idSuffix: "c9d147", tasksetId: "ts_web_nav", tasksetName: "Web nav", checkpointId: "claude-sonnet-4-5", steps: 8, score: 31, minutesAgo: 27 },
-  { idSuffix: "e7f482", tasksetId: "ts_web_nav", tasksetName: "Web nav", checkpointId: "claude-sonnet-4-5", steps: 24, score: 88, minutesAgo: 41 },
-  { idSuffix: "g2h8d1", tasksetId: "ts_web_nav", tasksetName: "Web nav", checkpointId: "claude-sonnet-4-5", steps: 5, score: 12, minutesAgo: 63 },
-  { idSuffix: "j5k223", tasksetId: "ts_code_gen", tasksetName: "Code gen", checkpointId: "claude-sonnet-4-5", steps: 18, score: 76, minutesAgo: 95 },
-  { idSuffix: "m1n4ab", tasksetId: "ts_code_gen", tasksetName: "Code gen", checkpointId: "claude-sonnet-4-5", steps: 14, score: 52, minutesAgo: 122 },
-  { idSuffix: "p7q1c0", tasksetId: "ts_code_gen", tasksetName: "Code gen", checkpointId: "claude-sonnet-4-5", steps: 22, score: 99, minutesAgo: 180 },
-  { idSuffix: "r3s9e5", tasksetId: "ts_code_gen", tasksetName: "Code gen", checkpointId: "claude-sonnet-4-5", steps: 6, score: 38, minutesAgo: 240 },
+  { idSuffix: "a3b2f9", tasksetId: "wikigames-2", tasksetName: "WikiGames 2", checkpointId: "claude-sonnet-4-5", steps: 12, score: 94, minutesAgo: 8 },
+  { idSuffix: "c9d147", tasksetId: "wikigames-2", tasksetName: "WikiGames 2", checkpointId: "claude-sonnet-4-5", steps: 8, score: 31, minutesAgo: 27 },
+  { idSuffix: "e7f482", tasksetId: "wikigames-2", tasksetName: "WikiGames 2", checkpointId: "claude-sonnet-4-5", steps: 24, score: 88, minutesAgo: 41 },
+  { idSuffix: "g2h8d1", tasksetId: "wikigames-2", tasksetName: "WikiGames 2", checkpointId: "claude-sonnet-4-5", steps: 5, score: 12, minutesAgo: 63 },
+  { idSuffix: "j5k223", tasksetId: "swe-bench-verified", tasksetName: "SWE-bench Verified", checkpointId: "claude-sonnet-4-5", steps: 18, score: 76, minutesAgo: 95 },
+  { idSuffix: "m1n4ab", tasksetId: "swe-bench-verified", tasksetName: "SWE-bench Verified", checkpointId: "claude-sonnet-4-5", steps: 14, score: 52, minutesAgo: 122 },
+  { idSuffix: "p7q1c0", tasksetId: "swe-bench-verified", tasksetName: "SWE-bench Verified", checkpointId: "claude-sonnet-4-5", steps: 22, score: 99, minutesAgo: 180 },
+  { idSuffix: "r3s9e5", tasksetId: "swe-bench-verified", tasksetName: "SWE-bench Verified", checkpointId: "claude-sonnet-4-5", steps: 6, score: 38, minutesAgo: 240 },
 ];
 
 // User-trained model has multiple checkpoints (matches the logs fixture seeds:
 // `ckpt_a93f`, `ckpt_b72e`, `ckpt_c51d`). Distribute traces across them so the
 // filter surfaces real differentiation.
 const USER_MODEL_TRACE_SEEDS: ReadonlyArray<TraceSeed> = [
-  { idSuffix: "ua81f3", tasksetId: "ts_web_nav", tasksetName: "Web nav", checkpointId: "ckpt_c51d", steps: 11, score: 91, minutesAgo: 3 },
-  { idSuffix: "ub2c70", tasksetId: "ts_web_nav", tasksetName: "Web nav", checkpointId: "ckpt_c51d", steps: 15, score: 84, minutesAgo: 9 },
-  { idSuffix: "uc4d61", tasksetId: "ts_web_nav", tasksetName: "Web nav", checkpointId: "ckpt_b72e", steps: 9, score: 47, minutesAgo: 18 },
-  { idSuffix: "ud8e22", tasksetId: "ts_web_nav", tasksetName: "Web nav", checkpointId: "ckpt_a93f", steps: 6, score: 22, minutesAgo: 33 },
-  { idSuffix: "ue5f99", tasksetId: "ts_code_gen", tasksetName: "Code gen", checkpointId: "ckpt_c51d", steps: 19, score: 95, minutesAgo: 45 },
-  { idSuffix: "uf91a8", tasksetId: "ts_code_gen", tasksetName: "Code gen", checkpointId: "ckpt_b72e", steps: 25, score: 88, minutesAgo: 64 },
-  { idSuffix: "ug3b77", tasksetId: "ts_code_gen", tasksetName: "Code gen", checkpointId: "ckpt_b72e", steps: 13, score: 71, minutesAgo: 88 },
-  { idSuffix: "uh6c40", tasksetId: "ts_code_gen", tasksetName: "Code gen", checkpointId: "ckpt_a93f", steps: 17, score: 56, minutesAgo: 110 },
-  { idSuffix: "ui2d05", tasksetId: "ts_code_gen", tasksetName: "Code gen", checkpointId: "ckpt_a93f", steps: 8, score: 34, minutesAgo: 145 },
-  { idSuffix: "uj7e18", tasksetId: "ts_browser_qa", tasksetName: "Browser QA", checkpointId: "ckpt_c51d", steps: 21, score: 82, minutesAgo: 200 },
-  { idSuffix: "uk4f63", tasksetId: "ts_browser_qa", tasksetName: "Browser QA", checkpointId: "ckpt_b72e", steps: 16, score: 67, minutesAgo: 260 },
-  { idSuffix: "ul9a55", tasksetId: "ts_browser_qa", tasksetName: "Browser QA", checkpointId: "ckpt_a93f", steps: 12, score: 41, minutesAgo: 320 },
+  { idSuffix: "ua81f3", tasksetId: "wikigames-2", tasksetName: "WikiGames 2", checkpointId: "ckpt_c51d", steps: 11, score: 91, minutesAgo: 3 },
+  { idSuffix: "ub2c70", tasksetId: "wikigames-2", tasksetName: "WikiGames 2", checkpointId: "ckpt_c51d", steps: 15, score: 84, minutesAgo: 9 },
+  { idSuffix: "uc4d61", tasksetId: "wikigames-2", tasksetName: "WikiGames 2", checkpointId: "ckpt_b72e", steps: 9, score: 47, minutesAgo: 18 },
+  { idSuffix: "ud8e22", tasksetId: "wikigames-2", tasksetName: "WikiGames 2", checkpointId: "ckpt_a93f", steps: 6, score: 22, minutesAgo: 33 },
+  { idSuffix: "ue5f99", tasksetId: "swe-bench-verified", tasksetName: "SWE-bench Verified", checkpointId: "ckpt_c51d", steps: 19, score: 95, minutesAgo: 45 },
+  { idSuffix: "uf91a8", tasksetId: "swe-bench-verified", tasksetName: "SWE-bench Verified", checkpointId: "ckpt_b72e", steps: 25, score: 88, minutesAgo: 64 },
+  { idSuffix: "ug3b77", tasksetId: "swe-bench-verified", tasksetName: "SWE-bench Verified", checkpointId: "ckpt_b72e", steps: 13, score: 71, minutesAgo: 88 },
+  { idSuffix: "uh6c40", tasksetId: "swe-bench-verified", tasksetName: "SWE-bench Verified", checkpointId: "ckpt_a93f", steps: 17, score: 56, minutesAgo: 110 },
+  { idSuffix: "ui2d05", tasksetId: "swe-bench-verified", tasksetName: "SWE-bench Verified", checkpointId: "ckpt_a93f", steps: 8, score: 34, minutesAgo: 145 },
+  { idSuffix: "uj7e18", tasksetId: "hud-browser", tasksetName: "hud-browser", checkpointId: "ckpt_c51d", steps: 21, score: 82, minutesAgo: 200 },
+  { idSuffix: "uk4f63", tasksetId: "hud-browser", tasksetName: "hud-browser", checkpointId: "ckpt_b72e", steps: 16, score: 67, minutesAgo: 260 },
+  { idSuffix: "ul9a55", tasksetId: "hud-browser", tasksetName: "hud-browser", checkpointId: "ckpt_a93f", steps: 12, score: 41, minutesAgo: 320 },
 ];
 
 const TRACE_SEEDS_BY_MODEL: Readonly<Record<string, ReadonlyArray<TraceSeed>>> = {

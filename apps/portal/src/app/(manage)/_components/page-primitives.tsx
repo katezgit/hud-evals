@@ -44,7 +44,7 @@ const FIELD_ROW_GRID: Record<1 | 2 | 3, string> = {
 
 export function FieldRow({ children, className, cols = 2 }: FieldRowProps) {
   return (
-    <div className={cn("grid gap-3", FIELD_ROW_GRID[cols], className)}>{children}</div>
+    <div className={cn("grid gap-4", FIELD_ROW_GRID[cols], className)}>{children}</div>
   );
 }
 

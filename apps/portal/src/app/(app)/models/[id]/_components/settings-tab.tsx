@@ -1,7 +1,7 @@
 import type { Model, OwnershipClass, Viewer } from "../_data/types";
-import { ConfigurationPanel } from "./configuration-panel";
-import { DangerZonePanel } from "./danger-zone-panel";
-import { ModelInformationPanel } from "./model-information-panel";
+import { GeneralSection } from "./general-section";
+import { SystemDetailsSection } from "./system-details-section";
+import { UsageSection } from "./usage-section";
 
 export function SettingsTab({
   model,
@@ -17,14 +17,11 @@ export function SettingsTab({
     ownershipClass === "user-trained:admin";
   const canEdit = isEditorClass && viewer.persona === "rl-researcher";
 
-  const showDangerZone =
-    model.ownerType === "user-trained" && isEditorClass;
-
   return (
     <div className="flex w-full flex-col gap-6 py-4">
-      <ConfigurationPanel model={model} disabled={!canEdit} />
-      <ModelInformationPanel model={model} />
-      {showDangerZone && <DangerZonePanel model={model} />}
+      <GeneralSection model={model} disabled={!canEdit} />
+      <UsageSection model={model} />
+      <SystemDetailsSection model={model} />
     </div>
   );
 }

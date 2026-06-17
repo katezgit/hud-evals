@@ -1,6 +1,10 @@
 "use client";
 
-import { ArrowUpRight } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@repo/ui/components/tooltip";
 
 function formatCost(value: number): string {
   return `$${value.toFixed(2)}`;
@@ -58,9 +62,13 @@ function Message({
   }
 
   return (
-    <div className="flex items-start gap-1.5 text-label text-muted-foreground">
-      <ArrowUpRight aria-hidden="true" className="mt-0.5 size-3" />
-      <span>{body}</span>
-    </div>
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <span className="block truncate text-body text-foreground">
+          {body}
+        </span>
+      </TooltipTrigger>
+      <TooltipContent variant="truncation">{body}</TooltipContent>
+    </Tooltip>
   );
 }

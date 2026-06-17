@@ -5,7 +5,7 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@repo/ui/lib/cn"
 
 const badgeVariants = cva(
-  "inline-flex w-fit shrink-0 items-center gap-1 overflow-hidden rounded-badge border px-2 py-0.5 text-label font-medium font-mono whitespace-nowrap",
+  "inline-flex w-fit shrink-0 items-center gap-1 overflow-hidden rounded-badge border px-1 py-px text-meta font-medium font-mono whitespace-nowrap",
   {
     variants: {
       variant: {
@@ -26,14 +26,9 @@ const badgeVariants = cva(
         "brand-soft":
           "border-primary-border bg-primary-soft text-primary",
       },
-      size: {
-        default: "px-2 py-0.5",
-        sm: "px-1 py-px text-meta",
-      },
     },
     defaultVariants: {
       variant: "neutral",
-      size: "default",
     },
   }
 )
@@ -64,7 +59,7 @@ export interface BadgeProps
 }
 
 const Badge = React.forwardRef<HTMLSpanElement, BadgeProps>(
-  ({ className, variant = "neutral", size = "default", showDot = false, children, ...props }, ref) => {
+  ({ className, variant = "neutral", showDot = false, children, ...props }, ref) => {
     const hasDot = showDot && variant !== "info" && variant !== "beta" && variant !== "neutral" && variant !== "brand-soft"
 
     return (
@@ -72,7 +67,7 @@ const Badge = React.forwardRef<HTMLSpanElement, BadgeProps>(
         ref={ref}
         data-slot="badge"
         data-variant={variant}
-        className={cn(badgeVariants({ variant, size }), className)}
+        className={cn(badgeVariants({ variant }), className)}
         {...props}
       >
         {hasDot && (

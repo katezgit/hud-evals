@@ -87,7 +87,7 @@ export function TasksTabFiltersPopover({
           <FilterIcon aria-hidden="true" />
           Filters
           {activeCount > 0 && (
-            <Badge size="sm" variant="brand-soft" className="ml-1">
+            <Badge variant="brand-soft" className="ml-1">
               {activeCount}
             </Badge>
           )}
@@ -99,7 +99,7 @@ export function TasksTabFiltersPopover({
         sideOffset={8}
         className="w-80 max-w-none"
       >
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-4">
           <span className="text-label font-medium uppercase text-muted-foreground">
             Stats scope
           </span>

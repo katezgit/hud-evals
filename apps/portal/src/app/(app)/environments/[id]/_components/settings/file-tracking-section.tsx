@@ -83,7 +83,7 @@ export function FileTrackingSection() {
         aria-labelledby="file-tracking-title"
         className={cn(
           "scroll-mt-32 transition-colors duration-fast ease-out-standard",
-          drawerOpen && "border-primary bg-primary-glow",
+          drawerOpen && "border-border-strong bg-selected-surface",
         )}
       >
         <CardContent className="flex items-center justify-between gap-4">
@@ -210,44 +210,50 @@ function FileTrackingDrawer({
 
         {draft.enabled && (
           <>
-            <PatternList
-              label="Tracked Paths"
-              placeholder="/path/to/track"
-              addButtonLabel="Add path"
-              values={draft.trackedPaths}
-              onAdd={(value) =>
-                setDraft((prev) => ({
-                  ...prev,
-                  trackedPaths: [...prev.trackedPaths, value],
-                }))
-              }
-              onRemove={(index) =>
-                setDraft((prev) => ({
-                  ...prev,
-                  trackedPaths: prev.trackedPaths.filter((_, i) => i !== index),
-                }))
-              }
-            />
-            <PatternList
-              label="Exclude Patterns"
-              placeholder="pattern"
-              addButtonLabel="Add pattern"
-              values={draft.excludePatterns}
-              onAdd={(value) =>
-                setDraft((prev) => ({
-                  ...prev,
-                  excludePatterns: [...prev.excludePatterns, value],
-                }))
-              }
-              onRemove={(index) =>
-                setDraft((prev) => ({
-                  ...prev,
-                  excludePatterns: prev.excludePatterns.filter(
-                    (_, i) => i !== index,
-                  ),
-                }))
-              }
-            />
+            <div className="border-t border-border pt-6">
+              <PatternList
+                label="Tracked Paths"
+                placeholder="/path/to/track"
+                addButtonLabel="Add path"
+                values={draft.trackedPaths}
+                onAdd={(value) =>
+                  setDraft((prev) => ({
+                    ...prev,
+                    trackedPaths: [...prev.trackedPaths, value],
+                  }))
+                }
+                onRemove={(index) =>
+                  setDraft((prev) => ({
+                    ...prev,
+                    trackedPaths: prev.trackedPaths.filter(
+                      (_, i) => i !== index,
+                    ),
+                  }))
+                }
+              />
+            </div>
+            <div className="border-t border-border pt-6">
+              <PatternList
+                label="Exclude Patterns"
+                placeholder="pattern"
+                addButtonLabel="Add pattern"
+                values={draft.excludePatterns}
+                onAdd={(value) =>
+                  setDraft((prev) => ({
+                    ...prev,
+                    excludePatterns: [...prev.excludePatterns, value],
+                  }))
+                }
+                onRemove={(index) =>
+                  setDraft((prev) => ({
+                    ...prev,
+                    excludePatterns: prev.excludePatterns.filter(
+                      (_, i) => i !== index,
+                    ),
+                  }))
+                }
+              />
+            </div>
           </>
         )}
 
@@ -344,31 +350,10 @@ function PatternList({
   }, [draft, values, onAdd]);
 
   return (
-    <fieldset className="flex flex-col gap-2">
+    <fieldset className="flex flex-col gap-3">
       <legend className="text-label font-medium text-foreground pb-1">
         {label}
       </legend>
-      <ul className="flex flex-col gap-1">
-        {values.map((value, index) => (
-          <li
-            key={`${value}-${index}`}
-            className={cn(
-              "flex items-center justify-between gap-2 rounded-md",
-              "border border-border bg-card px-3 py-1.5",
-              "font-mono text-meta text-foreground",
-            )}
-          >
-            <span className="truncate">{value}</span>
-            <IconButton
-              type="button"
-              variant="ghost"              aria-label={`Remove ${value}`}
-              onClick={() => onRemove(index)}
-            >
-              <X aria-hidden="true" />
-            </IconButton>
-          </li>
-        ))}
-      </ul>
       <div className="flex items-center gap-2">
         <Input
           ref={inputRef}
@@ -387,13 +372,39 @@ function PatternList({
         />
         <Button
           type="button"
-          variant="secondary"          onClick={handleAdd}
+          variant="secondary"
+          onClick={handleAdd}
           disabled={draft.trim() === ""}
         >
           <Plus aria-hidden="true" className="size-3.5" />
           {addButtonLabel}
         </Button>
       </div>
+      {values.length > 0 && (
+        <ul className="flex flex-col divide-y divide-border">
+          {values.map((value, index) => (
+            <li
+              key={`${value}-${index}`}
+              className={cn(
+                "group flex items-center justify-between gap-2 px-3 py-2",
+                "font-mono text-meta text-foreground",
+                "transition-colors duration-fast ease-out-standard hover:bg-card",
+              )}
+            >
+              <span className="truncate">{value}</span>
+              <IconButton
+                type="button"
+                variant="ghost"
+                aria-label={`Remove ${value}`}
+                onClick={() => onRemove(index)}
+                className="text-muted-foreground/60 group-hover:text-foreground"
+              >
+                <X aria-hidden="true" />
+              </IconButton>
+            </li>
+          ))}
+        </ul>
+      )}
     </fieldset>
   );
 }

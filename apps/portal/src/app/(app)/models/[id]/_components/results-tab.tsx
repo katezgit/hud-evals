@@ -1,14 +1,13 @@
 "use client";
 
-import { HelpCircleIcon } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { ChevronRight, HelpCircleIcon } from "lucide-react";
 import {
   createColumnHelper,
   flexRender,
   getCoreRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { Button } from "@repo/ui/components/button";
-import { Card } from "@repo/ui/components/card";
 import { Progress } from "@repo/ui/components/progress";
 import {
   tableBodyClass,
@@ -31,35 +30,32 @@ const THRESHOLD_TOOLTIP =
   "Tasks where the model's score met this threshold ÷ total tasks run.";
 
 interface ResultsTabProps {
-  modelId: string;
   rows: ReadonlyArray<TasksetResult>;
 }
 
-export function ResultsTab({ modelId, rows }: ResultsTabProps) {
-  if (rows.length === 0) {
-    return (
-      <section className="py-4">
+export function ResultsTab({ rows }: ResultsTabProps) {
+  return (
+    <section className="py-4">
+      {rows.length === 0 && (
         <div className="py-12 text-center text-body text-muted-foreground">
           No tasksets yet. Add one to start evaluating.
         </div>
-      </section>
-    );
-  }
-
-  return (
-    <section className="py-4">
-      <Card className="overflow-hidden p-0">
-        <div className="overflow-x-auto">
-          <ResultsTable modelId={modelId} rows={rows} />
+      )}
+      {rows.length > 0 && (
+        <div className="overflow-hidden rounded-md border border-border bg-card">
+          <div className="overflow-x-auto">
+            <ResultsTable rows={rows} />
+          </div>
         </div>
-      </Card>
+      )}
     </section>
   );
 }
 
 const columnHelper = createColumnHelper<TasksetResult>();
 
-function ResultsTable({ modelId, rows }: ResultsTabProps) {
+function ResultsTable({ rows }: { rows: ReadonlyArray<TasksetResult> }) {
+  const router = useRouter();
   const columns = [
     columnHelper.accessor("tasksetName", {
       id: "taskset",
@@ -69,6 +65,9 @@ function ResultsTable({ modelId, rows }: ResultsTabProps) {
         return (
           <div className="flex flex-col">
             <span className="text-foreground">{row.tasksetName}</span>
+            <span className="text-body text-muted-foreground">
+              {row.description}
+            </span>
             <span className="font-mono text-meta text-meta-foreground">
               {row.taskCount} tasks
             </span>
@@ -79,12 +78,17 @@ function ResultsTable({ modelId, rows }: ResultsTabProps) {
     columnHelper.display({
       id: "progress",
       header: () => <span>Progress</span>,
-      cell: (info) => <ProgressCell row={info.row.original} modelId={modelId} />,
+      cell: (info) => <ProgressCell row={info.row.original} />,
     }),
     columnHelper.display({
       id: "avg",
       header: () => <span>Avg</span>,
       cell: (info) => <AvgCell row={info.row.original} />,
+    }),
+    columnHelper.display({
+      id: "rank",
+      header: () => <span>Rank</span>,
+      cell: (info) => <RankCell row={info.row.original} />,
     }),
     columnHelper.display({
       id: "ge99",
@@ -121,6 +125,16 @@ function ResultsTable({ modelId, rows }: ResultsTabProps) {
       header: () => <span>Score distribution</span>,
       cell: (info) => <DistributionCell row={info.row.original} />,
     }),
+    columnHelper.display({
+      id: "chevron",
+      header: () => <span />,
+      cell: () => (
+        <ChevronRight
+          aria-hidden="true"
+          className="size-4 text-meta-foreground"
+        />
+      ),
+    }),
   ];
 
   const table = useReactTable({
@@ -145,34 +159,43 @@ function ResultsTable({ modelId, rows }: ResultsTabProps) {
         ))}
       </thead>
       <tbody className={tableBodyClass}>
-        {table.getRowModel().rows.map((row) => (
-          <tr key={row.id} className={tableRowVariants()}>
-            {row.getVisibleCells().map((cell) => (
-              <td key={cell.id} className={tableCellVariants()}>
-                {flexRender(cell.column.columnDef.cell, cell.getContext())}
-              </td>
-            ))}
-          </tr>
-        ))}
+        {table.getRowModel().rows.map((row) => {
+          const href = `/tasksets/${row.original.tasksetId}`;
+          const navigate = () => router.push(href);
+          return (
+            <tr
+              key={row.id}
+              role="button"
+              tabIndex={0}
+              onClick={navigate}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  navigate();
+                }
+              }}
+              className={cn(
+                tableRowVariants(),
+                "cursor-pointer transition-colors hover:bg-accent",
+              )}
+            >
+              {row.getVisibleCells().map((cell) => (
+                <td key={cell.id} className={tableCellVariants()}>
+                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                </td>
+              ))}
+            </tr>
+          );
+        })}
       </tbody>
     </table>
   );
 }
 
-function ProgressCell({
-  row,
-  modelId,
-}: {
-  row: TasksetResult;
-  modelId: string;
-}) {
-  if (row.runStats === null) {
-    return (
-      <Button variant="secondary" asChild>
-        <a href={`/jobs/new?taskset_id=${row.tasksetId}&model_id=${modelId}`}>Run</a>
-      </Button>
-    );
-  }
+/** Filled-row only — empty rows render their own merged cell upstream and never
+ * reach this component. */
+function ProgressCell({ row }: { row: TasksetResult }) {
+  if (row.runStats === null) return null;
   const pct = Math.round((row.runStats.completed / row.taskCount) * 100);
   return (
     <div className="flex min-w-[140px] items-center gap-3">
@@ -191,6 +214,17 @@ function AvgCell({ row }: { row: TasksetResult }) {
   return (
     <span className="font-mono tabular-nums text-foreground">
       {row.runStats.avgScore.toFixed(1)}%
+    </span>
+  );
+}
+
+function RankCell({ row }: { row: TasksetResult }) {
+  if (row.rank === null || row.totalRanked === null) {
+    return <EmptyMetric />;
+  }
+  return (
+    <span className="font-mono tabular-nums text-foreground">
+      #{row.rank} <span className="text-muted-foreground">of {row.totalRanked}</span>
     </span>
   );
 }

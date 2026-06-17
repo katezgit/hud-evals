@@ -1,3 +1,5 @@
+"use client";
+
 // shadcn-source: https://ui.shadcn.com/docs/components/table (cli, 2026-05-26)
 import * as React from "react"
 import { cva, type VariantProps } from "class-variance-authority"
@@ -11,11 +13,11 @@ const DensityContext = React.createContext<TableDensity>("default")
 
 // ── CSS-only exports (legacy — backward-compat, consumed by TanStack Table) ──
 
-export const tableClass = "w-full caption-bottom border-collapse bg-background"
-export const tableHeaderClass = "bg-muted-surface"
-export const tableHeaderStickyClass = "bg-muted-surface"
+export const tableClass = "w-full caption-bottom border-collapse"
+export const tableHeaderClass = "bg-field-rest"
+export const tableHeaderStickyClass = "bg-field-rest"
 export const tableBodyClass = "[&_tr:last-child]:border-b-0"
-export const tableFooterClass = "border-t border-border bg-muted-surface font-medium [&>tr]:last:border-b-0"
+export const tableFooterClass = "border-t border-border bg-field-rest font-medium [&>tr]:last:border-b-0"
 export const tableCaptionClass = "mt-4 text-caption text-muted-foreground"
 export const tableEmptyCellClass = "py-8 text-center text-body text-muted-foreground"
 
@@ -23,7 +25,7 @@ export const tableHeadVariants = cva(
   [
     "sticky top-0 z-table-header",
     "text-left align-middle whitespace-nowrap",
-    "text-label font-medium tracking-[0.01em] uppercase",
+    "text-label font-medium",
     "text-muted-foreground",
     "border-b border-border",
     // First/last inset aligns with surrounding container chrome (Card px-6, page-section px-6)
@@ -44,7 +46,7 @@ export const tableRowVariants = cva(
     "transition-[background-color]",
     "duration-fast ease-out-standard",
     "data-[state=selected]:border-l-2 data-[state=selected]:border-l-primary",
-    "hover:bg-hover-surface",
+    "[tbody_&]:hover:bg-hover-surface",
   ].join(" "),
   { variants: { density: { default: "min-h-10", compact: "min-h-9" } }, defaultVariants: { density: "default" } }
 )
@@ -96,7 +98,7 @@ const Table = React.forwardRef<HTMLDivElement, TableProps>(
         )}
         {...props}
       >
-        <table className="w-full border-collapse bg-background">
+        <table className="w-full border-collapse">
           {children}
         </table>
       </div>
@@ -116,7 +118,7 @@ const TableHeader = React.forwardRef<HTMLTableSectionElement, TableHeaderProps>(
     <thead
       ref={ref}
       data-slot="table-header"
-      className={cn("bg-muted-surface", className)}
+      className={cn("bg-field-rest", className)}
       {...props}
     />
   )
@@ -214,7 +216,7 @@ const TableRow = React.forwardRef<HTMLTableRowElement, TableRowProps>(
           "border-b border-border",
           "transition-[background-color] duration-fast ease-out-standard",
           density === "default" ? "min-h-10" : "min-h-9",
-          "hover:bg-hover-surface",
+          "[tbody_&]:hover:bg-hover-surface",
           selected && "border-l-2 border-l-primary bg-selected-surface",
           pinned && "border-l-[3px] border-l-primary",
           outcome && outcomeRowClass[outcome],
@@ -255,7 +257,7 @@ const TableCell = React.forwardRef<HTMLTableCellElement, TableCellProps>(
           tableCellVariants({ density, variant: cvaVariant }),
           variant === "id" && "font-semibold z-table-col",
           variant === "numeric" && "text-right [font-feature-settings:'tnum'_1,'lnum'_1]",
-          sticky && "sticky left-0 bg-background",
+          sticky && "sticky left-0 bg-card",
           className
         )}
         {...props}

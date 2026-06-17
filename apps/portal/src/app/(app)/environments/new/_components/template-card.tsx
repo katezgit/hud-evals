@@ -7,7 +7,7 @@ export function TemplateCard({ template }: { template: EnvTemplate }) {
       href={template.repoUrl}
       target="_blank"
       rel="noopener noreferrer"
-      className="group flex h-full flex-col gap-3 rounded-lg border border-border bg-panel p-4 transition-colors hover:bg-hover"
+      className="group flex h-full flex-col gap-3 rounded-lg border border-border bg-panel p-4 transition-colors duration-fast hover:border-border-strong hover:bg-hover-surface"
     >
       <div className="flex items-center justify-between gap-2">
         <div className="flex min-w-0 items-center gap-2">

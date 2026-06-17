@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Trash2, TriangleAlertIcon } from "lucide-react";
 import {
   Dialog,
+  DialogBody,
   DialogCancelButton,
   DialogContent,
   DialogDescription,
@@ -47,13 +48,18 @@ export function RemoveMemberButton({ name, onRemove }: RemoveMemberButtonProps) 
               />
               Remove member
             </DialogTitle>
-            <DialogDescription>
+            <DialogDescription className="sr-only">
+              Confirm removing {name} from this organization.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogBody>
+            <p className="text-body text-foreground">
               Remove{" "}
               <span className="font-medium text-foreground">{name}</span> from
               this organization. They&rsquo;ll lose access immediately. You can
               re-invite them later.
-            </DialogDescription>
-          </DialogHeader>
+            </p>
+          </DialogBody>
           <DialogFooter>
             <DialogCancelButton />
             <DialogDestructiveButton onClick={handleConfirm}>

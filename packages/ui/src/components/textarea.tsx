@@ -11,7 +11,7 @@ function Textarea({ className, ...props }: React.ComponentProps<"textarea">) {
         "flex min-h-18 w-full px-3 py-2",
         "resize-y",
         "rounded-lg",
-        "border border-border bg-background text-foreground",
+        "border border-border bg-field-rest text-foreground",
         // Lift to form-field surface on focus — light: #FFFFFF, dark: #11161F. Tracks --color-panel.
         "focus:bg-form-field-surface",
         "placeholder:text-meta-foreground",

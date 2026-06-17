@@ -155,7 +155,7 @@ const TriggerInput = React.forwardRef<HTMLInputElement, TriggerInputProps>(
             "flex w-full items-center",
             size === "md" ? "h-8 px-2.5 rounded-lg" : "h-7 px-2 rounded-md",
             size === "sm" ? "pr-7" : "pr-8",
-            "border border-border bg-background",
+            "border border-border bg-field-rest",
             // Lift to form-field surface on focus — light: #FFFFFF, dark: #11161F. Tracks --color-panel.
             "focus:bg-form-field-surface data-[state=open]:bg-form-field-surface",
             "aria-invalid:border-state-errored",

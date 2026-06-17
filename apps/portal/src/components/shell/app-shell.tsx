@@ -29,15 +29,15 @@ import {
 } from "@repo/ui/components/tooltip";
 import { cn } from "@repo/ui/lib/cn";
 import { RoleProvider } from "@/lib/mock/role-context";
-import { currentOrg, currentUser, orgList } from "@/lib/mock";
-import type { CreditState, Org, OrgMembership } from "@/lib/mock/types";
+import { currentOrg, currentUser } from "@/lib/mock";
+import type { CreditState, Org } from "@/lib/mock/types";
 import { AvatarMenu, AvatarMenuCollapsed } from "@/components/shell/avatar-menu";
 import { BrandMark } from "@/components/shell/brand-mark";
 import { CreditsPill, CreditsIconButton } from "@/components/shell/credits-pill";
-import { DevRoleSwitcher } from "@/components/shell/dev-role-switcher";
 import { MobileCreditsChip } from "@/components/shell/mobile-credits-chip";
 import { SidebarProvider } from "@/components/shell/sidebar-context";
 import { SidebarNavLink } from "@/components/shell/sidebar-nav-link";
+import { SkipToContent } from "@/components/shell/skip-to-content";
 import { useActiveJobs } from "@/components/shell/use-active-jobs";
 import { useCreditsBalance } from "@/components/shell/use-credits-balance";
 import { useSidebarShortcut } from "@/components/shell/use-sidebar-shortcut";
@@ -47,16 +47,15 @@ interface NavItem {
   href: string;
   label: string;
   Icon: LucideIcon;
-  count?: number;
   live?: boolean;
 }
 
 const WORKSPACE_ITEMS: ReadonlyArray<NavItem> = [
   { href: "/jobs", label: "Jobs", Icon: BarChart3 },
-  { href: "/tasksets", label: "Tasksets", Icon: ListChecks, count: 12 },
-  { href: "/environments", label: "Environments", Icon: Box, count: 8 },
-  { href: "/models", label: "Models", Icon: BrainCircuit, count: 5 },
-  { href: "/agents", label: "Agents", Icon: Bot, count: 4 },
+  { href: "/tasksets", label: "Tasksets", Icon: ListChecks },
+  { href: "/environments", label: "Environments", Icon: Box },
+  { href: "/models", label: "Models", Icon: BrainCircuit },
+  { href: "/agents", label: "Agents", Icon: Bot },
   { href: "/library", label: "Library", Icon: BookOpen },
 ];
 
@@ -102,7 +101,6 @@ export function AppShell({ email, name, children }: AppShellProps) {
                 collapsed={true}
                 user={user}
                 currentOrg={currentOrg}
-                orgs={orgList}
                 creditState={creditState}
                 workspaceItems={workspaceItems}
               />
@@ -110,6 +108,11 @@ export function AppShell({ email, name, children }: AppShellProps) {
           </aside>
 
           <aside
+            // view-transition-name pairs this aside with the (manage) shell's
+            // aside so the browser bridges the DOM swap with the slide-in/out
+            // animation defined in app/globals.css. Same name on both sides;
+            // direction is selected via html[data-route-direction].
+            style={{ viewTransitionName: "shell-sidebar" }}
             className={cn(
               "hidden shrink-0 flex-col border-r border-border transition-[width] duration-subtle ease-out-standard lg:flex",
               collapsed ? "lg:w-[52px]" : "lg:w-[248px]",
@@ -120,7 +123,6 @@ export function AppShell({ email, name, children }: AppShellProps) {
                 collapsed={collapsed}
                 user={user}
                 currentOrg={currentOrg}
-                orgs={orgList}
                 creditState={creditState}
                 workspaceItems={workspaceItems}
               />
@@ -133,13 +135,12 @@ export function AppShell({ email, name, children }: AppShellProps) {
               onOpenDrawer={() => setDrawerOpen(true)}
               user={user}
               currentOrg={currentOrg}
-              orgs={orgList}
               creditState={creditState}
             />
 
             <main
               id="main-content"
-              className="flex-1 overflow-y-auto bg-grid-backdrop pb-16 md:pb-24"
+              className="flex-1 overflow-y-auto bg-grid-backdrop bg-panel pb-16"
             >
               {children}
             </main>
@@ -174,8 +175,7 @@ export function AppShell({ email, name, children }: AppShellProps) {
                     collapsed={false}
                     user={user}
                     currentOrg={currentOrg}
-                    orgs={orgList}
-                    creditState={creditState}
+                        creditState={creditState}
                     workspaceItems={workspaceItems}
                     headerTrailing={
                       <DrawerClose asChild>
@@ -193,8 +193,6 @@ export function AppShell({ email, name, children }: AppShellProps) {
               </div>
             </DrawerContent>
           </Drawer>
-
-          <DevRoleSwitcher />
         </div>
       </TooltipProvider>
     </RoleProvider>
@@ -205,7 +203,6 @@ interface SidebarBodyProps {
   collapsed: boolean;
   user: { name: string; email: string };
   currentOrg: Org;
-  orgs: ReadonlyArray<OrgMembership>;
   creditState: CreditState;
   workspaceItems: ReadonlyArray<NavItem>;
   headerTrailing?: ReactNode;
@@ -215,7 +212,6 @@ function SidebarBody({
   collapsed,
   user,
   currentOrg,
-  orgs,
   creditState,
   workspaceItems,
   headerTrailing,
@@ -253,11 +249,11 @@ function SidebarBody({
       )}
       {collapsed ? (
         <div className="mx-1.5 mb-3 mt-1">
-          <AvatarMenuCollapsed user={user} currentOrg={currentOrg} orgs={orgs} />
+          <AvatarMenuCollapsed user={user} currentOrg={currentOrg} />
         </div>
       ) : (
         <div className="px-2 pb-2">
-          <AvatarMenu user={user} currentOrg={currentOrg} orgs={orgs} />
+          <AvatarMenu user={user} currentOrg={currentOrg} />
         </div>
       )}
     </>
@@ -280,13 +276,12 @@ function NavZone({ label, items, collapsed, className }: NavZoneProps) {
         </div>
       )}
       <ul className={cn("flex flex-col gap-1 mt-0.5", collapsed ? "px-1.5" : "px-2")}>
-        {items.map(({ href, label: itemLabel, Icon, count, live }) => (
+        {items.map(({ href, label: itemLabel, Icon, live }) => (
           <li key={href}>
             <SidebarNavLink
               href={href}
               label={itemLabel}
               icon={<Icon className="size-4 shrink-0" />}
-              count={count}
               live={live}
             />
           </li>
@@ -305,7 +300,7 @@ function MarketDocsRow() {
           href={href}
           target="_blank"
           rel="noreferrer"
-          className="group flex items-center justify-between rounded-md px-2 py-2 text-label text-muted-foreground hover:bg-hover-surface hover:text-foreground"
+          className="sidebar-row-hover group flex items-center justify-between rounded-md px-2 py-2 text-label text-muted-foreground"
         >
           <span className="flex items-center gap-2.5">
             <Icon
@@ -336,7 +331,7 @@ function MarketDocsRowCollapsed() {
                 target="_blank"
                 rel="noreferrer"
                 aria-label={label}
-                className="group flex h-7 w-full items-center justify-center rounded-md font-regular text-meta-foreground hover:bg-hover-surface hover:text-foreground"
+                className="sidebar-row-hover group flex h-7 w-full items-center justify-center rounded-md font-regular text-meta-foreground"
               >
                 <Icon className="size-4 shrink-0" aria-hidden="true" />
               </a>
@@ -354,7 +349,6 @@ interface MobileTopBarProps {
   onOpenDrawer: () => void;
   user: { name: string; email: string };
   currentOrg: Org;
-  orgs: ReadonlyArray<OrgMembership>;
   creditState: CreditState;
 }
 
@@ -363,7 +357,6 @@ function MobileTopBar({
   onOpenDrawer,
   user,
   currentOrg,
-  orgs,
   creditState,
 }: MobileTopBarProps) {
   return (
@@ -383,19 +376,9 @@ function MobileTopBar({
       </div>
       <div className="flex items-center gap-1">
         <MobileCreditsChip state={creditState} />
-        <AvatarMenuCollapsed user={user} currentOrg={currentOrg} orgs={orgs} />
+        <AvatarMenuCollapsed user={user} currentOrg={currentOrg} />
       </div>
     </header>
   );
 }
 
-function SkipToContent() {
-  return (
-    <a
-      href="#main-content"
-      className="sr-only focus:not-sr-only focus:absolute focus:left-2 focus:top-2 focus:z-overlay focus:rounded-md focus:bg-primary focus:px-3 focus:py-2 focus:text-primary-foreground"
-    >
-      Skip to main content
-    </a>
-  );
-}

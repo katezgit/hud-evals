@@ -156,6 +156,40 @@ If you need a tinted thead, apply it to the `<thead>` or `<TableHeader>` element
 
 ---
 
+## First and last column edge padding
+
+The first and last `<th>` / `<td>` in every row carry extra horizontal padding so cell content never sits flush against the table's left/right edge. Apply `pl-4` on the first column and `pr-4` on the last column (16px each), in addition to the standard intra-cell `px-3` (12px).
+
+This applies to all tables in `apps/portal` regardless of variant — Pattern A bordered tables, Pattern B inside-Card tables, and CSS-string TanStack tables alike.
+
+**Why this rule exists:** right-aligned numeric last columns (e.g. Total, Cost) are the canonical failure case. Without `pr-4`, the number sits 12px from the cell edge — which at any slight container under-sizing or at a mid-breakpoint column-compression causes the value to clip or visually merge with the table's right border. The operator observed `$0.17` / `$0.16` / `$0.14` clipped in the Per-trace breakdown Total column. `pr-4` gives a safe 16px buffer that survives column compression at `md` breakpoint widths.
+
+**CSS-string consumers** — add edge classes on the column definition's header/cell render function rather than in a catch-all `th:first-child` rule, so the intent is explicit per table:
+
+```tsx
+// First column header
+<th className={cn(tableHeadVariants(), "pl-4")}>…</th>
+
+// Last column header
+<th className={cn(tableHeadVariants({ numeric: true }), "pr-4")}>…</th>
+
+// First column cell
+<td className={cn(tableCellVariants(), "pl-4")}>…</td>
+
+// Last column cell
+<td className={cn(tableCellVariants({ numeric: true }), "pr-4")}>…</td>
+```
+
+**JSX primitive consumers** — pass `className="pl-4"` / `className="pr-4"` directly to `<TableHeaderCell>` / `<TableCell>` on the edge columns.
+
+---
+
+## Last-row border discipline
+
+When the table is wrapped in `border border-border` (any bordered-table variant), the final `<tr>` of `<tbody>` must drop its row-level `border-b`. Otherwise the outer container's bottom border and the final row's `border-b` render as a 2-px doubled line. Use `last:border-b-0` on every `tbody tr`, or `[&>tr:last-child]:border-b-0` on the `<tbody>` itself, depending on the surrounding pattern. This applies to grouped/tree tables too — the last *visible* row at the bottom of the table is the one that drops its border, regardless of whether it's a parent or child row.
+
+---
+
 ## What not to do
 
 - **No `[var(--x)]` arbitrary syntax.** Use generated utilities (`bg-card`, `border-border`) per [`tailwind-v4.md`](./tailwind-v4.md).

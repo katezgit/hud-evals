@@ -68,7 +68,7 @@ export function OrganizationAdminView() {
             </Field>
           </FieldRow>
 
-          <FieldRow cols={1} className="mt-3">
+          <FieldRow cols={1} className="mt-4">
             <Field label="Primary business address" error={errors.line1?.message}>
               <Input
                 aria-invalid={errors.line1 ? true : undefined}
@@ -77,7 +77,7 @@ export function OrganizationAdminView() {
             </Field>
           </FieldRow>
 
-          <FieldRow cols={1} className="mt-3">
+          <FieldRow cols={1} className="mt-4">
             <Field label="Address line 2" error={errors.line2?.message}>
               <Input
                 aria-invalid={errors.line2 ? true : undefined}
@@ -86,7 +86,7 @@ export function OrganizationAdminView() {
             </Field>
           </FieldRow>
 
-          <FieldRow cols={2} className="mt-3">
+          <FieldRow cols={2} className="mt-4">
             <Field label="Country" error={errors.country?.message}>
               <Input
                 aria-invalid={errors.country ? true : undefined}
@@ -101,7 +101,7 @@ export function OrganizationAdminView() {
             </Field>
           </FieldRow>
 
-          <FieldRow cols={2} className="mt-3">
+          <FieldRow cols={2} className="mt-4">
             <Field label="City" error={errors.city?.message}>
               <Input
                 aria-invalid={errors.city ? true : undefined}

@@ -104,7 +104,7 @@ export function BuildConfigurationSection() {
         aria-labelledby="build-configuration-title"
         className={cn(
           "scroll-mt-32 transition-colors duration-fast ease-out-standard",
-          drawerOpen && "border-primary bg-primary-glow",
+          drawerOpen && "border-border-strong bg-selected-surface",
         )}
       >
         <CardContent>

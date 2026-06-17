@@ -5,23 +5,27 @@ import { useRouter, useSearchParams } from "next/navigation";
 import {
   ChevronDown,
   ChevronRight,
+  Copy,
   Download,
+  Globe,
   GraduationCap,
+  Link2,
+  Lock,
   MoreHorizontal,
   Play,
   Plus,
   Upload,
 } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@repo/ui/components/button";
-import { CopyButton } from "@repo/ui/components/copy-button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@repo/ui/components/dropdown-menu";
 import { IconButton } from "@repo/ui/components/icon-button";
-import { VisibilityIcon } from "@repo/ui/components/visibility-icon";
 import type { Taskset } from "@/lib/mock/tasksets";
 import RunTasksetDialog from "./run-taskset/run-taskset-dialog";
 
@@ -57,24 +61,23 @@ export default function TasksetDetailHeader({ taskset }: TasksetDetailHeaderProp
         </span>
       </nav>
       <div className="flex items-start justify-between gap-6">
-        <div className="flex min-w-0 flex-col gap-1.5">
-          <div className="flex items-center gap-2">
-            <h1 className="truncate text-display font-semibold text-foreground">
-              {taskset.name}
-            </h1>
-            <VisibilityIcon visibility={taskset.visibility} />
-          </div>
-          <div className="flex flex-wrap items-center gap-1.5 text-body text-muted-foreground">
+        <div className="flex min-w-0 flex-col page-header">
+          <h1 className="truncate text-display font-semibold text-foreground">
+            {taskset.name}
+          </h1>
+          <div className="page-header-meta">
             <span>
               <span className="tabular-nums">{taskset.taskCount}</span> Tasks
             </span>
             <Separator />
-            <span className="font-mono">{taskset.id}</span>
-            <CopyButton
-              value={taskset.id}
-              ariaLabel={`Copy Taskset slug ${taskset.id}`}
-              tooltipLabel="Copy slug"
-            />
+            <span className="inline-flex items-center gap-1">
+              {taskset.visibility === "private" ? (
+                <Lock aria-hidden="true" className="size-3.5" />
+              ) : (
+                <Globe aria-hidden="true" className="size-3.5" />
+              )}
+              {taskset.visibility === "private" ? "Private" : "Public"}
+            </span>
             <Separator />
             <span>Owned by: {taskset.ownerName}</span>
           </div>
@@ -159,6 +162,27 @@ export default function TasksetDetailHeader({ taskset }: TasksetDetailHeaderProp
                 <Upload aria-hidden="true" />
                 Upload Tasks
               </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onSelect={() => {
+                  void navigator.clipboard.writeText(taskset.id);
+                  toast.success("Slug copied");
+                }}
+              >
+                <Copy aria-hidden="true" />
+                Copy slug
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onSelect={() => {
+                  const url = `${window.location.origin}/tasksets/${taskset.id}`;
+                  void navigator.clipboard.writeText(url);
+                  toast.success("Link copied");
+                }}
+              >
+                <Link2 aria-hidden="true" />
+                Copy link
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
               <DropdownMenuItem onSelect={() => {}}>
                 <Download aria-hidden="true" />
                 Export JSON

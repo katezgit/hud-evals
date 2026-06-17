@@ -47,9 +47,9 @@ export function MobileCreditsChip({ state }: MobileCreditsChipProps) {
       href="/manage/usage"
       aria-label={`Credits: ${label}. View usage.`}
       className={cn(
-        "group/chip flex min-h-8 items-center justify-center gap-1 rounded-md px-1.5 font-mono text-label tabular-nums transition-colors duration-fast ease-out-standard hover:bg-hover-surface",
+        "sidebar-row-hover group/chip flex min-h-8 items-center justify-center gap-1 rounded-md px-1.5 font-mono text-label tabular-nums",
         CHIP_WIDTH_CLASS,
-        isZero ? "text-destructive" : "text-meta-foreground hover:text-foreground",
+        isZero ? "text-destructive" : "text-meta-foreground",
       )}
     >
       <Gauge aria-hidden="true" className="size-3.5 shrink-0" />

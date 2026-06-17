@@ -13,28 +13,28 @@ export function BrandPanel() {
   return (
     <aside
       aria-label="HUD product identity"
-      className="hidden flex-col justify-between bg-brand-surface px-12 py-12 md:flex md:w-[45%]"
+      className="hidden flex-col justify-between bg-brand-surface px-12 py-12 lg:flex lg:w-[45%]"
     >
-      <div className="flex flex-col gap-12">
+      <div className="flex flex-col gap-16">
         {/* BrandMark wordmark defaults to text-foreground (dark ink). On the
          * pinned dark-teal brand panel that's invisible — override to full white. */}
         <BrandMark className="[&>span:last-child]:text-white" />
 
-        <div className="flex flex-col gap-4">
-          <h2 className="text-display font-medium tracking-tight text-white">
+        <div className="flex flex-col gap-5">
+          <h2 className="text-[42px] leading-[1.1] font-medium tracking-[-0.03em] text-white">
             The platform for building RL environments
           </h2>
-          <p className="max-w-[280px] text-body text-white/85">
+          <p className="max-w-[340px] text-[17px] leading-[1.6] text-white/85">
             Encode your expertise into environments to train and evaluate
             models, and create the post-training data that aligns AI to your
             work.
           </p>
         </div>
 
-        <div aria-hidden="true" className="mt-12 flex flex-col gap-2">
+        <div aria-hidden="true" className="mt-16 flex flex-col gap-2">
           {metrics.map((m) => (
             <div key={m.label} className="flex items-center gap-2">
-              <span className="w-16 shrink-0 font-mono text-meta text-white/75 uppercase">
+              <span className="w-16 shrink-0 font-mono text-label text-white/75">
                 {m.label}
               </span>
               <div className="h-0.5 flex-1 overflow-hidden rounded-sm bg-white/12">
@@ -43,7 +43,7 @@ export function BrandPanel() {
                   style={{ width: `${m.fillPct}%` }}
                 />
               </div>
-              <span className="w-12 text-right font-mono text-meta text-white/75">
+              <span className="w-12 text-right font-mono text-label text-white/75">
                 {m.value}
               </span>
             </div>

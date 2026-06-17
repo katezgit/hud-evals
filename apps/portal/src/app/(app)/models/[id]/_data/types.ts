@@ -154,10 +154,26 @@ export interface Log {
 export interface TasksetResult {
   tasksetId: string;
   tasksetName: string;
+  /** One-line domain description (e.g. "Browser navigation & web workflows").
+   * Rendered as a subtitle between the Taskset name and task count in the
+   * Results table. */
+  description: string;
   /** Total tasks in the Taskset (the denominator for progress + thresholds). */
   taskCount: number;
   /** Completed Runs against this Model. `null` rows render the empty-Taskset row. */
   runStats: TasksetRunStats | null;
+  /** Model's position on this Taskset's leaderboard. `null` when this Model has
+   * not yet been ranked against the Taskset (no Runs, or Taskset doesn't carry
+   * a leaderboard). Pairs with `totalRanked` — render as `#N of M`. */
+  rank: number | null;
+  /** Denominator for the `#N of M` rank label. `null` when no leaderboard
+   * exists for the Taskset. */
+  totalRanked: number | null;
+  /** ISO-8601 timestamp of the most recent Run against this Taskset for this
+   * Model. `null` when no Runs have executed yet. Surfaces on the header
+   * glance-metrics strip as the `Last evaluated` value (most-recent across
+   * tasksets). */
+  lastRunAt: string | null;
 }
 
 export interface TasksetRunStats {

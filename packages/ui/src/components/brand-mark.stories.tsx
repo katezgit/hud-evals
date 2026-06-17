@@ -9,14 +9,10 @@ const meta: Meta<typeof BrandMark> = {
       control: "select",
       options: ["default", "sm"],
     },
-    gradient: { control: "boolean" },
-    glow:     { control: "boolean" },
     wordmark: { control: "boolean" },
   },
   args: {
     size:     "default",
-    gradient: true,
-    glow:     true,
     wordmark: true,
   },
 }
@@ -24,7 +20,7 @@ const meta: Meta<typeof BrandMark> = {
 export default meta
 type Story = StoryObj<typeof meta>
 
-// ── Default — sidebar brand row (26×26 mark + HUD wordmark) ──────────────────
+// ── Default — hero/onboarding context (size=default + wordmark) ───────────────
 
 export const Default: Story = {
   args: { size: "default" },
@@ -33,21 +29,47 @@ export const Default: Story = {
       <div className="flex items-center justify-center p-8 bg-background rounded-lg border border-border">
         <BrandMark {...args} />
       </div>
-      <div className="flex items-center justify-center p-8 rounded-lg bg-panel" style={{ background: "var(--color-panel)" }}>
+      <div className="flex items-center justify-center p-8 rounded-lg" style={{ background: "var(--color-panel)" }}>
         <BrandMark {...args} />
       </div>
     </div>
   ),
 }
 
-// ── BrandMarkSquare convenience alias ─────────────────────────────────────────
+// ── Small — auth-card context (size=sm + wordmark) ────────────────────────────
+
+export const Small: Story = {
+  name: "Small (auth-card)",
+  args: { size: "sm" },
+  render: (args) => (
+    <div className="flex items-center justify-center p-8 bg-background rounded-lg border border-border">
+      <BrandMark {...args} />
+    </div>
+  ),
+}
+
+// ── BrandMarkSquare convenience alias — default + sm sizes ────────────────────
 
 export const Square: Story = {
   name: "BrandMarkSquare (alias)",
   render: () => (
-    <div className="flex items-center gap-4 justify-center p-8 bg-background rounded-lg border border-border">
+    <div className="flex items-center gap-6 justify-center p-8 bg-background rounded-lg border border-border">
       <BrandMarkSquare size="default" />
       <BrandMarkSquare size="sm" />
+    </div>
+  ),
+}
+
+// ── On brand surface — wordmark override to white (brand-panel use case) ──────
+
+export const OnBrandSurface: Story = {
+  name: "On brand surface (wordmark override)",
+  render: () => (
+    <div
+      className="flex items-center justify-center p-8 rounded-lg"
+      style={{ background: "var(--color-brand-surface)" }}
+    >
+      <BrandMark className="[&>span:last-child]:text-white" />
     </div>
   ),
 }
