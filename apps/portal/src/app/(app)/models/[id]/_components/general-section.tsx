@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { XIcon } from "lucide-react";
+import { GlobeIcon, LockIcon, XIcon } from "lucide-react";
 import { useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { z } from "zod";
@@ -12,7 +12,7 @@ import { Input } from "@repo/ui/components/input";
 import { cn } from "@repo/ui/lib/cn";
 import type { Model } from "../_data/types";
 
-const configurationSchema = z.object({
+const generalSchema = z.object({
   displayName: z
     .string()
     .min(1, "Display name is required")
@@ -20,9 +20,9 @@ const configurationSchema = z.object({
   tags: z.array(z.string().min(1).max(40)).max(20, "Maximum 20 tags"),
 });
 
-type ConfigurationValues = z.infer<typeof configurationSchema>;
+type GeneralValues = z.infer<typeof generalSchema>;
 
-export function ConfigurationPanel({
+export function GeneralSection({
   model,
   disabled,
 }: {
@@ -35,35 +35,54 @@ export function ConfigurationPanel({
   // screen readers announce label + value normally. `disabled` (HTML) would
   // strip both, which is wrong for permanent display.
   if (disabled) {
-    return <ReadOnlyConfigurationPanel model={model} />;
+    return <ReadOnlyGeneralSection model={model} />;
   }
-  return <EditableConfigurationPanel model={model} />;
+  return <EditableGeneralSection model={model} />;
 }
 
-function ConfigurationShell({ children }: { children: React.ReactNode }) {
+function GeneralShell({ children }: { children: React.ReactNode }) {
   return (
-    <section aria-labelledby="configuration-heading" className="max-w-3xl">
+    <section aria-labelledby="general-heading" className="max-w-3xl">
       {children}
     </section>
   );
 }
 
-function ConfigurationHeading() {
+function GeneralHeading() {
   return (
     <h2
-      id="configuration-heading"
+      id="general-heading"
       className="text-subtitle font-medium text-foreground"
     >
-      Configuration
+      General
     </h2>
   );
 }
 
-function ReadOnlyConfigurationPanel({ model }: { model: Model }) {
+function VisibilityRow({ isPrivate }: { isPrivate: boolean }) {
   return (
-    <ConfigurationShell>
+    <div className="flex flex-col gap-1.5">
+      <FieldLabel htmlFor="model-visibility">Visibility</FieldLabel>
+      <div
+        id="model-visibility"
+        className="inline-flex items-center gap-1.5 text-body text-foreground"
+      >
+        {isPrivate ? (
+          <LockIcon aria-hidden="true" className="size-3.5 text-meta-foreground" />
+        ) : (
+          <GlobeIcon aria-hidden="true" className="size-3.5 text-meta-foreground" />
+        )}
+        <span>{isPrivate ? "Private" : "Public"}</span>
+      </div>
+    </div>
+  );
+}
+
+function ReadOnlyGeneralSection({ model }: { model: Model }) {
+  return (
+    <GeneralShell>
       <div className="rounded-surface border border-border bg-panel px-5 py-4">
-        <ConfigurationHeading />
+        <GeneralHeading />
         <div className="mt-4">
           <FormField id="model-display-name" label="Display name">
             <Input
@@ -80,14 +99,18 @@ function ReadOnlyConfigurationPanel({ model }: { model: Model }) {
         <div className="mt-4">
           <ReadOnlyTagsField id="model-tags" value={model.tags} />
         </div>
+
+        <div className="mt-4">
+          <VisibilityRow isPrivate={model.isPrivate} />
+        </div>
       </div>
-    </ConfigurationShell>
+    </GeneralShell>
   );
 }
 
-function EditableConfigurationPanel({ model }: { model: Model }) {
-  const form = useForm<ConfigurationValues>({
-    resolver: zodResolver(configurationSchema),
+function EditableGeneralSection({ model }: { model: Model }) {
+  const form = useForm<GeneralValues>({
+    resolver: zodResolver(generalSchema),
     defaultValues: {
       displayName: model.displayName,
       tags: [...model.tags],
@@ -111,13 +134,13 @@ function EditableConfigurationPanel({ model }: { model: Model }) {
   });
 
   return (
-    <ConfigurationShell>
+    <GeneralShell>
       <form
         onSubmit={onSubmit}
         noValidate
         className="rounded-surface border border-border bg-panel px-5 py-4"
       >
-        <ConfigurationHeading />
+        <GeneralHeading />
         <div className="mt-4">
           <FormField
             id="model-display-name"
@@ -148,6 +171,10 @@ function EditableConfigurationPanel({ model }: { model: Model }) {
           />
         </div>
 
+        <div className="mt-4">
+          <VisibilityRow isPrivate={model.isPrivate} />
+        </div>
+
         <div className="mt-6 flex items-center justify-end gap-2">
           <Button
             type="button"
@@ -166,7 +193,7 @@ function EditableConfigurationPanel({ model }: { model: Model }) {
           </Button>
         </div>
       </form>
-    </ConfigurationShell>
+    </GeneralShell>
   );
 }
 
