@@ -21,10 +21,16 @@ export function BrandPanel() {
         <BrandMark className="[&>span:last-child]:text-white" />
 
         <div className="flex flex-col gap-5">
-          <h2 className="text-[42px] leading-[1.1] font-medium tracking-[-0.03em] text-white">
+          <h2
+            className="leading-[1.1] font-medium tracking-[-0.03em] text-white"
+            style={{ fontSize: "42px" }}
+          >
             The platform for building RL environments
           </h2>
-          <p className="max-w-[340px] text-[17px] leading-[1.6] text-white/85">
+          <p
+            className="max-w-[340px] leading-[1.6] text-white/85"
+            style={{ fontSize: "17px" }}
+          >
             Encode your expertise into environments to train and evaluate
             models, and create the post-training data that aligns AI to your
             work.
