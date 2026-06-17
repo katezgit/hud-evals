@@ -1,10 +1,8 @@
 "use client";
 
-import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   ChevronDown,
-  ChevronRight,
   Copy,
   Download,
   Globe,
@@ -26,6 +24,7 @@ import {
   DropdownMenuTrigger,
 } from "@repo/ui/components/dropdown-menu";
 import { IconButton } from "@repo/ui/components/icon-button";
+import { Breadcrumb } from "@/components/shell/breadcrumb";
 import type { Taskset } from "@/lib/mock/tasksets";
 import RunTasksetDialog from "./run-taskset/run-taskset-dialog";
 
@@ -45,21 +44,7 @@ export default function TasksetDetailHeader({ taskset }: TasksetDetailHeaderProp
 
   return (
     <header className="flex flex-col gap-3 pt-2 pb-6">
-      <nav
-        aria-label="Breadcrumb"
-        className="flex items-center gap-1 text-label tracking-normal normal-case text-muted-foreground"
-      >
-        <Link
-          href="/tasksets"
-          className="rounded-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-        >
-          Tasksets
-        </Link>
-        <ChevronRight aria-hidden="true" className="size-3 text-meta-foreground" />
-        <span aria-current="page" className="truncate text-foreground">
-          {taskset.name}
-        </span>
-      </nav>
+      <Breadcrumb parent={{ href: "/tasksets", label: "Tasksets" }} current={taskset.name} />
       <div className="flex items-start justify-between gap-6">
         <div className="flex min-w-0 flex-col page-header">
           <h1 className="truncate text-display font-semibold text-foreground">

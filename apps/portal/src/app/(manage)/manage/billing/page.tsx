@@ -39,6 +39,7 @@ export default function BillingPage() {
           </div>
           <Progress
             value={Math.round((creditState.balance / creditState.total) * 100)}
+            state="default"
             aria-label="Credits remaining"
           />
         </div>

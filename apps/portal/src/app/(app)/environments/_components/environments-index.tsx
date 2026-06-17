@@ -721,14 +721,14 @@ function ActivityBar({
 }) {
   if (runs === 0 && activeNow === 0) {
     return (
-      <p className="mt-2 font-mono text-meta text-muted-foreground">
+      <p className="mt-2 font-mono text-muted-foreground">
         No runs/24 hours
       </p>
     );
   }
   const runsLabel = runs > 0 ? `${runs} runs/24 hours` : "No runs/24 hours";
   return (
-    <p className="mt-2 font-mono text-meta text-muted-foreground tabular-nums">
+    <p className="mt-2 font-mono text-muted-foreground tabular-nums">
       <span>{runsLabel}</span>
       <span aria-hidden="true" className="mx-1.5">
         &middot;

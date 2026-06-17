@@ -1,9 +1,7 @@
 "use client";
 
-import Link from "next/link";
 import {
   Ban,
-  ChevronRight,
   Download,
   Eye,
   ListChecks,
@@ -25,6 +23,7 @@ import {
 import { IconButton } from "@repo/ui/components/icon-button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@repo/ui/components/tooltip";
 import { cn } from "@repo/ui/lib/cn";
+import { Breadcrumb } from "@/components/shell/breadcrumb";
 import type { JobDetail } from "@/lib/mock/job-detail";
 
 interface JobHeaderProps {
@@ -55,21 +54,7 @@ export function JobHeader({ detail, validRunCount }: JobHeaderProps) {
 
   return (
     <header className="flex flex-col gap-3 pt-2 pb-6">
-      <nav
-        aria-label="Breadcrumb"
-        className="flex items-center gap-1 text-label tracking-normal normal-case text-muted-foreground"
-      >
-        <Link
-          href="/jobs"
-          className="rounded-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-        >
-          Jobs
-        </Link>
-        <ChevronRight aria-hidden="true" className="size-3 text-meta-foreground" />
-        <span aria-current="page" className="truncate text-foreground">
-          Jobs detail
-        </span>
-      </nav>
+      <Breadcrumb parent={{ href: "/jobs", label: "Jobs" }} current="Jobs detail" />
 
       <div className="flex items-start justify-between gap-6">
         <div className="flex min-w-0 flex-col page-header">

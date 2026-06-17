@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ChevronRight } from "lucide-react";
+import { Breadcrumb } from "@/components/shell/breadcrumb";
 import type { Model, TasksetResult } from "../_data/types";
 import { HeaderActions } from "./header-actions";
 import { HeaderSubtitle } from "./header-subtitle";
@@ -20,21 +20,7 @@ export function ModelDetailHeader({
 
   return (
     <header className="flex flex-col gap-3">
-      <nav
-        aria-label="Breadcrumb"
-        className="flex items-center gap-1 text-label tracking-normal normal-case text-muted-foreground"
-      >
-        <Link
-          href="/models"
-          className="rounded-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-        >
-          Models
-        </Link>
-        <ChevronRight aria-hidden="true" className="size-3 text-meta-foreground" />
-        <span aria-current="page" className="truncate text-foreground">
-          {model.displayName}
-        </span>
-      </nav>
+      <Breadcrumb parent={{ href: "/models", label: "Models" }} current={model.displayName} />
       <div className="flex items-start justify-between gap-6">
         <div className="flex min-w-0 flex-col page-header">
           <div className="flex items-center gap-2">

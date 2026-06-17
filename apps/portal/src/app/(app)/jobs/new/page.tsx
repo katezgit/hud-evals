@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import { ChevronRight } from "lucide-react";
+import { Breadcrumb } from "@/components/shell/breadcrumb";
 import { TrainingWizard } from "./_components/training-wizard";
 import { EvalWizard } from "./_components/eval-wizard";
 import { JunctionPicker } from "./_components/junction-picker";
@@ -63,29 +62,12 @@ function JunctionLayout({ invalidType }: { invalidType?: string }) {
       <div className="shrink-0 bg-panel pt-6">
         <div className="page-shell block py-0">
           <header className="flex flex-col gap-3 pt-2 pb-6">
-            <nav
-              aria-label="Breadcrumb"
-              className="flex items-center gap-1 text-label tracking-normal normal-case text-muted-foreground"
-            >
-              <Link
-                href="/jobs"
-                className="rounded-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-              >
-                Jobs
-              </Link>
-              <ChevronRight
-                aria-hidden="true"
-                className="size-3 text-meta-foreground"
-              />
-              <span aria-current="page" className="truncate text-foreground">
-                New job
-              </span>
-            </nav>
+            <Breadcrumb parent={{ href: "/jobs", label: "Jobs" }} current="New job" />
             <div className="page-header">
               <h1 className="text-display font-semibold text-foreground">
                 New Job
               </h1>
-              <p className="text-body text-muted-foreground">
+              <p className="text-muted-foreground">
                 Pick a job type to get started.
               </p>
             </div>

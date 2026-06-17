@@ -1,10 +1,9 @@
 "use client";
 
-import Link from "next/link";
 import { useRef } from "react";
-import { ChevronRight } from "lucide-react";
 import { cn } from "@repo/ui/lib/cn";
 import { usePageScrolled } from "@repo/libs/hooks";
+import { Breadcrumb } from "@/components/shell/breadcrumb";
 import { CliQuickstart } from "./cli-quickstart";
 import { TemplatesSection } from "./templates-section";
 
@@ -38,29 +37,12 @@ export function NewEnvironmentShell() {
       >
         <div className="page-shell block py-0">
           <header className="flex flex-col gap-3 pt-2 pb-6">
-            <nav
-              aria-label="Breadcrumb"
-              className="flex items-center gap-1 text-label tracking-normal normal-case text-muted-foreground"
-            >
-              <Link
-                href="/environments"
-                className="rounded-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-              >
-                Environments
-              </Link>
-              <ChevronRight
-                aria-hidden="true"
-                className="size-3 text-meta-foreground"
-              />
-              <span aria-current="page" className="truncate text-foreground">
-                New
-              </span>
-            </nav>
+            <Breadcrumb parent={{ href: "/environments", label: "Environments" }} current="New" />
             <div className="page-header">
               <h1 className="text-display font-semibold text-foreground">
                 Let&apos;s create your custom environment
               </h1>
-              <p className="text-body text-muted-foreground">
+              <p className="text-muted-foreground">
                 The fastest path is the CLI{" "}
                 <code className="font-mono text-code">hud init</code> scaffolds a
                 working environment in seconds. Or fork a template repo below to

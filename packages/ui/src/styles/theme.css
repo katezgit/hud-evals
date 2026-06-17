@@ -106,16 +106,11 @@
     var(--surface-bg-light),
     color-mix(in srgb, var(--surface-bg-dark) 30%, var(--surface-panel-dark) 70%)
   );
-  /* Form-field border — calibrated separately from --color-border because the
-   * alpha that reads on page-bg (#0C1016) collapses when the field sits inside
-   * a card or dialog (#1B2433, the elevated surface). --color-border at 6% white
-   * lands BETWEEN the field fill and the card bg in dark mode → mushy edge.
-   * This token uses stronger alpha so the ring holds in both surface contexts.
-   * Light: .165 alpha (small bump from --color-border .1125; sharpens on white cards).
-   * Dark:  .18 alpha — lifts the enabled border to ~L 25 over field fill #0F151D,
-   *        sitting ~5 L above --color-border-disabled #2D3440 (L 20). Hierarchy:
-   *        enabled (brighter) > disabled (calmer); foreground tier (text-foreground
-   *        vs text-disabled) seals the affordance. */
+  /* Form-field border — calibrated separately from --color-border because
+   * --color-border's alpha collapses when the field sits inside a card or
+   * dialog (field fill < card surface → mushy edge). Stronger alpha so the
+   * ring reads in both surface contexts, and must sit above
+   * --color-border-disabled so enabled is the brighter affordance. */
   --color-form-field-border: light-dark(
     rgb(var(--border-seed-light) / .165),
     rgb(var(--border-seed-dark) / .18)
@@ -149,11 +144,8 @@
   --color-border:        light-dark(rgb(var(--border-seed-light) / .1125), rgb(var(--border-seed-dark) / .045));
   --color-border-strong: light-dark(rgb(var(--border-seed-light) / .21),   rgb(var(--border-seed-dark) / .135));
   /* Progress track — the unfilled slot behind the fill bar.
-   * Light: matches muted-surface (#F0F2F6) — subtle gray well, fine on page bg.
-   * Dark: 12% white alpha over card/row surface (#1B2433) → visible slot without
-   *   being loud; border-strong sits at 13.5%, so 12% is "present but receding."
-   *   muted-surface dark (#1B2433) === card dark (#1B2433) → track disappears on
-   *   table rows; this dedicated token breaks the collision. */
+   * Dedicated token because muted-surface dark === card dark, so reusing
+   * muted-surface would make the track vanish on table rows. */
   --color-progress-track: light-dark(
     var(--surface-muted-light),
     rgb(var(--border-seed-dark) / .12)
@@ -169,10 +161,9 @@
   --color-code-muted:  var(--ink-100);             /* #B3BFCE — language label */
   --color-code-border: rgba(255 255 255 / .06);    /* hairline on dark surface */
   /* Highlighted option — select-kind components (Select, Command, DropdownMenu, Combobox, MultiSelect).
-   * Light: --surface-elevated-light (#F0F2F6) — ~6% gray lift on white popover.
-   * Dark: popover surface is --control-raised (= --surface-elevated-dark #1B2433), so
-   *   elevated-dark on elevated-dark = invisible. White-mix lift instead — same pattern as
-   *   --color-sidebar-hover-manage — gives ≈#373F4B, a clear step above #1B2433. */
+   * Dark uses a white-mix lift because popover bg = --control-raised =
+   * --surface-elevated-dark — same primitive = invisible lift. Same pattern
+   * as --color-sidebar-hover-manage. */
   --color-highlight-surface: light-dark(
     var(--surface-elevated-light),
     color-mix(in srgb, var(--surface-elevated-dark) 88%, white 12%)

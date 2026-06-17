@@ -1,12 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { BookOpenIcon, ChevronRight, PlayIcon } from "lucide-react";
+import { BookOpenIcon, PlayIcon } from "lucide-react";
 import { toast } from "sonner";
-import { tasksets, getTaskset } from "@/lib/mock/tasksets";
+import { Button } from "@repo/ui/components/button";
 import { Stepper, type StepperStep } from "@repo/ui/components/stepper";
+import { Breadcrumb } from "@/components/shell/breadcrumb";
+import { tasksets, getTaskset } from "@/lib/mock/tasksets";
+import { DiscardConfirmDialog } from "./discard-confirm-dialog";
 import { StepEvalModels } from "./step-eval-models";
 import { StepTaskset } from "./step-taskset";
 import { StepEvalReview } from "./step-eval-review";
@@ -23,12 +25,6 @@ const EVAL_STEPS: ReadonlyArray<StepperStep> = [
   { label: "Models", description: "Pick models to evaluate." },
   { label: "Review", description: "Review the settings and launch." },
 ];
-
-const EVAL_STEP_LABELS: Record<StepKey, string> = {
-  model: "Models",
-  taskset: "Taskset",
-  review: "Review",
-};
 
 const STEP_ORDER: ReadonlyArray<StepKey> = ["taskset", "model", "review"];
 
@@ -93,6 +89,12 @@ export function EvalWizard({ prefilledTasksetId }: EvalWizardProps) {
   };
   const goCancel = () => router.push("/jobs");
 
+  const [discardOpen, setDiscardOpen] = useState(false);
+  const tryCancel = () => {
+    if (hasEdits) setDiscardOpen(true);
+    else goCancel();
+  };
+
   const launch = () => {
     const mockId = `job_${Math.random().toString(36).slice(2, 8)}`;
     toast.success("Eval job queued", {
@@ -106,24 +108,7 @@ export function EvalWizard({ prefilledTasksetId }: EvalWizardProps) {
       <div className="shrink-0 bg-panel pt-6">
         <div className="page-shell block py-0">
           <header className="flex flex-col gap-3 pt-2 pb-6">
-            <nav
-              aria-label="Breadcrumb"
-              className="flex items-center gap-1 text-label tracking-normal normal-case text-muted-foreground"
-            >
-              <Link
-                href="/jobs"
-                className="rounded-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-              >
-                Jobs
-              </Link>
-              <ChevronRight
-                aria-hidden="true"
-                className="size-3 text-meta-foreground"
-              />
-              <span aria-current="page" className="truncate text-foreground">
-                New eval job
-              </span>
-            </nav>
+            <Breadcrumb parent={{ href: "/jobs", label: "Jobs" }} current="New eval job" />
             <div className="flex flex-col gap-1">
               <div className="flex items-center gap-2">
                 <h1 className="text-display font-semibold text-foreground">
@@ -139,7 +124,7 @@ export function EvalWizard({ prefilledTasksetId }: EvalWizardProps) {
                   <BookOpenIcon aria-hidden="true" className="size-3.5" />
                 </a>
               </div>
-              <p className="text-body text-muted-foreground">
+              <p className="text-muted-foreground">
                 Compare one or more models on a taskset.
               </p>
             </div>
@@ -153,9 +138,9 @@ export function EvalWizard({ prefilledTasksetId }: EvalWizardProps) {
         </div>
       </div>
 
-      <div className="flex-1 min-h-0 overflow-hidden flex flex-col">
-        <div className="page-shell block py-0 flex-1 min-h-0 flex flex-col">
-          <div className="mx-auto w-full max-w-[1100px] pt-8 pb-8 flex-1 min-h-0 flex flex-col">
+      <div className="flex-1 min-h-0 overflow-y-auto">
+        <div className="page-shell block py-0">
+          <div className="mx-auto w-full max-w-[1100px] pt-8 pb-8">
             {step === "taskset" && (
               <StepTaskset
                 selectedId={tasksetId}
@@ -192,23 +177,44 @@ export function EvalWizard({ prefilledTasksetId }: EvalWizardProps) {
             )}
           </div>
         </div>
+
+        <WizardFooter>
+          <Button variant="ghost" onClick={tryCancel}>
+            Cancel
+          </Button>
+          <div className="flex items-center gap-2">
+            {prevStep && (
+              <Button variant="secondary" onClick={goPrev}>
+                Previous
+              </Button>
+            )}
+            {step === "review" ? (
+              <Button variant="primary" onClick={launch}>
+                <PlayIcon aria-hidden="true" className="size-3.5" />
+                Run {totalTasksInTaskset} {totalTasksInTaskset === 1 ? "Task" : "Tasks"}
+              </Button>
+            ) : (
+              nextStep && (
+                <Button
+                  variant="primary"
+                  onClick={goNext}
+                  disabled={!canAdvance[step]}
+                  aria-disabled={!canAdvance[step]}
+                >
+                  Next
+                </Button>
+              )
+            )}
+          </div>
+        </WizardFooter>
       </div>
 
-      <WizardFooter
-        step={step}
-        prevStep={prevStep}
-        nextStep={nextStep}
-        canAdvance={canAdvance[step]}
-        hasEdits={hasEdits}
-        onCancel={goCancel}
-        onPrev={goPrev}
-        onNext={goNext}
-        onLaunch={launch}
-        stepLabels={EVAL_STEP_LABELS}
-        launchLabel={`Run ${totalTasksInTaskset} ${totalTasksInTaskset === 1 ? "Task" : "Tasks"}`}
-        launchIcon={<PlayIcon aria-hidden="true" className="size-3.5" />}
-        discardTitle="Discard eval configuration?"
-        discardBody="Your selections will not be saved."
+      <DiscardConfirmDialog
+        open={discardOpen}
+        onOpenChange={setDiscardOpen}
+        title="Discard eval configuration?"
+        body="Your selections will not be saved."
+        onConfirm={goCancel}
       />
     </div>
   );

@@ -148,7 +148,9 @@ export function TraceDetailView({ trace }: TraceDetailViewProps) {
                       title={`Step ${String(s.number).padStart(2, "0")} — ${s.label}`}
                       style={{ left: `${pct}%` }}
                       className={cn(
-                        "absolute top-1/2 size-3.5 -translate-x-1/2 -translate-y-1/2 rounded-full transition-colors",
+                        "absolute top-1/2 size-3.5 -translate-x-1/2 -translate-y-1/2 rounded-full",
+                        "cursor-pointer transition-[background-color,transform] duration-fast ease-out-standard",
+                        "hover:scale-125",
                         nodeBgClass(s.status),
                         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background",
                         isSelected &&

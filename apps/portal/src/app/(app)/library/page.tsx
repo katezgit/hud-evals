@@ -14,7 +14,7 @@ export default function LibraryPage() {
     <div className="page-shell h-full min-h-0">
       <header className="shrink-0 page-header">
         <h1 className="text-display font-semibold text-foreground">Library</h1>
-        <p className="text-body text-muted-foreground">
+        <p className="text-muted-foreground">
           Saved jobs and traces
         </p>
       </header>

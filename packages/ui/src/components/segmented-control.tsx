@@ -83,7 +83,7 @@ function useSlideIndicator(
 export const segmentedControlRootVariants = cva(
   [
     "inline-flex items-center justify-center",
-    "h-8 rounded-md border border-border p-0.5",
+    "h-8 rounded-md border border-form-field-border p-0.5",
     "bg-field-rest text-muted-foreground",
   ],
   {
