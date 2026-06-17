@@ -1,0 +1,1530 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Job Detail — Traces Tab (multi-model mockup)</title>
+  <!--
+    ============================================================================
+    Canonical mockup for docs/design/screens/job-detail-traces.wireframe.md
+    ----------------------------------------------------------------------------
+    Settled decisions wired in:
+    · Multi-model job (N=3): gpt-4o · qwen2.5-14b · llama-3.1-8b
+    · Task-grouped tree list view (parent row per task, collapsible child traces)
+    · No State column — reward color band carries state
+    · No Model column — count line: "N models" (multi) or "model-name" (single)
+    · Group by Task | Model toggle (N≥2 + list view only) — Task active in demo
+    · Group by toggle ABSENT in card view (dead UI gate — D-C)
+    · Model filter chip dropdown (N≥2 only)
+    · Per-model reward strip in collapsed task parent row
+    · Two-level expansion: task → per-model sub-row → individual run rows
+    · Run QA Agent ▾ (header, per-model scope options) + bulk-bar (no picker)
+    · Invalidate / Revalidate on child trace rows only
+    · Multi-model failed-trace banner with per-model breakdown line
+    · Bulk-action bar (conditional, ≥1 selected)
+    · List view default (task-tree, Group by Task) + Group by Model preview block
+    · Card view (same data, model dot badge addition)
+    · APP-LEVEL reward band coloring at consumer call site — no DS primitive
+    · APP-LEVEL model dot color assignment at call site — no DS color token
+    · N=1 degenerates cleanly: chip cluster → single chip, toggle hidden,
+      strip → single avg, two-level → one-level. No code branch needed.
+    ============================================================================
+  -->
+  <style>
+    /* =========================================================================
+     * CSS CUSTOM PROPERTIES — mirrors packages/ui/src/styles/primitive.css
+     * + packages/ui/src/styles/theme.css in dark-theme mode.
+     * token comments match Tailwind utility names for direct find-replace.
+     * ========================================================================= */
+    :root {
+      color-scheme: dark;
+
+      /* Primitives — Ink */
+      --ink-50:  #E8EEF5;
+      --ink-100: #B3BFCE;
+      --ink-200: #7A8494;
+      --ink-500: #475260;
+
+      /* Primitives — Surfaces */
+      --surface-bg-dark:        #0C1016;
+      --surface-panel-dark:     #11161F;
+      --surface-elevated-dark:  #161D28;
+      --surface-secondary-dark: #1E2733;
+
+      /* Primitives — Status */
+      --scored-400:  #35C46B;
+      --errored-400: #FF5B52;
+      --warning-400: #E5A52E;
+      --teal-400:    #2BE0C8;
+
+      --border-seed-dark: 255 255 255;
+
+      /* ── Semantic tokens (dark mode resolved) ── */
+      --background:        var(--surface-bg-dark);        /* bg-background */
+      --card:              var(--surface-panel-dark);     /* bg-card */
+      --elevated-surface:  var(--surface-elevated-dark);  /* bg-elevated-surface */
+      --secondary-surface: var(--surface-secondary-dark); /* bg-secondary-surface */
+
+      --foreground:        var(--ink-50);   /* text-foreground */
+      --muted-foreground:  var(--ink-100);  /* text-muted-foreground */
+      --meta-foreground:   var(--ink-200);  /* text-meta-foreground */
+
+      --primary:           var(--teal-400);              /* text-primary */
+      --primary-soft:      rgba(43, 224, 200, 0.10);    /* bg-primary-soft */
+      --primary-border:    rgba(43, 224, 200, 0.25);    /* border-primary-border */
+
+      --border:            rgb(var(--border-seed-dark) / .08);  /* border-border */
+      --border-strong:     rgb(var(--border-seed-dark) / .18);  /* border-border-strong */
+
+      /* State: scored/success */
+      --state-scored-subtle: rgba(53, 196, 107, 0.12);  /* bg-state-scored-subtle */
+      --state-scored-text:   var(--scored-400);          /* text-state-scored-text */
+
+      /* State: warning (invalidated) */
+      --state-warning-subtle: rgba(229, 165, 46, 0.12); /* bg-state-warning-subtle */
+      --state-warning-text:   var(--warning-400);        /* text-state-warning-text */
+
+      /* State: errored / destructive */
+      --state-errored-subtle: rgba(255, 91, 82, 0.12);  /* bg-state-errored-subtle */
+      --state-errored-text:   var(--errored-400);        /* text-state-errored-text */
+
+      /* Alert destructive background — quieter tint (~6% alpha) */
+      --alert-destructive-bg: rgba(255, 91, 82, 0.06);  /* bg-alert-destructive-bg */
+
+      --hover-surface: var(--surface-elevated-dark);    /* bg-hover-surface */
+
+      --font-sans: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", sans-serif;
+      --font-mono: "SF Mono", "Fira Code", "Cascadia Code", "JetBrains Mono", ui-monospace, monospace;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--background);
+      color: var(--foreground);
+      font-family: var(--font-sans);
+      font-size: 14px; /* text-body */
+      line-height: 1.5;
+      padding: 32px;
+      min-height: 100vh;
+    }
+
+    .traces-tab {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      max-width: 1280px;
+    }
+
+    .font-mono { font-family: var(--font-mono); }
+
+    .view-divider {
+      display: flex; align-items: center; gap: 12px; margin: 28px 0 8px;
+    }
+    .view-divider hr { flex: 1; border: none; border-top: 1px solid var(--border); }
+    .view-divider-caption {
+      font-size: 11px; color: var(--meta-foreground); white-space: nowrap; font-style: italic;
+    }
+
+    /* ==========================================================================
+     * (A) FAILED-TRACE ALERT BANNER — multi-model variant
+     * Headline: "N failed traces · model K · model K · model 0"
+     * token: bg-alert-destructive-bg, border-state-errored, text-state-errored-text
+     * ========================================================================== */
+    .alert-failed {
+      background: var(--alert-destructive-bg);
+      border: 1px solid rgba(255, 91, 82, 0.32);
+      border-radius: 8px;
+      padding: 12px 14px;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+    }
+    .alert-failed-icon {
+      flex-shrink: 0; width: 16px; height: 16px; margin-top: 2px;
+      color: var(--state-errored-text);
+    }
+    .alert-failed-body { flex: 1; display: flex; flex-direction: column; gap: 6px; }
+    .alert-failed-headline {
+      font-size: 14px; font-weight: 600; color: var(--state-errored-text);
+      display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap;
+    }
+    /* Per-model breakdown inline after count */
+    .banner-model-breakdown {
+      font-size: 12px; font-weight: 400; font-family: var(--font-mono);
+      color: rgba(255, 91, 82, 0.70);
+    }
+    .alert-failed-snippet {
+      background: rgba(0,0,0,0.30);
+      border: 1px solid rgba(255,91,82,0.18);
+      border-radius: 4px; padding: 7px 10px;
+      font-family: var(--font-mono); font-size: 12px;
+      color: rgba(255,91,82,0.85); line-height: 1.6;
+    }
+    .btn-ghost-destructive {
+      flex-shrink: 0; align-self: flex-start;
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 4px 10px; background: transparent;
+      border: 1px solid rgba(255,91,82,0.40); border-radius: 5px;
+      font-family: var(--font-sans); font-size: 12px; font-weight: 500;
+      color: var(--state-errored-text); cursor: pointer; white-space: nowrap; margin-top: 1px;
+    }
+    .btn-ghost-destructive:hover { background: var(--state-errored-subtle); }
+
+    /* ==========================================================================
+     * (B) TAB HEADER LINE — simplified count line (D-A/D-B applied)
+     * Multi-model: "N Traces · across N Tasks · N models"
+     * Single-model: "N Traces · across N Tasks · model-name"
+     * No chip cluster. No hint text (affordance over instruction).
+     * Chip cluster CSS retained for potential future use; not rendered.
+     * ========================================================================== */
+    .tab-header {
+      display: flex; align-items: flex-start; justify-content: space-between;
+      gap: 16px; padding-bottom: 4px;
+    }
+    .tab-header-left { display: flex; flex-direction: column; gap: 6px; }
+    .tab-header-meta {
+      font-family: var(--font-mono); font-size: 11px; font-weight: 500;
+      text-transform: uppercase; letter-spacing: 0.08em;
+      color: var(--meta-foreground);
+      display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap;
+    }
+    .tab-header-meta .count { color: var(--foreground); font-weight: 600; }
+    .tab-header-meta .hint {
+      font-weight: 400; text-transform: none; letter-spacing: 0; color: var(--meta-foreground);
+    }
+    /* Chip cluster row */
+    .header-chip-cluster {
+      display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+    }
+    /* Individual model chip — bg-secondary-surface, border-border, text-muted-foreground */
+    .header-model-chip {
+      display: inline-flex; align-items: center; gap: 5px; padding: 2px 8px;
+      background: var(--secondary-surface); border: 1px solid var(--border);
+      border-radius: 4px; font-family: var(--font-mono); font-size: 11px; font-weight: 500;
+      text-transform: none; letter-spacing: 0; color: var(--muted-foreground);
+    }
+    .header-model-chip-dot {
+      width: 5px; height: 5px; border-radius: 50%;
+      background: var(--primary); flex-shrink: 0;  /* text-primary (teal) — same for all chips */
+    }
+    /* Inline reward in chip — color-banded. APP-LEVEL at call site. */
+    .chip-reward-success { color: var(--state-scored-text); }
+    .chip-reward-warning { color: var(--state-warning-text); }
+    .chip-reward-destructive { color: var(--state-errored-text); }
+    /* +K more pill */
+    .header-more-pill {
+      display: inline-flex; align-items: center; padding: 2px 7px;
+      background: var(--secondary-surface); border: 1px solid var(--border);
+      border-radius: 4px; font-family: var(--font-mono); font-size: 11px; font-weight: 400;
+      color: var(--meta-foreground); cursor: pointer;
+    }
+    .btn-secondary {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 5px 12px; background: var(--card);
+      border: 1px solid var(--border-strong); border-radius: 6px;
+      font-family: var(--font-sans); font-size: 13px; font-weight: 500;
+      color: var(--foreground); cursor: pointer; white-space: nowrap;
+    }
+    .btn-secondary svg { color: var(--meta-foreground); width: 14px; height: 14px; }
+    .btn-secondary:hover { background: var(--hover-surface); }
+
+    /* ==========================================================================
+     * (C) FILTER BAR — with Group by Task|Model toggle + Model filter chip
+     * Both controls visible only when N≥2.
+     * ========================================================================== */
+    .filter-bar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .search-wrap { position: relative; flex: 0 0 200px; }
+    .search-icon {
+      position: absolute; left: 9px; top: 50%; transform: translateY(-50%);
+      width: 14px; height: 14px; color: var(--meta-foreground); pointer-events: none;
+    }
+    .search-input {
+      width: 100%; padding: 5px 10px 5px 30px;
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 6px; color: var(--foreground);
+      font-family: var(--font-sans); font-size: 13px; outline: none;
+    }
+    .search-input::placeholder { color: var(--meta-foreground); }
+    .pill-filter {
+      display: flex; align-items: center; background: var(--card);
+      border: 1px solid var(--border); border-radius: 6px; overflow: hidden;
+    }
+    .pill-tab {
+      padding: 4px 12px; font-size: 12px; font-weight: 500; color: var(--muted-foreground);
+      cursor: pointer; white-space: nowrap; border-right: 1px solid var(--border);
+      background: transparent; border-top: none; border-bottom: none; border-left: none;
+    }
+    .pill-tab:last-child { border-right: none; }
+    .pill-tab.active { background: var(--secondary-surface); color: var(--foreground); font-weight: 600; }
+    /* Group by toggle: Task | Model — segmented control, visible N≥2 only */
+    .groupby-seg {
+      display: flex; align-items: center; background: var(--card);
+      border: 1px solid var(--border); border-radius: 6px; overflow: hidden;
+    }
+    .groupby-btn {
+      padding: 4px 12px; font-size: 12px; font-weight: 500; color: var(--muted-foreground);
+      cursor: pointer; border-right: 1px solid var(--border);
+      background: transparent; border-top: none; border-bottom: none; border-left: none;
+      font-family: var(--font-sans); white-space: nowrap;
+    }
+    .groupby-btn:last-child { border-right: none; }
+    .groupby-btn.active { background: var(--secondary-surface); color: var(--foreground); font-weight: 600; }
+    /* Model filter chip */
+    .select-ghost {
+      display: flex; align-items: center; gap: 5px; padding: 5px 10px;
+      background: var(--card); border: 1px solid var(--border); border-radius: 6px;
+      font-family: var(--font-sans); font-size: 13px; color: var(--muted-foreground);
+      cursor: pointer; white-space: nowrap;
+    }
+    .select-ghost svg { color: var(--meta-foreground); }
+    .view-seg {
+      display: flex; align-items: center; background: var(--card);
+      border: 1px solid var(--border); border-radius: 6px; overflow: hidden;
+    }
+    .view-seg-btn {
+      display: flex; align-items: center; justify-content: center;
+      width: 30px; height: 28px; cursor: pointer; color: var(--meta-foreground);
+      border: none; background: transparent; border-right: 1px solid var(--border);
+    }
+    .view-seg-btn:last-child { border-right: none; }
+    .view-seg-btn.active { background: var(--secondary-surface); color: var(--foreground); }
+    .view-seg-btn svg { width: 14px; height: 14px; }
+
+    /* ==========================================================================
+     * (D) BULK-ACTION BAR — conditional, ≥1 row selected
+     * ========================================================================== */
+    .bulk-bar {
+      display: flex; align-items: center; gap: 8px; padding: 6px 12px;
+      background: var(--secondary-surface); border: 1px solid var(--border-strong);
+      border-radius: 7px;
+    }
+    .bulk-bar-count {
+      display: inline-flex; align-items: center; padding: 2px 9px;
+      background: var(--primary-soft); border: 1px solid var(--primary-border);
+      border-radius: 4px; font-family: var(--font-mono); font-size: 12px; font-weight: 600;
+      color: var(--primary); white-space: nowrap; margin-right: 4px;
+    }
+    .bulk-bar-divider { width: 1px; height: 16px; background: var(--border-strong); flex-shrink: 0; margin: 0 4px; }
+    .btn-bulk-primary {
+      display: inline-flex; align-items: center; gap: 5px; padding: 4px 11px;
+      background: transparent; border: 1px solid var(--primary-border); border-radius: 5px;
+      font-family: var(--font-sans); font-size: 12px; font-weight: 500;
+      color: var(--primary); cursor: pointer; white-space: nowrap;
+    }
+    .btn-bulk-primary:hover { background: var(--primary-soft); }
+    .btn-bulk-secondary {
+      display: inline-flex; align-items: center; gap: 5px; padding: 4px 11px;
+      background: transparent; border: 1px solid var(--border-strong); border-radius: 5px;
+      font-family: var(--font-sans); font-size: 12px; font-weight: 500;
+      color: var(--muted-foreground); cursor: pointer; white-space: nowrap;
+    }
+    .btn-bulk-secondary:hover { background: var(--hover-surface); color: var(--foreground); }
+    .btn-bulk-clear {
+      margin-left: auto; display: inline-flex; align-items: center; padding: 4px 9px;
+      background: transparent; border: 1px solid transparent; border-radius: 5px;
+      font-family: var(--font-sans); font-size: 12px; font-weight: 400;
+      color: var(--meta-foreground); cursor: pointer;
+    }
+    .btn-bulk-clear:hover { color: var(--muted-foreground); }
+
+    /* ==========================================================================
+     * (E) TABLE VIEW — multi-model tree
+     * Three row types: .row-task (level 1) · .row-model (level 2) · .row-trace (level 3)
+     * ========================================================================== */
+    .table-wrap {
+      border-radius: 8px; border: 1px solid var(--border);
+      background: var(--card); overflow: hidden;
+    }
+    table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+    col.col-cb       { width: 36px; }
+    col.col-task     { width: auto; }
+    col.col-reward   { width: 220px; } /* wider to fit per-model strip */
+    col.col-attempts { width: 100px; }
+    col.col-turns    { width: 70px; }
+    col.col-dur      { width: 100px; }
+    col.col-cost     { width: 100px; }
+    col.col-act      { width: 150px; }
+    thead tr { border-bottom: 1px solid var(--border); }
+    th {
+      padding: 7px 12px; font-family: var(--font-sans); font-size: 11px;
+      font-weight: 500;
+      /* NOTE: normal case NOT uppercase — hierarchy via weight + muted color */
+      color: var(--meta-foreground); text-align: left; white-space: nowrap;
+    }
+    th.num { text-align: right; }
+    .cb-col { width: 36px; padding-left: 12px !important; padding-right: 4px !important; }
+    tbody tr {
+      border-bottom: 1px solid var(--border); transition: background 0.1s;
+    }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: var(--hover-surface); }
+    tbody tr.selected { background: rgba(43,224,200,0.06); }
+    tbody tr.selected:hover { background: rgba(43,224,200,0.10); }
+    td {
+      padding: 9px 12px; font-size: 13px; color: var(--foreground);
+      vertical-align: middle; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    td.mono { font-family: var(--font-mono); font-size: 12px; }
+    td.num  { text-align: right; }
+    td.muted { color: var(--muted-foreground); }
+    .row-checkbox { width: 15px; height: 15px; accent-color: var(--primary); cursor: pointer; display: block; }
+
+    /* ── Level 1: Task parent row ── */
+    .row-task { background: var(--card); cursor: pointer; }
+    .row-task td { padding: 11px 12px; }
+    .task-cell-parent { display: flex; align-items: center; gap: 8px; min-width: 0; }
+    .task-chevron {
+      flex-shrink: 0; width: 14px; text-align: center; font-size: 10px;
+      color: var(--meta-foreground); display: inline-block;
+    }
+    .row-task[aria-expanded="false"] .task-chevron { transform: rotate(-90deg); }
+    .task-id-parent {
+      flex-shrink: 0; font-family: var(--font-mono); font-size: 12px; color: var(--meta-foreground);
+    }
+    .task-prompt-parent {
+      font-size: 13px; font-weight: 600; color: var(--foreground);
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0;
+    }
+    .attempts-pill {
+      flex-shrink: 0; display: inline-flex; align-items: center; gap: 4px;
+      padding: 1px 6px; background: var(--secondary-surface); border: 1px solid var(--border);
+      border-radius: 10px; font-family: var(--font-mono); font-size: 11px; font-weight: 500;
+      color: var(--muted-foreground);
+    }
+    .metric-suffix {
+      font-family: var(--font-sans); font-size: 10px; font-weight: 400;
+      color: var(--meta-foreground); margin-left: 3px; text-transform: none; letter-spacing: 0;
+    }
+    .err-count {
+      font-family: var(--font-mono); font-size: 11px; font-weight: 500;
+      color: var(--state-errored-text); margin-left: 4px;
+    }
+
+    /* Per-model reward strip — in collapsed task parent Reward cell.
+       APP-LEVEL: each model reward color is applied at the call site.
+       Strip: model-label space reward · model-label space reward · …
+       Separator: · in meta-foreground.
+       No-score slot: — in meta-foreground. */
+    .reward-strip {
+      display: flex; align-items: baseline; gap: 0; justify-content: flex-end;
+      font-family: var(--font-mono); font-size: 11px; flex-wrap: nowrap;
+    }
+    .strip-pair { display: inline-flex; align-items: baseline; gap: 3px; }
+    .strip-sep { color: var(--meta-foreground); margin: 0 5px; }
+    .strip-model { color: var(--meta-foreground); font-weight: 400; }
+    .strip-reward-success     { color: var(--state-scored-text); font-weight: 600; }
+    .strip-reward-warning     { color: var(--state-warning-text); font-weight: 600; }
+    .strip-reward-destructive { color: var(--state-errored-text); font-weight: 600; }
+    .strip-reward-none        { color: var(--meta-foreground); font-weight: 400; }
+
+    /* ── Level 2: Per-model sub-row ── */
+    .row-model {
+      background: var(--elevated-surface); cursor: pointer;
+      border-left: 2px solid var(--border-strong);
+    }
+    .row-model td { padding: 7px 12px; font-size: 12px; }
+    .model-cell {
+      display: flex; align-items: center; gap: 8px; min-width: 0; padding-left: 24px;
+    }
+    .model-chevron {
+      flex-shrink: 0; width: 12px; text-align: center; font-size: 9px;
+      color: var(--meta-foreground); display: inline-block;
+    }
+    .row-model[aria-expanded="false"] .model-chevron { transform: rotate(-90deg); }
+    .model-name-label {
+      font-family: var(--font-mono); font-size: 12px; font-weight: 500;
+      color: var(--muted-foreground);
+    }
+    /* Reward cell at model sub-row level — same color bands as D2 */
+    .reward-cell { font-family: var(--font-mono); font-size: 13px; font-weight: 600; text-align: right; }
+    .reward-cell-success     { color: var(--state-scored-text); }
+    .reward-cell-warning     { color: var(--state-warning-text); }
+    .reward-cell-destructive { color: var(--state-errored-text); }
+    .reward-cell-invalid { display: inline-flex; align-items: center; gap: 6px; justify-content: flex-end; width: 100%; }
+    .reward-cell-invalid .num { font-family: var(--font-mono); font-size: 13px; color: var(--meta-foreground); text-decoration: line-through; text-decoration-color: rgba(229,165,46,0.50); }
+    .reward-cell-invalid .chip { font-family: var(--font-sans); font-size: 11px; font-weight: 500; padding: 1px 6px; border-radius: 3px; background: var(--state-warning-subtle); color: var(--state-warning-text); border: 1px solid rgba(229,165,46,0.28); }
+    .reward-cell-norun { display: inline-flex; align-items: center; gap: 6px; justify-content: flex-end; width: 100%; }
+    .reward-cell-norun .chip { font-family: var(--font-sans); font-size: 11px; font-weight: 500; padding: 1px 6px; border-radius: 3px; background: rgba(255,255,255,0.05); color: var(--meta-foreground); border: 1px solid var(--border); }
+    /* Smaller reward cell for model sub-row */
+    .row-model .reward-cell { font-size: 12px; }
+
+    /* ── Level 3: Individual trace row ── */
+    .row-trace { background: var(--background); }
+    .row-trace td { padding: 7px 12px; font-size: 12px; }
+    .task-cell-child {
+      display: flex; align-items: center; gap: 8px; min-width: 0; padding-left: 48px; /* double indent */
+    }
+    .trace-bullet {
+      flex-shrink: 0; width: 3px; height: 3px; border-radius: 50%;
+      background: var(--meta-foreground); opacity: 0.6;
+    }
+    .trace-hash {
+      font-family: var(--font-mono); font-size: 12px; color: var(--muted-foreground);
+    }
+    .trace-hash.dimmed { color: var(--meta-foreground); }
+    .trace-attempt-label {
+      font-size: 11px; color: var(--meta-foreground); margin-left: 2px;
+    }
+    .row-trace .reward-cell { font-size: 12px; }
+
+    .row-actions { display: flex; align-items: center; justify-content: flex-end; gap: 4px; }
+    .btn-warn-sm {
+      display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px;
+      background: transparent; border: 1px solid rgba(229,165,46,0.45); border-radius: 5px;
+      font-family: var(--font-sans); font-size: 12px; font-weight: 500;
+      color: var(--state-warning-text); cursor: pointer;
+    }
+    .btn-invalidate-sm {
+      display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px;
+      background: var(--card); border: 1px solid var(--border-strong); border-radius: 5px;
+      font-family: var(--font-sans); font-size: 12px; font-weight: 500;
+      color: var(--muted-foreground); cursor: pointer;
+    }
+    .icon-btn-sm {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 26px; height: 26px; background: transparent;
+      border: 1px solid transparent; border-radius: 5px; color: var(--meta-foreground); cursor: pointer;
+    }
+    .icon-btn-sm:hover { background: var(--hover-surface); border-color: var(--border); }
+    .icon-btn-sm svg { width: 13px; height: 13px; }
+
+    /* Show all */
+    .show-all-wrap { display: flex; justify-content: center; padding: 8px 0; }
+    .btn-show-all {
+      display: inline-flex; align-items: center; gap: 6px; padding: 6px 16px;
+      background: transparent; border: 1px solid var(--border); border-radius: 6px;
+      font-family: var(--font-sans); font-size: 13px; font-weight: 500;
+      color: var(--muted-foreground); cursor: pointer;
+    }
+    .btn-show-all:hover { background: var(--hover-surface); color: var(--foreground); }
+
+    /* ==========================================================================
+     * (G) GROUP BY MODEL — section header anatomy
+     * One model section expanded (gpt-4o) showing task rows beneath.
+     * Model section header fields: chevron · model-name · overall reward ·
+     *   trace count · cost total · win-rate.
+     * ========================================================================== */
+    .model-section-header {
+      background: var(--card); border-bottom: 1px solid var(--border);
+      cursor: pointer;
+    }
+    .model-section-header td { padding: 11px 14px; }
+    .model-section-cell {
+      display: flex; align-items: center; gap: 10px;
+    }
+    .model-section-chevron {
+      flex-shrink: 0; width: 14px; text-align: center; font-size: 10px;
+      color: var(--meta-foreground); display: inline-block;
+    }
+    .model-section-header[aria-expanded="false"] .model-section-chevron { transform: rotate(-90deg); }
+    .model-section-name {
+      font-size: 13px; font-weight: 600; color: var(--foreground);
+      font-family: var(--font-mono);
+    }
+    .model-section-stat {
+      font-family: var(--font-mono); font-size: 11px; color: var(--meta-foreground); white-space: nowrap;
+    }
+    .model-section-reward-success { color: var(--state-scored-text); font-weight: 600; }
+    .model-section-reward-warning { color: var(--state-warning-text); font-weight: 600; }
+    .model-section-win-rate {
+      font-family: var(--font-mono); font-size: 11px; font-weight: 500;
+      padding: 1px 7px; background: var(--primary-soft); border: 1px solid var(--primary-border);
+      border-radius: 3px; color: var(--primary); white-space: nowrap;
+    }
+    /* Task rows inside a model section — current parent row shape, no strip */
+    .row-task-in-model { background: var(--elevated-surface); cursor: pointer; }
+    .row-task-in-model td { padding: 9px 12px; }
+    /* Same child structure as row-trace but single-indent */
+    .task-cell-in-model { display: flex; align-items: center; gap: 8px; min-width: 0; padding-left: 20px; }
+
+    /* ==========================================================================
+     * (F) CARD VIEW — 3-column grid
+     * Multi-model addition: model dot badge next to model name in card body.
+     * APP-LEVEL: model dot color is composed from existing tokens at call site.
+     * ========================================================================== */
+    .card-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; }
+    .run-card {
+      background: var(--card); border: 1px solid var(--border); border-radius: 8px;
+      overflow: hidden; display: flex; flex-direction: column; cursor: pointer;
+      transition: border-color 0.12s, background 0.12s; position: relative;
+    }
+    .run-card:hover { background: var(--hover-surface); border-color: var(--border-strong); }
+    .run-card-preview {
+      position: relative; aspect-ratio: 16/10; background: rgba(255,255,255,0.03);
+      border-bottom: 1px solid var(--border); overflow: hidden; flex-shrink: 0;
+    }
+    .run-card-preview-chrome {
+      position: absolute; top:0; left:0; right:0; height:20px;
+      background: var(--secondary-surface); display: flex; align-items: center;
+      gap:5px; padding: 0 8px; border-bottom: 1px solid var(--border);
+    }
+    .chrome-dot { width:7px; height:7px; border-radius:50%; }
+    .chrome-dot-red   { background:#FF5F57; }
+    .chrome-dot-amber { background:#FEBC2E; }
+    .chrome-dot-green { background:#28C840; }
+    .run-card-preview-canvas {
+      position:absolute; top:20px; left:0; right:0; bottom:0;
+      display:flex; align-items:center; justify-content:center; background:rgba(255,255,255,0.03);
+    }
+    .tile-grid {
+      display:grid; grid-template-columns:repeat(4,1fr); gap:4px; padding:6px;
+      background:var(--secondary-surface); border-radius:4px;
+    }
+    .tile {
+      width:26px; height:26px; border-radius:3px; display:flex; align-items:center;
+      justify-content:center; font-family:var(--font-mono); font-size:8px; font-weight:700; color:var(--foreground);
+    }
+    .tile-empty  { background:rgba(255,255,255,0.04); }
+    .tile-2      { background:#4A3F2F; color:#D4B896; }
+    .tile-4      { background:#5A4A35; color:#E0C9A8; }
+    .tile-8      { background:#7A3B1E; color:#F5A878; }
+    .tile-16     { background:#8B2F0C; color:#FFBE8A; }
+    .tile-32     { background:#9E2410; color:#FFC8A0; }
+    .tile-64     { background:#B01E0E; color:#FFD4B8; }
+    .tile-128    { background:#3B6E3B; color:#A8DCA8; }
+    .tile-256    { background:#2D5E2D; color:#8CD08C; }
+    .tile-512    { background:#1E4E1E; color:#70C470; }
+    .tile-1024   { background:#1A3D4F; color:#6EC8E0; }
+    .tile-2048   { background:#2B4A7A; color:#A8D4FF; font-size:7px; }
+    .run-card-meta-badge {
+      /* bg-black/90 — high-opacity so it reads as effectively black in light mode
+         (avoids composite-lighten over near-white preview canvas).
+         WCAG AA: white/90 on composited bg ≈ 14:1 in both themes. */
+      position:absolute; bottom:6px; right:6px; background:rgba(0,0,0,0.90);
+      border-radius:5px; padding:3px 7px; display:flex; align-items:center; gap:5px;
+      font-family:var(--font-mono); font-size:10px; font-weight:500;
+      color:rgba(255,255,255,0.90); white-space:nowrap; backdrop-filter:blur(4px);
+    }
+    /* Separator dots: white/55 — visible divider without competing with content labels.
+       Bumped from 40% which fell below AA at small text sizes in light mode. */
+    .meta-badge-dot  { color:rgba(255,255,255,0.55); font-size:10px; }
+    .reward-pill { border-radius:3px; padding:1px 5px; font-family:var(--font-mono); font-size:10px; font-weight:700; margin-left:3px; }
+    .reward-pill-success     { background:rgba(53,196,107,0.22); color:var(--state-scored-text); border:1px solid rgba(53,196,107,0.35); }
+    .reward-pill-warning     { background:rgba(229,165,46,0.22); color:var(--state-warning-text); border:1px solid rgba(229,165,46,0.35); }
+    .reward-pill-destructive { background:rgba(255,91,82,0.22); color:var(--state-errored-text); border:1px solid rgba(255,91,82,0.35); }
+    .reward-pill-neutral     { background:rgba(255,255,255,0.05); color:var(--meta-foreground); border:1px solid var(--border); }
+    .run-card-kebab {
+      position:absolute; top:26px; right:6px; z-index:2;
+      display:flex; align-items:center; justify-content:center;
+      width:24px; height:24px; background:rgba(0,0,0,0.55);
+      border:1px solid rgba(255,255,255,0.12); border-radius:4px;
+      color:rgba(255,255,255,0.70); cursor:pointer; font-size:14px; line-height:1; backdrop-filter:blur(3px);
+    }
+    .run-card-kebab:hover { background:rgba(0,0,0,0.75); color:#fff; }
+    .run-card-body { padding:12px 14px 14px; display:flex; flex-direction:column; gap:6px; }
+    .run-card-title-row { display:flex; align-items:flex-start; gap:8px; }
+    .run-card-avatar {
+      flex-shrink:0; width:22px; height:22px; border-radius:50%;
+      background:var(--primary-soft); color:var(--primary);
+      font-size:10px; font-weight:700; display:flex; align-items:center; justify-content:center; margin-top:1px;
+    }
+    .run-card-prompt {
+      font-size:13px; font-weight:600; color:var(--foreground); line-height:1.45;
+      display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;
+    }
+    /* Multi-model: model name row with color dot. APP-LEVEL dot color at call site. */
+    .run-card-model-row {
+      display: flex; align-items: center; gap: 6px; padding-left: 30px;
+    }
+    .model-dot {
+      width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0;
+    }
+    /* APP-LEVEL: model color assignment — composed from existing tokens */
+    /* gpt-4o (winner): primary teal */
+    .model-dot-gpt4o { background: var(--primary); }
+    /* qwen: scored-400 green — second model by reward */
+    .model-dot-qwen   { background: var(--state-scored-text); }
+    /* llama: warning amber — third model by reward */
+    .model-dot-llama  { background: var(--state-warning-text); }
+
+    .run-card-model { font-size:12px; font-weight:400; color:var(--muted-foreground); }
+    .run-card-footer-meta { font-family:var(--font-mono); font-size:11px; color:var(--meta-foreground); padding-left:30px; }
+  </style>
+</head>
+<body>
+
+<div class="traces-tab">
+
+  <!-- ===========================================================================
+       SCENARIO LABEL
+       =========================================================================== -->
+  <div style="font-size:11px;color:var(--meta-foreground);font-family:var(--font-mono);
+              padding:6px 10px;background:var(--card);border:1px solid var(--border);
+              border-radius:5px;align-self:flex-start;">
+    multi-model demo · 3 models: gpt-4o (winner) · qwen2.5-14b · llama-3.1-8b · 88 traces · 10 tasks · Group by: Task (list view)
+  </div>
+
+  <!-- ===========================================================================
+       (A) FAILED-TRACE ALERT BANNER — multi-model variant
+       Headline: "N failed traces · model K · model K · model 0"
+       Breakdown sorted by header chip order (winner first).
+       5 total failed: qwen 2 · llama 3 · gpt-4o 0
+       =========================================================================== -->
+  <div class="alert-failed" role="alert">
+    <svg class="alert-failed-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+      <path d="M8 2.5 L13.5 12.5 H2.5 Z" stroke-linejoin="round"/>
+      <path d="M8 6.5 V9" stroke-linecap="round"/>
+      <circle cx="8" cy="11" r="0.5" fill="currentColor" stroke="none"/>
+    </svg>
+    <div class="alert-failed-body">
+      <div class="alert-failed-headline">
+        5 failed traces
+        <!-- Per-model breakdown: sorted by header chip order (winner first). 0-count still shown. -->
+        <span class="banner-model-breakdown">
+          · gpt-4o 0 · qwen2.5-14b 2 · llama-3.1-8b 3
+        </span>
+      </div>
+      <div class="alert-failed-snippet">
+        Client is not connected. Use the &#39;async with client:&#39; context manager first.
+        <div style="margin-top:4px;color:rgba(255,91,82,0.50);font-size:11px;">+4 more</div>
+      </div>
+    </div>
+    <button class="btn-ghost-destructive" type="button">
+      Jump to 5 traces
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" width="12" height="12" aria-hidden="true">
+        <path d="M3 8h10M9 4l4 4-4 4" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
+  </div>
+
+  <!-- ===========================================================================
+       (B) TAB HEADER LINE — simplified count line (D-A, D-B applied)
+       Multi-model: "N Traces · across N Tasks · N models"
+       Single-model: "N Traces · across N Tasks · model-name"
+       No chip cluster. No hint text (affordance over instruction).
+       =========================================================================== -->
+  <div class="tab-header">
+    <div class="tab-header-left">
+      <p class="tab-header-meta">
+        <span class="count">88 Traces</span>
+        <span class="hint" style="font-weight:500;color:var(--muted-foreground);text-transform:none;letter-spacing:0;">· across 10 Tasks</span>
+        <!-- Multi-model: "· N models" in monospace muted-foreground. No chips. -->
+        <!-- No hover / tooltip / popover — plain text per D3 affordance decision.  -->
+        <!-- Model identities appear in per-model reward strip on row expand (D9).  -->
+        <!-- Single-model variant would read: · claude-opus-4-6 (same style)       -->
+        <span class="hint">· 3 models</span>
+      </p>
+    </div>
+    <button class="btn-secondary" type="button">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" width="14" height="14" aria-hidden="true">
+        <rect x="4.5" y="1.5" width="7" height="3" rx="1"/>
+        <path d="M4.5 3H3a1 1 0 0 0-1 1v9a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V4a1 1 0 0 0-1-1h-1.5"/>
+        <path d="M6 9.5 L7.5 11 L10.5 8" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      Run QA Agent
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" width="14" height="14" aria-hidden="true" style="color:var(--meta-foreground);">
+        <path d="M4 6 L8 10 L12 6" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
+  </div>
+
+  <!-- ===========================================================================
+       (C) FILTER BAR — multi-model controls
+       Left→right: [Search] [All] [Scored] [Invalid] [No score]
+                   (spacer) [Task|Model toggle] [Model: all 3 ▾] [Table|Card]
+       Group by and Model filter are N≥2 only — hidden in single-model jobs.
+       =========================================================================== -->
+  <div class="filter-bar">
+    <div class="search-wrap">
+      <svg class="search-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+        <circle cx="6.5" cy="6.5" r="4"/>
+        <path d="M10 10 L13.5 13.5" stroke-linecap="round"/>
+      </svg>
+      <input class="search-input" type="search" placeholder="Search tasks…" aria-label="Search tasks" />
+    </div>
+    <div class="pill-filter" role="group" aria-label="Filter by status">
+      <button class="pill-tab active" type="button">All <span style="opacity:.6">(42)</span></button>
+      <button class="pill-tab" type="button">Scored <span style="opacity:.6">(35)</span></button>
+      <button class="pill-tab" type="button">Invalid <span style="opacity:.6">(5)</span></button>
+      <button class="pill-tab" type="button">No score <span style="opacity:.6">(2)</span></button>
+    </div>
+    <span style="flex:1"></span>
+    <!-- Group by toggle — N≥2 only. Task is active (default). -->
+    <div class="groupby-seg" role="group" aria-label="Group by">
+      <button class="groupby-btn active" type="button" aria-pressed="true">Task</button>
+      <button class="groupby-btn" type="button" aria-pressed="false">Model</button>
+    </div>
+    <!-- Model filter chip — N≥2 only. Default: all selected. -->
+    <div class="select-ghost" role="button" aria-haspopup="listbox" tabindex="0" aria-label="Filter by model">
+      Model: all 3
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" width="12" height="12" aria-hidden="true">
+        <path d="M4 6 L8 10 L12 6" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+    <div class="view-seg" role="group" aria-label="View mode">
+      <button class="view-seg-btn active" type="button" aria-label="Table view" aria-pressed="true">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+          <path d="M2 4h12M2 8h12M2 12h12" stroke-linecap="round"/>
+        </svg>
+      </button>
+      <button class="view-seg-btn" type="button" aria-label="Card view" aria-pressed="false">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+          <rect x="1.5" y="1.5" width="5.5" height="5.5" rx="1"/>
+          <rect x="9"   y="1.5" width="5.5" height="5.5" rx="1"/>
+          <rect x="1.5" y="9"   width="5.5" height="5.5" rx="1"/>
+          <rect x="9"   y="9"   width="5.5" height="5.5" rx="1"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- ===========================================================================
+       (D) BULK-ACTION BAR — conditional, ≥1 row selected
+       Run QA Agent here has NO ▾ — selection IS the scope.
+       =========================================================================== -->
+  <div class="bulk-bar" role="toolbar" aria-label="Bulk actions">
+    <span class="bulk-bar-count">2 selected</span>
+    <button class="btn-bulk-primary" type="button">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" width="13" height="13" aria-hidden="true">
+        <rect x="4.5" y="1.5" width="7" height="3" rx="1"/>
+        <path d="M4.5 3H3a1 1 0 0 0-1 1v9a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V4a1 1 0 0 0-1-1h-1.5"/>
+        <path d="M6 9.5 L7.5 11 L10.5 8" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      Run QA Agent
+    </button>
+    <div class="bulk-bar-divider"></div>
+    <button class="btn-bulk-secondary" type="button">Invalidate</button>
+    <button class="btn-bulk-secondary" type="button">Revalidate</button>
+    <button class="btn-bulk-clear" type="button">Clear</button>
+  </div>
+
+  <!-- ===========================================================================
+       (E) LIST VIEW — multi-model task-grouped tree, Group by Task active
+
+       DATA: 3 models, 14 tasks. Demo shows tasks 0001 (fully expanded), 0002 (collapsed).
+
+       TASK 0001 — fully expanded to all three levels:
+         Parent row: per-model reward strip gpt-4o 0.81 · qwen 0.73 · llama 0.65
+         Level 2 expanded for gpt-4o (3 traces) and qwen (collapsed);
+         llama collapsed.
+         Level 3: gpt-4o traces fully shown (3 individual runs).
+
+       TASK 0002 — collapsed parent only (per-model strip visible, gpt-4o wins on this task too).
+                   llama has no scored trace → "—" in strip.
+       =========================================================================== -->
+  <div class="table-wrap">
+    <table>
+      <colgroup>
+        <col class="col-cb"/>
+        <col class="col-task"/>
+        <col class="col-reward"/>
+        <col class="col-attempts"/>
+        <col class="col-turns"/>
+        <col class="col-dur"/>
+        <col class="col-cost"/>
+        <col class="col-act"/>
+      </colgroup>
+      <thead>
+        <tr>
+          <th class="cb-col"><input class="row-checkbox" type="checkbox" aria-label="Select all traces" /></th>
+          <th>Task / Trace</th>
+          <!-- Reward heading unchanged — content changes per row type (strip vs avg vs per-attempt) -->
+          <th class="num">Reward</th>
+          <th class="num">Attempts</th>
+          <th class="num">Turns</th>
+          <th class="num">Duration</th>
+          <th class="num">Cost</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+
+        <!-- ================================================================
+             TASK 0001 — FULLY EXPANDED (all three levels)
+             9 traces total (3 per model).
+             gpt-4o: 0.91, 0.81, 0.71 → avg 0.81 (success)
+             qwen:   0.82, 0.75, 0.62 → avg 0.73 (success)
+             llama:  0.71, 0.62, 0.62 → avg 0.65 (warning)
+             All-model roll-up: 9/9 completed, avg turns ~5.4, cost total
+             Per-model strip: gpt-4o 0.81 · qwen 0.73 · llama 0.65
+             ================================================================ -->
+        <tr class="row-task" aria-expanded="true">
+          <td class="cb-col">
+            <input class="row-checkbox" type="checkbox" aria-label="Select all traces of task 0001" onclick="event.stopPropagation()" />
+          </td>
+          <td>
+            <div class="task-cell-parent">
+              <span class="task-chevron">▼</span>
+              <span class="task-id-parent">0001</span>
+              <span class="task-prompt-parent">Reach the 2048 tile by merging the two 1024s in the bottom row.</span>
+              <span class="attempts-pill">9 traces</span>
+            </div>
+          </td>
+          <!-- Multi-model: Reward cell shows per-model reward strip instead of single avg.
+               APP-LEVEL: color bands applied at call site per model reward value. -->
+          <td class="num">
+            <div class="reward-strip">
+              <span class="strip-pair">
+                <span class="strip-model">gpt-4o</span>
+                <span class="strip-reward-success">0.81</span>
+              </span>
+              <span class="strip-sep">·</span>
+              <span class="strip-pair">
+                <span class="strip-model">qwen</span>
+                <span class="strip-reward-success">0.73</span>
+              </span>
+              <span class="strip-sep">·</span>
+              <span class="strip-pair">
+                <span class="strip-model">llama</span>
+                <span class="strip-reward-warning">0.65</span>
+              </span>
+            </div>
+          </td>
+          <td class="mono num muted">9 / 9</td>
+          <td class="mono num">5.4<span class="metric-suffix">avg</span></td>
+          <td class="mono num muted">2m 29s<span class="metric-suffix">avg</span></td>
+          <td class="mono num">$0.0921<span class="metric-suffix">total</span></td>
+          <td></td>
+        </tr>
+
+        <!-- ── Level 2: gpt-4o sub-row (EXPANDED) ── -->
+        <!-- reward avg 0.81 ≥ 0.7 → success -->
+        <tr class="row-model" aria-expanded="true">
+          <td class="cb-col">
+            <input class="row-checkbox" type="checkbox" aria-label="Select all gpt-4o traces of task 0001" onclick="event.stopPropagation()" />
+          </td>
+          <td>
+            <div class="model-cell">
+              <span class="model-chevron">▼</span>
+              <span class="model-name-label">gpt-4o</span>
+            </div>
+          </td>
+          <td class="reward-cell reward-cell-success num">
+            0.8100<span class="metric-suffix">avg</span>
+          </td>
+          <td class="mono num muted">3 / 3</td>
+          <td class="mono num">5.3<span class="metric-suffix">avg</span></td>
+          <td class="mono num muted">2m 18s<span class="metric-suffix">avg</span></td>
+          <td class="mono num">$0.0310<span class="metric-suffix">total</span></td>
+          <td></td>
+        </tr>
+
+        <!-- ── Level 3: gpt-4o individual run rows ── -->
+        <!-- attempt 1: 0.9100 success -->
+        <tr class="row-trace">
+          <td class="cb-col">
+            <input class="row-checkbox" type="checkbox" aria-label="Select trace a3f1b2c9" onclick="event.stopPropagation()" />
+          </td>
+          <td>
+            <div class="task-cell-child">
+              <span class="trace-bullet"></span>
+              <span class="trace-hash">a3f1b2c9</span>
+              <span class="trace-attempt-label">attempt 1</span>
+            </div>
+          </td>
+          <td class="reward-cell reward-cell-success num">0.9100</td>
+          <td class="mono num muted">—</td>
+          <td class="mono num">4</td>
+          <td class="mono num muted">1m 55s</td>
+          <td class="mono num">$0.0091</td>
+          <td>
+            <div class="row-actions">
+              <button class="btn-invalidate-sm" type="button" onclick="event.stopPropagation()">Invalidate</button>
+              <button class="icon-btn-sm" type="button" aria-label="Open trace a3f1b2c9" onclick="event.stopPropagation()">
+                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+                  <path d="M5 3h8v8M13 3 5.5 10.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </button>
+            </div>
+          </td>
+        </tr>
+
+        <!-- attempt 2: 0.8100 success · SELECTED -->
+        <tr class="row-trace selected">
+          <td class="cb-col">
+            <input class="row-checkbox" type="checkbox" checked aria-label="Select trace d7e4c801" onclick="event.stopPropagation()" />
+          </td>
+          <td>
+            <div class="task-cell-child">
+              <span class="trace-bullet"></span>
+              <span class="trace-hash">d7e4c801</span>
+              <span class="trace-attempt-label">attempt 2</span>
+            </div>
+          </td>
+          <td class="reward-cell reward-cell-success num">0.8100</td>
+          <td class="mono num muted">—</td>
+          <td class="mono num">5</td>
+          <td class="mono num muted">2m 28s</td>
+          <td class="mono num">$0.0103</td>
+          <td>
+            <div class="row-actions">
+              <button class="btn-invalidate-sm" type="button" onclick="event.stopPropagation()">Invalidate</button>
+              <button class="icon-btn-sm" type="button" aria-label="Open trace d7e4c801" onclick="event.stopPropagation()">
+                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+                  <path d="M5 3h8v8M13 3 5.5 10.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </button>
+            </div>
+          </td>
+        </tr>
+
+        <!-- attempt 3: 0.7100 success · SELECTED -->
+        <tr class="row-trace selected">
+          <td class="cb-col">
+            <input class="row-checkbox" type="checkbox" checked aria-label="Select trace 59f0a232" onclick="event.stopPropagation()" />
+          </td>
+          <td>
+            <div class="task-cell-child">
+              <span class="trace-bullet"></span>
+              <span class="trace-hash">59f0a232</span>
+              <span class="trace-attempt-label">attempt 3</span>
+            </div>
+          </td>
+          <td class="reward-cell reward-cell-success num">0.7100</td>
+          <td class="mono num muted">—</td>
+          <td class="mono num">7</td>
+          <td class="mono num muted">2m 31s</td>
+          <td class="mono num">$0.0116</td>
+          <td>
+            <div class="row-actions">
+              <button class="btn-invalidate-sm" type="button" onclick="event.stopPropagation()">Invalidate</button>
+              <button class="icon-btn-sm" type="button" aria-label="Open trace 59f0a232" onclick="event.stopPropagation()">
+                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+                  <path d="M5 3h8v8M13 3 5.5 10.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </button>
+            </div>
+          </td>
+        </tr>
+
+        <!-- ── Level 2: qwen2.5-14b sub-row (COLLAPSED) ── -->
+        <tr class="row-model" aria-expanded="false">
+          <td class="cb-col">
+            <input class="row-checkbox" type="checkbox" aria-label="Select all qwen traces of task 0001" onclick="event.stopPropagation()" />
+          </td>
+          <td>
+            <div class="model-cell">
+              <span class="model-chevron">▼</span>
+              <span class="model-name-label">qwen2.5-14b</span>
+            </div>
+          </td>
+          <td class="reward-cell reward-cell-success num">
+            0.7300<span class="metric-suffix">avg</span>
+          </td>
+          <td class="mono num muted">3 / 3</td>
+          <td class="mono num">6.1<span class="metric-suffix">avg</span></td>
+          <td class="mono num muted">2m 44s<span class="metric-suffix">avg</span></td>
+          <td class="mono num">$0.0298<span class="metric-suffix">total</span></td>
+          <td></td>
+        </tr>
+
+        <!-- ── Level 2: llama-3.1-8b sub-row (COLLAPSED) ── -->
+        <tr class="row-model" aria-expanded="false">
+          <td class="cb-col">
+            <input class="row-checkbox" type="checkbox" aria-label="Select all llama traces of task 0001" onclick="event.stopPropagation()" />
+          </td>
+          <td>
+            <div class="model-cell">
+              <span class="model-chevron">▼</span>
+              <span class="model-name-label">llama-3.1-8b</span>
+            </div>
+          </td>
+          <!-- 0.4 ≤ 0.65 < 0.7 → warning -->
+          <td class="reward-cell reward-cell-warning num">
+            0.6500<span class="metric-suffix">avg</span>
+          </td>
+          <td class="mono num muted">3 / 3</td>
+          <td class="mono num">7.4<span class="metric-suffix">avg</span></td>
+          <td class="mono num muted">3m 01s<span class="metric-suffix">avg</span></td>
+          <td class="mono num">$0.0241<span class="metric-suffix">total</span></td>
+          <td></td>
+        </tr>
+
+        <!-- ================================================================
+             TASK 0002 — COLLAPSED parent row only
+             gpt-4o: 0.79 (success) · qwen: 0.71 (success) · llama: — (no scored trace)
+             Per-model strip shows "—" for llama.
+             ================================================================ -->
+        <tr class="row-task" aria-expanded="false">
+          <td class="cb-col">
+            <input class="row-checkbox" type="checkbox" aria-label="Select all traces of task 0002" onclick="event.stopPropagation()" />
+          </td>
+          <td>
+            <div class="task-cell-parent">
+              <span class="task-chevron">▼</span>
+              <span class="task-id-parent">0002</span>
+              <span class="task-prompt-parent">Consolidate the left column first — getting a 512 in the corner will unlock the merge chain.</span>
+              <span class="attempts-pill">7 traces</span>
+            </div>
+          </td>
+          <!-- Strip: gpt-4o 0.79 (success) · qwen 0.71 (success) · llama — (no score) -->
+          <td class="num">
+            <div class="reward-strip">
+              <span class="strip-pair">
+                <span class="strip-model">gpt-4o</span>
+                <span class="strip-reward-success">0.79</span>
+              </span>
+              <span class="strip-sep">·</span>
+              <span class="strip-pair">
+                <span class="strip-model">qwen</span>
+                <span class="strip-reward-success">0.71</span>
+              </span>
+              <span class="strip-sep">·</span>
+              <span class="strip-pair">
+                <span class="strip-model">llama</span>
+                <!-- No scored trace on this task for llama -->
+                <span class="strip-reward-none">—</span>
+              </span>
+            </div>
+          </td>
+          <td class="mono num muted">6 / 7</td>
+          <td class="mono num">5.9<span class="metric-suffix">avg</span></td>
+          <td class="mono num muted">2m 38s<span class="metric-suffix">avg</span></td>
+          <td class="mono num">$0.0712<span class="metric-suffix">total</span></td>
+          <td></td>
+        </tr>
+
+      </tbody>
+    </table>
+  </div>
+
+  <div class="show-all-wrap">
+    <button class="btn-show-all" type="button">Show all 14 tasks</button>
+  </div>
+
+  <!-- ===========================================================================
+       (G) GROUP BY MODEL — secondary block preview
+       Operator clicks the "Model" segment in the Group by toggle to see this layout.
+       Group by toggle is present here because this is still LIST view (table active).
+       Shows three model section headers; gpt-4o expanded with two task rows beneath.
+       =========================================================================== -->
+  <div class="view-divider">
+    <hr />
+    <span class="view-divider-caption">— Group by: Model (secondary view — click "Model" in the toggle above; list view only) —</span>
+    <hr />
+  </div>
+
+  <!-- Filter bar hint for this view — list view, so Group by toggle IS present -->
+  <div class="filter-bar" style="opacity:0.55;pointer-events:none;">
+    <div class="search-wrap">
+      <svg class="search-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+        <circle cx="6.5" cy="6.5" r="4"/>
+        <path d="M10 10 L13.5 13.5" stroke-linecap="round"/>
+      </svg>
+      <input class="search-input" type="search" placeholder="Search tasks…" aria-label="Search tasks" disabled />
+    </div>
+    <div class="pill-filter">
+      <button class="pill-tab active" type="button">All <span style="opacity:.6">(88)</span></button>
+      <button class="pill-tab" type="button">Scored</button>
+      <button class="pill-tab" type="button">Invalid</button>
+      <button class="pill-tab" type="button">No score</button>
+    </div>
+    <span style="flex:1"></span>
+    <!-- Group by toggle present — this is list view -->
+    <div class="groupby-seg">
+      <button class="groupby-btn" type="button">Task</button>
+      <button class="groupby-btn active" type="button">Model</button>
+    </div>
+    <div class="select-ghost">Model: all 3 <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" width="12" height="12"><path d="M4 6 L8 10 L12 6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+    <div class="view-seg">
+      <button class="view-seg-btn active" type="button"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M2 4h12M2 8h12M2 12h12" stroke-linecap="round"/></svg></button>
+      <button class="view-seg-btn" type="button"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="1.5" y="1.5" width="5.5" height="5.5" rx="1"/><rect x="9" y="1.5" width="5.5" height="5.5" rx="1"/><rect x="1.5" y="9" width="5.5" height="5.5" rx="1"/><rect x="9" y="9" width="5.5" height="5.5" rx="1"/></svg></button>
+    </div>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <colgroup>
+        <col class="col-cb"/>
+        <col class="col-task"/>
+        <col class="col-reward"/>
+        <col class="col-attempts"/>
+        <col class="col-turns"/>
+        <col class="col-dur"/>
+        <col class="col-cost"/>
+        <col class="col-act"/>
+      </colgroup>
+      <thead>
+        <tr>
+          <th class="cb-col"></th>
+          <th>Model / Task / Trace</th>
+          <th class="num">Reward</th>
+          <th class="num">Traces</th>
+          <th class="num">Turns</th>
+          <th class="num">Duration</th>
+          <th class="num">Cost</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+
+        <!-- gpt-4o model section — EXPANDED
+             overall reward 0.81, 14 traces, win-rate 67% (won 9/14 tasks best avg) -->
+        <tr class="model-section-header" aria-expanded="true">
+          <td class="cb-col">
+            <input class="row-checkbox" type="checkbox" aria-label="Select all gpt-4o traces" onclick="event.stopPropagation()" />
+          </td>
+          <td>
+            <div class="model-section-cell">
+              <span class="model-section-chevron">▼</span>
+              <span class="model-section-name">gpt-4o</span>
+              <span class="model-section-stat model-section-reward-success">0.81</span>
+              <span class="model-section-stat">14 traces</span>
+              <span class="model-section-stat">$0.87 total</span>
+              <span class="model-section-win-rate">win-rate 67%</span>
+            </div>
+          </td>
+          <td></td><td></td><td></td><td></td><td></td><td></td>
+        </tr>
+
+        <!-- Task row under gpt-4o — current parent row shape, single model lens, no strip -->
+        <tr class="row-task-in-model" aria-expanded="false">
+          <td class="cb-col">
+            <input class="row-checkbox" type="checkbox" aria-label="Select all gpt-4o traces of task 0001" onclick="event.stopPropagation()" />
+          </td>
+          <td>
+            <div class="task-cell-in-model">
+              <span class="task-chevron">▼</span>
+              <span class="task-id-parent">0001</span>
+              <span class="task-prompt-parent">Reach the 2048 tile by merging the two 1024s in the bottom row.</span>
+              <span class="attempts-pill">3 traces</span>
+            </div>
+          </td>
+          <td class="reward-cell reward-cell-success num">0.8100<span class="metric-suffix">avg</span></td>
+          <td class="mono num muted">3 / 3</td>
+          <td class="mono num">5.3<span class="metric-suffix">avg</span></td>
+          <td class="mono num muted">2m 18s<span class="metric-suffix">avg</span></td>
+          <td class="mono num">$0.0310<span class="metric-suffix">total</span></td>
+          <td></td>
+        </tr>
+
+        <tr class="row-task-in-model" aria-expanded="false">
+          <td class="cb-col">
+            <input class="row-checkbox" type="checkbox" aria-label="Select all gpt-4o traces of task 0002" onclick="event.stopPropagation()" />
+          </td>
+          <td>
+            <div class="task-cell-in-model">
+              <span class="task-chevron">▼</span>
+              <span class="task-id-parent">0002</span>
+              <span class="task-prompt-parent">Consolidate the left column first — getting a 512 in the corner will unlock the merge chain.</span>
+              <span class="attempts-pill">3 traces</span>
+            </div>
+          </td>
+          <td class="reward-cell reward-cell-success num">0.7900<span class="metric-suffix">avg</span></td>
+          <td class="mono num muted">3 / 3</td>
+          <td class="mono num">5.8<span class="metric-suffix">avg</span></td>
+          <td class="mono num muted">2m 27s<span class="metric-suffix">avg</span></td>
+          <td class="mono num">$0.0288<span class="metric-suffix">total</span></td>
+          <td></td>
+        </tr>
+
+        <!-- qwen2.5-14b model section — COLLAPSED -->
+        <tr class="model-section-header" aria-expanded="false">
+          <td class="cb-col">
+            <input class="row-checkbox" type="checkbox" aria-label="Select all qwen traces" onclick="event.stopPropagation()" />
+          </td>
+          <td>
+            <div class="model-section-cell">
+              <span class="model-section-chevron">▼</span>
+              <span class="model-section-name">qwen2.5-14b</span>
+              <span class="model-section-stat model-section-reward-success">0.73</span>
+              <span class="model-section-stat">14 traces</span>
+              <span class="model-section-stat">$0.68 total</span>
+              <span class="model-section-win-rate">win-rate 22%</span>
+            </div>
+          </td>
+          <td></td><td></td><td></td><td></td><td></td><td></td>
+        </tr>
+
+        <!-- llama-3.1-8b model section — COLLAPSED -->
+        <tr class="model-section-header" aria-expanded="false">
+          <td class="cb-col">
+            <input class="row-checkbox" type="checkbox" aria-label="Select all llama traces" onclick="event.stopPropagation()" />
+          </td>
+          <td>
+            <div class="model-section-cell">
+              <span class="model-section-chevron">▼</span>
+              <span class="model-section-name">llama-3.1-8b</span>
+              <span class="model-section-stat model-section-reward-warning">0.65</span>
+              <span class="model-section-stat">14 traces</span>
+              <span class="model-section-stat">$0.50 total</span>
+              <span class="model-section-win-rate">win-rate 11%</span>
+            </div>
+          </td>
+          <td></td><td></td><td></td><td></td><td></td><td></td>
+        </tr>
+
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ===========================================================================
+       CARD VIEW — alternate render
+       Multi-model addition: model dot badge (APP-LEVEL color at call site).
+       Shown below for preview — in production only one view renders at a time.
+       D-C applied: Group by toggle ABSENT in card view filter bar (dead UI gate).
+       Model filter chip stays — it filters cards the same way it filters list view.
+       =========================================================================== -->
+  <div class="view-divider">
+    <hr />
+    <span class="view-divider-caption">— Card view (alternate render — Group by toggle absent; Model filter remains) —</span>
+    <hr />
+  </div>
+
+  <!-- Card view filter bar — NO Group by toggle (D-C: absent in card view) -->
+  <div class="filter-bar" style="opacity:0.55;pointer-events:none;">
+    <div class="search-wrap">
+      <svg class="search-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+        <circle cx="6.5" cy="6.5" r="4"/>
+        <path d="M10 10 L13.5 13.5" stroke-linecap="round"/>
+      </svg>
+      <input class="search-input" type="search" placeholder="Search tasks…" aria-label="Search tasks" disabled />
+    </div>
+    <div class="pill-filter">
+      <button class="pill-tab active" type="button">All <span style="opacity:.6">(88)</span></button>
+      <button class="pill-tab" type="button">Scored</button>
+      <button class="pill-tab" type="button">Invalid</button>
+      <button class="pill-tab" type="button">No score</button>
+    </div>
+    <span style="flex:1"></span>
+    <!-- Group by toggle intentionally absent — card view has no group-rendering mechanism -->
+    <div class="select-ghost">Model: all 3 <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" width="12" height="12"><path d="M4 6 L8 10 L12 6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+    <div class="view-seg">
+      <button class="view-seg-btn" type="button"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M2 4h12M2 8h12M2 12h12" stroke-linecap="round"/></svg></button>
+      <button class="view-seg-btn active" type="button"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="1.5" y="1.5" width="5.5" height="5.5" rx="1"/><rect x="9" y="1.5" width="5.5" height="5.5" rx="1"/><rect x="1.5" y="9" width="5.5" height="5.5" rx="1"/><rect x="9" y="9" width="5.5" height="5.5" rx="1"/></svg></button>
+    </div>
+  </div>
+
+  <div class="card-grid">
+
+    <!-- Card 1 — task 0001 · gpt-4o · scored 0.91 · success -->
+    <div class="run-card" role="button" tabindex="0" aria-label="Open trace a3f1b2c9">
+      <button class="run-card-kebab" type="button" aria-label="Actions" onclick="event.stopPropagation()">⋮</button>
+      <div class="run-card-preview">
+        <div class="run-card-preview-chrome">
+          <span class="chrome-dot chrome-dot-red"></span>
+          <span class="chrome-dot chrome-dot-amber"></span>
+          <span class="chrome-dot chrome-dot-green"></span>
+        </div>
+        <div class="run-card-preview-canvas">
+          <div class="tile-grid">
+            <div class="tile tile-empty"></div><div class="tile tile-2">2</div><div class="tile tile-16">16</div><div class="tile tile-512">512</div>
+            <div class="tile tile-4">4</div><div class="tile tile-8">8</div><div class="tile tile-64">64</div><div class="tile tile-1024">1024</div>
+            <div class="tile tile-empty"></div><div class="tile tile-2">2</div><div class="tile tile-32">32</div><div class="tile tile-256">256</div>
+            <div class="tile tile-empty"></div><div class="tile tile-empty"></div><div class="tile tile-4">4</div><div class="tile tile-128">128</div>
+          </div>
+        </div>
+        <div class="run-card-meta-badge">
+          ↺ Turns 4
+          <span class="meta-badge-dot">·</span>
+          ⚙ Tools 4
+          <span class="meta-badge-dot">·</span>
+          ⏱ 1:55
+          <span class="reward-pill reward-pill-success">91%</span>
+        </div>
+      </div>
+      <div class="run-card-body">
+        <div class="run-card-title-row">
+          <div class="run-card-avatar">A</div>
+          <div class="run-card-prompt">Reach the 2048 tile by merging the two 1024s in the bottom row.</div>
+        </div>
+        <!-- Multi-model: model name with color dot. APP-LEVEL composition of existing tokens. -->
+        <div class="run-card-model-row">
+          <span class="model-dot model-dot-gpt4o"></span>
+          <span class="run-card-model">gpt-4o</span>
+        </div>
+        <div class="run-card-footer-meta">task 0001 · a3f1b2c9 · 22 min ago</div>
+      </div>
+    </div>
+
+    <!-- Card 2 — task 0001 · qwen2.5-14b · scored 0.82 · success -->
+    <div class="run-card" role="button" tabindex="0" aria-label="Open trace 7c4e8d12">
+      <button class="run-card-kebab" type="button" aria-label="Actions" onclick="event.stopPropagation()">⋮</button>
+      <div class="run-card-preview">
+        <div class="run-card-preview-chrome">
+          <span class="chrome-dot chrome-dot-red"></span>
+          <span class="chrome-dot chrome-dot-amber"></span>
+          <span class="chrome-dot chrome-dot-green"></span>
+        </div>
+        <div class="run-card-preview-canvas">
+          <div class="tile-grid">
+            <div class="tile tile-2">2</div><div class="tile tile-4">4</div><div class="tile tile-8">8</div><div class="tile tile-32">32</div>
+            <div class="tile tile-empty"></div><div class="tile tile-16">16</div><div class="tile tile-64">64</div><div class="tile tile-128">128</div>
+            <div class="tile tile-4">4</div><div class="tile tile-empty"></div><div class="tile tile-32">32</div><div class="tile tile-256">256</div>
+            <div class="tile tile-2">2</div><div class="tile tile-8">8</div><div class="tile tile-16">16</div><div class="tile tile-512">512</div>
+          </div>
+        </div>
+        <div class="run-card-meta-badge">
+          ↺ Turns 5
+          <span class="meta-badge-dot">·</span>
+          ⚙ Tools 5
+          <span class="meta-badge-dot">·</span>
+          ⏱ 2:41
+          <span class="reward-pill reward-pill-success">82%</span>
+        </div>
+      </div>
+      <div class="run-card-body">
+        <div class="run-card-title-row">
+          <div class="run-card-avatar">A</div>
+          <div class="run-card-prompt">Reach the 2048 tile by merging the two 1024s in the bottom row.</div>
+        </div>
+        <div class="run-card-model-row">
+          <span class="model-dot model-dot-qwen"></span>
+          <span class="run-card-model">qwen2.5-14b</span>
+        </div>
+        <div class="run-card-footer-meta">task 0001 · 7c4e8d12 · 28 min ago</div>
+      </div>
+    </div>
+
+    <!-- Card 3 — task 0001 · llama-3.1-8b · scored 0.71 · success (barely) -->
+    <div class="run-card" role="button" tabindex="0" aria-label="Open trace 3b9f5a22">
+      <button class="run-card-kebab" type="button" aria-label="Actions" onclick="event.stopPropagation()">⋮</button>
+      <div class="run-card-preview">
+        <div class="run-card-preview-chrome">
+          <span class="chrome-dot chrome-dot-red"></span>
+          <span class="chrome-dot chrome-dot-amber"></span>
+          <span class="chrome-dot chrome-dot-green"></span>
+        </div>
+        <div class="run-card-preview-canvas">
+          <div class="tile-grid">
+            <div class="tile tile-4">4</div><div class="tile tile-8">8</div><div class="tile tile-32">32</div><div class="tile tile-256">256</div>
+            <div class="tile tile-2">2</div><div class="tile tile-16">16</div><div class="tile tile-64">64</div><div class="tile tile-1024">1024</div>
+            <div class="tile tile-empty"></div><div class="tile tile-4">4</div><div class="tile tile-128">128</div><div class="tile tile-512">512</div>
+            <div class="tile tile-2">2</div><div class="tile tile-8">8</div><div class="tile tile-16">16</div><div class="tile tile-64">64</div>
+          </div>
+        </div>
+        <div class="run-card-meta-badge">
+          ↺ Turns 7
+          <span class="meta-badge-dot">·</span>
+          ⚙ Tools 7
+          <span class="meta-badge-dot">·</span>
+          ⏱ 2:58
+          <span class="reward-pill reward-pill-success">71%</span>
+        </div>
+      </div>
+      <div class="run-card-body">
+        <div class="run-card-title-row">
+          <div class="run-card-avatar">A</div>
+          <div class="run-card-prompt">Reach the 2048 tile by merging the two 1024s in the bottom row.</div>
+        </div>
+        <div class="run-card-model-row">
+          <span class="model-dot model-dot-llama"></span>
+          <span class="run-card-model">llama-3.1-8b</span>
+        </div>
+        <div class="run-card-footer-meta">task 0001 · 3b9f5a22 · 35 min ago</div>
+      </div>
+    </div>
+
+    <!-- Card 4 — task 0002 · gpt-4o · scored 0.79 · warning-border success -->
+    <div class="run-card" role="button" tabindex="0" aria-label="Open trace e92c0d41">
+      <button class="run-card-kebab" type="button" aria-label="Actions" onclick="event.stopPropagation()">⋮</button>
+      <div class="run-card-preview">
+        <div class="run-card-preview-chrome">
+          <span class="chrome-dot chrome-dot-red"></span>
+          <span class="chrome-dot chrome-dot-amber"></span>
+          <span class="chrome-dot chrome-dot-green"></span>
+        </div>
+        <div class="run-card-preview-canvas">
+          <div class="tile-grid">
+            <div class="tile tile-empty"></div><div class="tile tile-empty"></div><div class="tile tile-4">4</div><div class="tile tile-128">128</div>
+            <div class="tile tile-2">2</div><div class="tile tile-8">8</div><div class="tile tile-64">64</div><div class="tile tile-512">512</div>
+            <div class="tile tile-empty"></div><div class="tile tile-16">16</div><div class="tile tile-32">32</div><div class="tile tile-256">256</div>
+            <div class="tile tile-2">2</div><div class="tile tile-4">4</div><div class="tile tile-8">8</div><div class="tile tile-1024">1024</div>
+          </div>
+        </div>
+        <div class="run-card-meta-badge">
+          ↺ Turns 6
+          <span class="meta-badge-dot">·</span>
+          ⚙ Tools 6
+          <span class="meta-badge-dot">·</span>
+          ⏱ 2:33
+          <span class="reward-pill reward-pill-success">79%</span>
+        </div>
+      </div>
+      <div class="run-card-body">
+        <div class="run-card-title-row">
+          <div class="run-card-avatar">A</div>
+          <div class="run-card-prompt">Consolidate the left column first — getting a 512 in the corner will unlock the merge chain.</div>
+        </div>
+        <div class="run-card-model-row">
+          <span class="model-dot model-dot-gpt4o"></span>
+          <span class="run-card-model">gpt-4o</span>
+        </div>
+        <div class="run-card-footer-meta">task 0002 · e92c0d41 · 41 min ago</div>
+      </div>
+    </div>
+
+    <!-- Card 5 — task 0002 · qwen2.5-14b · scored 0.62 · warning -->
+    <div class="run-card" role="button" tabindex="0" aria-label="Open trace f4d17803">
+      <button class="run-card-kebab" type="button" aria-label="Actions" onclick="event.stopPropagation()">⋮</button>
+      <div class="run-card-preview">
+        <div class="run-card-preview-chrome">
+          <span class="chrome-dot chrome-dot-red"></span>
+          <span class="chrome-dot chrome-dot-amber"></span>
+          <span class="chrome-dot chrome-dot-green"></span>
+        </div>
+        <div class="run-card-preview-canvas">
+          <div class="tile-grid">
+            <div class="tile tile-empty"></div><div class="tile tile-2">2</div><div class="tile tile-4">4</div><div class="tile tile-32">32</div>
+            <div class="tile tile-empty"></div><div class="tile tile-empty"></div><div class="tile tile-8">8</div><div class="tile tile-64">64</div>
+            <div class="tile tile-2">2</div><div class="tile tile-4">4</div><div class="tile tile-16">16</div><div class="tile tile-128">128</div>
+            <div class="tile tile-2">2</div><div class="tile tile-8">8</div><div class="tile tile-32">32</div><div class="tile tile-256">256</div>
+          </div>
+        </div>
+        <div class="run-card-meta-badge">
+          ↺ Turns 8
+          <span class="meta-badge-dot">·</span>
+          ⚙ Tools 8
+          <span class="meta-badge-dot">·</span>
+          ⏱ 3:12
+          <span class="reward-pill reward-pill-warning">62%</span>
+        </div>
+      </div>
+      <div class="run-card-body">
+        <div class="run-card-title-row">
+          <div class="run-card-avatar">A</div>
+          <div class="run-card-prompt">Consolidate the left column first — getting a 512 in the corner will unlock the merge chain.</div>
+        </div>
+        <div class="run-card-model-row">
+          <span class="model-dot model-dot-qwen"></span>
+          <span class="run-card-model">qwen2.5-14b</span>
+        </div>
+        <div class="run-card-footer-meta">task 0002 · f4d17803 · 49 min ago</div>
+      </div>
+    </div>
+
+    <!-- Card 6 — task 0002 · llama-3.1-8b · NOT RUN · neutral -->
+    <div class="run-card" role="button" tabindex="0" aria-label="Open trace 0e2a5c19" style="opacity:.75;">
+      <button class="run-card-kebab" type="button" aria-label="Actions" onclick="event.stopPropagation()">⋮</button>
+      <div class="run-card-preview">
+        <div class="run-card-preview-chrome">
+          <span class="chrome-dot chrome-dot-red"></span>
+          <span class="chrome-dot chrome-dot-amber"></span>
+          <span class="chrome-dot chrome-dot-green"></span>
+        </div>
+        <div class="run-card-preview-canvas">
+          <div class="tile-grid">
+            <div class="tile tile-empty"></div><div class="tile tile-empty"></div><div class="tile tile-empty"></div><div class="tile tile-empty"></div>
+            <div class="tile tile-empty"></div><div class="tile tile-empty"></div><div class="tile tile-empty"></div><div class="tile tile-empty"></div>
+            <div class="tile tile-empty"></div><div class="tile tile-empty"></div><div class="tile tile-empty"></div><div class="tile tile-empty"></div>
+            <div class="tile tile-empty"></div><div class="tile tile-empty"></div><div class="tile tile-empty"></div><div class="tile tile-empty"></div>
+          </div>
+        </div>
+        <div class="run-card-meta-badge">
+          ↺ Turns 0
+          <span class="meta-badge-dot">·</span>
+          ⚙ Tools 0
+          <span class="meta-badge-dot">·</span>
+          ⏱ —
+          <span class="reward-pill reward-pill-neutral">—</span>
+        </div>
+      </div>
+      <div class="run-card-body">
+        <div class="run-card-title-row">
+          <div class="run-card-avatar" style="background:var(--secondary-surface);color:var(--meta-foreground);">A</div>
+          <div class="run-card-prompt" style="color:var(--muted-foreground);">Consolidate the left column first — getting a 512 in the corner will unlock the merge chain.</div>
+        </div>
+        <div class="run-card-model-row">
+          <span class="model-dot model-dot-llama" style="opacity:0.4;"></span>
+          <span class="run-card-model" style="color:var(--meta-foreground);">llama-3.1-8b</span>
+        </div>
+        <div class="run-card-footer-meta">task 0002 · 0e2a5c19 · not run</div>
+      </div>
+    </div>
+
+  </div><!-- /.card-grid -->
+
+</div><!-- /.traces-tab -->
+
+</body>
+</html>
