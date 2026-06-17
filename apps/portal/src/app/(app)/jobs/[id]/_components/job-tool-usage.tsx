@@ -90,7 +90,6 @@ function FilterBar({ tasks, filter, onFilterChange }: FilterBarProps) {
         aria-label="Filter tool usage by task"
         value={filter}
         onValueChange={onFilterChange}
-        size="sm"
       >
         <SegmentedControl.Item value="all">All Runs</SegmentedControl.Item>
         {tasks.map((t) => (

@@ -199,7 +199,7 @@ export function JobTracesPanel({
         />
       </div>
 
-      {/* Filter row — search + state pills + Group by (N≥2) + Model filter (N≥2) + view toggle */}
+      {/* Filter row — search + state pills + Model filter (N≥2) | Group by (N≥2, list-only) + view toggle */}
       <div className="flex shrink-0 items-center gap-2">
         <Input
           type="search"
@@ -236,6 +236,13 @@ export function JobTracesPanel({
             count={counts["no-score"]}
           />
         </div>
+        {isMultiModel && (
+          <ModelFilterDropdown
+            models={models}
+            selected={modelFilter}
+            onChange={setModelFilter}
+          />
+        )}
         <span className="flex-1" />
         {/* Group by is LIST-view-only — card view has no group-rendering
             mechanism. Switching back to list restores the previous selection. */}
@@ -248,13 +255,6 @@ export function JobTracesPanel({
             <SegmentedControl.Item value="task">Task</SegmentedControl.Item>
             <SegmentedControl.Item value="model">Model</SegmentedControl.Item>
           </SegmentedControl>
-        )}
-        {isMultiModel && (
-          <ModelFilterDropdown
-            models={models}
-            selected={modelFilter}
-            onChange={setModelFilter}
-          />
         )}
         <SegmentedControl
           aria-label="View mode"
