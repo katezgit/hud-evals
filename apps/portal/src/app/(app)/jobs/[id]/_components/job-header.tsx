@@ -203,7 +203,7 @@ function EvalActions({
 
   return (
     <>
-      <Button variant="secondary" size="sm" onClick={handleRerun}>
+      <Button variant="secondary" onClick={handleRerun}>
         <RotateCcw aria-hidden="true" />
         Rerun Eval
       </Button>
@@ -215,7 +215,6 @@ function EvalActions({
           <span tabIndex={trainGated ? 0 : -1} className={cn(trainGated && "cursor-not-allowed")}>
             <Button
               variant="primary"
-              size="sm"
               disabled={trainGated}
               onClick={handleTrain}
               title={trainTitle}
@@ -263,11 +262,11 @@ function TrainActions({ detail }: { detail: JobDetail }) {
 
   return (
     <>
-      <Button variant="secondary" size="sm" onClick={handleRerunTraining}>
+      <Button variant="secondary" onClick={handleRerunTraining}>
         <RotateCcw aria-hidden="true" />
         Rerun Training
       </Button>
-      <Button variant="primary" size="sm" onClick={handleRunEval}>
+      <Button variant="primary" onClick={handleRunEval}>
         <Play aria-hidden="true" />
         Run Eval
       </Button>
@@ -289,18 +288,18 @@ function QaAnalysisActions({ detail }: { detail: JobDetail }) {
 
   return (
     <>
-      <Button variant="secondary" size="sm" onClick={handleExport}>
+      <Button variant="secondary" onClick={handleExport}>
         <Download aria-hidden="true" />
         Export Report
       </Button>
       {highSev > 0 && (
-        <Button variant="primary" size="sm" onClick={handleReview}>
+        <Button variant="primary" onClick={handleReview}>
           <ListChecks aria-hidden="true" />
           Review Findings
         </Button>
       )}
       {highSev === 0 && (
-        <Button variant="primary" size="sm" onClick={handleOpenTraces}>
+        <Button variant="primary" onClick={handleOpenTraces}>
           <Eye aria-hidden="true" />
           Open Traces
         </Button>

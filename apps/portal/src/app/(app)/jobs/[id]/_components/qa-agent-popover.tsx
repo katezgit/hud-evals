@@ -70,7 +70,7 @@ export function QaAgentMainButton({ scope, agents }: QaAgentMainButtonProps) {
       scope={scope}
       agents={agents}
       trigger={
-        <Button variant="secondary" size="sm">
+        <Button variant="secondary">
           <ClipboardCheck aria-hidden="true" />
           Run Analysis
           <ChevronDown aria-hidden="true" className="text-meta-foreground" />
