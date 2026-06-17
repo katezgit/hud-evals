@@ -248,11 +248,11 @@ function SidebarBody({
         <CreditsPill state={creditState} />
       )}
       {collapsed ? (
-        <div className="mx-1.5 mb-3 mt-1">
+        <div className="mx-1.5 mb-3 mt-1 border-t border-border pt-2">
           <AvatarMenuCollapsed user={user} currentOrg={currentOrg} />
         </div>
       ) : (
-        <div className="px-2 pb-2">
+        <div className="border-t border-border px-2 pt-2 pb-2">
           <AvatarMenu user={user} currentOrg={currentOrg} />
         </div>
       )}
