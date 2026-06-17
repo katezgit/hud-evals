@@ -59,9 +59,38 @@ function useSlideIndicator(
   }, [listRef])
 
   // Initial measurement — before paint to avoid slide-from-zero on appear.
+  // Also:
+  //   1. ResizeObserver on the active trigger — retriggers whenever the trigger
+  //      reflows (web font swap, content change, container resize). This is the
+  //      primary fix for the font-load race where useLayoutEffect fires with
+  //      fallback-font metrics before the web font is ready.
+  //   2. document.fonts.ready — belt-and-suspenders for environments where
+  //      ResizeObserver fires before the font metrics settle.
   React.useLayoutEffect(() => {
     measure()
-  }, [measure])
+
+    const list = listRef.current
+    if (!list) return
+
+    // ResizeObserver: remeasure when the active trigger changes size.
+    if (typeof ResizeObserver !== "undefined") {
+      const activeTrigger = list.querySelector<HTMLElement>("[data-state='active']")
+      if (activeTrigger) {
+        const ro = new ResizeObserver(() => measure())
+        ro.observe(activeTrigger)
+        // font-ready remeasure (belt-and-suspenders)
+        if (typeof document !== "undefined" && document.fonts?.ready) {
+          document.fonts.ready.then(() => measure())
+        }
+        return () => ro.disconnect()
+      }
+    }
+
+    // Fallback: font-ready only (no ResizeObserver available)
+    if (typeof document !== "undefined" && document.fonts?.ready) {
+      document.fonts.ready.then(() => measure())
+    }
+  }, [measure, listRef])
 
   // Re-measure on active-trigger changes (attribute mutation on any child).
   React.useEffect(() => {
@@ -99,7 +128,7 @@ function TabsList({
   ...props
 }: TabsListProps) {
   const listRef = React.useRef<HTMLDivElement>(null)
-  const geo = useSlideIndicator(listRef)
+  const geo = useSlideIndicator(variant === "segmented" ? listRef : { current: null })
 
   // Sliding indicator — aria-hidden span positioned behind triggers.
   // transition uses CSS var() directly (not Tailwind utility) because it lives in
@@ -140,14 +169,7 @@ function TabsList({
             style={indicatorStyle}
           />
         )}
-        {variant === "underline" && (
-          <span
-            aria-hidden
-            data-slot="tabs-indicator"
-            className="absolute bottom-0 h-0.5 bg-primary pointer-events-none"
-            style={indicatorStyle}
-          />
-        )}
+
         {children}
       </TabsPrimitive.List>
     </TabsVariantContext.Provider>
@@ -181,17 +203,16 @@ function TabsTrigger({
         variant === "underline" && [
           "relative z-10 cursor-pointer",
           "px-1.5 py-2 text-body font-medium whitespace-nowrap",
-          // Per-trigger bottom border: transparent at rest, painted on inactive hover.
-          // Active trigger's bar is owned by the list's absolute indicator (h-0.5 = 2px).
+          // CSS-only — no measurement, no JS indicator span for this variant.
           "border-b-2 border-transparent",
           "data-[state=inactive]:hover:border-border-strong",
-          // Text color fades on --motion-state-change simultaneously with indicator slide.
+          "data-[state=active]:border-primary",
           "transition-colors prop-(--motion-state-change)",
           // Inactive: muted text
           "text-meta-foreground",
           // Hover inactive: foreground text
           "hover:text-foreground",
-          // Active: foreground text (indicator owns the bottom bar, no border class needed)
+          // Active: foreground text
           "data-[state=active]:text-foreground",
           // Disabled
           "disabled:text-text-disabled disabled:cursor-not-allowed disabled:pointer-events-none",
