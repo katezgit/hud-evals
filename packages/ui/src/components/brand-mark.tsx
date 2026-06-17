@@ -1,31 +1,28 @@
 // shadcn-source: from-scratch-approved:operator-2026-05-29 (n/a, 2026-05-29)
-// BrandMark — Instrument Precision v1.
-// Composite: brand gold square mark ("H") + "HUD" mono wordmark.
+// BrandMark — canonical notched-viewport mark + gold dot lockup.
+// Converged from apps/portal shell identity (commit 7136caa).
 // Spec: docs/design/components/brand-mark/instrument-precision-v1.md
 
 import * as React from "react"
 import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@repo/ui/lib/cn"
 
-// ── Mark (gold square) ──────────────────────────────────────────────────────
+// ── Mark (notched SVG) ────────────────────────────────────────────────────────
 
-const markVariants = cva(
-  "inline-flex items-center justify-center select-none shrink-0",
-  {
-    variants: {
-      size: {
-        default: "size-[26px] rounded-[7px] text-[14px]", // eslint-disable-line no-restricted-syntax -- bespoke brand mark dimensions: 26px size, 7px radius, 14px text; no tokens for these values
-        sm:      "size-5 rounded-[5px] text-[11px]", // eslint-disable-line no-restricted-syntax -- bespoke brand mark sm: 5px radius, 11px text; no tokens for these values
-      },
+const markVariants = cva("shrink-0 text-foreground", {
+  variants: {
+    size: {
+      default: "size-5", // 20px — hero/onboarding context
+      sm:      "size-4", // 16px — auth-card context
     },
-    defaultVariants: { size: "default" },
-  }
-)
+  },
+  defaultVariants: { size: "default" },
+})
 
 // ── Wordmark ──────────────────────────────────────────────────────────────────
 
 const wordmarkVariants = cva(
-  "font-mono font-semibold tracking-[.06em] text-foreground select-none",
+  "font-mono font-medium tracking-widest text-muted-foreground select-none",
   {
     variants: {
       size: {
@@ -39,28 +36,21 @@ const wordmarkVariants = cva(
 
 // ── Composite wrapper ─────────────────────────────────────────────────────────
 
-const brandMarkVariants = cva(
-  "inline-flex items-center gap-2 select-none",
-  {
-    variants: {
-      size: {
-        default: "",
-        sm:      "",
-      },
+const brandMarkVariants = cva("inline-flex items-center gap-2 select-none", {
+  variants: {
+    size: {
+      default: "",
+      sm:      "",
     },
-    defaultVariants: { size: "default" },
-  }
-)
+  },
+  defaultVariants: { size: "default" },
+})
 
 // ── Props ─────────────────────────────────────────────────────────────────────
 
 export interface BrandMarkProps
   extends React.HTMLAttributes<HTMLSpanElement>,
     VariantProps<typeof brandMarkVariants> {
-  /** Render the gradient (brand → brand-hover). false → solid bg-brand only. Default: true */
-  gradient?: boolean
-  /** Render the outer glow halo. The inset highlight is always present. Default: true */
-  glow?: boolean
   /** Render the "HUD" wordmark beside the mark. Default: true */
   wordmark?: boolean
 }
@@ -68,27 +58,7 @@ export interface BrandMarkProps
 // ── Component ─────────────────────────────────────────────────────────────────
 
 const BrandMark = React.forwardRef<HTMLSpanElement, BrandMarkProps>(
-  (
-    {
-      className,
-      size = "default",
-      gradient = true,
-      glow = true,
-      wordmark = true,
-      ...props
-    },
-    ref
-  ) => {
-    // Box shadow: outer glow (optional) + inset highlight (always)
-    const markShadow = glow
-      ? "0 0 12px var(--color-brand-glow), inset 0 1px 0 rgba(255,255,255,.25)"
-      : "inset 0 1px 0 rgba(255,255,255,.25)"
-
-    // Background: gradient or solid brand
-    const markBg = gradient
-      ? "bg-gradient-to-br from-brand to-brand-hover"
-      : "bg-brand"
-
+  ({ className, size = "default", wordmark = true, ...props }, ref) => {
     return (
       <span
         ref={ref}
@@ -99,16 +69,29 @@ const BrandMark = React.forwardRef<HTMLSpanElement, BrandMarkProps>(
         className={cn(brandMarkVariants({ size }), className)}
         {...props}
       >
-        {/* Mark — gold square with "H" */}
-        <span
-          aria-hidden="true"
-          className={cn(markVariants({ size }), markBg, "font-mono font-bold text-brand-foreground")}
-          style={{ boxShadow: markShadow }}
-        >
-          H
+        {/* Notched-viewport SVG mark + gold dot */}
+        <span aria-hidden="true" className="relative">
+          <svg
+            aria-hidden="true"
+            viewBox="0 0 16 16"
+            fill="currentColor"
+            xmlns="http://www.w3.org/2000/svg"
+            className={markVariants({ size })}
+          >
+            <path
+              fillRule="evenodd"
+              clipRule="evenodd"
+              d="M12 0H0V16H16V4H12V0ZM13 4H3V13H13V4Z"
+            />
+          </svg>
+          {/* Gold dot — only chromatic occurrence in the lockup */}
+          <span
+            aria-hidden="true"
+            className="absolute -top-0.5 -right-0.5 size-1 rounded-full bg-brand"
+          />
         </span>
 
-        {/* Wordmark — uppercase "HUD" */}
+        {/* Wordmark — "HUD" mono */}
         {wordmark && (
           <span aria-hidden="true" className={wordmarkVariants({ size })}>
             HUD

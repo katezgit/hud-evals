@@ -8,7 +8,6 @@ import {
   getCoreRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { Card } from "@repo/ui/components/card";
 import { EmptyState } from "@repo/ui/components/empty-state";
 import { SearchInput } from "@repo/ui/components/search-input";
 import {
@@ -202,7 +201,7 @@ function LogsView({ logs }: { logs: ReadonlyArray<Log> }) {
         </Select>
       </div>
 
-      <Card className="mt-4 overflow-hidden p-0">
+      <div className="mt-4 overflow-hidden rounded-md border border-border bg-card">
         <div className="overflow-x-auto">
           <LogsTable
             rows={filtered}
@@ -211,7 +210,7 @@ function LogsView({ logs }: { logs: ReadonlyArray<Log> }) {
             onToggle={(id) => setExpandedId((curr) => (curr === id ? null : id))}
           />
         </div>
-      </Card>
+      </div>
     </div>
   );
 }

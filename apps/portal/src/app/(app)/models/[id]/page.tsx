@@ -37,8 +37,8 @@ export default async function ModelDetailPage({
   const ownershipClass = deriveOwnershipClass(model, viewer);
 
   return (
-    <div className="page-shell min-h-full gap-2">
-      <ModelDetailHeader model={model} />
+    <div className="page-shell min-h-full">
+      <ModelDetailHeader model={model} tasksetResults={tasksetResults} />
       <ModelDetailTabs
         model={model}
         viewer={viewer}

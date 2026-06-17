@@ -115,7 +115,7 @@ export function PodConfigSection() {
         aria-labelledby="pod-config-title"
         className={cn(
           "scroll-mt-32 transition-colors duration-fast ease-out-standard",
-          drawerOpen && "border-primary bg-primary-glow",
+          drawerOpen && "border-border-strong bg-selected-surface",
         )}
       >
         <CardContent>

@@ -40,7 +40,7 @@ export default function ManageTable<TData>({ table, bordered }: ManageTableProps
     <div
       className={cn(
         "relative w-full overflow-x-auto",
-        bordered && "overflow-hidden rounded-md border border-border",
+        bordered && "overflow-hidden rounded-md border border-border bg-card",
       )}
     >
       <table className={tableClass}>

@@ -19,19 +19,19 @@ export function OrganizationFields() {
         </Field>
       </FieldRow>
 
-      <FieldRow cols={1} className="mt-3">
+      <FieldRow cols={1} className="mt-4">
         <Field label="Primary business address">
           <Input defaultValue={orgAddress.line1} disabled />
         </Field>
       </FieldRow>
 
-      <FieldRow cols={1} className="mt-3">
+      <FieldRow cols={1} className="mt-4">
         <Field label="Address line 2">
           <Input defaultValue={orgAddress.line2} disabled />
         </Field>
       </FieldRow>
 
-      <FieldRow cols={2} className="mt-3">
+      <FieldRow cols={2} className="mt-4">
         <Field label="Country">
           <Input defaultValue={orgAddress.country} disabled />
         </Field>
@@ -40,7 +40,7 @@ export function OrganizationFields() {
         </Field>
       </FieldRow>
 
-      <FieldRow cols={2} className="mt-3">
+      <FieldRow cols={2} className="mt-4">
         <Field label="City">
           <Input defaultValue={orgAddress.city} disabled />
         </Field>

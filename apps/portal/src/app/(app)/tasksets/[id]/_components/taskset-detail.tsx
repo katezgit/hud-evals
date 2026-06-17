@@ -73,7 +73,7 @@ export default function TasksetDetail({ taskset }: TasksetDetailProps) {
           // visible header content is capped at 1536 via the inner wrapper. See
           // docs/design/guidelines/app-shell-layout.md §2.
           className={cn(
-            "sticky top-0 z-page-chrome bg-background pt-6",
+            "sticky top-0 z-page-chrome bg-panel pt-6",
             // Scroll-cue: border slot is always occupied (border-b) so flipping
             // border-color does not shift layout. Pattern mirrors DialogHeader.
             "border-b",
@@ -84,7 +84,7 @@ export default function TasksetDetail({ taskset }: TasksetDetailProps) {
         >
           <div className="page-shell block py-0">
             <TasksetDetailHeader taskset={taskset} />
-            <TabsList variant="underline" className="border-b-0">
+            <TabsList variant="underline">
               <TabsTrigger value="overview">Overview</TabsTrigger>
               <TabsTrigger value="tasks">Tasks</TabsTrigger>
               <TabsTrigger value="jobs">Jobs</TabsTrigger>

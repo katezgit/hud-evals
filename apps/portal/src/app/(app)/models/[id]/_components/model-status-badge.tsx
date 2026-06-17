@@ -13,15 +13,9 @@ const STATUS_VARIANT: Record<ModelStatus, "success" | "warning" | "destructive">
   failed: "destructive",
 };
 
-export function ModelStatusBadge({
-  status,
-  size = "default",
-}: {
-  status: ModelStatus;
-  size?: "default" | "sm";
-}) {
+export function ModelStatusBadge({ status }: { status: ModelStatus }) {
   return (
-    <Badge variant={STATUS_VARIANT[status]} size={size} showDot>
+    <Badge variant={STATUS_VARIANT[status]} showDot>
       {STATUS_LABEL[status]}
     </Badge>
   );

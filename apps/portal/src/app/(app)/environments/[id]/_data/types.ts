@@ -95,6 +95,12 @@ export interface Scenario {
    * the IA doc flags a future API decision on multi-taskset shape.
    */
   usedBy?: string;
+  /**
+   * Canonical Taskset.id that resolves `usedBy` to a real record. Pairs with
+   * the display string so a future Scenario card link navigates to a working
+   * taskset detail page. Populated only when `usedBy` is set.
+   */
+  usedByTasksetId?: string;
 }
 
 export interface ToolParam {
@@ -122,6 +128,14 @@ export interface Tool {
 
 export type BuildStatus = "SUCCEEDED" | "FAILED" | "BUILDING" | "QUEUED";
 
+export interface BuildChanges {
+  toolsAdded: number;
+  toolsRemoved: number;
+  scenariosAdded: number;
+  scenariosRemoved: number;
+  filesChanged: number;
+}
+
 export interface Build {
   id: string;
   /** Semver string. */
@@ -135,21 +149,52 @@ export interface Build {
   duration: string | null;
   /** Relative timestamp ("3h ago"). */
   deployedAt: string;
+  /**
+   * Diff vs the previous build — drives the Changes column. `null` only for
+   * QUEUED builds where the source has not yet been resolved.
+   */
+  changes: BuildChanges | null;
 }
 
 // ── Instances tab ───────────────────────────────────────────────────────────
 
-export type InstanceStatus = "running" | "idle" | "terminated";
+/**
+ * Instance lifecycle state. `terminated` was demoted — it conflated success
+ * and failure. Past runs are now `completed` (green) or `failed` (red); live
+ * runs are `running` or `idle`.
+ */
+export type InstanceStatus = "running" | "idle" | "completed" | "failed";
 
+/**
+ * One past or live run of a scenario against this env. The tab is forensics-
+ * framed: time-range, status, and free-text search filter the list; date
+ * groups + a stats strip provide aggregate signal. `startedAtMs` is epoch ms
+ * so date math + grouping work without a date library.
+ */
 export interface Instance {
+  /** Short hex id, rendered as `41e1826b`. */
   id: string;
   status: InstanceStatus;
+  /** Epoch ms — primary key for grouping + time-range filter. */
+  startedAtMs: number;
+  /** Human-readable duration ("2m 14s"). */
+  duration: string;
+  /** USD cost label ("$0.04"). */
+  cost: string;
   /** Model or agent identifier. */
   modelOrAgent: string;
-  /** Relative start time ("12m ago"). */
-  startedAt: string;
-  /** Human-readable duration ("12m 4s"). */
-  duration: string;
+  /** Free-text task prompt — the row's visual anchor. */
+  taskDescription: string;
+  /** Scenario id (e.g. "browser:answer"). */
+  scenarioName: string;
+  /** Reward in [0,1]; only meaningful when status === "completed". */
+  score?: number;
+  /** Initiator — drives avatar + name in the row. */
+  user: { name: string };
+  /** Sandbox tier label ("1 vCPU / 4GB"). */
+  resourceTier: string;
+  /** Max session length ("10m"). */
+  sessionDuration: string;
 }
 
 // ── Per-env tab visibility ──────────────────────────────────────────────────

@@ -31,7 +31,7 @@ export function UsageView() {
         </div>
       ) : null}
 
-      <div className="mb-4 grid gap-3 md:grid-cols-3">
+      <div className="mb-4 grid gap-4 md:grid-cols-3">
         <StatCard
           label="Credits remaining"
           value={`${NUMBER.format(creditState.balance)} / ${NUMBER.format(creditState.total)}`}
@@ -74,7 +74,7 @@ export function UsageView() {
           ) : undefined
         }
       >
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-4">
           {limits.map((limit) => {
             const percent = Math.round((limit.current / limit.max) * 100);
             return (

@@ -88,7 +88,7 @@ export const Variants: Story = {
             <AccordionTrigger
               icon={<AccordionStepIcon stepState="completed" />}
               subtitle="Complete"
-              badge={<Badge variant="success" size="sm">Done</Badge>}
+              badge={<Badge variant="success">Done</Badge>}
             >
               Install SDK
             </AccordionTrigger>

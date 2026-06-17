@@ -81,14 +81,17 @@ export default function DangerZoneSection({
               />
               Permanently delete &lsquo;{tasksetName}&rsquo;?
             </DialogTitle>
-            <DialogDescription>
+            <DialogDescription className="sr-only">
+              Confirm permanent deletion of Taskset {tasksetName}.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogBody className="flex flex-col gap-4">
+            <p className="text-body text-foreground">
               Deleting {tasksetName} will permanently remove this Taskset, all
               Tasks within it, and unlink it from existing Jobs. Job history
               stays; the Taskset link becomes broken. This action cannot be
               undone.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogBody>
+            </p>
             <FormField
               id={inputId}
               label="Type the Taskset name to confirm:"

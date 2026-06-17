@@ -43,7 +43,7 @@ export function OverviewTab({
     <div className="flex flex-col gap-8">
       <section
         aria-labelledby="overview-about-heading"
-        className="flex flex-col gap-3 scroll-mt-32"
+        className="flex flex-col gap-4 scroll-mt-32"
       >
         <h2
           id="overview-about-heading"
@@ -88,7 +88,7 @@ export function OverviewTab({
         <section
           id="scenarios-section"
           aria-labelledby="overview-scenarios-heading"
-          className="flex flex-col gap-3 scroll-mt-32"
+          className="flex flex-col gap-4 scroll-mt-32"
         >
           <header className="flex flex-col gap-1">
             <h2
@@ -105,7 +105,7 @@ export function OverviewTab({
           </header>
 
           {missingRequired.length > 0 && (
-            <div className="flex flex-col items-start gap-2 rounded-md border border-state-warning/40 bg-state-warning-subtle p-3 md:flex-row md:items-center md:justify-between md:gap-3">
+            <div className="flex flex-col items-start gap-2 rounded-md bg-state-warning-subtle p-3 md:flex-row md:items-center md:justify-between md:gap-3">
               <div className="flex items-start gap-2 md:items-center">
                 <AlertTriangle
                   aria-hidden="true"
@@ -125,7 +125,7 @@ export function OverviewTab({
               </div>
               <Link
                 href={`/environments/${env.id}?tab=settings`}
-                className="shrink-0 text-primary hover:underline"
+                className="shrink-0 text-primary hover:underline md:ml-auto"
               >
                 Configure in Settings →
               </Link>

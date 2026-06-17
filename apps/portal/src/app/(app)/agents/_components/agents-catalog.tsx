@@ -2,17 +2,12 @@
 
 import { useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Bot, CircleHelp, Plus } from "lucide-react";
+import { Bot, Plus } from "lucide-react";
 import { Button } from "@repo/ui/components/button";
 import { EmptyState } from "@repo/ui/components/empty-state";
 import { IconButton } from "@repo/ui/components/icon-button";
 import { SearchInput } from "@repo/ui/components/search-input";
-import { Tabs, TabsList, TabsTrigger } from "@repo/ui/components/tabs";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@repo/ui/components/tooltip";
+import { SegmentedControl } from "@repo/ui/components/segmented-control";
 import { cn } from "@repo/ui/lib/cn";
 import { usePageScrolled } from "@repo/libs/hooks";
 import {
@@ -28,27 +23,31 @@ import { PresetAgentDetailDrawer } from "./preset-agent-detail-drawer";
 import { UserAgentCard } from "./user-agent-card";
 import { UserAgentDetailDrawer } from "./user-agent-detail-drawer";
 
-type TabKey = AgentKind;
+type TabKey = "all" | AgentKind;
 
 interface AgentsCatalogProps {
   presetAgents: ReadonlyArray<PresetAgent>;
   userAgents: ReadonlyArray<UserAgent>;
 }
 
+// Discriminated union — both card variants render through one grid pass.
+type CatalogEntry =
+  | { variant: "preset"; agent: PresetAgent; kind: "qa" }
+  | { variant: "user"; agent: UserAgent; kind: AgentKind };
+
 export function AgentsCatalog({
   presetAgents,
   userAgents: seedUserAgents,
 }: AgentsCatalogProps) {
-  // Subscribe to the live store so newly-created agents from the +New Agent
-  // drawer appear immediately. Server-rendered seed is used as the initial
-  // value and as the SSR snapshot.
+  // Subscribe to the live store so newly-created agents from the create drawer
+  // appear immediately. Server-rendered seed is the initial + SSR snapshot.
   const userAgents = useSyncExternalStore(
     subscribeUserAgents,
     getUserAgents,
     () => seedUserAgents,
   );
   const [query, setQuery] = useState("");
-  const [tab, setTab] = useState<TabKey>("automation");
+  const [tab, setTab] = useState<TabKey>("all");
 
   const searchParams = useSearchParams();
   const inspectId = searchParams.get("inspect");
@@ -58,33 +57,45 @@ export function AgentsCatalog({
 
   const q = query.trim().toLowerCase();
 
-  const matchesQuery = (
-    a: { name: string; description: string; scenarioId: string; model: string },
-  ) => {
-    if (q === "") return true;
-    return (
-      a.name.toLowerCase().includes(q) ||
-      a.description.toLowerCase().includes(q) ||
-      a.scenarioId.toLowerCase().includes(q) ||
-      a.model.toLowerCase().includes(q)
-    );
-  };
+  // Merge presets + user agents into one search-filtered universe.
+  // Built-in (preset) always sorts first; user agents follow by createdOrder.
+  const universe: ReadonlyArray<CatalogEntry> = useMemo(() => {
+    const matches = (text: string) => text.toLowerCase().includes(q);
+    const matchesAny = (
+      a: { name: string; description: string; scenarioId: string; model: string },
+    ) =>
+      q === "" ||
+      matches(a.name) ||
+      matches(a.description) ||
+      matches(a.scenarioId) ||
+      matches(a.model);
 
-  const filteredPresets = useMemo(
-    () => presetAgents.filter(matchesQuery),
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- matchesQuery closes over q only
-    [presetAgents, q],
+    const presetEntries: CatalogEntry[] = presetAgents
+      .filter(matchesAny)
+      .map((p) => ({ variant: "preset", agent: p, kind: "qa" }));
+
+    const userEntries: CatalogEntry[] = [...userAgents]
+      .sort((a, b) => a.createdOrder - b.createdOrder)
+      .filter(matchesAny)
+      .map((u) => ({ variant: "user", agent: u, kind: u.kind }));
+
+    return [...presetEntries, ...userEntries];
+  }, [presetAgents, userAgents, q]);
+
+  const counts = useMemo(
+    () => ({
+      all: universe.length,
+      qa: universe.filter((e) => e.kind === "qa").length,
+      automation: universe.filter((e) => e.kind === "automation").length,
+      chat: universe.filter((e) => e.kind === "chat").length,
+    }),
+    [universe],
   );
 
-  const userByKind = useMemo(() => {
-    const matching = userAgents.filter(matchesQuery);
-    return {
-      qa: matching.filter((a) => a.kind === "qa"),
-      automation: matching.filter((a) => a.kind === "automation"),
-      chat: matching.filter((a) => a.kind === "chat"),
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [userAgents, q]);
+  const visible = useMemo(
+    () => (tab === "all" ? universe : universe.filter((e) => e.kind === tab)),
+    [universe, tab],
+  );
 
   return (
     <div className="flex min-h-full flex-col">
@@ -93,7 +104,7 @@ export function AgentsCatalog({
       <div
         ref={stickyRef}
         className={cn(
-          "sticky top-0 z-page-chrome bg-background pt-6",
+          "sticky top-0 z-page-chrome bg-panel pt-6",
           "border-b",
           scrolled ? "border-border" : "border-transparent",
           scrolled ? "shadow-scroll-cue" : "shadow-none",
@@ -102,20 +113,24 @@ export function AgentsCatalog({
       >
         <div className="page-shell block py-0">
           <header className="flex flex-col gap-4 pb-6">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <h1 className="text-display font-medium text-foreground">Agents</h1>
-              <div className="sm:hidden">
-                <NewAgentIconButton />
+            <div className="page-header">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <h1 className="text-display font-medium text-foreground">Agents</h1>
+                <div className="hidden sm:block">
+                  <NewAgentButton />
+                </div>
+                <div className="sm:hidden">
+                  <NewAgentIconButton />
+                </div>
               </div>
+
+              <p className="max-w-2xl text-body text-muted-foreground">
+                Agents connect a model to an environment scenario. Run QA on
+                tasksets, automations on CI, or chat for interactive sessions.
+              </p>
             </div>
 
-            <p className="max-w-2xl text-body">
-              Agents connect a model to an environment scenario. Create
-              automations for CI, QA agents for taskset analysis, or chat agents
-              for interactive conversations.
-            </p>
-
-            <div className="flex flex-wrap items-center justify-end gap-3">
+            <div className="flex flex-wrap items-center gap-4">
               <div className="w-full max-w-sm">
                 <SearchInput
                   defaultValue=""
@@ -124,190 +139,90 @@ export function AgentsCatalog({
                   aria-label="Search agents"
                 />
               </div>
-              <div className="hidden sm:block">
-                <NewAgentButton />
-              </div>
+              <SegmentedControl
+                value={tab}
+                onValueChange={(v) => setTab(v as TabKey)}
+                aria-label="Filter by agent kind"
+              >
+                <SegmentedControl.Item value="all">
+                  <SegmentLabel label="All" count={counts.all} />
+                </SegmentedControl.Item>
+                <SegmentedControl.Item value="qa">
+                  <SegmentLabel label="QA" count={counts.qa} />
+                </SegmentedControl.Item>
+                <SegmentedControl.Item value="automation">
+                  <SegmentLabel label="Automation" count={counts.automation} />
+                </SegmentedControl.Item>
+                <SegmentedControl.Item value="chat">
+                  <SegmentLabel label="Chat" count={counts.chat} />
+                </SegmentedControl.Item>
+              </SegmentedControl>
             </div>
           </header>
         </div>
       </div>
 
       <div className="page-shell">
-        <PresetSection
-          presets={filteredPresets}
-          hasQuery={q !== ""}
-          inspectId={inspectId}
-        />
-
-        <UserSection
-          agents={userByKind[tab]}
+        <AgentGrid
+          entries={visible}
           tab={tab}
-          onTabChange={setTab}
-          counts={{
-            qa: userByKind.qa.length,
-            automation: userByKind.automation.length,
-            chat: userByKind.chat.length,
-          }}
-          hasUserAgentsAtAll={userAgents.length > 0}
-          hasQuery={q !== ""}
           inspectId={inspectId}
+          hasQuery={q !== ""}
         />
       </div>
     </div>
   );
 }
 
-function PresetSection({
-  presets,
-  hasQuery,
-  inspectId,
-}: {
-  presets: ReadonlyArray<PresetAgent>;
-  hasQuery: boolean;
-  inspectId: string | null;
-}) {
+function SegmentLabel({ label, count }: { label: string; count: number }) {
   return (
-    <section aria-labelledby="standard-agents-heading" className="flex flex-col gap-3">
-      <div className="flex items-center gap-1.5">
-        <h2
-          id="standard-agents-heading"
-          className="text-subtitle font-semibold text-foreground"
-        >
-          Built-in QA Agents
-        </h2>
-        <Tooltip>
-          <TooltipTrigger
-            type="button"
-            aria-label="About Built-in QA Agents"
-            className="inline-flex items-center justify-center rounded-sm text-muted-foreground hover:text-foreground focus-visible:shadow-focus-ring outline-hidden"
-          >
-            <CircleHelp aria-hidden="true" className="size-3.5" />
-          </TooltipTrigger>
-          <TooltipContent>
-            Configuration is fixed. Attach to a taskset to run.
-          </TooltipContent>
-        </Tooltip>
-      </div>
-
-      {presets.length === 0 ? (
-        <p className="text-body text-muted-foreground">
-          {hasQuery
-            ? "No built-in agents match."
-            : "No built-in agents available."}
-        </p>
-      ) : (
-        <ul
-          aria-label="Built-in QA Agents"
-          className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3"
-        >
-          {presets.map((p) => (
-            <li key={p.id} className="flex">
-              <PresetAgentCard agent={p} selected={p.id === inspectId} />
-            </li>
-          ))}
-        </ul>
-      )}
-    </section>
+    <>
+      {label}
+      <span className="font-mono text-meta tabular-nums text-muted-foreground">
+        {count}
+      </span>
+    </>
   );
 }
 
-interface UserSectionProps {
-  agents: ReadonlyArray<UserAgent>;
-  tab: TabKey;
-  onTabChange: (next: TabKey) => void;
-  counts: Record<TabKey, number>;
-  hasUserAgentsAtAll: boolean;
-  hasQuery: boolean;
-  inspectId: string | null;
-}
-
-function UserSection({
-  agents,
+function AgentGrid({
+  entries,
   tab,
-  onTabChange,
-  counts,
-  hasUserAgentsAtAll,
-  hasQuery,
   inspectId,
-}: UserSectionProps) {
-  return (
-    <section aria-labelledby="your-agents-heading" className="flex flex-col gap-3">
-      <h2
-        id="your-agents-heading"
-        className="text-subtitle font-semibold text-foreground"
-      >
-        My Agents
-      </h2>
-
-      <Tabs
-        value={tab}
-        onValueChange={(v) => onTabChange(v as TabKey)}
-        className="gap-0"
-      >
-        <TabsList variant="underline">
-          <TabsTrigger value="automation">
-            Automations
-            <TabCount value={counts.automation} />
-          </TabsTrigger>
-          <TabsTrigger value="chat">
-            Chat
-            <TabCount value={counts.chat} />
-          </TabsTrigger>
-          <TabsTrigger value="qa">
-            QA
-            <TabCount value={counts.qa} />
-          </TabsTrigger>
-        </TabsList>
-      </Tabs>
-
-      <UserResults
-        agents={agents}
-        tab={tab}
-        hasUserAgentsAtAll={hasUserAgentsAtAll}
-        hasQuery={hasQuery}
-        inspectId={inspectId}
-      />
-    </section>
-  );
-}
-
-function TabCount({ value }: { value: number }) {
-  return (
-    <span className="ml-1.5 font-mono text-caption tabular-nums text-muted-foreground">
-      {value}
-    </span>
-  );
-}
-
-function UserResults({
-  agents,
-  tab,
-  hasUserAgentsAtAll,
   hasQuery,
-  inspectId,
 }: {
-  agents: ReadonlyArray<UserAgent>;
+  entries: ReadonlyArray<CatalogEntry>;
   tab: TabKey;
-  hasUserAgentsAtAll: boolean;
-  hasQuery: boolean;
   inspectId: string | null;
+  hasQuery: boolean;
 }) {
-  if (agents.length > 0) {
+  if (entries.length > 0) {
     return (
       <ul
-        aria-label="Your Agents"
+        aria-label="Agents"
         className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3"
       >
-        {agents.map((a) => (
-          <li key={a.id} className="flex">
-            <UserAgentCard agent={a} selected={a.id === inspectId} />
-          </li>
-        ))}
+        {entries.map((e) =>
+          e.variant === "preset" ? (
+            <li key={e.agent.id} className="flex">
+              <PresetAgentCard
+                agent={e.agent}
+                selected={e.agent.id === inspectId}
+              />
+            </li>
+          ) : (
+            <li key={e.agent.id} className="flex">
+              <UserAgentCard
+                agent={e.agent}
+                selected={e.agent.id === inspectId}
+              />
+            </li>
+          ),
+        )}
       </ul>
     );
   }
 
-  // Empty: search active and matched zero — show muted one-liner.
   if (hasQuery) {
     return (
       <p className="text-body text-muted-foreground">
@@ -316,38 +231,31 @@ function UserResults({
     );
   }
 
-  // Empty: no user agents at all (any tab) — show the canonical zero state.
-  if (!hasUserAgentsAtAll) {
-    return <ZeroUserAgents />;
-  }
-
-  // Has user agents, but selected sub-tab is empty.
-  return <ZeroOfKind tab={tab} />;
+  return <ZeroForTab tab={tab} />;
 }
 
-function ZeroUserAgents() {
+function ZeroForTab({ tab }: { tab: TabKey }) {
+  // `all` and `qa` can't be empty without a query — built-ins always exist.
+  // Only `automation` and `chat` reach this state (when user has none of that kind).
+  const cmd =
+    tab === "chat"
+      ? "hud agent create --type chat"
+      : tab === "automation"
+        ? "hud agent create --type automation"
+        : "hud agent create --type qa";
+  const label =
+    tab === "all"
+      ? ""
+      : tab === "automation"
+        ? "automation"
+        : tab === "chat"
+          ? "chat"
+          : "QA";
   return (
     <EmptyState
       variant="zero-state"
       icon={Bot}
-      title="No agents yet"
-      subtitle="Create one from the CLI:"
-      cta={
-        <pre className="rounded-md border border-border bg-muted-surface px-3 py-2 font-mono text-code text-foreground">
-          {`hud agent create --type qa\nhud agent create --type automation`}
-        </pre>
-      }
-    />
-  );
-}
-
-function ZeroOfKind({ tab }: { tab: TabKey }) {
-  const cmd = CLI_BY_TAB[tab];
-  return (
-    <EmptyState
-      variant="zero-state"
-      icon={Bot}
-      title={`No ${LABEL_BY_TAB[tab]} agents yet`}
+      title={tab === "all" ? "No agents yet" : `No ${label} agents yet`}
       subtitle="Create one from the CLI:"
       cta={
         <pre className="rounded-md border border-border bg-muted-surface px-3 py-2 font-mono text-code text-foreground">
@@ -373,7 +281,7 @@ function NewAgentButton() {
   return (
     <Button variant="primary" onClick={handleClick}>
       <Plus aria-hidden="true" />
-      Add Agent
+      Create Agent
     </Button>
   );
 }
@@ -384,7 +292,7 @@ function NewAgentIconButton() {
     <IconButton
       variant="primary"
       size="sm"
-      aria-label="Add Agent"
+      aria-label="Create Agent"
       onClick={handleClick}
     >
       <Plus aria-hidden="true" />
@@ -408,15 +316,3 @@ function InspectDrawerMount({
   if (userAgent) return <UserAgentDetailDrawer agent={userAgent} />;
   return null;
 }
-
-const LABEL_BY_TAB: Record<TabKey, string> = {
-  qa: "QA",
-  automation: "Automation",
-  chat: "Chat",
-};
-
-const CLI_BY_TAB: Record<TabKey, string> = {
-  qa: "hud agent create --type qa --scenario trace-explorer:failure_analysis",
-  automation: "hud agent create --type automation --scenario trace-explorer:prompt_alignment_analysis",
-  chat: "hud agent create --type chat --scenario trace-explorer:failure_analysis",
-};

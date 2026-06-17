@@ -27,7 +27,7 @@ export function NewEnvironmentShell() {
         // visible header content is capped at 1536 via the inner wrapper. See
         // docs/design/guidelines/app-shell-layout.md §2.
         className={cn(
-          "sticky top-0 z-page-chrome bg-background pt-6",
+          "sticky top-0 z-page-chrome bg-panel pt-6",
           // Scroll-cue: border slot is always occupied so flipping
           // border-color does not shift layout.
           "border-b",
@@ -56,15 +56,17 @@ export function NewEnvironmentShell() {
                 New
               </span>
             </nav>
-            <h1 className="text-display font-semibold text-foreground">
-              Let&apos;s create your custom environment
-            </h1>
-            <p className="text-body text-muted-foreground">
-              The fastest path is the CLI{" "}
-              <code className="font-mono text-code">hud init</code> scaffolds a
-              working environment in seconds. Or fork a template repo below to
-              start from a known-good shape.
-            </p>
+            <div className="page-header">
+              <h1 className="text-display font-semibold text-foreground">
+                Let&apos;s create your custom environment
+              </h1>
+              <p className="text-body text-muted-foreground">
+                The fastest path is the CLI{" "}
+                <code className="font-mono text-code">hud init</code> scaffolds a
+                working environment in seconds. Or fork a template repo below to
+                start from a known-good shape.
+              </p>
+            </div>
           </header>
         </div>
       </div>

@@ -9,17 +9,12 @@ const meta: Meta<typeof Badge> = {
       control: "select",
       options: ["neutral", "success", "running", "info", "beta", "warning", "destructive"],
     },
-    size: {
-      control: "select",
-      options: ["default", "sm"],
-    },
     showDot: { control: "boolean" },
     children: { control: "text" },
   },
   args: {
     children: "Badge",
     variant: "neutral",
-    size: "default",
     showDot: false,
   },
 }
@@ -47,11 +42,6 @@ export const Variants: Story = {
         <Badge variant="running">Running</Badge>
         <Badge variant="warning">Warning</Badge>
         <Badge variant="destructive">Destructive</Badge>
-      </div>
-      <div className="flex flex-wrap gap-3">
-        <Badge variant="neutral" size="sm">Neutral sm</Badge>
-        <Badge variant="success" size="sm">Success sm</Badge>
-        <Badge variant="running" size="sm">Running sm</Badge>
       </div>
       <div className="flex flex-wrap gap-3">
         <Badge variant="success" showDot>Scored</Badge>

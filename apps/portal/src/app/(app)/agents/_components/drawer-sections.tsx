@@ -20,7 +20,7 @@ function formatCost(value: number): string {
 }
 
 const SECTION_HEADING_CLASS =
-  "text-label font-medium uppercase text-muted-foreground";
+  "font-sans text-label font-medium text-foreground";
 
 // Schema field types render as title-case proper nouns (Number, String, Boolean),
 // not acronyms — no `uppercase` and no paired `tracking-wide` letter-spacing.
@@ -158,7 +158,7 @@ export function FooterMetadata({
     <dl className="flex flex-col gap-1 text-label">
       <div className="flex items-baseline gap-2">
         <dt className="w-12 shrink-0 text-muted-foreground">Model</dt>
-        <dd className="flex min-w-0 items-baseline gap-1.5 text-foreground">
+        <dd className="flex min-w-0 items-baseline gap-1.5 text-muted-foreground">
           {/* translate-y-0.5 nudges the 16px provider glyph down so its
               optical center sits on the text baseline of the model string. */}
           <ProviderIcon
@@ -170,7 +170,7 @@ export function FooterMetadata({
       </div>
       <div className="flex items-baseline gap-2">
         <dt className="w-12 shrink-0 text-muted-foreground">Cost</dt>
-        <dd className="flex items-baseline gap-1 text-foreground">
+        <dd className="flex items-baseline gap-1 text-muted-foreground">
           <CostValue costPerRun={costPerRun} />
         </dd>
       </div>
@@ -197,7 +197,7 @@ function CostValue({ costPerRun }: { costPerRun: number | null }) {
   return (
     <span className="flex items-baseline gap-1">
       <span className="text-muted-foreground">~</span>
-      <span className="font-mono text-foreground">{formatCost(costPerRun)}</span>
+      <span className="font-mono text-muted-foreground">{formatCost(costPerRun)}</span>
       <span className="text-muted-foreground">per run</span>
       <Tooltip>
         <TooltipTrigger asChild>

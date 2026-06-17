@@ -11,6 +11,61 @@
 :root            { color-scheme: light; }
 [data-theme="dark"] { color-scheme: dark; }
 
+/* =============================================================================
+ * HUE RAMP OVERRIDE — drop-in fix for the cool-trio adjacency problem.
+ *
+ * Your semantic layer references --teal-*, --scored-*, --running-*, --warning-*,
+ * --errored-* but the primitive values were vibe-coded and unknown. This block
+ * redefines ONLY those five ramps with intentional hue spacing, so brand /
+ * success / in-progress never blur into each other.
+ *
+ * USAGE: import this AFTER your primitive.css so it wins the cascade. It leaves
+ * inks, surfaces, spacing, radius, gold, and everything else alone.
+ *
+ * RESULTING HUE MAP (max separation among the three cool "positive" signals):
+ *   errored  ~  0°   (red)     ── warm, far from everything
+ *   warning  ~ 32°   (amber-orange, nudged off yellow so it can't read as gold)
+ *   scored   ~148°   (success green)        ┐
+ *   teal     ~187°   (brand, cooled to cyan)├─ ~41° / ~34° apart, no longer adjacent
+ *   running  ~221°   (in-progress blue)     ┘
+ *
+ * The old teal sat ~170° (green-leaning) ~28° from success green — too close.
+ * Cooling it to a cyan-teal opens that gap while staying clearly "teal."
+ * 600 steps target light-mode legibility (dots + text on light surfaces);
+ * 400 steps are the brighter dark-mode fills.
+ * ============================================================================= */
+
+:root {
+  /* ─── BRAND TEAL — cyan-teal (~187°). Chrome only: buttons, tabs, links,
+   *     progress, focus ring. Cooled from green-teal to separate from success. */
+  --teal-400: #34C5CE;   /* dark-mode fills / accents (bright)        */
+  --teal-500: #18A8B5;   /* dark focus ring · primary-hover (dark)    */
+  --teal-600: #0E8B99;   /* light focus ring · chart-1 (light)        */
+  --teal-700: #0C7280;   /* light-mode primary fill                   */
+  --teal-800: #0A5A66;   /* primary-hover (light)                     */
+
+  /* ─── SCORED / SUCCESS — classic green (~148°). Status dot + text only.
+   *     Kept firmly green so it reads as "passed," well clear of brand teal. */
+  --scored-400: #46C97E;  /* dark-mode dot/text  */
+  --scored-600: #178A4E;  /* light-mode dot/text */
+
+  /* ─── RUNNING / IN-PROGRESS — blue (~221°). Pushed bluer for max gap vs teal. */
+  --running-400: #5AA0FF; /* dark  */
+  --running-600: #2A63DD; /* light */
+
+  /* ─── WARNING — amber-ORANGE (~32°), not yellow. Nudged toward orange so it
+   *     stays distinct from the gold brand mark (your note: "distinct from
+   *     warning to avoid status ambiguity" — this enforces it from both sides). */
+  --warning-400: #F5A33E; /* dark  */
+  --warning-600: #C26A0C; /* light */
+
+  /* ─── ERRORED / DESTRUCTIVE — red (~0°). Matched to the values already pinned
+   *     in your theme (focus-errored rgba(255,91,82)/(220,62,66) and the
+   *     destructive-hover steps) so the system stays internally consistent. */
+  --errored-400: #FF5B52; /* dark  · = rgb(255,91,82) */
+  --errored-600: #DC3E42; /* light · = rgb(220,62,66) */
+}
+
 /* ─── Color roles ────────────────────────────────────────────────────────────
  * Semantic --color-* roles are defined ONCE via light-dark(<lightPrimitive>, <darkPrimitive>).
  * Theme switching is controlled solely by color-scheme on :root — no per-token overrides.
@@ -40,6 +95,32 @@
   --color-page:              light-dark(var(--surface-page-light),     var(--surface-page-dark));
   --color-elevated-surface:  light-dark(var(--surface-elevated-light), var(--surface-elevated-dark));
 
+  /* Field-rest surface — the resting bg for Input / Textarea / Select / Combobox
+   * AND the strip bg for table headers. Both are "data chrome" — sunken slightly
+   * below the elevated card body but not as deep as bg-background (which holds
+   * the sidebar). Single token so the form field at rest visually pairs with the
+   * table heading in both modes (verified by operator preference).
+   * Light: #F6F8FA (matches bg-background slight-gray strip).
+   * Dark: 30% bg-background + 70% panel ≈ #10141C — soft sink, no hard band. */
+  --color-field-rest:        light-dark(
+    var(--surface-bg-light),
+    color-mix(in srgb, var(--surface-bg-dark) 30%, var(--surface-panel-dark) 70%)
+  );
+  /* Form-field border — calibrated separately from --color-border because the
+   * alpha that reads on page-bg (#0C1016) collapses when the field sits inside
+   * a card or dialog (#1B2433, the elevated surface). --color-border at 6% white
+   * lands BETWEEN the field fill and the card bg in dark mode → mushy edge.
+   * This token uses stronger alpha so the ring holds in both surface contexts.
+   * Light: .22 alpha (small bump from --color-border .15; sharpens on white cards).
+   * Dark:  .10 alpha — lifts border to ~L 26 over field fill #0F151D; one step
+   *        above card surface (L 25). Present-but-quiet ring, closer in perceptual
+   *        weight to the .06 table-divider hairlines but visible on the enclosed
+   *        4-sided box where field fill < card surface. */
+  --color-form-field-border: light-dark(
+    rgb(var(--border-seed-light) / .22),
+    rgb(var(--border-seed-dark) / .10)
+  );
+
   /* Typography — 3-tier reading hierarchy.
    *   foreground:       PRIMARY — body, headings, main values.
    *   muted-foreground: READ / ANCHOR — nav, subtitles, helper text, tooltip
@@ -65,8 +146,18 @@
   /* Borders — alpha-tinted hairlines, compose on any surface.
    *   border:        default hairline
    *   border-strong: +10pp alpha for selected/active edges */
-  --color-border:        light-dark(rgb(var(--border-seed-light) / .17),  rgb(var(--border-seed-dark) / .08));
+  --color-border:        light-dark(rgb(var(--border-seed-light) / .15),  rgb(var(--border-seed-dark) / .06));
   --color-border-strong: light-dark(rgb(var(--border-seed-light) / .28),  rgb(var(--border-seed-dark) / .18));
+  /* Progress track — the unfilled slot behind the fill bar.
+   * Light: matches muted-surface (#F0F2F6) — subtle gray well, fine on page bg.
+   * Dark: 12% white alpha over card/row surface (#1B2433) → visible slot without
+   *   being loud; border-strong sits at 18%, so 12% is "present but receding."
+   *   muted-surface dark (#1B2433) === card dark (#1B2433) → track disappears on
+   *   table rows; this dedicated token breaks the collision. */
+  --color-progress-track: light-dark(
+    var(--surface-muted-light),
+    rgb(var(--border-seed-dark) / .12)
+  );
   /* Progress neutral fill — PINNED both themes; see Progress spec Q10. */
   --color-progress-fill-neutral: #B3BFCE; /* PINNED */
 
@@ -126,9 +217,34 @@
   --color-border-disabled:  light-dark(#C8CDD6, #3A4455); /* PINNED — neutral-adjacent; not in palette ramp */
 
   /* Interaction surface — single token for hovered rows / interactive backdrops.
-   * Previously split as --color-hover + --color-surface-hover with identical values;
-   * unified here to remove the duplication. */
-  --color-hover-surface:    light-dark(var(--surface-elevated-light),  var(--surface-elevated-dark));
+   * Dark must LIFT above bg-card (control-raised → elevated-dark = #1B2433); a
+   * neutral white mix reads as "graveyard gray" against the navy/cyan theme.
+   * Mixing 8% teal-400 into elevated-dark instead → ~#1C333F, a cyan-tinted lift
+   * that matches the cool-toned palette + brand accent. Light stays at
+   * elevated-light — card is panel-white so the tier already lifts cleanly. */
+  --color-hover-surface:    light-dark(
+    var(--surface-elevated-light),
+    color-mix(in srgb, var(--surface-elevated-dark) 92%, var(--teal-400) 8%)
+  );
+  /* Sidebar-specific hover — two variants, one per shell surface.
+   *
+   * App shell sidebar sits on bg-muted-surface (= surface-elevated-dark in dark).
+   * --color-sidebar-hover: elevated-dark → lifts above muted-surface ✓
+   *
+   * Manage shell sidebar sits on bg-card (= surface-elevated-dark in dark, via
+   * --color-control-raised). Elevated-dark against elevated-dark = no visible lift.
+   * --color-sidebar-hover-manage: 12% white mixed into elevated-dark
+   *   → ≈ #373F4B — a neutral step clearly above #1B2433, stays in the
+   *   cool blue-gray family, no teal tint. Light: same elevated-light tier
+   *   (panel-light card → elevated-light lift, same visible step as app shell). */
+  --color-sidebar-hover:        light-dark(
+    var(--surface-elevated-light),
+    var(--surface-elevated-dark)
+  );
+  --color-sidebar-hover-manage: light-dark(
+    var(--surface-elevated-light),
+    color-mix(in srgb, var(--surface-elevated-dark) 88%, white 12%)
+  );
   --color-selected-surface: light-dark(var(--surface-secondary-light), var(--surface-secondary-dark));
   --color-control-raised:   light-dark(var(--surface-panel-light),     var(--surface-elevated-dark));
 
@@ -224,20 +340,24 @@
  *
  * Note: @theme self-targets @layer theme — no layer() annotation needed on the @import. */
 @theme {
-  /* Card — pure-white surface on light, near-black on dark, via --color-panel.
+  /* Card — asymmetric lift via --color-control-raised. Light: panel (#FFF) ===
+   * main page bg → relies on border + shadow for boundary. Dark: elevated
+   * (#161D28) → visibly lifts above panel-dark main. Page bg is bg-panel; card
+   * needs to read as a contained region without competing with main color.
    * Foreground inherits the canonical text color (--color-foreground). */
-  --color-card:            var(--color-panel);
+  --color-card:            var(--color-control-raised);
   --color-card-foreground: var(--color-foreground);
 
   /* Popover — same surface role as card. */
-  --color-popover:            var(--color-panel);
+  --color-popover:            var(--color-control-raised);
   --color-popover-foreground: var(--color-foreground);
 
   /* Form-field surface — raised background when a form field (Input, Textarea,
-   * Select, Combobox, MultiSelect) is focused or open. Tracks --color-panel so it
-   * stays at the same elevation as cards/popovers; named separately so the
-   * focus-lift intent is explicit at each call site. */
-  --color-form-field-surface: var(--color-panel);
+   * Select, Combobox, MultiSelect) is focused or open. Tracks --color-control-raised
+   * so it stays at the same elevation as cards/popovers (lifts in dark via
+   * surface-elevated-dark; matches main page in light, relies on border).
+   * Named separately so the focus-lift intent is explicit at each call site. */
+  --color-form-field-surface: var(--color-control-raised);
 }
 
 /* ─── Overlay roles ──────────────────────────────────────────────────────────

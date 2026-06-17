@@ -19,15 +19,13 @@ export default async function ItemsPage() {
   }
 
   return (
-    <div className="page-shell block">
-      <div className="flex flex-col gap-4">
-        <h1 className="text-display">Items</h1>
-        <ul className="flex flex-col gap-2">
-          {items.map((item) => (
-            <ItemRow key={item.id} item={item} />
-          ))}
-        </ul>
-      </div>
+    <div className="page-shell">
+      <h1 className="text-display">Items</h1>
+      <ul className="flex flex-col gap-2">
+        {items.map((item) => (
+          <ItemRow key={item.id} item={item} />
+        ))}
+      </ul>
     </div>
   );
 }

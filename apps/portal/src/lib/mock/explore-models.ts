@@ -71,6 +71,26 @@ export interface CatalogModel {
    * models tab. Omitted for public catalog models — they have no parent.
    */
   baseModelId?: string;
+  // ── Private-model-only metrics ──────────────────────────────────────────
+  // Surface on the Private tab column set (avg score across tasksets, owner,
+  // training/eval status). Public rows leave these undefined.
+  /** Training / eval lifecycle state. `"ready"` once a Run completed. */
+  status?: "ready" | "pending" | "failed";
+  /** Mean score across all tasksets this Model has been evaluated on (0..100). */
+  avgScore?: number;
+  /** Count of tasksets this Model has been evaluated on. */
+  tasksetCount?: number;
+  /** ISO-8601 timestamp of the most recent evaluation Run. */
+  lastEvaluatedAt?: string;
+  /** Display name of the user who created / owns this Model. */
+  ownerName?: string;
+  /**
+   * Taskset IDs (canonical, from `lib/mock/tasksets.ts`) this Model has been
+   * evaluated on. Populated for every private (org-trained) Model and every
+   * public Model with `avgScore` / `tasksetCount` defined. Drives the
+   * Models ↔ Tasksets cross-reference.
+   */
+  evaluatedTasksetIds?: ReadonlyArray<string>;
 }
 
 function spark(seed: number): ReadonlyArray<number> {
@@ -178,6 +198,19 @@ export const catalogModels: ReadonlyArray<CatalogModel> = [
     trainable: true,
     isPrivate: true,
     baseModelId: "claude-sonnet-4-5",
+    status: "ready",
+    avgScore: 81.3,
+    tasksetCount: 8,
+    lastEvaluatedAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+    ownerName: "Kate",
+    evaluatedTasksetIds: [
+      "hud-browser",
+      "osworld-verified",
+      "wikigames-2",
+      "menu-agent-regression",
+      "swe-bench-verified",
+      "rl-coding-eval",
+    ],
   },
   {
     name: "Claude Sonnet 4",
@@ -309,6 +342,18 @@ export const catalogModels: ReadonlyArray<CatalogModel> = [
     trainable: true,
     isPrivate: true,
     baseModelId: "gpt-5",
+    status: "ready",
+    avgScore: 74.2,
+    tasksetCount: 5,
+    lastEvaluatedAt: new Date(Date.now() - 18 * 60 * 60 * 1000).toISOString(),
+    ownerName: "Jason",
+    evaluatedTasksetIds: [
+      "hud-browser",
+      "osworld-verified",
+      "swe-bench-verified",
+      "rl-coding-eval",
+      "wikigames-2",
+    ],
   },
   {
     name: "GPT 4o",
@@ -474,6 +519,19 @@ export const catalogModels: ReadonlyArray<CatalogModel> = [
     trainable: true,
     isPrivate: true,
     baseModelId: "gpt-oss-120b",
+    status: "pending",
+    avgScore: 68.9,
+    tasksetCount: 7,
+    lastEvaluatedAt: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString(),
+    ownerName: "Team HUD",
+    evaluatedTasksetIds: [
+      "swe-bench-verified",
+      "rl-coding-eval",
+      "hud-browser",
+      "osworld-verified",
+      "wikigames-2",
+      "menu-agent-regression",
+    ],
   },
   {
     name: "Gpt Oss 120B",
@@ -525,6 +583,54 @@ export const catalogModels: ReadonlyArray<CatalogModel> = [
     trainable: false,
     isPrivate: true,
     baseModelId: "gpt-5",
+    status: "ready",
+    avgScore: 72.5,
+    tasksetCount: 4,
+    lastEvaluatedAt: new Date(Date.now() - 9 * 24 * 60 * 60 * 1000).toISOString(),
+    ownerName: "Priya",
+    evaluatedTasksetIds: [
+      "hud-browser",
+      "osworld-verified",
+      "menu-agent-regression",
+      "wikigames-2",
+    ],
+  },
+
+  // ── Qwen (Alibaba, hosted via Tinker) ─────────────────────────────────────
+  // Provider field uses "Tinker" because qwen OSS checkpoints are served on
+  // HUD via Tinker; adding "Alibaba" to ModelProvider would require updating
+  // the exhaustive-switch in provider-icon.tsx (a UI file we may not touch).
+  {
+    name: "Qwen2.5 14B",
+    provider: "Tinker",
+    modelId: "qwen2.5-14b",
+    usage: 42_000,
+    usageSparkline: spark(801),
+    reasoning: "unknown",
+    kind: "chat",
+    speed: "high",
+    tokensPerSecond: 82,
+    priceIn: 0,
+    priceOut: 0,
+    trainable: true,
+    isPrivate: false,
+    evaluatedTasksetIds: ["rl-coding-eval"],
+  },
+  {
+    name: "Qwen2.5 32B",
+    provider: "Tinker",
+    modelId: "qwen2.5-32b",
+    usage: 28_000,
+    usageSparkline: spark(802),
+    reasoning: "unknown",
+    kind: "chat",
+    speed: "high",
+    tokensPerSecond: 64,
+    priceIn: 0,
+    priceOut: 0,
+    trainable: true,
+    isPrivate: false,
+    evaluatedTasksetIds: ["rl-coding-eval"],
   },
 ];
 

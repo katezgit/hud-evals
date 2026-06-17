@@ -1,52 +1,64 @@
- import Link from "next/link";
-  import { ChevronRight } from "lucide-react";
-  import { VisibilityIcon } from "@repo/ui/components/visibility-icon";
-  import type { Model } from "../_data/types";
-  import { HeaderActions } from "./header-actions";
-  import { HeaderSubtitle } from "./header-subtitle";
-  import { JobsTrainingPill } from "./jobs-training-pill";
-  import { ModelStatusBadge } from "./model-status-badge";
+import Link from "next/link";
+import { ChevronRight } from "lucide-react";
+import type { Model, TasksetResult } from "../_data/types";
+import { HeaderActions } from "./header-actions";
+import { HeaderSubtitle } from "./header-subtitle";
+import { ModelStatusBadge } from "./model-status-badge";
 
-  export function ModelDetailHeader({ model }: { model: Model }) {
-    return (
-      <header className="flex flex-col gap-3 pt-2 pb-6">
-        <nav
-          aria-label="Breadcrumb"
-          className="flex items-center gap-1 text-label tracking-normal normal-case text-muted-foreground"
+export function ModelDetailHeader({
+  model,
+  tasksetResults,
+}: {
+  model: Model;
+  tasksetResults: ReadonlyArray<TasksetResult>;
+}) {
+  const lastEvaluatedAt = tasksetResults.reduce<string | null>((latest, r) => {
+    if (r.lastRunAt === null) return latest;
+    if (latest === null) return r.lastRunAt;
+    return Date.parse(r.lastRunAt) > Date.parse(latest) ? r.lastRunAt : latest;
+  }, null);
+
+  return (
+    <header className="flex flex-col gap-3">
+      <nav
+        aria-label="Breadcrumb"
+        className="flex items-center gap-1 text-label tracking-normal normal-case text-muted-foreground"
+      >
+        <Link
+          href="/models"
+          className="rounded-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
         >
-          <Link
-            href="/models"
-            className="rounded-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-          >
-            Models
-          </Link>
-          <ChevronRight aria-hidden="true" className="size-3 text-meta-foreground" />
-          <span aria-current="page" className="truncate text-foreground">
-            {model.displayName}
-          </span>
-        </nav>
-        <div className="flex items-start justify-between gap-6">
-          <div className="flex flex-col gap-1.5 min-w-0">
-            <div className="flex items-center gap-2">
-              <h1 className="truncate text-display font-semibold text-foreground">
-                {model.displayName}
-              </h1>
-              <ModelStatusBadge status={model.status} size="sm" />
-              <VisibilityIcon visibility={model.isPrivate ? "private" : "public"} />
-            </div>
-            <HeaderSubtitle model={model} />
+          Models
+        </Link>
+        <ChevronRight aria-hidden="true" className="size-3 text-meta-foreground" />
+        <span aria-current="page" className="truncate text-foreground">
+          {model.displayName}
+        </span>
+      </nav>
+      <div className="flex items-start justify-between gap-6">
+        <div className="flex min-w-0 flex-col page-header">
+          <div className="flex items-center gap-2">
+            <h1 className="truncate text-display font-semibold text-foreground">
+              {model.displayName}
+            </h1>
+            <ModelStatusBadge status={model.status} />
           </div>
-  
-          <div className="flex shrink-0 flex-col items-end gap-2">
-            <HeaderActions model={model} />
-            {model.activeTrainingJobsCount >= 1 && (
-              <JobsTrainingPill
-                modelId={model.id}
-                count={model.activeTrainingJobsCount}
-              />
-            )}
-          </div>
+          <HeaderSubtitle model={model} lastEvaluatedAt={lastEvaluatedAt} />
         </div>
-      </header>
-    );
-  }
+
+        <div className="flex shrink-0 flex-col items-end gap-2">
+          <HeaderActions model={model} />
+          {model.activeTrainingJobsCount >= 1 && (
+            <Link
+              href={`/jobs?source_model_id=${model.id}`}
+              className="inline-flex items-center gap-1.5 text-label text-muted-foreground transition-colors hover:text-foreground"
+            >
+              <span aria-hidden="true" className="size-1.5 rounded-full bg-muted-foreground" />
+              {model.activeTrainingJobsCount} {model.activeTrainingJobsCount === 1 ? "job" : "jobs"} running
+            </Link>
+          )}
+        </div>
+      </div>
+    </header>
+  );
+}

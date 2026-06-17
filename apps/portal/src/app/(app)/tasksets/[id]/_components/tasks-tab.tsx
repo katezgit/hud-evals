@@ -140,7 +140,7 @@ export default function TasksTab({ taskset }: TasksTabProps) {
           const r = info.row.original;
           return (
             <div className="flex flex-col items-start gap-1">
-              <Badge size="sm" variant="neutral">
+              <Badge variant="neutral">
                 {r.taskId} | v{r.taskVersion}
               </Badge>
               <span className="font-mono text-code text-muted-foreground">
@@ -206,7 +206,7 @@ export default function TasksTab({ taskset }: TasksTabProps) {
   }
 
   return (
-    <div className="flex flex-col gap-3 pb-4">
+    <div className="flex flex-col gap-4 pb-4">
       <div className="flex items-center gap-2">
         <TasksTabFilterChips
           applied={statsFilters}
@@ -319,18 +319,12 @@ function extractEnvironmentPrefixes(
 
 function CustomColumnHeader({ column }: { column: TasksetCustomColumn }) {
   return (
-    <span className="inline-flex items-baseline gap-1.5">
-      <span className="font-medium normal-case tracking-normal">
-        {column.label}
-      </span>
-      <Badge
-        size="sm"
-        variant="neutral"
-        className="border-transparent bg-transparent px-0 py-0 opacity-70"
-      >
+    <>
+      <span className="capitalize">{column.label}</span>
+      <span className="ml-1.5 font-mono text-meta text-meta-foreground">
         {column.type}
-      </Badge>
-    </span>
+      </span>
+    </>
   );
 }
 
@@ -390,7 +384,7 @@ function RewardBadge({ value }: { value: number }) {
   else variant = "neutral";
 
   return (
-    <Badge size="sm" variant={variant}>
+    <Badge variant={variant}>
       {pct}%
     </Badge>
   );

@@ -60,7 +60,7 @@ function renderJobBody({
 function JunctionLayout({ invalidType }: { invalidType?: string }) {
   return (
     <div className="flex h-full min-h-0 flex-col">
-      <div className="shrink-0 bg-background pt-6">
+      <div className="shrink-0 bg-panel pt-6">
         <div className="page-shell block py-0">
           <header className="flex flex-col gap-3 pt-2 pb-6">
             <nav
@@ -81,7 +81,7 @@ function JunctionLayout({ invalidType }: { invalidType?: string }) {
                 New job
               </span>
             </nav>
-            <div className="flex flex-col gap-1">
+            <div className="page-header">
               <h1 className="text-display font-semibold text-foreground">
                 New Job
               </h1>
@@ -94,7 +94,7 @@ function JunctionLayout({ invalidType }: { invalidType?: string }) {
       </div>
 
       <div className="flex-1 min-h-0 overflow-auto">
-        <div className="page-shell block py-0 pt-8 pb-8">
+        <div className="page-shell block py-0 pt-6 pb-8">
           <div className="mx-auto w-full max-w-[1100px]">
             <JunctionPicker invalidType={invalidType} />
           </div>

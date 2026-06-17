@@ -4,6 +4,14 @@ import { useState } from "react";
 import { Lock, Plus, X } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@repo/ui/components/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@repo/ui/components/card";
 import { Checkbox } from "@repo/ui/components/checkbox";
 import { IconButton } from "@repo/ui/components/icon-button";
 import { Input } from "@repo/ui/components/input";
@@ -73,65 +81,85 @@ export default function ProgressStepsSection({
   };
 
   return (
-    <section className="flex flex-col gap-3">
-      <h3 className="text-body font-semibold text-foreground">
-        Progress Steps
-      </h3>
-
-      <ol className="flex flex-col rounded-md border border-border bg-card">
-        <GoldenSequenceRow
-          checked={golden}
-          onChange={setGolden}
-          disabled={pending}
-        />
-        <KRunsRow />
-        {customSteps.map((s) => (
-          <CustomStepRow
-            key={s.id}
-            label={s.label}
-            onRemove={() => onRemoveCustom(s.id)}
+    <Card
+      id="taskset-progress-steps"
+      aria-labelledby="taskset-progress-steps-title"
+      className="scroll-mt-32"
+    >
+      <CardHeader>
+        <CardTitle>
+          <h2
+            id="taskset-progress-steps-title"
+            className="text-subtitle font-semibold text-foreground"
+          >
+            Progress Steps
+          </h2>
+        </CardTitle>
+        <CardDescription>
+          Tasks advance through these stages from authoring to ready-to-evaluate.
+          K runs, Ready, and Verified are required and cannot be removed. Toggle
+          Golden sequence or insert a custom stage between K runs and Ready.
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <ol className="flex flex-col rounded-md border border-border bg-card">
+          <GoldenSequenceRow
+            checked={golden}
+            onChange={setGolden}
             disabled={pending}
           />
-        ))}
-        {inserting ? (
-          <InsertStepRow
-            onAdd={onAddCustom}
-            onCancel={() => setInserting(false)}
-          />
-        ) : (
-          <AddStepRow
-            onClick={() => setInserting(true)}
-            disabled={pending}
-          />
-        )}
-        <LockedManualRow label="Ready" />
-        <LockedManualRow label="Verified" isLast />
-      </ol>
-
-      <div className="flex items-center justify-end gap-2 pt-1">
-        <Button
-          type="button"
-          variant="secondary"
-          onClick={onCancel}
-          aria-hidden={!isDirty}
-          tabIndex={!isDirty || pending ? -1 : undefined}
-          className={cn(
-            (!isDirty || pending) && "pointer-events-none opacity-0",
+          <KRunsRow />
+          {customSteps.map((s) => (
+            <CustomStepRow
+              key={s.id}
+              label={s.label}
+              onRemove={() => onRemoveCustom(s.id)}
+              disabled={pending}
+            />
+          ))}
+          {inserting ? (
+            <InsertStepRow
+              onAdd={onAddCustom}
+              onCancel={() => setInserting(false)}
+            />
+          ) : (
+            <AddStepRow
+              onClick={() => setInserting(true)}
+              disabled={pending}
+            />
           )}
-        >
-          Cancel
-        </Button>
-        <Button
-          type="button"
-          variant="primary"
-          disabled={pending}
-          onClick={onSave}
-          aria-label="Save Progress Steps"
-        >
-          {pending ? "Saving…" : "Save"}
-        </Button>
-      </div>
-    </section>
+          <LockedManualRow label="Ready" />
+          <LockedManualRow label="Verified" isLast />
+        </ol>
+      </CardContent>
+      <CardFooter className="flex-col items-stretch">
+        <div className="flex w-full flex-col gap-1.5">
+          <div className="flex items-center justify-end gap-2">
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={onCancel}
+              aria-hidden={!isDirty}
+              tabIndex={!isDirty || pending ? -1 : undefined}
+              className={cn(
+                (!isDirty || pending) && "pointer-events-none opacity-0",
+              )}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              variant="primary"
+              disabled={pending}
+              onClick={onSave}
+              aria-label="Save Progress Steps"
+            >
+              {pending ? "Saving…" : "Save"}
+            </Button>
+          </div>
+        </div>
+      </CardFooter>
+    </Card>
   );
 }
 

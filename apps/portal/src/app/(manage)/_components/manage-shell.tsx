@@ -16,6 +16,7 @@ import { RoleProvider } from "@/lib/mock/role-context";
 import { BrandMark } from "@/components/shell/brand-mark";
 import { DevRoleSwitcher } from "@/components/shell/dev-role-switcher";
 import { SidebarProvider } from "@/components/shell/sidebar-context";
+import { SkipToContent } from "@/components/shell/skip-to-content";
 import { useSidebarShortcut } from "@/components/shell/use-sidebar-shortcut";
 import { useSidebarState } from "@/components/shell/use-sidebar-state";
 import { currentUser } from "@/lib/mock";
@@ -72,7 +73,7 @@ export default function ManageShell({ email, name, children }: ManageShellProps)
   return (
     <RoleProvider>
       <TooltipProvider>
-        <div className="flex h-screen overflow-hidden bg-background text-foreground">
+        <div className="flex h-screen overflow-hidden text-foreground">
           <SkipToContent />
 
           {/* md viewport: rail locked at 52px. Cmd+B still flips localStorage
@@ -80,7 +81,7 @@ export default function ManageShell({ email, name, children }: ManageShellProps)
               lg+ sidebar only. */}
           <aside
             aria-label="Settings navigation rail"
-            className="hidden w-[52px] shrink-0 flex-col border-r border-border bg-card md:flex lg:hidden"
+            className="hidden w-[52px] shrink-0 flex-col border-r border-border md:flex lg:hidden"
           >
             <SidebarProvider collapsed={true} toggle={toggle}>
               <ManageSidebarBody user={user} />
@@ -88,8 +89,11 @@ export default function ManageShell({ email, name, children }: ManageShellProps)
           </aside>
 
           <aside
+            // Paired with AppShell's lg+ aside via view-transition-name —
+            // see app-shell.tsx for the cross-route bridge details.
+            style={{ viewTransitionName: "shell-sidebar" }}
             className={cn(
-              "hidden shrink-0 flex-col border-r border-border bg-card transition-[width] duration-subtle ease-out-standard lg:flex",
+              "hidden shrink-0 flex-col border-r border-border transition-[width] duration-subtle ease-out-standard lg:flex",
               collapsed ? "lg:w-[52px]" : "lg:w-[248px]",
             )}
           >
@@ -104,7 +108,7 @@ export default function ManageShell({ email, name, children }: ManageShellProps)
               onOpenDrawer={() => setDrawerOpen(true)}
             />
 
-            <main id="main-content" className="flex-1 overflow-y-auto">
+            <main id="main-content" className="flex-1 overflow-y-auto bg-grid-backdrop bg-panel">
               <div className="mx-auto max-w-[820px] px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
                 {children}
               </div>
@@ -119,7 +123,7 @@ export default function ManageShell({ email, name, children }: ManageShellProps)
             <DrawerContent
               id={MOBILE_DRAWER_ID}
               size="sm"
-              className="bg-card data-[vaul-drawer-direction=left]:w-[280px]"
+              className="bg-muted-surface data-[vaul-drawer-direction=left]:w-[280px]"
               aria-label="Settings navigation"
             >
               <DrawerTitle className="sr-only">Settings navigation</DrawerTitle>
@@ -185,13 +189,3 @@ function MobileTopBar({ drawerOpen, onOpenDrawer }: MobileTopBarProps) {
   );
 }
 
-function SkipToContent() {
-  return (
-    <a
-      href="#main-content"
-      className="sr-only focus:not-sr-only focus:absolute focus:left-2 focus:top-2 focus:z-overlay focus:rounded-md focus:bg-primary focus:px-3 focus:py-2 focus:text-primary-foreground"
-    >
-      Skip to main content
-    </a>
-  );
-}

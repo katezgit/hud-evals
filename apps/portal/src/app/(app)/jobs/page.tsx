@@ -9,8 +9,8 @@ export const metadata: Metadata = {
 
 export default function JobsPage() {
   return (
-    <div className="page-shell gap-2">
-      <header className="flex flex-col gap-1">
+    <div className="page-shell">
+      <header className="page-header">
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2">
             <h1 className="text-display font-semibold text-foreground">Jobs</h1>

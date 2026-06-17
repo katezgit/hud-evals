@@ -7,6 +7,9 @@ export interface TasksetLeaderboardRow {
   /** 1-based ranking inside this taskset's leaderboard. */
   rank: number;
   agentName: string;
+  /** Canonical CatalogModel.modelId for `agentName`. Pairs the leaderboard
+   * row with the Models page so a future row-click resolves to a real record. */
+  modelId: string;
   /** Sub-line shown under the agent name — usually "on <base-taskset>". */
   agentBaseTaskset?: string;
   /** Mean score across all task runs. 0..1 or null when not yet computed. */
@@ -89,6 +92,15 @@ export interface TasksetJobRow {
   /** Warning flag tag, e.g. "reward-hack?". Reserved for future provenance use. */
   flag?: string;
   modelName: string;
+  /**
+   * Canonical CatalogModel.modelId for this job's model. The pseudo-ID
+   * "multi" is used for multi-model job rows (`subtitle: "N Tasks × M Models"`)
+   * where no single CatalogModel applies.
+   */
+  modelId: string;
+  /** Canonical Environment.id this job ran in. Denormalized from the parent
+   * taskset's `environmentId` for direct row-level joins. */
+  environmentId: string;
   /** Model version label — "v3" or "—". */
   modelVersion: string;
   ownerName: string;
@@ -135,6 +147,9 @@ export interface TasksetProgressStep {
 export interface Taskset {
   id: string;
   name: string;
+  /** Canonical Environment.id this taskset's tasks run in. Drives the
+   * Tasksets ↔ Environments cross-reference (1 env : N tasksets). */
+  environmentId: string;
   ownership: TasksetOwnership;
   visibility: TasksetVisibility;
   purpose: TasksetPurpose;
@@ -162,6 +177,7 @@ const HUD_BROWSER_LEADERBOARD: ReadonlyArray<TasksetLeaderboardRow> = [
   {
     rank: 1,
     agentName: "Claude Haiku 4.5",
+    modelId: "claude-haiku-4-5",
     agentBaseTaskset: "on hud-browser",
     average: 0.4,
     best3: 0.5,
@@ -173,6 +189,7 @@ const HUD_BROWSER_LEADERBOARD: ReadonlyArray<TasksetLeaderboardRow> = [
   {
     rank: 2,
     agentName: "Kate Im's GPT 5 (2)",
+    modelId: "gpt-5",
     agentBaseTaskset: "on hud-browser",
     average: 0.25,
     best3: 0.35,
@@ -183,7 +200,8 @@ const HUD_BROWSER_LEADERBOARD: ReadonlyArray<TasksetLeaderboardRow> = [
   },
   {
     rank: 3,
-    agentName: "Amazon Nova 2 Lite",
+    agentName: "Nova Pro",
+    modelId: "nova-pro",
     agentBaseTaskset: "on hud-browser",
     average: 0,
     best3: 0,
@@ -195,6 +213,7 @@ const HUD_BROWSER_LEADERBOARD: ReadonlyArray<TasksetLeaderboardRow> = [
   {
     rank: 4,
     agentName: "Kate Im's GPT 5 (1)",
+    modelId: "gpt-5",
     agentBaseTaskset: "on hud-browser",
     average: null,
     best3: null,
@@ -353,7 +372,9 @@ const HUD_BROWSER_JOBS: ReadonlyArray<TasksetJobRow> = [
     type: "eval",
     title: "Eval: nightly regression",
     subtitle: "queued · awaiting GPU slot",
-    modelName: "claude-opus-4.7",
+    modelName: "claude-opus-4-7",
+    modelId: "claude-opus-4-7",
+    environmentId: "browser",
     modelVersion: "—",
     ownerName: "Aman",
     ownerScope: "self",
@@ -373,6 +394,8 @@ const HUD_BROWSER_JOBS: ReadonlyArray<TasksetJobRow> = [
     title: "GRPO sweep · lr=2e-6",
     subtitle: "step 4,096 / 10,000 · kl=0.02",
     modelName: "qwen2.5-14b",
+    modelId: "qwen2.5-14b",
+    environmentId: "browser",
     modelVersion: "v3",
     ownerName: "Aman",
     ownerScope: "self",
@@ -393,6 +416,10 @@ const HUD_BROWSER_JOBS: ReadonlyArray<TasksetJobRow> = [
     title: "Eval: full regression",
     subtitle: "4 Tasks × 4 Models",
     modelName: "multi · 4",
+    // "multi" is a pseudo-modelId for multi-model job rows where no single
+    // CatalogModel applies; not present in the catalog by design.
+    modelId: "multi",
+    environmentId: "browser",
     modelVersion: "—",
     ownerName: "Aman",
     ownerScope: "self",
@@ -412,7 +439,9 @@ const HUD_BROWSER_JOBS: ReadonlyArray<TasksetJobRow> = [
     type: "eval",
     title: "Prompted baseline — opus",
     subtitle: "4 Tasks × 2 Models",
-    modelName: "claude-opus-4.6",
+    modelName: "claude-opus-4-6",
+    modelId: "claude-opus-4-6",
+    environmentId: "browser",
     modelVersion: "—",
     ownerName: "Aman",
     ownerScope: "self",
@@ -433,6 +462,8 @@ const HUD_BROWSER_JOBS: ReadonlyArray<TasksetJobRow> = [
     title: "GRPO sweep · lr=1e-6",
     subtitle: "converged · 10,000 steps",
     modelName: "qwen2.5-14b",
+    modelId: "qwen2.5-14b",
+    environmentId: "browser",
     modelVersion: "v2",
     ownerName: "Aman",
     ownerScope: "self",
@@ -454,6 +485,8 @@ const HUD_BROWSER_JOBS: ReadonlyArray<TasksetJobRow> = [
     subtitle: "reward climbed, output collapsed",
     flag: "reward-hack?",
     modelName: "qwen2.5-14b",
+    modelId: "qwen2.5-14b",
+    environmentId: "browser",
     modelVersion: "v2",
     ownerName: "Aman",
     ownerScope: "self",
@@ -474,6 +507,8 @@ const HUD_BROWSER_JOBS: ReadonlyArray<TasksetJobRow> = [
     title: "GRPO sweep · bf16",
     subtitle: "infra error during run",
     modelName: "qwen2.5-32b",
+    modelId: "qwen2.5-32b",
+    environmentId: "browser",
     modelVersion: "v1",
     ownerName: "Aman",
     ownerScope: "self",
@@ -492,7 +527,9 @@ const HUD_BROWSER_JOBS: ReadonlyArray<TasksetJobRow> = [
     type: "eval",
     title: "Eval: regression 0042",
     subtitle: "cron · daily 06:00 UTC",
-    modelName: "claude-haiku-4.5",
+    modelName: "claude-haiku-4-5",
+    modelId: "claude-haiku-4-5",
+    environmentId: "browser",
     modelVersion: "—",
     ownerName: "cron",
     ownerScope: "cron",
@@ -512,7 +549,9 @@ const HUD_BROWSER_JOBS: ReadonlyArray<TasksetJobRow> = [
     type: "eval",
     title: "Batch: 4 tasks",
     subtitle: "manual run",
-    modelName: "claude-haiku-4.5",
+    modelName: "claude-haiku-4-5",
+    modelId: "claude-haiku-4-5",
+    environmentId: "browser",
     modelVersion: "4.5",
     ownerName: "Priya",
     ownerScope: "team",
@@ -533,6 +572,8 @@ const HUD_BROWSER_JOBS: ReadonlyArray<TasksetJobRow> = [
     title: "Eval: GPT-5 sweep",
     subtitle: "1 task below threshold",
     modelName: "gpt-5",
+    modelId: "gpt-5",
+    environmentId: "browser",
     modelVersion: "v2",
     ownerName: "Priya",
     ownerScope: "team",
@@ -552,7 +593,9 @@ const HUD_BROWSER_JOBS: ReadonlyArray<TasksetJobRow> = [
     type: "eval",
     title: "Batch: smoke test",
     subtitle: "invalidated — env version mismatch",
-    modelName: "nova-2-lite",
+    modelName: "nova-pro",
+    modelId: "nova-pro",
+    environmentId: "browser",
     modelVersion: "—",
     ownerName: "Alex",
     ownerScope: "team",
@@ -575,6 +618,7 @@ export const tasksets: Array<Taskset> = [
   {
     id: "hud-browser",
     name: "hud-browser",
+    environmentId: "browser",
     ownership: "team",
     visibility: "private",
     purpose: "benchmark",
@@ -600,6 +644,7 @@ export const tasksets: Array<Taskset> = [
     // navigable taskset.
     id: "empty-eval",
     name: "Empty Eval",
+    environmentId: "local-shell",
     ownership: "user",
     visibility: "private",
     purpose: "benchmark",
@@ -618,6 +663,7 @@ export const tasksets: Array<Taskset> = [
   {
     id: "rl-coding-eval",
     name: "rl-coding-eval",
+    environmentId: "local-shell",
     ownership: "user",
     visibility: "private",
     purpose: "training",
@@ -635,6 +681,7 @@ export const tasksets: Array<Taskset> = [
       {
         rank: 1,
         agentName: "Aman's fine-tune v3",
+        modelId: "qwen2.5-14b",
         agentBaseTaskset: "on rl-coding-eval",
         average: 0.61,
         best3: 0.68,
@@ -646,6 +693,7 @@ export const tasksets: Array<Taskset> = [
       {
         rank: 2,
         agentName: "Aman's fine-tune v2",
+        modelId: "qwen2.5-14b",
         agentBaseTaskset: "on rl-coding-eval",
         average: 0.54,
         best3: 0.6,
@@ -662,6 +710,7 @@ export const tasksets: Array<Taskset> = [
   {
     id: "swe-bench-verified",
     name: "SWE-bench Verified",
+    environmentId: "local-shell",
     ownership: "community",
     visibility: "public",
     purpose: "benchmark",
@@ -676,6 +725,7 @@ export const tasksets: Array<Taskset> = [
       {
         rank: 1,
         agentName: "Claude Opus 4.7",
+        modelId: "claude-opus-4-7",
         agentBaseTaskset: "on SWE-bench Verified",
         average: 0.72,
         best3: 0.78,
@@ -687,6 +737,7 @@ export const tasksets: Array<Taskset> = [
       {
         rank: 2,
         agentName: "GPT 5.1",
+        modelId: "gpt-5.1",
         agentBaseTaskset: "on SWE-bench Verified",
         average: 0.68,
         best3: 0.74,
@@ -704,6 +755,7 @@ export const tasksets: Array<Taskset> = [
     // High-score public benchmark — Avg in green tone range (>= 0.60).
     id: "osworld-verified",
     name: "OSWorld-Verified",
+    environmentId: "browser",
     ownership: "community",
     visibility: "public",
     purpose: "benchmark",
@@ -718,6 +770,7 @@ export const tasksets: Array<Taskset> = [
       {
         rank: 1,
         agentName: "Claude Sonnet 4.6",
+        modelId: "claude-sonnet-4-6",
         agentBaseTaskset: "on OSWorld-Verified",
         average: 0.61,
         best3: 0.7,
@@ -729,6 +782,7 @@ export const tasksets: Array<Taskset> = [
       {
         rank: 2,
         agentName: "Claude Sonnet 4.5",
+        modelId: "claude-sonnet-4-5",
         agentBaseTaskset: "on OSWorld-Verified",
         average: 0.54,
         best3: 0.62,
@@ -740,6 +794,7 @@ export const tasksets: Array<Taskset> = [
       {
         rank: 3,
         agentName: "GPT 5.1",
+        modelId: "gpt-5.1",
         agentBaseTaskset: "on OSWorld-Verified",
         average: 0.42,
         best3: 0.5,
@@ -757,6 +812,7 @@ export const tasksets: Array<Taskset> = [
     // Mid-score public taskset — Avg in amber tone range (0.35 <= < 0.60).
     id: "wikigames-2",
     name: "WikiGames 2",
+    environmentId: "browser",
     ownership: "community",
     visibility: "public",
     purpose: "benchmark",
@@ -771,6 +827,7 @@ export const tasksets: Array<Taskset> = [
       {
         rank: 1,
         agentName: "Claude Sonnet 4.6",
+        modelId: "claude-sonnet-4-6",
         agentBaseTaskset: "on WikiGames 2",
         average: 0.25,
         best3: 0.33,
@@ -782,6 +839,7 @@ export const tasksets: Array<Taskset> = [
       {
         rank: 2,
         agentName: "GPT 5.1",
+        modelId: "gpt-5.1",
         agentBaseTaskset: "on WikiGames 2",
         average: 0.18,
         best3: 0.26,
@@ -793,6 +851,7 @@ export const tasksets: Array<Taskset> = [
       {
         rank: 3,
         agentName: "Claude Sonnet 4.5",
+        modelId: "claude-sonnet-4-5",
         agentBaseTaskset: "on WikiGames 2",
         average: 0.12,
         best3: 0.2,
@@ -810,6 +869,7 @@ export const tasksets: Array<Taskset> = [
     // Riley-shaped vendor delivery — visible in My Team with private pill.
     id: "menu-agent-regression",
     name: "menu-agent regression",
+    environmentId: "playwright",
     ownership: "team",
     visibility: "private",
     purpose: "benchmark",
@@ -824,6 +884,7 @@ export const tasksets: Array<Taskset> = [
       {
         rank: 1,
         agentName: "Claude Opus 4.7",
+        modelId: "claude-opus-4-7",
         agentBaseTaskset: "on menu-agent-env",
         average: 0.74,
         best3: 0.79,
@@ -886,6 +947,9 @@ export function createTaskset(input: {
   const taskset: Taskset = {
     id: uniqueSlug(toSlug(input.name)),
     name: input.name,
+    // Newly-created tasksets default to `local-shell` until the create wizard
+    // grows an environment picker; same default the empty fixture uses.
+    environmentId: "local-shell",
     ownership: "user",
     visibility: "private",
     purpose: input.purpose,

@@ -126,7 +126,7 @@ function TracesTabClient({ modelId }: TracesTabProps) {
           view={view}
           onViewChange={setView}
         />
-        <div className="mt-6 h-40 animate-pulse rounded-surface bg-muted-surface" />
+        <div className="mt-4 h-40 animate-pulse rounded-surface bg-muted-surface" />
       </div>
     );
   }
@@ -175,7 +175,7 @@ function TracesBody({
 }) {
   if (traces.length === 0) {
     return (
-      <div className="mt-6">
+      <div className="mt-4">
         <EmptyState
           variant="no-results"
           title="No traces match this filter"
@@ -211,7 +211,7 @@ function TracesToolbar({
 }) {
   // Left-to-right order: search → checkpoint → taskset → segment control.
   return (
-    <div className="flex flex-wrap items-center gap-3">
+    <div className="flex flex-wrap items-center gap-4">
       <div className="w-full flex-none sm:w-56">
         <SearchInput
           defaultValue=""
@@ -316,7 +316,7 @@ function TraceThumbnail({ trace }: { trace: Trace }) {
     >
       {/* Score badge top-right */}
       <div className="absolute right-2 top-2">
-        <Badge variant={scoreVariant(trace.score)} size="default">
+        <Badge variant={scoreVariant(trace.score)}>
           {Math.round(trace.score)}%
         </Badge>
       </div>
@@ -373,7 +373,7 @@ function TraceList({ traces }: { traces: ReadonlyArray<Trace> }) {
         id: "score",
         header: () => <span>Score</span>,
         cell: (info) => (
-          <Badge variant={scoreVariant(info.getValue())} size="sm">
+          <Badge variant={scoreVariant(info.getValue())}>
             {Math.round(info.getValue())}%
           </Badge>
         ),

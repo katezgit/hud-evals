@@ -4,7 +4,6 @@ import {
   Gauge,
   KeyRound,
   Lock,
-  Palette,
   Settings,
   User,
   Users,
@@ -34,13 +33,6 @@ export const PERSONAL_ROUTES: ReadonlyArray<ManageRoute> = [
     title: "Notifications",
     lead: "Job alerts, browser push, and integration hooks.",
     Icon: Bell,
-  },
-  {
-    href: "/manage/appearance",
-    label: "Appearance",
-    title: "Appearance",
-    lead: "Personal preference — try the theme switch, it's live.",
-    Icon: Palette,
   },
 ];
 

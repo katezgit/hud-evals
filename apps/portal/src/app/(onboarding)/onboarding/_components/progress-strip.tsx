@@ -12,7 +12,7 @@ export function ProgressStrip({ step }: ProgressStripProps) {
       aria-valuemin={1}
       aria-valuemax={2}
       aria-label={`Step ${step} of 2`}
-      className="mb-8 flex items-center gap-1.5"
+      className="flex items-center gap-1.5"
     >
       <span
         aria-hidden="true"

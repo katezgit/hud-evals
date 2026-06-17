@@ -162,16 +162,16 @@ function PerTaskEnvToggle({
 }) {
   const id = useId();
   return (
-    <div className="flex items-start justify-between gap-4">
-      <div className="flex flex-col gap-0.5">
+    <div className="flex flex-col gap-1">
+      <div className="flex items-center gap-3">
         <label htmlFor={id} className="text-caption font-medium text-foreground">
           Per-task environment
         </label>
-        <p className="text-meta text-muted-foreground">
-          Spin up a fresh environment instance for every task.
-        </p>
+        <Switch id={id} checked={checked} onCheckedChange={onChange} />
       </div>
-      <Switch id={id} checked={checked} onCheckedChange={onChange} />
+      <p className="text-meta text-muted-foreground">
+        Spin up a fresh environment instance for every task.
+      </p>
     </div>
   );
 }
@@ -185,31 +185,31 @@ function ConcurrencyField({
 }) {
   const id = useId();
   return (
-    <div className="flex items-start justify-between gap-4">
-      <div className="flex flex-col gap-0.5">
+    <div className="flex flex-col gap-1">
+      <div className="flex items-center gap-3">
         <label htmlFor={id} className="text-caption font-medium text-foreground">
           Concurrency
         </label>
-        <p className="text-meta text-muted-foreground">
-          Maximum simultaneous traces. Default 10.
-        </p>
+        <input
+          id={id}
+          type="number"
+          min={1}
+          max={200}
+          value={value}
+          onChange={(e) => {
+            const n = Number.parseInt(e.target.value, 10);
+            if (Number.isFinite(n)) onChange(Math.max(1, Math.min(200, n)));
+          }}
+          className={cn(
+            "w-20 h-8 rounded-md border border-border-strong bg-background px-3",
+            "font-mono tabular-nums text-body text-foreground",
+            "outline-hidden focus-visible:shadow-focus-ring",
+          )}
+        />
       </div>
-      <input
-        id={id}
-        type="number"
-        min={1}
-        max={200}
-        value={value}
-        onChange={(e) => {
-          const n = Number.parseInt(e.target.value, 10);
-          if (Number.isFinite(n)) onChange(Math.max(1, Math.min(200, n)));
-        }}
-        className={cn(
-          "w-20 h-8 rounded-md border border-border-strong bg-background px-3",
-          "font-mono tabular-nums text-body text-foreground",
-          "outline-hidden focus-visible:shadow-focus-ring",
-        )}
-      />
+      <p className="text-meta text-muted-foreground">
+        Maximum simultaneous traces. Default 10.
+      </p>
     </div>
   );
 }

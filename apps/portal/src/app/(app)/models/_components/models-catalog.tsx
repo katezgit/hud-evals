@@ -19,8 +19,8 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 
+import { Badge } from "@repo/ui/components/badge";
 import { Button } from "@repo/ui/components/button";
-import { Card } from "@repo/ui/components/card";
 import { Checkbox } from "@repo/ui/components/checkbox";
 import {
   Drawer,
@@ -36,13 +36,6 @@ import { EmptyState } from "@repo/ui/components/empty-state";
 import { FilterChip } from "@repo/ui/components/filter-chip";
 import { MultiSelect } from "@repo/ui/components/multi-select";
 import { SearchInput } from "@repo/ui/components/search-input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@repo/ui/components/select";
 import {
   Tabs,
   TabsList,
@@ -77,14 +70,6 @@ import UsageSparkline from "./usage-sparkline";
 // at this scope) pinning state — keep them in sync via this constant.
 const MOBILE_MEDIA_QUERY = "(max-width: 1023px)";
 
-type SortKey = "most-used" | "price-asc" | "name-asc";
-
-const SORT_OPTIONS: ReadonlyArray<{ value: SortKey; label: string }> = [
-  { value: "most-used", label: "Most used" },
-  { value: "price-asc", label: "Lowest price" },
-  { value: "name-asc", label: "Name (A-Z)" },
-];
-
 // Pixel sizes feed TanStack's column-pinning math (`column.getStart`,
 // `getSize`). table-layout:fixed + width:100% lets columns expand
 // proportionally on wide viewports while keeping minWidth = sum-of-sizes so
@@ -99,6 +84,13 @@ const COLUMN_SIZES = {
   trainable: 110,
   usage: 130,
   favorite: 60,
+  // Private-tab-only columns. Sized to longest realistic content per column.
+  baseModel: 180,
+  avg: 90,
+  tasksetCount: 110,
+  status: 110,
+  lastEvaluated: 140,
+  owner: 130,
 } as const;
 
 // Canonical TanStack sticky-pinning helper. Pinned columns set position +
@@ -160,6 +152,24 @@ function formatPrice(n: number): string {
   return `$${n.toFixed(n < 1 ? 2 : 1)}`;
 }
 
+const RELATIVE_MINUTE = 60_000;
+const RELATIVE_HOUR = 60 * RELATIVE_MINUTE;
+const RELATIVE_DAY = 24 * RELATIVE_HOUR;
+const RELATIVE_MONTH = 30 * RELATIVE_DAY;
+const RELATIVE_YEAR = 365 * RELATIVE_DAY;
+
+function formatRelative(iso: string): string {
+  const then = Date.parse(iso);
+  if (Number.isNaN(then)) return iso;
+  const delta = Date.now() - then;
+  if (delta < RELATIVE_MINUTE) return "just now";
+  if (delta < RELATIVE_HOUR) return `${Math.floor(delta / RELATIVE_MINUTE)} min ago`;
+  if (delta < RELATIVE_DAY) return `${Math.floor(delta / RELATIVE_HOUR)}h ago`;
+  if (delta < RELATIVE_MONTH) return `${Math.floor(delta / RELATIVE_DAY)}d ago`;
+  if (delta < RELATIVE_YEAR) return `${Math.floor(delta / RELATIVE_MONTH)}mo ago`;
+  return `${Math.floor(delta / RELATIVE_YEAR)}y ago`;
+}
+
 // Shared between row filtering and the per-pill count probes (which call this
 // with one toggle forced on) — kept at module scope so identity stays stable.
 function matchesFilters(
@@ -190,7 +200,6 @@ export default function ModelsCatalog() {
   const [inputQuery, setInputQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
   const [filters, setFilters] = useState<Filters>(INITIAL_FILTERS);
-  const [sortKey, setSortKey] = useState<SortKey>("most-used");
   const [favorites, setFavorites] = useState<ReadonlySet<string>>(() => new Set());
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
 
@@ -218,24 +227,8 @@ export default function ModelsCatalog() {
 
   const visibleRows = useMemo(() => {
     const q = debouncedQuery.trim().toLowerCase();
-    const filtered = tabScope.filter((m) => matchesFilters(m, filters, q, favorites));
-
-    const sorted = [...filtered];
-    sorted.sort((a, b) => {
-      switch (sortKey) {
-        case "most-used":
-          return b.usage - a.usage;
-        case "name-asc":
-          return a.name.localeCompare(b.name);
-        case "price-asc":
-          return a.priceIn - b.priceIn;
-        default:
-          return 0;
-      }
-    });
-
-    return sorted;
-  }, [debouncedQuery, filters, sortKey, favorites, tabScope]);
+    return tabScope.filter((m) => matchesFilters(m, filters, q, favorites));
+  }, [debouncedQuery, filters, favorites, tabScope]);
 
   const toggleFavorite = (modelId: string) => {
     setFavorites((prev) => {
@@ -264,7 +257,9 @@ export default function ModelsCatalog() {
     setFilters(INITIAL_FILTERS);
   };
 
-  const columns = useMemo(
+  const isPrivateTab = activeTab === "mine";
+
+  const publicColumns = useMemo(
     () => [
       columnHelper.accessor("name", {
         id: "name",
@@ -491,6 +486,165 @@ export default function ModelsCatalog() {
     [favorites, isMobile],
   );
 
+  // Private-tab column set. Base-foundation axes (price / speed / reasoning /
+  // usage / stars) don't apply to user-trained Models — replace with eval-axis
+  // columns (avg score, taskset count, status, last evaluated, owner).
+  const privateColumns = useMemo(
+    () => [
+      columnHelper.accessor("name", {
+        id: "name",
+        header: "Model",
+        size: COLUMN_SIZES.name,
+        cell: (info) => {
+          const m = info.row.original;
+          return (
+            <div className="flex items-start gap-2">
+              <ProviderIcon provider={m.provider} className="mt-0.5 shrink-0" />
+              <div className="min-w-0">
+                <div className="flex items-center gap-1.5">
+                  <Link
+                    href={`/models/${m.modelId}`}
+                    className="text-body font-medium text-foreground hover:underline truncate"
+                  >
+                    {m.name}
+                  </Link>
+                  <VisibilityIcon visibility="private" />
+                </div>
+                <div className="flex items-center gap-0 -mt-1.5">
+                  <code className="font-mono text-caption text-muted-foreground">
+                    {m.modelId}
+                  </code>
+                  <CopyButton
+                    value={m.modelId}
+                    ariaLabel="Copy model ID"
+                    className="row-action-reveal"
+                  />
+                </div>
+              </div>
+            </div>
+          );
+        },
+      }),
+      columnHelper.accessor("baseModelId", {
+        id: "baseModel",
+        header: "Base model",
+        size: COLUMN_SIZES.baseModel,
+        cell: (info) => {
+          const baseId = info.getValue();
+          if (baseId === undefined) {
+            return <span className="text-meta-foreground">—</span>;
+          }
+          const base = catalogModels.find((m) => m.modelId === baseId);
+          const label = base?.name ?? baseId;
+          return (
+            <Link
+              href={`/models/${baseId}`}
+              className="text-body text-muted-foreground hover:text-foreground hover:underline"
+            >
+              {label}
+            </Link>
+          );
+        },
+      }),
+      columnHelper.accessor("avgScore", {
+        id: "avg",
+        header: "Avg",
+        size: COLUMN_SIZES.avg,
+        cell: (info) => {
+          const v = info.getValue();
+          if (v === undefined) {
+            return (
+              <span aria-label="No data" className="text-meta-foreground">
+                —
+              </span>
+            );
+          }
+          return (
+            <span className="font-mono tabular-nums text-foreground">
+              {v.toFixed(1)}%
+            </span>
+          );
+        },
+        meta: {
+          headerClassName: "text-right",
+          cellClassName: "text-right",
+        },
+      }),
+      columnHelper.accessor("tasksetCount", {
+        id: "tasksetCount",
+        header: "Tasksets",
+        size: COLUMN_SIZES.tasksetCount,
+        cell: (info) => {
+          const v = info.getValue();
+          if (v === undefined) {
+            return (
+              <span aria-label="No data" className="text-meta-foreground">
+                —
+              </span>
+            );
+          }
+          return (
+            <span className="font-mono tabular-nums text-foreground">{v}</span>
+          );
+        },
+        meta: {
+          headerClassName: "text-right",
+          cellClassName: "text-right",
+        },
+      }),
+      columnHelper.accessor("status", {
+        id: "status",
+        header: "Status",
+        size: COLUMN_SIZES.status,
+        cell: (info) => {
+          const s = info.getValue();
+          if (s === undefined) {
+            return <span className="text-meta-foreground">—</span>;
+          }
+          const variant: "success" | "warning" | "destructive" =
+            s === "ready" ? "success" : s === "pending" ? "warning" : "destructive";
+          const label = s === "ready" ? "Ready" : s === "pending" ? "Pending" : "Failed";
+          return (
+            <Badge variant={variant} showDot>
+              {label}
+            </Badge>
+          );
+        },
+      }),
+      columnHelper.accessor("lastEvaluatedAt", {
+        id: "lastEvaluated",
+        header: "Last evaluated",
+        size: COLUMN_SIZES.lastEvaluated,
+        cell: (info) => {
+          const iso = info.getValue();
+          if (iso === undefined) {
+            return <span className="text-meta-foreground">—</span>;
+          }
+          return (
+            <span className="text-muted-foreground" title={iso}>
+              {formatRelative(iso)}
+            </span>
+          );
+        },
+      }),
+      columnHelper.accessor("ownerName", {
+        id: "owner",
+        header: "Owner",
+        size: COLUMN_SIZES.owner,
+        cell: (info) => {
+          const name = info.getValue();
+          if (name === undefined) {
+            return <span className="text-meta-foreground">—</span>;
+          }
+          return <span className="text-muted-foreground">{name}</span>;
+        },
+      }),
+    ],
+    [],
+  );
+
+  const columns = isPrivateTab ? privateColumns : publicColumns;
+
   // Below 1024px the Price column stays visible alongside Model — the row
   // overflows the viewport horizontally, so pin Model left so users can
   // identify the row while scrolling to the price.
@@ -499,19 +653,27 @@ export default function ModelsCatalog() {
     : { left: [], right: [] };
   const columnVisibility = useMemo<VisibilityState>(() => {
     if (!isMobile) return {};
-    // Mobile keeps Model + Price so the price has its own column header (the
-    // inline price in the MODEL cell was orphan content without a header).
-    // Provider label moves inline into the MODEL cell; everything else hides.
-    const hidden: VisibilityState = {
-      provider: false,
-      speed: false,
-      reasoning: false,
-      trainable: false,
-      usage: false,
-      favorite: false,
-    };
+    // Mobile keeps Model + the most-load-bearing decision column visible; the
+    // rest hide and the row stays single-line. Private tab keeps Avg (score is
+    // the decision axis for a trained model); All tab keeps Price.
+    const hidden: VisibilityState = isPrivateTab
+      ? {
+          baseModel: false,
+          tasksetCount: false,
+          status: false,
+          lastEvaluated: false,
+          owner: false,
+        }
+      : {
+          provider: false,
+          speed: false,
+          reasoning: false,
+          trainable: false,
+          usage: false,
+          favorite: false,
+        };
     return hidden;
-  }, [isMobile]);
+  }, [isMobile, isPrivateTab]);
 
   const table = useReactTable({
     data: visibleRows,
@@ -574,8 +736,6 @@ export default function ModelsCatalog() {
     [filters.baseModelIds],
   );
 
-  const isPrivateTab = activeTab === "mine";
-
   // Counts reflect each tab's universe BEFORE filter narrowing, so the badge
   // stays stable while filters change.
   const tabCounts = useMemo(
@@ -610,11 +770,11 @@ export default function ModelsCatalog() {
       </Tabs>
 
       {/* Actionbar + table = one visual cluster (toolbar shapes its dataset). */}
-      <div className="flex flex-col gap-3">
+      <div className="flex flex-col gap-4">
         {/* Search row — always full-width on its own line below xl
             (xl:w-64 puts it back inline alongside the desktop chip cluster
             once there's room for both). */}
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-wrap items-center gap-4">
           <div className="w-full flex-none xl:w-64">
             <SearchInput
               defaultValue=""
@@ -635,7 +795,7 @@ export default function ModelsCatalog() {
               models are training output — chip is degenerate) and Provider
               for Base model (all private are provider=HUD; lineage is the
               meaningful axis). */}
-          <div className="hidden flex-1 flex-wrap items-center gap-3 xl:flex">
+          <div className="hidden flex-1 flex-wrap items-center gap-2 xl:flex">
             {!isPrivateTab && (
               <FilterChip
                 label="Trainable"
@@ -695,7 +855,7 @@ export default function ModelsCatalog() {
               <span className="text-label text-muted-foreground">
                 {resultCountLabel}
               </span>
-              {hasActiveFilters ? (
+              {hasActiveFilters && (
                 <button
                   type="button"
                   onClick={clearAllFilters}
@@ -703,19 +863,7 @@ export default function ModelsCatalog() {
                 >
                   Clear all
                 </button>
-              ) : null}
-              <Select value={sortKey} onValueChange={(v) => setSortKey(v as SortKey)}>
-                <SelectTrigger aria-label="Sort by" className="w-44">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent align="end">
-                  {SORT_OPTIONS.map((opt) => (
-                    <SelectItem key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              )}
             </div>
           </div>
 
@@ -741,7 +889,7 @@ export default function ModelsCatalog() {
               <DrawerContent size="md">
                 <DrawerHeader>
                   <div className="flex flex-col gap-1">
-                    <DrawerTitle>Filters & sort</DrawerTitle>
+                    <DrawerTitle>Filters</DrawerTitle>
                     <span className="text-label text-muted-foreground">
                       {resultCountLabel}
                     </span>
@@ -859,33 +1007,6 @@ export default function ModelsCatalog() {
                         }
                       />
                     </FilterGroup>
-
-                    <FilterGroup label="Sort by">
-                      <div role="radiogroup" aria-label="Sort by" className="flex flex-col gap-1">
-                        {SORT_OPTIONS.map((opt) => {
-                          const id = `mfilter-sort-${opt.value}`;
-                          const checked = sortKey === opt.value;
-                          return (
-                            <label
-                              key={opt.value}
-                              htmlFor={id}
-                              className="flex cursor-pointer items-center gap-3 py-1"
-                            >
-                              <input
-                                id={id}
-                                type="radio"
-                                name="mfilter-sort"
-                                value={opt.value}
-                                checked={checked}
-                                onChange={() => setSortKey(opt.value)}
-                                className="size-4 accent-primary"
-                              />
-                              <span className="text-body text-foreground">{opt.label}</span>
-                            </label>
-                          );
-                        })}
-                      </div>
-                    </FilterGroup>
                   </div>
                 </DrawerBody>
                 <DrawerFooter>
@@ -907,7 +1028,7 @@ export default function ModelsCatalog() {
             Sticky lives on <thead> (not each <th>) so the entire header row
             anchors as one block — per-<th> sticky was visibly jittering
             during vertical scroll in this layout. */}
-        <Card className="overflow-hidden p-0">
+        <div className="overflow-hidden rounded-md border border-border bg-card">
           <div className="max-h-[calc(100vh-18rem)] overflow-auto">
             <table
               className={cn(
@@ -916,7 +1037,7 @@ export default function ModelsCatalog() {
               )}
               style={{ minWidth: table.getTotalSize() }}
             >
-              <thead className="sticky top-0 z-table-header bg-background">
+              <thead className="sticky top-0 z-table-header bg-field-rest">
                 {table.getHeaderGroups().map((headerGroup) => (
                   <tr key={headerGroup.id}>
                     {headerGroup.headers.map((header) => {
@@ -993,7 +1114,7 @@ export default function ModelsCatalog() {
                               "py-2",
                               // bg only when actually pinned — keeps row hover
                               // visible on desktop where the column isn't sticky.
-                              isPinned ? "bg-background" : undefined,
+                              isPinned ? "bg-card" : undefined,
                               meta?.cellClassName,
                             )}
                           >
@@ -1007,7 +1128,7 @@ export default function ModelsCatalog() {
               </tbody>
             </table>
           </div>
-        </Card>
+        </div>
       </div>
     </div>
   );

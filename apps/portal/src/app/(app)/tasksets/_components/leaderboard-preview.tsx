@@ -45,7 +45,7 @@ export default function LeaderboardPreview({
 
   return (
     <div className={cn("flex flex-col", className)}>
-      <div className="grid grid-cols-[1fr_auto_auto_auto] items-center gap-x-3 pb-1 font-mono text-meta text-meta-foreground">
+      <div className="grid grid-cols-[1fr_auto_auto_auto] items-center gap-x-3 pb-1.5 font-mono text-meta text-meta-foreground">
         <span>Agent</span>
         <span className="text-right">Avg</span>
         <span className="text-right">B@3</span>
@@ -69,7 +69,7 @@ export default function LeaderboardPreview({
                 >
                   {row.rank}
                 </span>
-                <span className="truncate text-caption text-foreground">
+                <span className="truncate text-caption font-medium text-foreground">
                   {row.agentName}
                 </span>
               </div>

@@ -272,11 +272,11 @@ export default function TasksetsIndex({ tasksets }: TasksetsIndexProps) {
 
   return (
     // --chrome-h is the rendered height of the sticky chrome below
-    // (pt-10 40 + h1 32 + tabs mt-4 16 + tabs 37 + border-b 1 = 126px = 7.875rem).
+    // (pt-6 24 + h1 32 + tabs mt-4 16 + tabs 37 + border-b 1 = 110px = 6.875rem).
     // Drives the list-view column header's pinned top so the two stickies sit
     // flush with no overlap/gap jump. Update both together if chrome shape changes.
     <div
-      className="isolate flex flex-col pb-10 [--chrome-h:7.875rem]"
+      className="isolate flex flex-col pb-10 [--chrome-h:6.875rem]"
     >
       <div
         ref={stickyRef}
@@ -294,7 +294,7 @@ export default function TasksetsIndex({ tasksets }: TasksetsIndexProps) {
         // visible header content is capped at 1536 via the inner wrapper. See
         // docs/design/guidelines/app-shell-layout.md §2.
         className={cn(
-          "sticky top-0 z-page-chrome bg-background pt-6 md:pt-10",
+          "sticky top-0 z-page-chrome bg-panel pt-6",
           // Scroll-cue: border slot is always occupied (border-b) so flipping
           // border-color does not shift layout. Mirrors DialogHeader.
           "border-b",
@@ -349,7 +349,7 @@ export default function TasksetsIndex({ tasksets }: TasksetsIndexProps) {
         bottom-sheet trigger below. Desktop (md+): inline filter row matching
         the original layout. Selections written via updateParam in both modes
         — the sheet is a presentation switch, not a separate data flow. */}
-      <div className="page-shell py-0 gap-3 mt-6 md:flex-row md:flex-wrap md:items-center">
+      <div className="page-shell py-0 gap-4 mt-6 md:flex-row md:flex-wrap md:items-center">
         <div className="w-full md:min-w-40 md:flex-1 md:max-w-xs">
           <SearchInput
             key={searchInputKey}
@@ -650,7 +650,7 @@ function ResultsBody({
         role="row"
         className={cn(
           TASKSET_LIST_GRID,
-          "sticky top-(--chrome-h) z-[5] -mx-2 items-center gap-6 bg-background px-6 py-2 text-label text-muted-foreground",
+          "sticky top-(--chrome-h) z-[5] items-center gap-6 bg-field-rest px-4 py-2 text-label text-muted-foreground",
         )}
       >
         <div className="min-w-0 truncate">Taskset</div>

@@ -24,7 +24,7 @@ export default function EnvironmentsPage() {
           (inside <EnvironmentsIndex>) stay pinned via their own sticky band.
           Padding matches the original sticky-band top spacing so the H1's
           vertical position does not shift. */}
-      <header className="page-shell block pt-6 md:pt-10 py-0">
+      <header className="page-shell block pt-6 py-0">
         <div className="flex items-center justify-between gap-3 md:gap-6">
           <div className="flex items-center gap-2">
             <h1 className="text-display font-semibold text-foreground">

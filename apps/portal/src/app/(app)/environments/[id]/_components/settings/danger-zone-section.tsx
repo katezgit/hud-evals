@@ -81,14 +81,17 @@ export function DangerZoneSection({ envName }: DangerZoneSectionProps) {
               />
               Permanently delete &lsquo;{envName}&rsquo;?
             </DialogTitle>
-            <DialogDescription>
+            <DialogDescription className="sr-only">
+              Confirm permanent deletion of Environment {envName}.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogBody className="flex flex-col gap-4">
+            <p className="text-body text-foreground">
               Deleting {envName} will permanently remove this Environment, all
               builds, scenarios, runs, and associated configuration. Job
               history stays; the Environment link becomes broken. This action
               cannot be undone.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogBody>
+            </p>
             <FormField
               id={inputId}
               label="Type the Environment name to confirm:"

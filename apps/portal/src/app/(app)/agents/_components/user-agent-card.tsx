@@ -25,7 +25,6 @@ export function UserAgentCard({
 
   const Icon = KIND_ICON[agent.kind];
   const badgeLabel = KIND_BADGE[agent.kind];
-  const ctaLabel = KIND_CTA[agent.kind];
 
   return (
     <button
@@ -34,21 +33,16 @@ export function UserAgentCard({
       className={cn(
         "group flex h-full w-full flex-col gap-3 rounded-lg border p-4 text-left",
         "cursor-pointer transition-colors duration-fast",
-        "hover:border-border-strong",
+        "hover:border-border-strong hover:bg-hover-surface",
         "focus-visible:shadow-focus-ring outline-hidden",
-        selected ? "border-primary bg-primary-glow" : "border-border bg-panel",
+        selected ? "border-border-strong bg-selected-surface" : "border-border bg-panel",
       )}
     >
       <div className="flex items-start justify-between gap-2">
-        <span
-          className={cn(
-            "min-w-0 flex-1 truncate font-mono text-body font-semibold",
-            selected ? "text-primary" : "text-foreground",
-          )}
-        >
+        <span className="min-w-0 flex-1 truncate font-mono text-body font-semibold text-foreground">
           {agent.name}
         </span>
-        <span className="inline-flex shrink-0 items-center gap-1 rounded bg-muted-surface px-1.5 py-0.5 font-mono text-meta uppercase tracking-wide text-muted-foreground">
+        <span className="inline-flex shrink-0 items-center gap-1 rounded bg-muted-surface px-1.5 py-0.5 font-mono text-meta text-muted-foreground">
           <Icon aria-hidden="true" className="size-3" />
           {badgeLabel}
         </span>
@@ -58,13 +52,9 @@ export function UserAgentCard({
         {agent.description}
       </p>
 
-      <div className="mt-auto flex items-center justify-between gap-3 pt-2">
-        <span className="min-w-0 truncate font-mono text-caption text-foreground">
-          {agent.scenarioId}
-        </span>
-
+      <div className="mt-auto flex items-center justify-end pt-2">
         <span className="shrink-0 rounded px-1.5 py-0.5 text-caption text-muted-foreground transition-colors duration-fast group-hover:bg-primary group-hover:text-primary-foreground">
-          {ctaLabel} →
+          Use this agent →
         </span>
       </div>
     </button>
@@ -74,17 +64,11 @@ export function UserAgentCard({
 const KIND_BADGE: Record<AgentKind, string> = {
   qa: "QA",
   automation: "Automation",
-  chat: "CHAT",
+  chat: "Chat",
 };
 
 const KIND_ICON: Record<AgentKind, LucideIcon> = {
   qa: ShieldCheck,
   automation: Play,
   chat: MessageSquare,
-};
-
-const KIND_CTA: Record<AgentKind, string> = {
-  qa: "Use QA Agent",
-  automation: "Use Automation",
-  chat: "Use Chat Agent",
 };

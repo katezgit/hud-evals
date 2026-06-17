@@ -8,8 +8,11 @@ import type { TasksetJobRow } from "@/lib/mock/tasksets";
 export interface HomeJobRow extends TasksetJobRow {
   /** Parent taskset display name — rendered on Home's Taskset column. */
   tasksetName: string;
+  /** Canonical Taskset.id this job's `tasksetName` resolves to. */
+  tasksetId: string;
   /** Environment label below the taskset name. */
   tasksetEnv: string;
+  // Note: `modelId` and `environmentId` are inherited from `TasksetJobRow`.
 }
 
 export const HOME_RECENT_JOBS: ReadonlyArray<HomeJobRow> = [
@@ -20,6 +23,8 @@ export const HOME_RECENT_JOBS: ReadonlyArray<HomeJobRow> = [
     title: "GRPO sweep · lr=2e-6",
     subtitle: "step 4,096 / 10,000 · kl=0.02",
     modelName: "qwen2.5-14b",
+    modelId: "qwen2.5-14b",
+    environmentId: "local-shell",
     modelVersion: "v3",
     ownerName: "Aman",
     ownerScope: "self",
@@ -33,7 +38,8 @@ export const HOME_RECENT_JOBS: ReadonlyArray<HomeJobRow> = [
     traceCount: 4096,
     isPrivate: true,
     tasksetName: "rl-coding-eval",
-    tasksetEnv: "hud-browser",
+    tasksetId: "rl-coding-eval",
+    tasksetEnv: "local-shell",
   },
   {
     id: "job_4b7e22",
@@ -41,7 +47,9 @@ export const HOME_RECENT_JOBS: ReadonlyArray<HomeJobRow> = [
     type: "eval",
     title: "Prompted baseline — opus",
     subtitle: "4 Tasks × 2 Models",
-    modelName: "claude-opus-4.6",
+    modelName: "claude-opus-4-6",
+    modelId: "claude-opus-4-6",
+    environmentId: "browser",
     modelVersion: "—",
     ownerName: "Aman",
     ownerScope: "self",
@@ -55,7 +63,8 @@ export const HOME_RECENT_JOBS: ReadonlyArray<HomeJobRow> = [
     traceCount: 24,
     isPrivate: true,
     tasksetName: "hud-browser",
-    tasksetEnv: "hud-browser",
+    tasksetId: "hud-browser",
+    tasksetEnv: "browser",
   },
   {
     id: "job_c1a4f2",
@@ -64,6 +73,8 @@ export const HOME_RECENT_JOBS: ReadonlyArray<HomeJobRow> = [
     title: "Regression sweep 0043",
     subtitle: "12 Tasks × 3 Models",
     modelName: "multi · 3",
+    modelId: "multi",
+    environmentId: "browser",
     modelVersion: "—",
     ownerName: "cron",
     ownerScope: "cron",
@@ -74,8 +85,9 @@ export const HOME_RECENT_JOBS: ReadonlyArray<HomeJobRow> = [
     when: "2m",
     traceCount: 0,
     isPrivate: true,
-    tasksetName: "browser-bench",
-    tasksetEnv: "hud-browser",
+    tasksetName: "hud-browser",
+    tasksetId: "hud-browser",
+    tasksetEnv: "browser",
   },
   {
     id: "job_55a7c0",
@@ -83,7 +95,9 @@ export const HOME_RECENT_JOBS: ReadonlyArray<HomeJobRow> = [
     type: "eval",
     title: "Regression 0042",
     subtitle: "4 Tasks × 1 Model",
-    modelName: "claude-haiku-4.5",
+    modelName: "claude-haiku-4-5",
+    modelId: "claude-haiku-4-5",
+    environmentId: "browser",
     modelVersion: "—",
     ownerName: "cron 06:00",
     ownerScope: "cron",
@@ -96,8 +110,9 @@ export const HOME_RECENT_JOBS: ReadonlyArray<HomeJobRow> = [
     traces: "sssf",
     traceCount: 4,
     isPrivate: true,
-    tasksetName: "browser-bench",
-    tasksetEnv: "hud-browser",
+    tasksetName: "hud-browser",
+    tasksetId: "hud-browser",
+    tasksetEnv: "browser",
   },
   {
     id: "job_8c01af",
@@ -106,6 +121,8 @@ export const HOME_RECENT_JOBS: ReadonlyArray<HomeJobRow> = [
     title: "GRPO sweep · lr=1e-6",
     subtitle: "converged · 10,000 steps",
     modelName: "qwen2.5-14b",
+    modelId: "qwen2.5-14b",
+    environmentId: "local-shell",
     modelVersion: "v2",
     ownerName: "Aman",
     ownerScope: "self",
@@ -119,7 +136,8 @@ export const HOME_RECENT_JOBS: ReadonlyArray<HomeJobRow> = [
     traceCount: 10000,
     isPrivate: true,
     tasksetName: "rl-coding-eval",
-    tasksetEnv: "hud-browser",
+    tasksetId: "rl-coding-eval",
+    tasksetEnv: "local-shell",
   },
   {
     id: "job_2a55de",
@@ -129,6 +147,8 @@ export const HOME_RECENT_JOBS: ReadonlyArray<HomeJobRow> = [
     subtitle: "reward climbed, output collapsed",
     flag: "reward-hack?",
     modelName: "qwen2.5-14b",
+    modelId: "qwen2.5-14b",
+    environmentId: "local-shell",
     modelVersion: "v2",
     ownerName: "Aman",
     ownerScope: "self",
@@ -142,7 +162,8 @@ export const HOME_RECENT_JOBS: ReadonlyArray<HomeJobRow> = [
     traceCount: 10000,
     isPrivate: true,
     tasksetName: "rl-coding-eval",
-    tasksetEnv: "hud-browser",
+    tasksetId: "rl-coding-eval",
+    tasksetEnv: "local-shell",
   },
   {
     id: "job_d10b94",
@@ -151,6 +172,8 @@ export const HOME_RECENT_JOBS: ReadonlyArray<HomeJobRow> = [
     title: "GRPO sweep · bf16",
     subtitle: "infra error during run",
     modelName: "qwen2.5-32b",
+    modelId: "qwen2.5-32b",
+    environmentId: "local-shell",
     modelVersion: "v1",
     ownerName: "Aman",
     ownerScope: "self",
@@ -162,7 +185,8 @@ export const HOME_RECENT_JOBS: ReadonlyArray<HomeJobRow> = [
     traceCount: 0,
     isPrivate: true,
     tasksetName: "rl-coding-eval",
-    tasksetEnv: "hud-browser",
+    tasksetId: "rl-coding-eval",
+    tasksetEnv: "local-shell",
   },
   {
     id: "job_5d22e0",
@@ -171,6 +195,8 @@ export const HOME_RECENT_JOBS: ReadonlyArray<HomeJobRow> = [
     title: "Full regression",
     subtitle: "4 Tasks × 4 Models",
     modelName: "multi · 4",
+    modelId: "multi",
+    environmentId: "browser",
     modelVersion: "—",
     ownerName: "Aman",
     ownerScope: "self",
@@ -184,7 +210,8 @@ export const HOME_RECENT_JOBS: ReadonlyArray<HomeJobRow> = [
     dist: { scored: 86, failed: 28, errored: 6, notrun: 8 },
     isPrivate: true,
     tasksetName: "hud-browser",
-    tasksetEnv: "hud-browser",
+    tasksetId: "hud-browser",
+    tasksetEnv: "browser",
   },
   {
     id: "job_1ee330",
@@ -192,7 +219,9 @@ export const HOME_RECENT_JOBS: ReadonlyArray<HomeJobRow> = [
     type: "eval",
     title: "Batch: 4 tasks",
     subtitle: "manual run",
-    modelName: "claude-haiku-4.5",
+    modelName: "claude-haiku-4-5",
+    modelId: "claude-haiku-4-5",
+    environmentId: "browser",
     modelVersion: "4.5",
     ownerName: "Priya",
     ownerScope: "team",
@@ -206,7 +235,8 @@ export const HOME_RECENT_JOBS: ReadonlyArray<HomeJobRow> = [
     traceCount: 4,
     isPrivate: true,
     tasksetName: "hud-browser",
-    tasksetEnv: "hud-browser",
+    tasksetId: "hud-browser",
+    tasksetEnv: "browser",
   },
 ];
 
