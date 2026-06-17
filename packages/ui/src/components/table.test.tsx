@@ -18,10 +18,10 @@ import {
 // ---------------------------------------------------------------------------
 
 describe("tableClass", () => {
-  it("contains w-full border-collapse bg-background", () => {
+  it("contains w-full border-collapse (no bg-background since PR #66)", () => {
     expect(tableClass).toContain("w-full")
     expect(tableClass).toContain("border-collapse")
-    expect(tableClass).toContain("bg-background")
+    expect(tableClass).not.toContain("bg-background")
   })
 })
 
@@ -30,8 +30,8 @@ describe("tableClass", () => {
 // ---------------------------------------------------------------------------
 
 describe("tableHeaderClass", () => {
-  it("contains bg-muted-surface", () => {
-    expect(tableHeaderClass).toContain("bg-muted-surface")
+  it("contains bg-field-rest", () => {
+    expect(tableHeaderClass).toContain("bg-field-rest")
   })
 })
 
@@ -50,9 +50,9 @@ describe("tableBodyClass", () => {
 // ---------------------------------------------------------------------------
 
 describe("tableFooterClass", () => {
-  it("contains border-t bg-muted-surface font-medium", () => {
+  it("contains border-t bg-field-rest font-medium", () => {
     expect(tableFooterClass).toContain("border-t")
-    expect(tableFooterClass).toContain("bg-muted-surface")
+    expect(tableFooterClass).toContain("bg-field-rest")
     expect(tableFooterClass).toContain("font-medium")
   })
 })
@@ -83,7 +83,8 @@ describe("tableHeadVariants", () => {
     expect(cls).not.toContain("bg-background")
     expect(cls).toContain("text-muted-foreground")
     expect(cls).toContain("border-b")
-    expect(cls).toContain("uppercase")
+    // <th> MUST render in natural case — product rule: no uppercase on table headers
+    expect(cls).not.toMatch(/\buppercase\b/)
     expect(cls).toContain("font-medium")
     expect(cls).toContain("px-3")
   })
@@ -277,7 +278,7 @@ describe("Table bordered prop", () => {
 // ---------------------------------------------------------------------------
 
 describe("TableHeader", () => {
-  it("renders with bg-muted-surface regardless of bordered context", () => {
+  it("renders with bg-field-rest regardless of bordered context", () => {
     const { container } = render(
       <table>
         <TableHeader data-testid="thead">
@@ -286,6 +287,6 @@ describe("TableHeader", () => {
       </table>
     )
     const thead = container.querySelector("thead")
-    expect(thead?.className).toContain("bg-muted-surface")
+    expect(thead?.className).toContain("bg-field-rest")
   })
 })
