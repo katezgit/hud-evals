@@ -111,14 +111,14 @@
    * a card or dialog (#1B2433, the elevated surface). --color-border at 6% white
    * lands BETWEEN the field fill and the card bg in dark mode → mushy edge.
    * This token uses stronger alpha so the ring holds in both surface contexts.
-   * Light: .22 alpha (small bump from --color-border .15; sharpens on white cards).
-   * Dark:  .10 alpha — lifts border to ~L 26 over field fill #0F151D; one step
-   *        above card surface (L 25). Present-but-quiet ring, closer in perceptual
-   *        weight to the .06 table-divider hairlines but visible on the enclosed
-   *        4-sided box where field fill < card surface. */
+   * Light: .165 alpha (small bump from --color-border .1125; sharpens on white cards).
+   * Dark:  .18 alpha — lifts the enabled border to ~L 25 over field fill #0F151D,
+   *        sitting ~5 L above --color-border-disabled #2D3440 (L 20). Hierarchy:
+   *        enabled (brighter) > disabled (calmer); foreground tier (text-foreground
+   *        vs text-disabled) seals the affordance. */
   --color-form-field-border: light-dark(
-    rgb(var(--border-seed-light) / .22),
-    rgb(var(--border-seed-dark) / .10)
+    rgb(var(--border-seed-light) / .165),
+    rgb(var(--border-seed-dark) / .18)
   );
 
   /* Typography — 3-tier reading hierarchy.
@@ -145,13 +145,13 @@
 
   /* Borders — alpha-tinted hairlines, compose on any surface.
    *   border:        default hairline
-   *   border-strong: +10pp alpha for selected/active edges */
-  --color-border:        light-dark(rgb(var(--border-seed-light) / .15),  rgb(var(--border-seed-dark) / .06));
-  --color-border-strong: light-dark(rgb(var(--border-seed-light) / .28),  rgb(var(--border-seed-dark) / .18));
+   *   border-strong: ~+10pp alpha for selected/active edges */
+  --color-border:        light-dark(rgb(var(--border-seed-light) / .1125), rgb(var(--border-seed-dark) / .045));
+  --color-border-strong: light-dark(rgb(var(--border-seed-light) / .21),   rgb(var(--border-seed-dark) / .135));
   /* Progress track — the unfilled slot behind the fill bar.
    * Light: matches muted-surface (#F0F2F6) — subtle gray well, fine on page bg.
    * Dark: 12% white alpha over card/row surface (#1B2433) → visible slot without
-   *   being loud; border-strong sits at 18%, so 12% is "present but receding."
+   *   being loud; border-strong sits at 13.5%, so 12% is "present but receding."
    *   muted-surface dark (#1B2433) === card dark (#1B2433) → track disappears on
    *   table rows; this dedicated token breaks the collision. */
   --color-progress-track: light-dark(
@@ -167,11 +167,16 @@
   --color-code-bg:     var(--ink-900);             /* #18212E — block body + header */
   --color-code-fg:     var(--ink-50);              /* #E8EEF5 — primary code text */
   --color-code-muted:  var(--ink-100);             /* #B3BFCE — language label */
-  --color-code-border: rgba(255 255 255 / .08);    /* hairline on dark surface */
+  --color-code-border: rgba(255 255 255 / .06);    /* hairline on dark surface */
   /* Highlighted option — select-kind components (Select, Command, DropdownMenu, Combobox, MultiSelect).
-   * References --surface-elevated primitive directly: subtle visible lift on panel/bg surfaces,
-   * no magic alpha values. Light #F0F2F6 (~6% gray on white panel) / dark #161D28 (clear lift from #11161F panel). */
-  --color-highlight-surface: light-dark(var(--surface-elevated-light), var(--surface-elevated-dark));
+   * Light: --surface-elevated-light (#F0F2F6) — ~6% gray lift on white popover.
+   * Dark: popover surface is --control-raised (= --surface-elevated-dark #1B2433), so
+   *   elevated-dark on elevated-dark = invisible. White-mix lift instead — same pattern as
+   *   --color-sidebar-hover-manage — gives ≈#373F4B, a clear step above #1B2433. */
+  --color-highlight-surface: light-dark(
+    var(--surface-elevated-light),
+    color-mix(in srgb, var(--surface-elevated-dark) 88%, white 12%)
+  );
 
   /* ═══════════════════════════════════════════════════════════════════════════
    * IDENTITY — brand-meaningful hues. Sparse usage.
@@ -214,7 +219,7 @@
    * values avoid the alpha-on-dark inversion (e.g. 38% alpha over dark canvas
    * → near-black, ends up darker than the enabled state). */
   --color-primary-disabled: light-dark(#9BBFBA, #1B5E55); /* PINNED — desaturated teal steps; not in palette ramp */
-  --color-border-disabled:  light-dark(#C8CDD6, #3A4455); /* PINNED — neutral-adjacent; not in palette ramp */
+  --color-border-disabled:  light-dark(#C8CDD6, #2D3440); /* PINNED — neutral-adjacent; not in palette ramp */
 
   /* Interaction surface — single token for hovered rows / interactive backdrops.
    * Dark must LIFT above bg-card (control-raised → elevated-dark = #1B2433); a

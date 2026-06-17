@@ -1,7 +1,9 @@
 "use client";
 
 import { useId, useMemo, useState } from "react";
+import { X as XIcon } from "lucide-react";
 import { Checkbox } from "@repo/ui/components/checkbox";
+import { IconButton } from "@repo/ui/components/icon-button";
 import { Label } from "@repo/ui/components/label";
 import { SearchInput } from "@repo/ui/components/search-input";
 import { cn } from "@repo/ui/lib/cn";
@@ -136,33 +138,31 @@ function SelectionSummary({
   const extra = total - preview.length;
 
   return (
-    <div className="shrink-0 flex flex-col gap-1.5">
-      <div className="flex items-center gap-2">
-        <span className="text-caption text-muted-foreground">
-          Selected ({total})
-        </span>
-        <span aria-hidden="true" className="text-meta-foreground">·</span>
-        <button
-          type="button"
-          onClick={onClear}
-          className="text-caption text-primary hover:underline outline-hidden focus-visible:shadow-focus-ring rounded-sm"
+    <div className="shrink-0 flex flex-wrap items-center gap-2 rounded-md border border-border bg-elevated-surface px-3 py-2">
+      <span className="text-meta text-meta-foreground uppercase tracking-wider">
+        Selected
+      </span>
+      <span className="text-body font-medium text-foreground">{total}</span>
+      {preview.map((m) => (
+        <span
+          key={m.id}
+          className="inline-flex items-center rounded-sm border border-border bg-panel px-1.5 py-0.5 font-mono text-meta text-foreground"
         >
-          Clear
-        </button>
-      </div>
-      <div className="flex flex-wrap items-center gap-1.5">
-        {preview.map((m) => (
-          <span
-            key={m.id}
-            className="inline-flex items-center rounded-sm border border-border bg-elevated-surface px-1.5 py-0.5 font-mono text-meta text-foreground"
-          >
-            {m.name}
-          </span>
-        ))}
-        {extra > 0 && (
-          <span className="text-meta text-muted-foreground">+{extra} more</span>
-        )}
-      </div>
+          {m.name}
+        </span>
+      ))}
+      {extra > 0 && (
+        <span className="text-meta text-muted-foreground">+{extra} more</span>
+      )}
+      <IconButton
+        variant="ghost"
+        size="sm"
+        aria-label="Clear selection"
+        onClick={onClear}
+        className="ml-auto"
+      >
+        <XIcon />
+      </IconButton>
     </div>
   );
 }

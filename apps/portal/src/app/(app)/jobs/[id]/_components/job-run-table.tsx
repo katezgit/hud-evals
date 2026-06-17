@@ -27,6 +27,7 @@ import { ArrowUpRight, ChevronDown, ChevronRight, X } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@repo/ui/components/button";
 import { Checkbox } from "@repo/ui/components/checkbox";
+import { IconButton } from "@repo/ui/components/icon-button";
 import { cn } from "@repo/ui/lib/cn";
 import type { JobModelSummary, JobRun, JobTask } from "@/lib/mock/job-detail";
 
@@ -108,13 +109,13 @@ export function JobRunTable({
             <col className="w-9" />
             <col />
             <col className={isStripMode ? "w-56" : "w-32"} />
-            <col className="w-24" />
+            <col className="w-32" />
             <col className="w-20" />
             <col className="w-28" />
             <col className="w-24" />
             <col className="w-44" />
           </colgroup>
-          <thead className="sticky top-0 z-10 bg-card">
+          <thead className="sticky top-0 z-10 bg-field-rest">
             <tr className="border-b border-border">
               <th className="px-3 py-2 align-middle">
                 <div className="flex items-center">
@@ -421,7 +422,8 @@ function TaskParentRow({
       onClick={onToggleExpand}
       aria-expanded={expanded}
       className={cn(
-        "cursor-pointer border-b border-border bg-card transition-colors hover:bg-hover-surface",
+        "cursor-pointer border-b border-border transition-colors",
+        expanded ? "bg-selected-surface" : "bg-card hover:bg-hover-surface",
         "last:border-b-0",
       )}
     >
@@ -451,11 +453,11 @@ function TaskParentRow({
           <span className="shrink-0 font-mono text-code text-meta-foreground">
             {task.id}
           </span>
+          <span className="shrink-0 font-mono text-label text-meta-foreground">
+            {traces.length} traces
+          </span>
           <span className="min-w-0 flex-1 truncate text-body font-semibold text-foreground">
             {task.promptLabel ?? task.scenarioLabel ?? "—"}
-          </span>
-          <span className="shrink-0 rounded-full border border-border bg-secondary-surface px-2 py-0.5 font-mono text-label font-medium text-muted-foreground">
-            {traces.length} traces
           </span>
         </div>
       </td>
@@ -478,7 +480,7 @@ function TaskParentRow({
           </span>
         )}
       </td>
-      <td className="px-3 py-2.5 text-right align-middle font-mono text-code tabular-nums text-muted-foreground">
+      <td className="whitespace-nowrap px-3 py-2.5 text-right align-middle font-mono text-code tabular-nums text-muted-foreground">
         {agg.completedCount} / {agg.totalCount}
         {agg.errorCount > 0 && (
           <span className="ml-1 text-state-errored-text">
@@ -590,7 +592,8 @@ function PerModelSubRow({
       onClick={onToggleExpand}
       aria-expanded={expanded}
       className={cn(
-        "cursor-pointer border-b border-border bg-elevated-surface transition-colors hover:bg-hover-surface",
+        "cursor-pointer border-b border-border transition-colors",
+        expanded ? "bg-selected-surface" : "bg-elevated-surface hover:bg-hover-surface",
         "last:border-b-0",
       )}
     >
@@ -708,48 +711,49 @@ function TraceChildRow({
         selected && "bg-primary-soft hover:bg-primary-soft",
       )}
     >
-      <td className="px-3 py-1.5 align-middle">
-        <Checkbox
-          size="sm"
-          checked={selected}
-          onCheckedChange={onToggleSelect}
-          aria-label={`Select trace ${run.traceId}`}
-        />
-      </td>
+      <td className="px-3 py-1.5 align-middle" />
       <td className="min-w-0 px-3 py-1.5 align-middle">
-        <button
-          type="button"
-          onClick={openTrace}
+        <div
           className={cn(
-            "-mx-1 flex min-w-0 items-center gap-2 rounded-sm px-1 py-0.5 text-left",
-            indent === "single" ? "pl-7" : "pl-12",
-            "cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40",
+            "flex min-w-0 items-center gap-2",
+            indent === "double" && "pl-5",
           )}
-          aria-label={`Open trace ${run.traceId}`}
         >
-          <span
-            aria-hidden="true"
-            className="size-[3px] shrink-0 rounded-full bg-meta-foreground opacity-60"
+          <Checkbox
+            size="sm"
+            checked={selected}
+            onCheckedChange={onToggleSelect}
+            aria-label={`Select trace ${run.traceId}`}
           />
-          <span
+          <button
+            type="button"
+            onClick={openTrace}
             className={cn(
-              "font-mono text-code text-meta-foreground",
-              "group-hover:text-primary group-hover:underline",
-              "group-focus-within:text-primary group-focus-within:underline",
+              "-mx-1 flex min-w-0 items-center gap-2 rounded-sm px-1 py-0.5 text-left",
+              "cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40",
             )}
+            aria-label={`Open trace ${run.traceId}`}
           >
-            {traceLabel}
-          </span>
-          {attemptIndex !== null && (
-            <span className="font-mono text-meta text-meta-foreground">
-              attempt {attemptIndex}
+            <span
+              className={cn(
+                "font-mono text-code text-meta-foreground",
+                "group-hover:text-primary group-hover:underline",
+                "group-focus-within:text-primary group-focus-within:underline",
+              )}
+            >
+              {traceLabel}
             </span>
-          )}
-          <ArrowUpRight
-            aria-hidden="true"
-            className="size-3.5 shrink-0 text-primary opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100"
-          />
-        </button>
+            {attemptIndex !== null && (
+              <span className="font-mono text-meta text-meta-foreground">
+                attempt {attemptIndex}
+              </span>
+            )}
+            <ArrowUpRight
+              aria-hidden="true"
+              className="size-3.5 shrink-0 text-primary opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100"
+            />
+          </button>
+        </div>
       </td>
       <td className="px-3 py-1.5 text-right align-middle">
         <TraceRewardCell run={run} />
@@ -1012,13 +1016,13 @@ function ModelSectionHeader({
 
 interface BulkActionBarProps {
   count: number;
-  onRunQa: () => void;
+  runQaTrigger: React.ReactNode;
   onClear: () => void;
 }
 
 export function BulkActionBar({
   count,
-  onRunQa,
+  runQaTrigger,
   onClear,
 }: BulkActionBarProps) {
   return (
@@ -1030,14 +1034,15 @@ export function BulkActionBar({
       <span className="rounded-sm border border-primary/25 bg-primary-soft px-2 py-0.5 font-mono text-label font-semibold text-primary">
         {count} selected
       </span>
-      <span className="mx-1 h-4 w-px bg-border" aria-hidden="true" />
-      <Button variant="ghost" onClick={onRunQa}>
-        Run Analysis
-      </Button>
-      <Button variant="ghost" onClick={onClear} className="ml-auto text-meta-foreground">
-        Clear
-        <X aria-hidden="true" />
-      </Button>
+      <span className="ml-auto">{runQaTrigger}</span>
+      <IconButton
+        variant="ghost"
+        size="sm"
+        aria-label="Clear selection"
+        onClick={onClear}
+      >
+        <X />
+      </IconButton>
     </div>
   );
 }

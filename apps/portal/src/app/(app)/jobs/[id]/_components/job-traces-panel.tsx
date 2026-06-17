@@ -13,7 +13,7 @@ import { Checkbox } from "@repo/ui/components/checkbox";
 import type { JobModelSummary, JobQaAgent, JobRun, JobTask } from "@/lib/mock/job-detail";
 import { BulkActionBar, JobRunTable, type GroupByMode, type TraceRow } from "./job-run-table";
 import { JobTraceCards } from "./job-trace-cards";
-import { QaAgentMainButton } from "./qa-agent-popover";
+import { QaAgentMainButton, QaAgentPopover } from "./qa-agent-popover";
 
 interface JobTracesPanelProps {
   jobId: string;
@@ -143,13 +143,6 @@ export function JobTracesPanel({
 
   const clearSelection = () => setSelectedRunIds(new Set());
   const selectedCount = selectedRunIds.size;
-  const selectedArray = React.useMemo(() => Array.from(selectedRunIds), [selectedRunIds]);
-
-  const bulkRunQa = () => {
-    toast(
-      `→ Run Analysis on ${selectedArray.length} selected trace${selectedArray.length === 1 ? "" : "s"}`,
-    );
-  };
 
   // Filter-stats line — mirrors the models page (`X of Y` muted + green `Clear
   // all`). Group by / view toggle are navigation/density, not narrowing, so
@@ -289,7 +282,13 @@ export function JobTracesPanel({
         <div className="shrink-0">
           <BulkActionBar
             count={selectedCount}
-            onRunQa={bulkRunQa}
+            runQaTrigger={
+              <QaAgentPopover
+                scope={`${selectedCount} selected Trace${selectedCount === 1 ? "" : "s"}`}
+                agents={qaAgents}
+                trigger={<Button variant="ghost">Run Analysis</Button>}
+              />
+            }
             onClear={clearSelection}
           />
         </div>
