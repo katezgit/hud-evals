@@ -202,7 +202,7 @@ export function JobUsagePanel({ usage }: JobUsagePanelProps) {
 //   docs/design/screens/job-detail-usage.wireframe.md §D9
 
 const STAT_LABEL_CLASS =
-  "text-[11px] font-normal uppercase tracking-wider text-meta-foreground";
+  "text-meta font-normal uppercase tracking-wider text-meta-foreground";
 
 function StatStrip({ usage }: { usage: JobUsage }) {
   return (
