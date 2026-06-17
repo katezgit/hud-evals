@@ -1,7 +1,9 @@
 "use client";
 
 import { useId, useMemo, useState } from "react";
+import { X as XIcon } from "lucide-react";
 import { Checkbox } from "@repo/ui/components/checkbox";
+import { IconButton } from "@repo/ui/components/icon-button";
 import { Label } from "@repo/ui/components/label";
 import { SearchInput } from "@repo/ui/components/search-input";
 import { cn } from "@repo/ui/lib/cn";
@@ -64,10 +66,6 @@ export function StepEvalModels({
 
   return (
     <div className="h-full flex flex-col gap-3">
-      {totalCount > 0 && (
-        <SelectionSummary selection={selection} onClear={() => onSelectionChange(new Set())} />
-      )}
-
       <div className="flex-1 min-h-0 flex flex-col gap-1.5">
         <div className="flex flex-col gap-1">
           <Label id={labelId} htmlFor={searchId}>
@@ -91,6 +89,22 @@ export function StepEvalModels({
               className="flex-1"
             />
           </div>
+          {totalCount > 0 && (
+            <div className="shrink-0 flex items-center gap-2 border-b border-border bg-secondary-surface px-3 py-1.5">
+              <span className="rounded-sm border border-primary/25 bg-primary-soft px-2 py-0.5 font-mono text-label font-semibold text-primary">
+                {totalCount} selected
+              </span>
+              <IconButton
+                variant="ghost"
+                size="sm"
+                aria-label="Clear selection"
+                onClick={() => onSelectionChange(new Set())}
+                className="ml-auto"
+              >
+                <XIcon />
+              </IconButton>
+            </div>
+          )}
           <div className="flex-1 min-h-0 overflow-y-auto">
             {filteredGroups.length === 0 ? (
               <div className="flex items-center justify-center py-8 text-body text-muted-foreground">
@@ -109,59 +123,6 @@ export function StepEvalModels({
             )}
           </div>
         </div>
-      </div>
-    </div>
-  );
-}
-
-function SelectionSummary({
-  selection,
-  onClear,
-}: {
-  selection: ReadonlySet<string>;
-  onClear: () => void;
-}) {
-  const total = selection.size;
-  const allSelected = useMemo<ReadonlyArray<EvalModelRow>>(() => {
-    const out: EvalModelRow[] = [];
-    for (const group of EVAL_MODEL_GROUPS) {
-      for (const model of group.models) {
-        if (selection.has(model.id)) out.push(model);
-      }
-    }
-    return out;
-  }, [selection]);
-
-  const preview = allSelected.slice(0, 3);
-  const extra = total - preview.length;
-
-  return (
-    <div className="shrink-0 flex flex-col gap-1.5">
-      <div className="flex items-center gap-2">
-        <span className="text-caption text-muted-foreground">
-          Selected ({total})
-        </span>
-        <span aria-hidden="true" className="text-meta-foreground">·</span>
-        <button
-          type="button"
-          onClick={onClear}
-          className="text-caption text-primary hover:underline outline-hidden focus-visible:shadow-focus-ring rounded-sm"
-        >
-          Clear
-        </button>
-      </div>
-      <div className="flex flex-wrap items-center gap-1.5">
-        {preview.map((m) => (
-          <span
-            key={m.id}
-            className="inline-flex items-center rounded-sm border border-border bg-elevated-surface px-1.5 py-0.5 font-mono text-meta text-foreground"
-          >
-            {m.name}
-          </span>
-        ))}
-        {extra > 0 && (
-          <span className="text-meta text-muted-foreground">+{extra} more</span>
-        )}
       </div>
     </div>
   );

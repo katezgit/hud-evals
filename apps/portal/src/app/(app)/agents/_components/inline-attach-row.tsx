@@ -40,7 +40,7 @@ export function InlineAttachRow({
         value={null}
         onValueChange={handleValueChange}
         options={options}
-        placeholder={noneAvailable ? "All tasksets attached" : "Select taskset…"}
+        placeholder={noneAvailable ? "All tasksets attached" : "Attach this agent to another taskset…"}
         emptyText="No tasksets match"
         disabled={noneAvailable}
         size="sm"

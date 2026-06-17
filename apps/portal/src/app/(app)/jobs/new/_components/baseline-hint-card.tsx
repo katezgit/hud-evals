@@ -50,7 +50,7 @@ export function BaselineHintCard({
   }
 
   return (
-    <Alert variant="info">
+    <Alert variant="default">
       <InfoIcon aria-hidden="true" />
       <AlertTitle>No baseline yet</AlertTitle>
       <AlertDescription>

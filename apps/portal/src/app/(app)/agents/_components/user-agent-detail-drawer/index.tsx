@@ -311,14 +311,14 @@ function PendingNoteMessage({
   if (total === 0) return null;
   const parts: string[] = [];
   if (pendingAddCount > 0) {
-    const word = pendingAddCount === 1 ? "attachment" : "attachments";
-    parts.push(`${pendingAddCount} ${word} staged`);
+    const word = pendingAddCount === 1 ? "taskset" : "tasksets";
+    parts.push(`attach ${pendingAddCount} ${word}`);
   }
   if (pendingRemoveCount > 0) {
-    const word = pendingRemoveCount === 1 ? "detachment" : "detachments";
-    parts.push(`${pendingRemoveCount} ${word} staged`);
+    const word = pendingRemoveCount === 1 ? "taskset" : "tasksets";
+    parts.push(`detach ${pendingRemoveCount} ${word}`);
   }
-  const body = parts.join(", ");
+  const body = `Will ${parts.join(", ")} on save`;
   return (
     <Tooltip>
       <TooltipTrigger asChild>

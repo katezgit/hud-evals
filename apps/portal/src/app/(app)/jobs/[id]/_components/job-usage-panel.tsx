@@ -9,6 +9,7 @@ import {
   ArrowUpRight,
   ChevronDown,
 } from "lucide-react";
+import { Badge } from "@repo/ui/components/badge";
 import { Button } from "@repo/ui/components/button";
 import {
   Select,
@@ -515,20 +516,9 @@ function TraceRow({
 function StatusPill({ status }: { status: JobUsageTrace["status"] }) {
   const isErrored = status === "Errored";
   return (
-    <span
-      className={cn(
-        "inline-flex items-center gap-1.5 rounded-sm px-2 py-0.5 text-xs font-medium",
-        isErrored
-          ? "bg-state-errored-subtle text-state-errored-text"
-          : "bg-state-scored-subtle text-state-scored-text",
-      )}
-    >
-      <span
-        aria-hidden="true"
-        className="size-1.5 shrink-0 rounded-full bg-current"
-      />
+    <Badge variant={isErrored ? "destructive" : "success"} showDot bare>
       {isErrored ? "Error" : "Scored"}
-    </span>
+    </Badge>
   );
 }
 

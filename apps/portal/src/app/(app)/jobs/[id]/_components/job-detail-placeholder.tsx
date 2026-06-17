@@ -1,33 +1,19 @@
 "use client";
 
-import Link from "next/link";
-import { ChevronRight, InfoIcon } from "lucide-react";
+import { InfoIcon } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@repo/ui/components/alert";
+import { Breadcrumb } from "@/components/shell/breadcrumb";
 
 export function JobDetailPlaceholder({ id }: { id: string }) {
   return (
     <div className="page-shell min-h-full gap-2">
       <header className="flex flex-col gap-3 pt-2 pb-6">
-        <nav
-          aria-label="Breadcrumb"
-          className="flex items-center gap-1 text-label tracking-normal normal-case text-muted-foreground"
-        >
-          <Link
-            href="/jobs"
-            className="rounded-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-          >
-            Jobs
-          </Link>
-          <ChevronRight aria-hidden="true" className="size-3 text-meta-foreground" />
-          <span aria-current="page" className="truncate text-foreground">
-            {id}
-          </span>
-        </nav>
+        <Breadcrumb parent={{ href: "/jobs", label: "Jobs" }} current={id} />
         <div className="flex flex-col gap-1.5">
           <h1 className="truncate text-display font-semibold text-foreground">
             Job {id}
           </h1>
-          <p className="text-body text-muted-foreground">
+          <p className="text-muted-foreground">
             Coming soon — full job detail surface lands in a follow-up.
           </p>
         </div>

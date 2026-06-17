@@ -79,18 +79,11 @@ function BaselineEvalDrawerBody({
   const handleStart = () => {
     const jobId = `job_${Math.random().toString(36).slice(2, 8)}`;
     onClose();
-    const toastId = toast.success("Eval started. Returning to training config.", {
-      action: (
-        <Button
-          variant="link"
-          onClick={() => {
-            toast.dismiss(toastId);
-            router.push(`/jobs/${jobId}`);
-          }}
-        >
-          View eval job →
-        </Button>
-      ),
+    toast.success("Eval started. Returning to training config.", {
+      action: {
+        label: "View eval job →",
+        onClick: () => router.push(`/jobs/${jobId}`),
+      },
     });
   };
 

@@ -1,14 +1,16 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { BookOpenIcon, ChevronRight } from "lucide-react";
+import { BookOpenIcon } from "lucide-react";
 import { toast } from "sonner";
+import { Button } from "@repo/ui/components/button";
+import { Stepper, type StepperStep } from "@repo/ui/components/stepper";
+import { Breadcrumb } from "@/components/shell/breadcrumb";
 import { tasksets, getTaskset } from "@/lib/mock/tasksets";
 import { getTrainingModel, type TrainingModelRow } from "@/lib/mock/job-create";
-import { Stepper, type StepperStep } from "@repo/ui/components/stepper";
 import { BaselineEvalDrawer } from "./baseline-eval-drawer";
+import { DiscardConfirmDialog } from "./discard-confirm-dialog";
 import { StepModel } from "./step-model";
 import { StepTaskset } from "./step-taskset";
 import { StepTasks } from "./step-tasks";
@@ -147,6 +149,12 @@ export function TrainingWizard({
   };
   const goCancel = () => router.push("/jobs");
 
+  const [discardOpen, setDiscardOpen] = useState(false);
+  const tryCancel = () => {
+    if (hasEdits) setDiscardOpen(true);
+    else goCancel();
+  };
+
   const launch = () => {
     const mockId = `job_${Math.random().toString(36).slice(2, 8)}`;
     toast.success("Training job queued", {
@@ -166,24 +174,7 @@ export function TrainingWizard({
       <div className="shrink-0 bg-panel pt-6">
         <div className="page-shell block py-0">
           <header className="flex flex-col gap-3 pt-2 pb-6">
-            <nav
-              aria-label="Breadcrumb"
-              className="flex items-center gap-1 text-label tracking-normal normal-case text-muted-foreground"
-            >
-              <Link
-                href="/jobs"
-                className="rounded-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-              >
-                Jobs
-              </Link>
-              <ChevronRight
-                aria-hidden="true"
-                className="size-3 text-meta-foreground"
-              />
-              <span aria-current="page" className="truncate text-foreground">
-                New training job
-              </span>
-            </nav>
+            <Breadcrumb parent={{ href: "/jobs", label: "Jobs" }} current="New training job" />
             <div className="flex flex-col gap-1">
               <div className="flex items-center gap-2">
                 <h1 className="text-display font-semibold text-foreground">
@@ -199,7 +190,7 @@ export function TrainingWizard({
                   <BookOpenIcon aria-hidden="true" className="size-3.5" />
                 </a>
               </div>
-              <p className="text-body text-muted-foreground">
+              <p className="text-muted-foreground">
                 Configure a training run for a model checkpoint.
               </p>
             </div>
@@ -213,9 +204,9 @@ export function TrainingWizard({
         </div>
       </div>
 
-      <div className="flex-1 min-h-0 overflow-hidden flex flex-col">
-        <div className="page-shell block py-0 flex-1 min-h-0 flex flex-col">
-          <div className="mx-auto w-full max-w-[1100px] pt-8 pb-8 flex-1 min-h-0 flex flex-col">
+      <div className="flex-1 min-h-0 overflow-y-auto">
+        <div className="page-shell block py-0">
+          <div className="mx-auto w-full max-w-[1100px] pt-8 pb-8">
             {step === "model" && (
               <StepModel
                 selectedId={modelId}
@@ -259,25 +250,50 @@ export function TrainingWizard({
             )}
           </div>
         </div>
-      </div>
 
-      <WizardFooter
-        step={step}
-        prevStep={prevStep}
-        nextStep={nextStep}
-        canAdvance={canAdvance[step]}
-        hasEdits={hasEdits}
-        onCancel={goCancel}
-        onPrev={goPrev}
-        onNext={goNext}
-        onLaunch={launch}
-      />
+        <WizardFooter>
+          <Button variant="ghost" onClick={tryCancel}>
+            Cancel
+          </Button>
+          <div className="flex items-center gap-2">
+            {prevStep && (
+              <Button variant="secondary" onClick={goPrev}>
+                Previous
+              </Button>
+            )}
+            {step === "review" ? (
+              <Button variant="primary" onClick={launch}>
+                Launch Training Job
+              </Button>
+            ) : (
+              nextStep && (
+                <Button
+                  variant="primary"
+                  onClick={goNext}
+                  disabled={!canAdvance[step]}
+                  aria-disabled={!canAdvance[step]}
+                >
+                  Next
+                </Button>
+              )
+            )}
+          </div>
+        </WizardFooter>
+      </div>
 
       <BaselineEvalDrawer
         open={baselineDrawerOpen}
         onOpenChange={setBaselineDrawerOpen}
         model={model}
         taskset={taskset}
+      />
+
+      <DiscardConfirmDialog
+        open={discardOpen}
+        onOpenChange={setDiscardOpen}
+        title="Discard training configuration?"
+        body="Your selections will not be saved."
+        onConfirm={goCancel}
       />
     </div>
   );

@@ -23,7 +23,7 @@ export default function ModelsPage() {
             <BookOpenIcon aria-hidden="true" className="size-3.5" />
           </a>
         </div>
-        <p className="text-body text-muted-foreground">
+        <p className="text-muted-foreground">
           Models served via the{" "}
           <a
             href="https://docs.hud.ai/platform/models"

@@ -56,18 +56,26 @@ export interface BadgeProps
     VariantProps<typeof badgeVariants> {
   /** Show the status dot (only renders for success/running/warning/destructive variants) */
   showDot?: boolean
+  /** Strip chip chrome (bg, border, padding). Keeps tone's text + dot color. */
+  bare?: boolean
 }
 
 const Badge = React.forwardRef<HTMLSpanElement, BadgeProps>(
-  ({ className, variant = "neutral", showDot = false, children, ...props }, ref) => {
-    const hasDot = showDot && variant !== "info" && variant !== "beta" && variant !== "neutral" && variant !== "brand-soft"
+  ({ className, variant = "neutral", showDot = false, bare = false, children, ...props }, ref) => {
+    const noDotVariants = new Set(["info", "beta", "neutral", "brand-soft"])
+    const hasDot = showDot && !noDotVariants.has(variant)
 
     return (
       <span
         ref={ref}
         data-slot="badge"
         data-variant={variant}
-        className={cn(badgeVariants({ variant }), className)}
+        data-bare={bare || undefined}
+        className={cn(
+          badgeVariants({ variant }),
+          bare && "border-transparent bg-transparent px-0",
+          className,
+        )}
         {...props}
       >
         {hasDot && (
