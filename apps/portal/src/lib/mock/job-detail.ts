@@ -225,13 +225,6 @@ export interface JobDetail {
   failedByModel: Record<string, number>;
   /** Minimum valid traces required to enable Train. */
   trainTraceThreshold: number;
-  /** Cost & latency display (constant for the demo — not state-dependent). */
-  costPerRunLabel: string;
-  costPerRunCredits: string;
-  totalCostLabel: string;
-  latencyP50Label: string;
-  toolTurnsAvgLabel: string;
-  toolTurnsSubLabel: string;
   /** "Re-run this Taskset with the pinned seed" command body. */
   rerunCommand: string;
   /** Usage tab payload — independent of runs/tasks above. */
@@ -670,12 +663,6 @@ const SHOWCASE_DETAIL_BASE = {
   initialRuns: SHOWCASE_RUNS,
   qaAgents: QA_AGENTS,
   trainTraceThreshold: 10,
-  costPerRunLabel: "$0.0102 / Run",
-  costPerRunCredits: "1.8 credits",
-  totalCostLabel: "$1.02",
-  latencyP50Label: "2m 50s",
-  toolTurnsAvgLabel: "6.3",
-  toolTurnsSubLabel: "598 calls / 95 Runs",
   rerunCommand: "hud eval browser-tasks --model claude-opus-4-6 --seed 42",
 };
 
@@ -912,7 +899,7 @@ function buildShowcaseUsage(): JobUsage {
     inference: inferenceSum,
     environment: environmentSum,
     tracesCount: traces.length,
-    // ~8 inference calls per trace — see toolTurnsSubLabel ("598 calls / 95 Runs").
+    // ~8 inference calls per trace.
     inferenceCallsCount: traces.length * 8,
     successfulCount,
     erroredCount: erroredTraces.length,
@@ -1220,11 +1207,6 @@ function synthesizeDetail(job: TasksetJobRow, taskset: Taskset): JobDetail {
   // cycle round-robin so coverage stays at `seededTasks.length` once 30 runs
   // distribute across the seed set.
   const coveredTaskCount = new Set(initialRuns.map((r) => r.taskId)).size;
-  const totalRunCost = initialRuns.reduce(
-    (acc, r) => acc + Number.parseFloat(r.costLabel),
-    0,
-  );
-  const avgRunCost = initialRuns.length > 0 ? totalRunCost / initialRuns.length : 0;
 
   return {
     job,
@@ -1248,12 +1230,6 @@ function synthesizeDetail(job: TasksetJobRow, taskset: Taskset): JobDetail {
     toolScopes: { all: allScope, ...perTaskScopes },
     qaAgents: QA_AGENTS,
     trainTraceThreshold: 10,
-    costPerRunLabel: `$${avgRunCost.toFixed(4)} / Run`,
-    costPerRunCredits: "—",
-    totalCostLabel: `$${totalRunCost.toFixed(2)}`,
-    latencyP50Label: "2m 30s",
-    toolTurnsAvgLabel: "4.0",
-    toolTurnsSubLabel: `${initialRuns.length * 4} calls / ${initialRuns.length} Runs`,
     rerunCommand: `hud eval ${taskset.id} --model ${job.modelName} --seed 42`,
     usage: synthesizeUsage(job, seededTasks),
     models: computeModelSummaries(initialRuns, [job.modelName]),
@@ -1551,12 +1527,6 @@ function getMultiModelDetail(): JobDetail {
     toolScopes: SHOWCASE_SCOPES,
     qaAgents: QA_AGENTS,
     trainTraceThreshold: 10,
-    costPerRunLabel: "$0.0033 / Run",
-    costPerRunCredits: "0.6 credits",
-    totalCostLabel: "$0.29",
-    latencyP50Label: "2m 45s",
-    toolTurnsAvgLabel: "6.4",
-    toolTurnsSubLabel: `${MULTI_MODEL_RUNS.length * 6} calls / ${MULTI_MODEL_RUNS.length} Runs`,
     rerunCommand: "hud eval browser-tasks --model gpt-4o,qwen2.5-14b,llama-3.1-8b --seed 42",
     usage: SHOWCASE_USAGE,
     models: MULTI_MODEL_MODELS,

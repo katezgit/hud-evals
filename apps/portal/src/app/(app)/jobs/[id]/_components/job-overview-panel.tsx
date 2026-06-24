@@ -2,8 +2,9 @@
 
 import { useState } from "react";
 import { Separator } from "@repo/ui/components/separator";
+import { cn } from "@repo/ui/lib/cn";
 import type { JobDetail, JobRun, JobTask } from "@/lib/mock/job-detail";
-import { JobCoverageGrid } from "./job-coverage-grid";
+import { CoverageLegend, JobCoverageGrid } from "./job-coverage-grid";
 import { JobRunTable, type TraceRow } from "./job-run-table";
 import { JobSummaryMetrics } from "./job-summary-metrics";
 import { JobToolUsage } from "./job-tool-usage";
@@ -42,31 +43,56 @@ export function JobOverviewPanel({
 
   return (
     <div className="flex flex-col gap-8 pt-2">
-      {/* KPI strip leads: Alex scans Avg Reward / Valid Traces / Cost / Latency
-          first, then drops into per-task forensics. */}
-      <div className="flex flex-col gap-3">
+      <section
+        aria-labelledby="job-overview-results"
+        className="overflow-hidden rounded-lg border border-border bg-card"
+      >
+        <h2 id="job-overview-results" className="sr-only">
+          Job results
+        </h2>
         <JobSummaryMetrics
           detail={detail}
           validRunCount={validRunCount}
           erroredRunCount={erroredRunCount}
           totalRunCount={totalRunCount}
           onDrillToTraces={onSwitchToTraces}
-          onDrillToToolsAll={() => setToolFilter("all")}
         />
-        <JobResultRow detail={detail} />
-      </div>
+        <div className="flex flex-col gap-3 border-t border-border p-4">
+          <div className="flex items-center justify-between gap-4">
+            <span className="font-mono text-label text-muted-foreground">
+              Coverage <span className="text-foreground">{detail.coverageLabel}</span>
+            </span>
+            <CoverageLegend />
+          </div>
 
-      <Separator />
+          <JobCoverageGrid
+            tasks={detail.tasks}
+            runs={runs}
+            selectedTaskId={selectedTaskId}
+            onSelectTask={(taskId) => handleSelectTask(taskId === selectedTaskId ? null : taskId)}
+          />
 
-      <ResultsSection
-        detail={detail}
-        runs={runs}
-        validRunCount={validRunCount}
-        selectedTaskId={selectedTaskId}
-        selectedRuns={selectedRuns}
-        onSelectTask={handleSelectTask}
-        onViewTraces={onSwitchToTraces}
-      />
+          <div className="flex flex-col gap-2">
+            <JobResultRow detail={detail} />
+            {detail.resultsInvalidated ? (
+              <InvalidatedResultNote envId={detail.envId} onViewTraces={onSwitchToTraces} />
+            ) : (
+              <ValidResultNote
+                validCount={validRunCount}
+                threshold={detail.trainTraceThreshold}
+              />
+            )}
+          </div>
+
+          {selectedTaskId !== null && (
+            <OverviewTaskRunTable
+              jobId={detail.job.id}
+              runs={selectedRuns}
+              task={detail.tasks.find((t) => t.id === selectedTaskId)}
+            />
+          )}
+        </div>
+      </section>
 
       <Separator />
 
@@ -86,37 +112,49 @@ function JobResultRow({ detail }: { detail: JobDetail }) {
   return <QaAnalysisResultRow detail={detail} />;
 }
 
+function StatusNoteRow({
+  dotClass,
+  children,
+}: {
+  dotClass: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="flex items-center gap-2.5 font-mono text-label text-muted-foreground">
+      <span
+        aria-hidden="true"
+        className={cn("size-1.5 shrink-0 rounded-full", dotClass)}
+      />
+      <span>{children}</span>
+    </div>
+  );
+}
+
 function EvalResultRow({ detail }: { detail: JobDetail }) {
   const best = detail.models[0];
   if (!best || best.overallReward === null) return null;
   const totalFailed = Object.values(detail.failedByModel).reduce((a, b) => a + b, 0);
   const avgSuccess = Math.round(best.overallReward * 100);
   return (
-    <p className="page-header-meta">
-      <span>
-        Best model: <span className="text-foreground">{best.modelId}</span>
-      </span>
+    <StatusNoteRow dotClass="bg-muted-foreground">
+      Best model: <span className="text-foreground">{best.modelId}</span>
       <RowSeparator />
-      <span>Avg success: {avgSuccess}%</span>
+      Avg success: {avgSuccess}%
       <RowSeparator />
-      <span>
-        {totalFailed} failed {totalFailed === 1 ? "task" : "tasks"}
-      </span>
-    </p>
+      {totalFailed} failed {totalFailed === 1 ? "task" : "tasks"}
+    </StatusNoteRow>
   );
 }
 
 function TrainResultRow({ detail }: { detail: JobDetail }) {
   if (!detail.checkpointId) return null;
   return (
-    <p className="page-header-meta">
-      <span>
-        Checkpoint ready:{" "}
-        <span className="font-mono text-foreground">{detail.checkpointId}</span>
-      </span>
+    <StatusNoteRow dotClass="bg-muted-foreground">
+      Checkpoint ready:{" "}
+      <span className="font-mono text-foreground">{detail.checkpointId}</span>
       <RowSeparator />
-      <span>{detail.downstreamEvalRun ? "Eval already run" : "Eval not run yet"}</span>
-    </p>
+      {detail.downstreamEvalRun ? "Eval already run" : "Eval not run yet"}
+    </StatusNoteRow>
   );
 }
 
@@ -125,97 +163,30 @@ function QaAnalysisResultRow({ detail }: { detail: JobDetail }) {
   if (!findings) return null;
   if (findings.highSeverity > 0) {
     return (
-      <p className="page-header-meta">
-        <span>
-          {findings.total} {findings.total === 1 ? "issue" : "issues"} found
-        </span>
+      <StatusNoteRow dotClass="bg-muted-foreground">
+        {findings.total} {findings.total === 1 ? "issue" : "issues"} found
         <RowSeparator />
-        <span>{findings.highSeverity} high severity</span>
+        {findings.highSeverity} high severity
         {findings.topIssue != null && findings.topIssue !== "" && (
           <>
             <RowSeparator />
-            <span>Top issue: {findings.topIssue}</span>
+            Top issue: {findings.topIssue}
           </>
         )}
-      </p>
+      </StatusNoteRow>
     );
   }
   return (
-    <p className="page-header-meta">
-      <span>No high-severity issues found</span>
+    <StatusNoteRow dotClass="bg-muted-foreground">
+      No high-severity issues found
       <RowSeparator />
-      <span>
-        {findings.minor} minor {findings.minor === 1 ? "issue" : "issues"}
-      </span>
-    </p>
+      {findings.minor} minor {findings.minor === 1 ? "issue" : "issues"}
+    </StatusNoteRow>
   );
 }
 
 function RowSeparator() {
-  return <span aria-hidden="true" className="text-meta-foreground">·</span>;
-}
-
-interface ResultsSectionProps {
-  detail: JobDetail;
-  runs: ReadonlyArray<JobRun>;
-  validRunCount: number;
-  selectedTaskId: string | null;
-  selectedRuns: ReadonlyArray<JobRun>;
-  onSelectTask: (taskId: string | null) => void;
-  onViewTraces: () => void;
-}
-
-function ResultsSection({
-  detail,
-  runs,
-  validRunCount,
-  selectedTaskId,
-  selectedRuns,
-  onSelectTask,
-  onViewTraces,
-}: ResultsSectionProps) {
-  return (
-    <section
-      aria-labelledby="job-overview-results"
-      className="flex flex-col gap-4"
-    >
-      <header className="flex items-baseline justify-between gap-3">
-        <h2
-          id="job-overview-results"
-          className="text-subtitle font-semibold text-foreground"
-        >
-          Results
-        </h2>
-        <span className="text-label text-muted-foreground">
-          Coverage {detail.coverageLabel}
-        </span>
-      </header>
-
-      <JobCoverageGrid
-        tasks={detail.tasks}
-        runs={runs}
-        selectedTaskId={selectedTaskId}
-        onSelectTask={(taskId) => onSelectTask(taskId === selectedTaskId ? null : taskId)}
-      />
-
-      {detail.resultsInvalidated ? (
-        <InvalidatedResultNote envId={detail.envId} onViewTraces={onViewTraces} />
-      ) : (
-        <ValidResultNote
-          validCount={validRunCount}
-          threshold={detail.trainTraceThreshold}
-        />
-      )}
-
-      {selectedTaskId !== null && (
-        <OverviewTaskRunTable
-          jobId={detail.job.id}
-          runs={selectedRuns}
-          task={detail.tasks.find((t) => t.id === selectedTaskId)}
-        />
-      )}
-    </section>
-  );
+  return <span aria-hidden="true" className="mx-1 text-meta-foreground">·</span>;
 }
 
 interface InvalidatedResultNoteProps {
