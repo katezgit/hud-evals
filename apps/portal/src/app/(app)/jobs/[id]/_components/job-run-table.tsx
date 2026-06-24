@@ -1,25 +1,5 @@
 "use client";
 
-// Task-tree table for the Job detail Traces tab.
-//
-// Single-model (models.length < 2): parent rows = tasks, children = traces.
-//   One-level expansion (existing shape). Reward column = single avg.
-//
-// Multi-model + Group by Task: parent rows = tasks, level-2 = per-model sub-row,
-//   level-3 = traces. Reward column on the collapsed task parent renders a
-//   per-model reward strip (color-banded at consumer call site).
-//
-// Multi-model + Group by Model: top-level rows = model section headers,
-//   level-2 = task rows under that model (current parent shape, single-model
-//   lens), level-3 = traces.
-//
-// Why a tree: at N tasks × M attempts the flat layout repeats the task prompt
-// once per child, burying the task-level signal. The tree matches the user's
-// mental model (they remember task prompts, not trace hashes) and matches the
-// production HUD grouping convention. The multi-model lens adds "which model
-// won this task?" as the first question Alex needs answered.
-//
-// Column order: [cb] · Task / Trace · Reward · Attempts · Turns · Duration · Cost · (actions)
 // Reward color bands are app-level (eval product business rule), not DS primitives.
 
 import * as React from "react";
@@ -102,13 +82,7 @@ export function JobRunTable({
   const isStripMode = isMultiModel && groupBy === "task";
 
   return (
-    // Pattern A (matches JobUsagePanel Usage tab): bordered card wraps the
-    // table. The inner scroll container owns vertical + horizontal overflow so
-    // <thead sticky top-0 z-sticky> stays visible while body scrolls. Card is
-    // rounded-lg (vs rounded-md elsewhere) — the run table sits inside the
-    // Traces tab's denser chrome and the slightly larger radius keeps it
-    // visually distinct from the surrounding filter bar.
-    <div className="flex flex-1 min-h-0 flex-col overflow-hidden rounded-lg border border-border bg-card">
+    <div className="flex flex-1 min-h-0 flex-col overflow-hidden rounded-md border border-border bg-card">
       <div className="flex-1 min-h-0 overflow-x-auto overflow-y-auto">
         <table className="w-full border-collapse table-fixed bg-card">
           <colgroup>
@@ -705,7 +679,6 @@ function TraceChildRow({
   const traceLabel = truncateTraceId(run.traceId);
 
   const openTrace = () => {
-    // TODO: confirm route — `/jobs/[id]/traces/[traceId]` doesn't exist yet.
     toast(`→ Trace ${jobId}/${run.traceId}`);
   };
 
@@ -736,7 +709,7 @@ function TraceChildRow({
             onClick={openTrace}
             className={cn(
               "-mx-1 flex min-w-0 items-center gap-2 rounded-sm px-1 py-0.5 text-left",
-              "cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40",
+              "cursor-pointer",
             )}
             aria-label={`Open trace ${run.traceId}`}
           >
@@ -796,7 +769,6 @@ function TraceChildRow({
   );
 }
 
-// `run_07` → 7. Used to label attempts inline on the trace row per the mockup.
 function parseAttemptIndex(runId: string): number | null {
   const m = runId.match(/run_(\d+)/);
   if (!m) return null;

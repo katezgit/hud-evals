@@ -278,11 +278,7 @@ export function LibraryJobs() {
       {sortedJobs.length === 0 ? (
         <FilterEmpty onClear={clearAllFilters} hasFilters={hasActiveFilters} />
       ) : (
-        // Pattern A (matches JobUsagePanel Usage tab): bordered card flexes to
-        // the available height; the inner scroll container owns vertical and
-        // horizontal overflow so the header rowgroup `sticky top-0 z-sticky`
-        // pins as rows scroll. This is a div-grid (not <table>) so sticky lives
-        // on the header rowgroup div, not a <thead>.
+        // Pattern A: bordered card + inner scroll so sticky thead has a bounded ancestor.
         <div className="flex flex-1 min-h-0 flex-col overflow-hidden rounded-md border border-border bg-card">
           <div className="flex-1 min-h-0 overflow-x-auto overflow-y-auto">
             <div
