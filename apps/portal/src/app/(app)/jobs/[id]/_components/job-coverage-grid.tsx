@@ -72,20 +72,15 @@ export function JobCoverageGrid({
   );
 
   return (
-    <div className="flex flex-col gap-3">
-      <div className="flex items-center gap-6" ref={containerRef}>
-        <div className="flex gap-1.5">
-          {cellMeta.map((meta) => (
-            <CoverageCell
-              key={meta.task.id}
-              meta={meta}
-              selected={meta.task.id === selectedTaskId}
-              onClick={() => onSelectTask(meta.task.id)}
-            />
-          ))}
-        </div>
-        <CoverageLegend />
-      </div>
+    <div className="flex gap-1.5" ref={containerRef}>
+      {cellMeta.map((meta) => (
+        <CoverageCell
+          key={meta.task.id}
+          meta={meta}
+          selected={meta.task.id === selectedTaskId}
+          onClick={() => onSelectTask(meta.task.id)}
+        />
+      ))}
     </div>
   );
 }
@@ -168,7 +163,7 @@ const scoredFillClass =
 const notRunFillClass =
   "[background:repeating-linear-gradient(45deg,var(--color-state-not-run-subtle)_0_3px,var(--color-background)_3px_6px)]";
 
-function CoverageLegend() {
+export function CoverageLegend() {
   return (
     <div className="flex items-center gap-4 font-mono text-label text-muted-foreground">
       <LegendChip

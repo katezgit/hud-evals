@@ -31,7 +31,7 @@ export function JobSummaryMetrics({
     : <span className="text-state-scored-text">all valid</span>;
 
   return (
-    <div className="grid grid-cols-6 overflow-hidden rounded-lg border border-border bg-card">
+    <div className="grid grid-cols-5">
       <MetricCell
         label="Avg Reward (valid)"
         valueDim={noValidRuns}
@@ -59,13 +59,6 @@ export function JobSummaryMetrics({
           </>
         }
         sub={validCountSub}
-      />
-      <MetricCell
-        label="Cost"
-        drillLabel="drill →"
-        onDrill={onDrillToTraces}
-        value={detail.totalCostLabel}
-        sub={`${detail.costPerRunLabel} · ${detail.costPerRunCredits}`}
       />
       <MetricCell
         label="Latency p50"
