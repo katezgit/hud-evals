@@ -56,7 +56,6 @@ export function JobOverviewPanel({
           erroredRunCount={erroredRunCount}
           totalRunCount={totalRunCount}
           onDrillToTraces={onSwitchToTraces}
-          onDrillToToolsAll={() => setToolFilter("all")}
         />
         <div className="flex flex-col gap-3 border-t border-border p-4">
           <div className="flex items-center justify-between gap-4">
