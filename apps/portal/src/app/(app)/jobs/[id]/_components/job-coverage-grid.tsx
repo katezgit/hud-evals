@@ -132,14 +132,6 @@ function CoverageCell({ meta, selected, onClick }: CoverageCellProps) {
               }}
             />
           ) : null}
-          <span
-            className={cn(
-              "absolute right-0 bottom-0.5 left-0 text-center font-mono text-meta font-semibold leading-none tracking-tight",
-              notRun ? "text-meta-foreground" : "text-state-scored-text",
-            )}
-          >
-            {task.id}
-          </span>
         </button>
       </TooltipTrigger>
       <TooltipContent>{tooltipBody}</TooltipContent>
