@@ -1021,23 +1021,22 @@ export default function ModelsCatalog() {
           </div>
         </div>
 
-        {/* Single <table> in one overflow-auto wrapper — TanStack pinning needs
-            both tbody and thead to share a horizontal scroll ancestor for
-            `position: sticky; left: 0` to anchor correctly. `border-separate`
-            is mandatory: collapsed borders break box-shadow + sticky together.
-            Sticky lives on <thead> (not each <th>) so the entire header row
-            anchors as one block — per-<th> sticky was visibly jittering
-            during vertical scroll in this layout. */}
-        <div className="overflow-hidden rounded-md border border-border bg-card">
-          <div className="max-h-[calc(100vh-18rem)] overflow-auto">
-            <table
-              className={cn(
-                tableClass,
-                "table-fixed border-separate border-spacing-0",
-              )}
-              style={{ minWidth: table.getTotalSize() }}
-            >
-              <thead className="sticky top-0 z-table-header bg-field-rest">
+        {/* Content-height card matching the Job-detail Tool Usage reference:
+            single overflow-x-auto wrapper, no max-h, no inner vertical scroll —
+            the page (<main>) handles overflow when the row count exceeds the
+            viewport. TanStack column-pinning still works against this wrapper
+            because `overflow-x-auto` makes it a horizontal-scroll ancestor.
+            `border-separate` is mandatory: collapsed borders break box-shadow
+            + sticky left-pin together. */}
+        <div className="overflow-x-auto rounded-md border border-border bg-card">
+          <table
+            className={cn(
+              tableClass,
+              "table-fixed border-separate border-spacing-0",
+            )}
+            style={{ minWidth: table.getTotalSize() }}
+          >
+            <thead className="bg-field-rest">
                 {table.getHeaderGroups().map((headerGroup) => (
                   <tr key={headerGroup.id}>
                     {headerGroup.headers.map((header) => {
@@ -1127,7 +1126,6 @@ export default function ModelsCatalog() {
                 )}
               </tbody>
             </table>
-          </div>
         </div>
       </div>
     </div>

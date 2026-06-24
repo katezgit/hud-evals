@@ -158,9 +158,9 @@ export function JobTracesPanel({
   };
 
   return (
-    <div className="flex h-full min-h-0 flex-col gap-4">
+    <div className="flex flex-col gap-4">
       {failedRun && (
-        <div className="shrink-0">
+        <div>
           <FailedTraceBanner
             count={isMultiModel ? failedCount : 1}
             isMultiModel={isMultiModel}
@@ -174,7 +174,7 @@ export function JobTracesPanel({
       {/* Header line — count + scope · Run Analysis.
           Multi-model: "<N> Traces · across <K> Tasks · <M> models"
           Single-model: "<N> Traces · across <K> Tasks · <modelId>" (mono) */}
-      <div className="flex shrink-0 items-start justify-between gap-4">
+      <div className="flex items-start justify-between gap-4">
         <p className="flex items-baseline gap-2 text-body text-muted-foreground">
           <span className="font-semibold text-foreground">{allRows.length} Traces</span>
           <span aria-hidden="true" className="text-meta-foreground">·</span>
@@ -193,7 +193,7 @@ export function JobTracesPanel({
       </div>
 
       {/* Filter row — search + state pills + Model filter (N≥2) | Group by (N≥2, list-only) + view toggle */}
-      <div className="flex shrink-0 items-center gap-2">
+      <div className="flex items-center gap-2">
         <Input
           type="search"
           value={search}
@@ -264,7 +264,7 @@ export function JobTracesPanel({
       </div>
 
       {hasNarrowingActive && (
-        <div className="-mt-2 flex shrink-0 items-center justify-end gap-2">
+        <div className="-mt-2 flex items-center justify-end gap-2">
           <span className="text-label text-muted-foreground">
             {visibleRows.length} of {allRows.length}
           </span>
@@ -279,7 +279,7 @@ export function JobTracesPanel({
       )}
 
       {selectedCount > 0 && (
-        <div className="shrink-0">
+        <div>
           <BulkActionBar
             count={selectedCount}
             runQaTrigger={
@@ -306,16 +306,14 @@ export function JobTracesPanel({
         />
       )}
       {view === "card" && (
-        <div className="min-h-0 flex-1 overflow-y-auto">
-          <JobTraceCards
-            jobId={jobId}
-            modelId={modelId}
-            models={models}
-            rows={visibleRows}
-            selectedRunIds={selectedRunIds}
-            onToggleSelect={toggleSelect}
-          />
-        </div>
+        <JobTraceCards
+          jobId={jobId}
+          modelId={modelId}
+          models={models}
+          rows={visibleRows}
+          selectedRunIds={selectedRunIds}
+          onToggleSelect={toggleSelect}
+        />
       )}
     </div>
   );

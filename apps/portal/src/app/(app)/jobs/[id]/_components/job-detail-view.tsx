@@ -86,14 +86,11 @@ export default function JobDetailView({ detail }: JobDetailViewProps) {
             />
           </div>
         </TabsContent>
-        {/* Traces owns an internal scroll region — only the table body scrolls
-            while filter chrome + banner + bulk bar stay visible. The
-            `flex flex-col flex-1 min-h-0` chain matches the Usage tab pattern. */}
-        <TabsContent
-          value="traces"
-          className="pt-6 flex flex-col flex-1 min-h-0"
-        >
-          <div className="page-shell block py-0 flex-1 min-h-0 flex flex-col">
+        {/* Content-height traces tab — matches the Job-detail Tool Usage
+            reference: the table card sizes to its rows and the page (<main>)
+            handles overflow. No flex-fill chain, no inner scroll. */}
+        <TabsContent value="traces" className="pt-6">
+          <div className="page-shell block py-0">
             <JobTracesPanel
               jobId={detail.job.id}
               modelId={detail.modelId}

@@ -200,11 +200,11 @@ export function LibraryJobs() {
   }
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col gap-4">
+    <div className="flex flex-col gap-4">
       <div
         role="toolbar"
         aria-label="Library Jobs filter bar"
-        className="flex shrink-0 flex-wrap items-center gap-2"
+        className="flex flex-wrap items-center gap-2"
       >
         <div className="min-w-48 flex-1">
           <SearchInput
@@ -278,14 +278,14 @@ export function LibraryJobs() {
       {sortedJobs.length === 0 ? (
         <FilterEmpty onClear={clearAllFilters} hasFilters={hasActiveFilters} />
       ) : (
-        // Bounded inner scroll via flex chain. flex-1 + min-h-0 takes exactly
-        // the remaining height inside TabsContent (which is itself sized by
-        // page-shell h-full → Tabs flex-1) — no calc() math, the scroll region
-        // ends at the bottom of <main>'s content area regardless of viewport.
-        <div className="bg-card border-border flex min-h-0 flex-1 flex-col overflow-hidden rounded-md border">
+        // Content-height card: matches the Job-detail Tool Usage reference —
+        // the bordered chrome ends with the last row and the page (<main>)
+        // scrolls when the list overflows the viewport. No max-h, no inner
+        // scroll, no blank space below.
+        <div className="bg-card border-border overflow-x-auto rounded-md border">
           <div
             role="rowgroup"
-            className="bg-field-rest border-border text-muted-foreground shrink-0 border-b py-2.5 text-label font-medium"
+            className="bg-field-rest border-border text-muted-foreground border-b py-2.5 text-label font-medium"
           >
             <div role="row" style={GRID_STYLE}>
               <div role="columnheader" className="px-3 pl-4">Status</div>
@@ -300,7 +300,7 @@ export function LibraryJobs() {
           <div
             role="list"
             aria-label={`${sortedJobs.length} saved jobs`}
-            className="min-h-0 flex-1 overflow-auto [&>div:last-child>div]:border-b-0"
+            className="[&>div:last-child>div]:border-b-0"
           >
             {sortedJobs.map((job) => (
               <div role="listitem" key={job.id}>

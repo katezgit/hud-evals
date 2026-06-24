@@ -25,7 +25,6 @@
 import * as React from "react";
 import { ArrowUpRight, ChevronDown, ChevronRight, X } from "lucide-react";
 import { toast } from "sonner";
-import { Button } from "@repo/ui/components/button";
 import { Checkbox } from "@repo/ui/components/checkbox";
 import { IconButton } from "@repo/ui/components/icon-button";
 import { cn } from "@repo/ui/lib/cn";
@@ -102,20 +101,23 @@ export function JobRunTable({
   const isStripMode = isMultiModel && groupBy === "task";
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-lg border border-border bg-card">
-      <div className="min-h-0 flex-1 overflow-y-auto">
-        <table className="w-full border-collapse table-fixed">
-          <colgroup>
-            <col className="w-9" />
-            <col />
-            <col className={isStripMode ? "w-56" : "w-32"} />
-            <col className="w-32" />
-            <col className="w-20" />
-            <col className="w-28" />
-            <col className="w-24" />
-            <col className="w-44" />
-          </colgroup>
-          <thead className="sticky top-0 z-10 bg-field-rest">
+    // Content-height card matching the Job-detail Tool Usage reference: the
+    // bordered chrome ends with the last row and the page (<main>) handles
+    // overflow when the row count exceeds the viewport. No max-h, no inner
+    // vertical scroll, no blank space below.
+    <div className="overflow-x-auto rounded-lg border border-border bg-card">
+      <table className="w-full border-collapse table-fixed">
+        <colgroup>
+          <col className="w-9" />
+          <col />
+          <col className={isStripMode ? "w-56" : "w-32"} />
+          <col className="w-32" />
+          <col className="w-20" />
+          <col className="w-28" />
+          <col className="w-24" />
+          <col className="w-44" />
+        </colgroup>
+        <thead className="bg-field-rest">
             <tr className="border-b border-border">
               <th className="px-3 py-2 align-middle">
                 <div className="flex items-center">
@@ -171,20 +173,19 @@ export function JobRunTable({
                 onToggleSelectAll={onToggleSelectAll}
               />
             )}
-            {rows.length > 0 && !(isMultiModel && groupBy === "model") && (
-              <TaskGroupedBody
-                jobId={jobId}
-                rows={rows}
-                models={models}
-                isMultiModel={isMultiModel}
-                selectedRunIds={selectedRunIds}
-                onToggleSelect={onToggleSelect}
-                onToggleSelectAll={onToggleSelectAll}
-              />
-            )}
-          </tbody>
-        </table>
-      </div>
+          {rows.length > 0 && !(isMultiModel && groupBy === "model") && (
+            <TaskGroupedBody
+              jobId={jobId}
+              rows={rows}
+              models={models}
+              isMultiModel={isMultiModel}
+              selectedRunIds={selectedRunIds}
+              onToggleSelect={onToggleSelect}
+              onToggleSelectAll={onToggleSelectAll}
+            />
+          )}
+        </tbody>
+      </table>
     </div>
   );
 }
