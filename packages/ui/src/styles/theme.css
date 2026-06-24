@@ -106,15 +106,10 @@
     var(--surface-bg-light),
     color-mix(in srgb, var(--surface-bg-dark) 30%, var(--surface-panel-dark) 70%)
   );
-  /* Form-field border — calibrated separately from --color-border because
-   * --color-border's alpha collapses when the field sits inside a card or
-   * dialog (field fill < card surface → mushy edge). Stronger alpha so the
-   * ring reads in both surface contexts, and must sit above
-   * --color-border-disabled so enabled is the brighter affordance. */
-  --color-form-field-border: light-dark(
-    rgb(var(--border-seed-light) / .165),
-    rgb(var(--border-seed-dark) / .18)
-  );
+  /* Form-field border — tracks --color-border so input shells, select triggers,
+   * multi-select triggers, input-with-slot shells, and segmented-control roots
+   * read identically to the table area border (operator preference, 2026-06-23). */
+  --color-form-field-border: var(--color-border);
 
   /* Typography — 3-tier reading hierarchy.
    *   foreground:       PRIMARY — body, headings, main values.
