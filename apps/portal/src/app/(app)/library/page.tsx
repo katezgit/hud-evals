@@ -6,13 +6,14 @@ export const metadata: Metadata = {
 };
 
 export default function LibraryPage() {
-  // Content-height page: page-shell takes the natural height of its children
-  // and the page (<main>) scrolls when content exceeds the viewport. Matches
-  // the Job-detail Tool Usage reference — no max-h, no inner-scroll, no blank
-  // chrome below the last row.
+  // h-full + min-h-0 turn page-shell into a bounded flex column that fills
+  // <main>'s content area, matching the Job-detail Usage tab reference
+  // (JobUsagePanel). Header is shrink-0; LibraryShell takes flex-1 and owns
+  // the inner scroll inside its Pattern A bordered card so <thead sticky>
+  // has a bounded ancestor to anchor against.
   return (
-    <div className="page-shell">
-      <header className="page-header">
+    <div className="page-shell h-full min-h-0">
+      <header className="shrink-0 page-header">
         <h1 className="text-display font-semibold text-foreground">Library</h1>
         <p className="text-muted-foreground">
           Saved jobs and traces

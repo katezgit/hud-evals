@@ -28,24 +28,25 @@ export function LibraryShell() {
     router.replace(query ? `/library?${query}` : "/library", { scroll: false });
   };
 
-  // Content-height tabs: each TabsContent flows in normal block layout and the
-  // page (<main>) handles overflow. gap-6 matches the page-section rhythm: tab
-  // strip → tab content is the same 24px the page-shell uses for header →
-  // content.
+  // flex-1 min-h-0 lets Tabs claim the remaining height inside page-shell so
+  // each TabsContent can flex its inner Pattern A card. TabsList is shrink-0.
+  // gap-6 matches the page-section rhythm: tab strip → tab content is the same
+  // 24px the page-shell uses for header → content. Reference: JobUsagePanel
+  // (Usage tab) — same bounded-fill chain.
   return (
     <Tabs
       value={activeTab}
       onValueChange={handleTabChange}
-      className="gap-6"
+      className="min-h-0 flex-1 gap-6"
     >
-      <TabsList variant="underline">
+      <TabsList variant="underline" className="shrink-0">
         <TabsTrigger value="jobs">Jobs</TabsTrigger>
         <TabsTrigger value="traces">Traces</TabsTrigger>
       </TabsList>
-      <TabsContent value="jobs">
+      <TabsContent value="jobs" className="flex min-h-0 flex-col">
         <LibraryJobs />
       </TabsContent>
-      <TabsContent value="traces">
+      <TabsContent value="traces" className="flex min-h-0 flex-col">
         <LibraryTraces />
       </TabsContent>
     </Tabs>

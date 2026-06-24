@@ -27,6 +27,7 @@ import { ArrowUpRight, ChevronDown, ChevronRight, X } from "lucide-react";
 import { toast } from "sonner";
 import { Checkbox } from "@repo/ui/components/checkbox";
 import { IconButton } from "@repo/ui/components/icon-button";
+import { tableHeaderClass } from "@repo/ui/components/table";
 import { cn } from "@repo/ui/lib/cn";
 import type { JobModelSummary, JobRun, JobTask } from "@/lib/mock/job-detail";
 
@@ -101,23 +102,26 @@ export function JobRunTable({
   const isStripMode = isMultiModel && groupBy === "task";
 
   return (
-    // Content-height card matching the Job-detail Tool Usage reference: the
-    // bordered chrome ends with the last row and the page (<main>) handles
-    // overflow when the row count exceeds the viewport. No max-h, no inner
-    // vertical scroll, no blank space below.
-    <div className="overflow-x-auto rounded-lg border border-border bg-card">
-      <table className="w-full border-collapse table-fixed">
-        <colgroup>
-          <col className="w-9" />
-          <col />
-          <col className={isStripMode ? "w-56" : "w-32"} />
-          <col className="w-32" />
-          <col className="w-20" />
-          <col className="w-28" />
-          <col className="w-24" />
-          <col className="w-44" />
-        </colgroup>
-        <thead className="bg-field-rest">
+    // Pattern A (matches JobUsagePanel Usage tab): bordered card wraps the
+    // table. The inner scroll container owns vertical + horizontal overflow so
+    // <thead sticky top-0 z-sticky> stays visible while body scrolls. Card is
+    // rounded-lg (vs rounded-md elsewhere) — the run table sits inside the
+    // Traces tab's denser chrome and the slightly larger radius keeps it
+    // visually distinct from the surrounding filter bar.
+    <div className="flex flex-1 min-h-0 flex-col overflow-hidden rounded-lg border border-border bg-card">
+      <div className="flex-1 min-h-0 overflow-x-auto overflow-y-auto">
+        <table className="w-full border-collapse table-fixed bg-card">
+          <colgroup>
+            <col className="w-9" />
+            <col />
+            <col className={isStripMode ? "w-56" : "w-32"} />
+            <col className="w-32" />
+            <col className="w-20" />
+            <col className="w-28" />
+            <col className="w-24" />
+            <col className="w-44" />
+          </colgroup>
+          <thead className={cn("sticky top-0 z-sticky", tableHeaderClass)}>
             <tr className="border-b border-border">
               <th className="px-3 py-2 align-middle">
                 <div className="flex items-center">
@@ -184,8 +188,9 @@ export function JobRunTable({
               onToggleSelectAll={onToggleSelectAll}
             />
           )}
-        </tbody>
-      </table>
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
