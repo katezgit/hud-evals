@@ -111,7 +111,7 @@ function CoverageCell({ meta, selected, onClick }: CoverageCellProps) {
           aria-label={`Task ${task.id} — ${notRun ? "not run" : `${runsForTask.length} runs`}`}
           onClick={onClick}
           className={cn(
-            "relative size-9 cursor-pointer rounded-md border border-border-strong",
+            "relative size-7 cursor-pointer rounded-sm border border-border-strong",
             "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1 focus-visible:ring-offset-background",
             selected && "ring-2 ring-primary ring-offset-1 ring-offset-background",
             fillClass,
@@ -121,15 +121,18 @@ function CoverageCell({ meta, selected, onClick }: CoverageCellProps) {
             // Top-right triangle marker: any errored runs on this task.
             <span
               aria-hidden="true"
-              className="absolute top-0 right-0 size-0 border-y-[10px] border-l-[10px] border-y-transparent border-l-transparent"
+              className="absolute top-0 right-0 size-0"
               style={{
-                borderTopRightRadius: 5,
-                borderTopColor: "transparent",
+                borderTopRightRadius: 4,
                 borderRightColor: "var(--color-state-warning)",
                 borderRightStyle: "solid",
-                borderRightWidth: 10,
+                borderRightWidth: 7,
+                borderTopColor: "transparent",
+                borderTopStyle: "solid",
                 borderTopWidth: 0,
-                borderBottomWidth: 10,
+                borderBottomColor: "transparent",
+                borderBottomStyle: "solid",
+                borderBottomWidth: 7,
                 borderLeftWidth: 0,
               }}
             />
