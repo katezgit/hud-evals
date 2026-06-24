@@ -41,7 +41,7 @@ export function JobSummaryMetrics({
         )}
       </MetaSegment>
 
-      <Separator />
+      <Dot />
 
       <MetaSegment label="Valid Traces">
         <span className="font-mono font-bold text-foreground">
@@ -50,7 +50,7 @@ export function JobSummaryMetrics({
         </span>
       </MetaSegment>
 
-      <Separator />
+      <Dot />
 
       {erroredRunCount > 0 ? (
         <span className="font-mono font-bold text-state-errored-text">
@@ -86,7 +86,7 @@ function MetaSegment({
   );
 }
 
-function Separator() {
+function Dot() {
   return (
     <span aria-hidden="true" className="text-meta-foreground">
       ·
