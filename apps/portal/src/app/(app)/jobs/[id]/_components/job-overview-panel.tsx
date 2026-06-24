@@ -42,7 +42,21 @@ export function JobOverviewPanel({
 
   return (
     <div className="flex flex-col gap-8 pt-2">
-      <JobConfigLine detail={detail} />
+      {/* KPI strip leads: Alex scans Avg Reward / Valid Traces / Cost / Latency
+          first, then drops into per-task forensics. */}
+      <div className="flex flex-col gap-3">
+        <JobSummaryMetrics
+          detail={detail}
+          validRunCount={validRunCount}
+          erroredRunCount={erroredRunCount}
+          totalRunCount={totalRunCount}
+          onDrillToTraces={onSwitchToTraces}
+          onDrillToToolsAll={() => setToolFilter("all")}
+        />
+        <JobResultRow detail={detail} />
+      </div>
+
+      <Separator />
 
       <ResultsSection
         detail={detail}
@@ -56,17 +70,6 @@ export function JobOverviewPanel({
 
       <Separator />
 
-      <JobSummaryMetrics
-        detail={detail}
-        validRunCount={validRunCount}
-        erroredRunCount={erroredRunCount}
-        totalRunCount={totalRunCount}
-        onDrillToTraces={onSwitchToTraces}
-        onDrillToToolsAll={() => setToolFilter("all")}
-      />
-
-      <Separator />
-
       <JobToolUsage
         detail={detail}
         filter={toolFilter}
@@ -76,35 +79,80 @@ export function JobOverviewPanel({
   );
 }
 
-function JobConfigLine({ detail }: { detail: JobDetail }) {
+function JobResultRow({ detail }: { detail: JobDetail }) {
+  if (detail.resultsInvalidated) return null;
+  if (detail.scope === "eval") return <EvalResultRow detail={detail} />;
+  if (detail.scope === "train") return <TrainResultRow detail={detail} />;
+  return <QaAnalysisResultRow detail={detail} />;
+}
+
+function EvalResultRow({ detail }: { detail: JobDetail }) {
+  const best = detail.models[0];
+  if (!best || best.overallReward === null) return null;
+  const totalFailed = Object.values(detail.failedByModel).reduce((a, b) => a + b, 0);
+  const avgSuccess = Math.round(best.overallReward * 100);
   return (
-    <dl className="flex flex-wrap items-center gap-x-2 gap-y-1 border-b border-border pb-4 font-mono text-label text-meta-foreground">
-      <ConfigPair label="model" value={detail.modelId} />
-      <ConfigSeparator />
-      <ConfigPair label="taskset" value={detail.tasksetShortId} />
-      <ConfigSeparator />
-      <ConfigPair label="env" value={detail.envId} />
-      <ConfigSeparator />
-      <ConfigPair label="seed" value={String(detail.seed)} />
-    </dl>
+    <p className="page-header-meta">
+      <span>
+        Best model: <span className="text-foreground">{best.modelId}</span>
+      </span>
+      <RowSeparator />
+      <span>Avg success: {avgSuccess}%</span>
+      <RowSeparator />
+      <span>
+        {totalFailed} failed {totalFailed === 1 ? "task" : "tasks"}
+      </span>
+    </p>
   );
 }
 
-function ConfigPair({ label, value }: { label: string; value: string }) {
+function TrainResultRow({ detail }: { detail: JobDetail }) {
+  if (!detail.checkpointId) return null;
   return (
-    <div className="flex items-center gap-1.5">
-      <dt className="text-meta-foreground">{label}</dt>
-      <dd className="text-muted-foreground">{value}</dd>
-    </div>
+    <p className="page-header-meta">
+      <span>
+        Checkpoint ready:{" "}
+        <span className="font-mono text-foreground">{detail.checkpointId}</span>
+      </span>
+      <RowSeparator />
+      <span>{detail.downstreamEvalRun ? "Eval already run" : "Eval not run yet"}</span>
+    </p>
   );
 }
 
-function ConfigSeparator() {
+function QaAnalysisResultRow({ detail }: { detail: JobDetail }) {
+  const findings = detail.findings;
+  if (!findings) return null;
+  if (findings.highSeverity > 0) {
+    return (
+      <p className="page-header-meta">
+        <span>
+          {findings.total} {findings.total === 1 ? "issue" : "issues"} found
+        </span>
+        <RowSeparator />
+        <span>{findings.highSeverity} high severity</span>
+        {findings.topIssue != null && findings.topIssue !== "" && (
+          <>
+            <RowSeparator />
+            <span>Top issue: {findings.topIssue}</span>
+          </>
+        )}
+      </p>
+    );
+  }
   return (
-    <span aria-hidden="true" className="text-meta-foreground">
-      ·
-    </span>
+    <p className="page-header-meta">
+      <span>No high-severity issues found</span>
+      <RowSeparator />
+      <span>
+        {findings.minor} minor {findings.minor === 1 ? "issue" : "issues"}
+      </span>
+    </p>
   );
+}
+
+function RowSeparator() {
+  return <span aria-hidden="true" className="text-meta-foreground">·</span>;
 }
 
 interface ResultsSectionProps {
@@ -127,16 +175,21 @@ function ResultsSection({
   onViewTraces,
 }: ResultsSectionProps) {
   return (
-    <div className="flex flex-col gap-4">
-      <div className="flex items-center justify-between gap-4">
-        <p className="flex items-baseline gap-2.5 font-mono text-meta uppercase tracking-wider text-meta-foreground">
-          <span>Results</span>
-          <span className="text-meta normal-case tracking-normal text-muted-foreground">
-            coverage {detail.coverageLabel.toLowerCase()} · hover a cell · click to open
-            its Runs
-          </span>
-        </p>
-      </div>
+    <section
+      aria-labelledby="job-overview-results"
+      className="flex flex-col gap-4"
+    >
+      <header className="flex items-baseline justify-between gap-3">
+        <h2
+          id="job-overview-results"
+          className="text-subtitle font-semibold text-foreground"
+        >
+          Results
+        </h2>
+        <span className="text-label text-muted-foreground">
+          Coverage {detail.coverageLabel}
+        </span>
+      </header>
 
       <JobCoverageGrid
         tasks={detail.tasks}
@@ -161,7 +214,7 @@ function ResultsSection({
           task={detail.tasks.find((t) => t.id === selectedTaskId)}
         />
       )}
-    </div>
+    </section>
   );
 }
 

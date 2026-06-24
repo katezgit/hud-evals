@@ -1101,6 +1101,20 @@ function synthesizeUsage(
   };
 }
 
+// Anchor "now" to today so synth dates stay stable across renders and the
+// header reads as a concrete day rather than a moving relative label.
+const SYNTH_NOW = new Date("2026-06-23T12:00:00Z");
+const SYNTH_DATE_FMT = new Intl.DateTimeFormat("en-US", {
+  month: "short",
+  day: "numeric",
+  year: "numeric",
+});
+
+function synthCreatedDateLabel(whenSortMinutes: number): string {
+  const created = new Date(SYNTH_NOW.getTime() - whenSortMinutes * 60_000);
+  return SYNTH_DATE_FMT.format(created);
+}
+
 // Heuristic fallback — synthesize a plausible detail for any job row without a hand-crafted payload.
 // Keeps the page non-empty for jobs other than the showcase.
 function synthesizeDetail(job: TasksetJobRow, taskset: Taskset): JobDetail {
@@ -1224,11 +1238,11 @@ function synthesizeDetail(job: TasksetJobRow, taskset: Taskset): JobDetail {
     coverageLabel: `${coveredTaskCount} / ${seededTasks.length} Tasks`,
     runsLabel: `${initialRuns.length} Runs`,
     seed: 42,
-    createdLabel: job.when ? `${job.when} ago` : "—",
-    createdRelativeLabel: job.when ? `${job.when} ago` : "—",
-    // Synth jobs have no fixture calendar date — fall back to the relative label so
-    // the meta line still reads as a single value rather than a dash.
-    createdDateLabel: job.when ? `${job.when} ago` : "—",
+    createdLabel: job.when ? `${job.when} ago` : "just now",
+    createdRelativeLabel: job.when ? `${job.when} ago` : "just now",
+    // Derive a real calendar date from `whenSort` (minutes-ago) so the meta line
+    // always shows a concrete created_at, never a dash.
+    createdDateLabel: synthCreatedDateLabel(job.whenSort),
     tasks: seededTasks,
     initialRuns,
     toolScopes: { all: allScope, ...perTaskScopes },

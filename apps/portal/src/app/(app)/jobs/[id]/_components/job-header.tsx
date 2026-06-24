@@ -50,8 +50,6 @@ export function JobHeader({ detail, validRunCount }: JobHeaderProps) {
       ? `QA Analysis on ${traceCount} ${traceNoun}`
       : `${SCOPE_VERB[detail.scope]}${batchSuffix} ${taskCount} ${taskNoun}`;
 
-  const showResultRow = !detail.resultsInvalidated;
-
   return (
     <header className="flex flex-col gap-3 pt-2 pb-6">
       <Breadcrumb parent={{ href: "/jobs", label: "Jobs" }} current="Jobs detail" />
@@ -79,12 +77,6 @@ export function JobHeader({ detail, validRunCount }: JobHeaderProps) {
           )}
 
           <MetaLine detail={detail} />
-
-          {showResultRow && detail.scope === "eval" && <EvalResultRow detail={detail} />}
-          {showResultRow && detail.scope === "train" && <TrainResultRow detail={detail} />}
-          {showResultRow && detail.scope === "qa-analysis" && (
-            <QaAnalysisResultRow detail={detail} />
-          )}
         </div>
 
         <div className="flex shrink-0 items-center gap-2">
@@ -96,71 +88,6 @@ export function JobHeader({ detail, validRunCount }: JobHeaderProps) {
         </div>
       </div>
     </header>
-  );
-}
-
-function EvalResultRow({ detail }: { detail: JobDetail }) {
-  const best = detail.models[0];
-  if (!best || best.overallReward === null) return null;
-  const totalFailed = Object.values(detail.failedByModel).reduce((a, b) => a + b, 0);
-  const avgSuccess = Math.round(best.overallReward * 100);
-  return (
-    <p className="page-header-meta">
-      <span>
-        Best model: <span className="text-foreground">{best.modelId}</span>
-      </span>
-      <Separator />
-      <span>Avg success: {avgSuccess}%</span>
-      <Separator />
-      <span>
-        {totalFailed} failed {totalFailed === 1 ? "task" : "tasks"}
-      </span>
-    </p>
-  );
-}
-
-function TrainResultRow({ detail }: { detail: JobDetail }) {
-  if (!detail.checkpointId) return null;
-  return (
-    <p className="page-header-meta">
-      <span>
-        Checkpoint ready:{" "}
-        <span className="font-mono text-foreground">{detail.checkpointId}</span>
-      </span>
-      <Separator />
-      <span>{detail.downstreamEvalRun ? "Eval already run" : "Eval not run yet"}</span>
-    </p>
-  );
-}
-
-function QaAnalysisResultRow({ detail }: { detail: JobDetail }) {
-  const findings = detail.findings;
-  if (!findings) return null;
-  if (findings.highSeverity > 0) {
-    return (
-      <p className="page-header-meta">
-        <span>
-          {findings.total} {findings.total === 1 ? "issue" : "issues"} found
-        </span>
-        <Separator />
-        <span>{findings.highSeverity} high severity</span>
-        {findings.topIssue != null && findings.topIssue !== "" && (
-          <>
-            <Separator />
-            <span>Top issue: {findings.topIssue}</span>
-          </>
-        )}
-      </p>
-    );
-  }
-  return (
-    <p className="page-header-meta">
-      <span>No high-severity issues found</span>
-      <Separator />
-      <span>
-        {findings.minor} minor {findings.minor === 1 ? "issue" : "issues"}
-      </span>
-    </p>
   );
 }
 
@@ -320,8 +247,6 @@ function InvalidateOnlyMenu({ onInvalidateAll }: { onInvalidateAll: () => void }
 function MetaLine({ detail }: { detail: JobDetail }) {
   return (
     <div className="page-header-meta">
-      <span>{detail.createdDateLabel}</span>
-      <Separator />
       <span className="page-header-meta-group">
         <span className="font-mono">{detail.job.id}</span>
         <CopyButton
@@ -332,6 +257,8 @@ function MetaLine({ detail }: { detail: JobDetail }) {
       </span>
       <Separator />
       <span>Created by: {detail.job.ownerName}</span>
+      <Separator />
+      <span>{detail.createdDateLabel}</span>
     </div>
   );
 }

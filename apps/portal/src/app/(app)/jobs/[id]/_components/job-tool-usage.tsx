@@ -33,13 +33,21 @@ export function JobToolUsage({ detail, filter, onFilterChange }: JobToolUsagePro
   if (!scope) return null;
 
   return (
-    <div className="flex flex-col gap-4">
-      <div className="flex items-baseline justify-between gap-4">
-        <SectionLabel
-          label="Tool Usage"
-          free={`${scope.totals.calls} calls · ${scope.totals.avgPerRun} avg/Run · ${scope.totals.toolsUsed} of ${scope.totals.totalTools} tools used`}
-        />
-      </div>
+    <section
+      aria-labelledby="job-overview-tool-usage"
+      className="flex flex-col gap-4"
+    >
+      <header className="flex items-baseline justify-between gap-3">
+        <h2
+          id="job-overview-tool-usage"
+          className="text-subtitle font-semibold text-foreground"
+        >
+          Tool Usage
+        </h2>
+        <span className="text-label text-muted-foreground">
+          {scope.totals.calls} calls · {scope.totals.avgPerRun} avg/Run · {scope.totals.toolsUsed} of {scope.totals.totalTools} tools used
+        </span>
+      </header>
       <FilterBar
         tasks={detail.tasks}
         filter={filter}
@@ -57,7 +65,7 @@ export function JobToolUsage({ detail, filter, onFilterChange }: JobToolUsagePro
           <CommandNote command={detail.rerunCommand} />
         </div>
       </div>
-    </div>
+    </section>
   );
 }
 
@@ -336,10 +344,7 @@ interface PatternMatrixProps {
 function PatternMatrix({ patterns, matrix, columns }: PatternMatrixProps) {
   return (
     <div className="flex flex-col gap-2">
-      <SectionLabel
-        label="Pattern / Trace Matrix"
-        free="cell = reward · click → Trace"
-      />
+      <SectionLabel label="Pattern / Trace Matrix" />
       <div className="flex flex-col gap-2">
         <div className="ml-9 flex gap-2.5 font-mono text-meta text-meta-foreground">
           {columns.map((c) => (

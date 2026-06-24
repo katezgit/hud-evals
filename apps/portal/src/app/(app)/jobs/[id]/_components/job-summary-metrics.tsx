@@ -31,7 +31,7 @@ export function JobSummaryMetrics({
     : <span className="text-state-scored-text">all valid</span>;
 
   return (
-    <div className="grid grid-cols-6 overflow-hidden rounded-lg border border-border bg-border [&>*]:bg-card">
+    <div className="grid grid-cols-6 overflow-hidden rounded-lg border border-border bg-card">
       <MetricCell
         label="Avg Reward (valid)"
         valueDim={noValidRuns}
