@@ -7,9 +7,10 @@ export const metadata: Metadata = {
 
 export default function LibraryPage() {
   // h-full + min-h-0 turn page-shell into a bounded flex column that fills
-  // <main>'s content area. Header is shrink-0; LibraryShell takes flex-1 and
-  // owns the inner scroll. Removes the brittle max-h-[calc(100vh-Xrem)] guess
-  // — the scroll region is always exactly the remaining space.
+  // <main>'s content area, matching the Job-detail Usage tab reference
+  // (JobUsagePanel). Header is shrink-0; LibraryShell takes flex-1 and owns
+  // the inner scroll inside its Pattern A bordered card so <thead sticky>
+  // has a bounded ancestor to anchor against.
   return (
     <div className="page-shell h-full min-h-0">
       <header className="shrink-0 page-header">

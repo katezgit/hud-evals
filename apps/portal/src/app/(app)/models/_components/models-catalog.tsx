@@ -747,11 +747,11 @@ export default function ModelsCatalog() {
   );
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-1 min-h-0 flex-col gap-6">
       <Tabs
         value={activeTab}
         onValueChange={(v) => handleTabChange(v as TabKey)}
-        className="gap-0"
+        className="shrink-0 gap-0"
       >
         <TabsList variant="underline">
           <TabsTrigger value="all">
@@ -769,12 +769,15 @@ export default function ModelsCatalog() {
         </TabsList>
       </Tabs>
 
-      {/* Actionbar + table = one visual cluster (toolbar shapes its dataset). */}
-      <div className="flex flex-col gap-4">
+      {/* Actionbar + table = one visual cluster (toolbar shapes its dataset).
+          flex-1 min-h-0 lets the Pattern A card claim the remaining height so
+          <thead sticky> has a bounded scroll ancestor. */}
+      <div className="flex flex-1 min-h-0 flex-col gap-4">
         {/* Search row — always full-width on its own line below xl
             (xl:w-64 puts it back inline alongside the desktop chip cluster
-            once there's room for both). */}
-        <div className="flex flex-wrap items-center gap-4">
+            once there's room for both). shrink-0 keeps the toolbar visible
+            while the Pattern A card below scrolls. */}
+        <div className="flex shrink-0 flex-wrap items-center gap-4">
           <div className="w-full flex-none xl:w-64">
             <SearchInput
               defaultValue=""
@@ -1021,15 +1024,15 @@ export default function ModelsCatalog() {
           </div>
         </div>
 
-        {/* Single <table> in one overflow-auto wrapper — TanStack pinning needs
-            both tbody and thead to share a horizontal scroll ancestor for
-            `position: sticky; left: 0` to anchor correctly. `border-separate`
-            is mandatory: collapsed borders break box-shadow + sticky together.
-            Sticky lives on <thead> (not each <th>) so the entire header row
-            anchors as one block — per-<th> sticky was visibly jittering
-            during vertical scroll in this layout. */}
-        <div className="overflow-hidden rounded-md border border-border bg-card">
-          <div className="max-h-[calc(100vh-18rem)] overflow-auto">
+        {/* Pattern A (matches JobUsagePanel Usage tab): bordered card wraps
+            the table. The inner scroll container owns vertical + horizontal
+            overflow so <thead sticky top-0 z-sticky> stays visible while body
+            scrolls. TanStack column-pinning anchors against this scroll
+            ancestor. `border-separate` is mandatory: collapsed borders break
+            box-shadow + sticky left-pin together — kept as a column-level
+            deviation from the reference's `border-collapse`. */}
+        <div className="flex flex-1 min-h-0 flex-col overflow-hidden rounded-md border border-border bg-card">
+          <div className="flex-1 min-h-0 overflow-x-auto overflow-y-auto">
             <table
               className={cn(
                 tableClass,
@@ -1037,7 +1040,7 @@ export default function ModelsCatalog() {
               )}
               style={{ minWidth: table.getTotalSize() }}
             >
-              <thead className="sticky top-0 z-table-header bg-field-rest">
+              <thead className="sticky top-0 z-sticky bg-field-rest">
                 {table.getHeaderGroups().map((headerGroup) => (
                   <tr key={headerGroup.id}>
                     {headerGroup.headers.map((header) => {

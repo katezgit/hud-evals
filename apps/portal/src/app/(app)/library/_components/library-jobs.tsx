@@ -278,35 +278,34 @@ export function LibraryJobs() {
       {sortedJobs.length === 0 ? (
         <FilterEmpty onClear={clearAllFilters} hasFilters={hasActiveFilters} />
       ) : (
-        // Bounded inner scroll via flex chain. flex-1 + min-h-0 takes exactly
-        // the remaining height inside TabsContent (which is itself sized by
-        // page-shell h-full → Tabs flex-1) — no calc() math, the scroll region
-        // ends at the bottom of <main>'s content area regardless of viewport.
-        <div className="bg-card border-border flex min-h-0 flex-1 flex-col overflow-hidden rounded-md border">
-          <div
-            role="rowgroup"
-            className="bg-field-rest border-border text-muted-foreground shrink-0 border-b py-2.5 text-label font-medium"
-          >
-            <div role="row" style={GRID_STYLE}>
-              <div role="columnheader" className="px-3 pl-4">Status</div>
-              <div role="columnheader" className="px-3">Job</div>
-              <div role="columnheader" className="px-3">Taskset</div>
-              <div role="columnheader" className="px-3">Model · Owner</div>
-              <div role="columnheader" className="px-3">Reward · Tasks</div>
-              <div role="columnheader" aria-label="Unstar" className="px-3 pr-4" />
-            </div>
-          </div>
-
-          <div
-            role="list"
-            aria-label={`${sortedJobs.length} saved jobs`}
-            className="min-h-0 flex-1 overflow-auto [&>div:last-child>div]:border-b-0"
-          >
-            {sortedJobs.map((job) => (
-              <div role="listitem" key={job.id}>
-                <LibraryJobRow job={job} onUnstar={toggleStar} />
+        // Pattern A: bordered card + inner scroll so sticky thead has a bounded ancestor.
+        <div className="flex flex-1 min-h-0 flex-col overflow-hidden rounded-md border border-border bg-card">
+          <div className="flex-1 min-h-0 overflow-x-auto overflow-y-auto">
+            <div
+              role="rowgroup"
+              className="sticky top-0 z-sticky bg-field-rest border-border text-muted-foreground border-b py-2.5 text-label font-medium"
+            >
+              <div role="row" style={GRID_STYLE}>
+                <div role="columnheader" className="px-3 pl-4">Status</div>
+                <div role="columnheader" className="px-3">Job</div>
+                <div role="columnheader" className="px-3">Taskset</div>
+                <div role="columnheader" className="px-3">Model · Owner</div>
+                <div role="columnheader" className="px-3">Reward · Tasks</div>
+                <div role="columnheader" aria-label="Unstar" className="px-3 pr-4" />
               </div>
-            ))}
+            </div>
+
+            <div
+              role="list"
+              aria-label={`${sortedJobs.length} saved jobs`}
+              className="[&>div:last-child>div]:border-b-0"
+            >
+              {sortedJobs.map((job) => (
+                <div role="listitem" key={job.id}>
+                  <LibraryJobRow job={job} onUnstar={toggleStar} />
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       )}

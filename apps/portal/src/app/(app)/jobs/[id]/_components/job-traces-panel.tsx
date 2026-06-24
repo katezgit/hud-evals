@@ -306,16 +306,14 @@ export function JobTracesPanel({
         />
       )}
       {view === "card" && (
-        <div className="min-h-0 flex-1 overflow-y-auto">
-          <JobTraceCards
-            jobId={jobId}
-            modelId={modelId}
-            models={models}
-            rows={visibleRows}
-            selectedRunIds={selectedRunIds}
-            onToggleSelect={toggleSelect}
-          />
-        </div>
+        <JobTraceCards
+          jobId={jobId}
+          modelId={modelId}
+          models={models}
+          rows={visibleRows}
+          selectedRunIds={selectedRunIds}
+          onToggleSelect={toggleSelect}
+        />
       )}
     </div>
   );

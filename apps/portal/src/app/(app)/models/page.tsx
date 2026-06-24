@@ -8,9 +8,14 @@ export const metadata: Metadata = {
 };
 
 export default function ModelsPage() {
+  // h-full + min-h-0 turn page-shell into a bounded flex column that fills
+  // <main>'s content area, matching the Job-detail Usage tab reference
+  // (JobUsagePanel). Header is shrink-0; ModelsCatalog takes flex-1 and owns
+  // the Pattern A bordered card whose <thead sticky> needs a bounded ancestor
+  // to anchor against.
   return (
-    <div className="page-shell">
-      <header className="page-header">
+    <div className="page-shell h-full min-h-0">
+      <header className="shrink-0 page-header">
         <div className="flex items-center gap-2">
           <h1 className="text-display font-semibold text-foreground">Models</h1>
           <a

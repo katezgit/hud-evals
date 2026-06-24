@@ -88,7 +88,9 @@ export default function JobDetailView({ detail }: JobDetailViewProps) {
         </TabsContent>
         {/* Traces owns an internal scroll region — only the table body scrolls
             while filter chrome + banner + bulk bar stay visible. The
-            `flex flex-col flex-1 min-h-0` chain matches the Usage tab pattern. */}
+            `flex flex-col flex-1 min-h-0` chain matches the Usage tab pattern
+            so <thead sticky> has a bounded scroll ancestor. Card view inside
+            the panel flows at content-height — operator-confirmed. */}
         <TabsContent
           value="traces"
           className="pt-6 flex flex-col flex-1 min-h-0"
