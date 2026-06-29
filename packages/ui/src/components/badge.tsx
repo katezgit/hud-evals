@@ -63,7 +63,7 @@ export interface BadgeProps
 const Badge = React.forwardRef<HTMLSpanElement, BadgeProps>(
   ({ className, variant = "neutral", showDot = false, bare = false, children, ...props }, ref) => {
     const noDotVariants = new Set(["info", "beta", "neutral", "brand-soft"])
-    const hasDot = showDot && !noDotVariants.has(variant)
+    const hasDot = showDot && !noDotVariants.has(variant ?? "neutral")
 
     return (
       <span
