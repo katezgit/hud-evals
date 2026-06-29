@@ -15,8 +15,8 @@ const popoverContentVariants = cva(
     "bg-popover text-popover-foreground",
     "shadow-popover",
     "outline-none",
-    "data-[state=open]:animate-in data-[state=open]:fade-in-0",
-    "data-[state=closed]:animate-out data-[state=closed]:fade-out-0",
+    "data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:duration-subtle",
+    "data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:duration-fast",
     // Side-specific enter translate (matches spec table: 4px toward trigger)
     "data-[side=bottom]:slide-in-from-top-1 data-[side=top]:slide-in-from-bottom-1",
     "data-[side=left]:slide-in-from-right-1 data-[side=right]:slide-in-from-left-1",

@@ -19,7 +19,7 @@ const filterChipVariants = cva(
     "cursor-pointer",
     "whitespace-nowrap",
     "font-sans",
-    "transition-colors duration-150",
+    "transition-colors duration-instant",
     "disabled:cursor-not-allowed disabled:text-text-disabled",
     "[&_svg]:pointer-events-none [&_svg]:shrink-0",
     "h-8 px-3 py-0 text-body font-medium rounded-lg gap-1.5",

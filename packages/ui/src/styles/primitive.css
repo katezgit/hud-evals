@@ -136,8 +136,8 @@
 :root {
   --duration-instant: 80ms;    /* Hover bg, press overlay */
   --duration-fast:    120ms;   /* Focus ring, badge state change, icon swap */
-  --duration-subtle:  180ms;   /* Button press scale, row select highlight */
-  --duration-base:    220ms;   /* Modal/popover enter, row reveal, skeleton shimmer period — 220ms ceiling for UI feedback; don't exceed for any state change (continuous loops use --motion-continuous) */
+  --duration-subtle:  160ms;   /* Modal/popover enter, accordion/drawer enter */
+  --duration-base:    220ms;   /* 220ms — loop period only (used by --motion-continuous). Not for transitions; modal/popover/row-reveal use --motion-enter (160ms). */
 }
 
 /* ─── Easing ─────────────────────────────────────────────────────────────────
@@ -156,12 +156,12 @@
 :root {
   --animate-fade-in:        fade-in          var(--duration-base)   var(--ease-out-standard);
   --animate-fade-out:       fade-out         var(--duration-fast)   var(--ease-in-accelerated);
-  --animate-slide-up-in:    slide-up-in      var(--duration-base)   var(--ease-out-emphasized); /* dialog/popover panel enter — content-pop, 6px translate */
+  --animate-slide-up-in:    slide-up-in      var(--duration-subtle) var(--ease-out-emphasized); /* dialog/popover panel enter — content-pop, 6px translate */
   --animate-slide-down-out: slide-down-out   var(--duration-fast)   var(--ease-in-accelerated);
   --animate-row-reveal:     row-reveal       var(--duration-subtle) var(--ease-out-standard) both; /* streaming table row arrival — ambient, not eventful; 4px translate, fill-mode both for staggered reveal */
   --animate-shimmer:        shimmer          1800ms                  var(--ease-linear) infinite;
   --animate-running-pulse:  running-pulse    1600ms                  var(--ease-linear) infinite;
-  --animate-slide-right-in: slide-right-in  var(--duration-base)   var(--ease-out-emphasized);     /* altitude switch: Trace panel enters from right */
+  --animate-slide-right-in: slide-right-in  var(--duration-subtle) var(--ease-out-emphasized);     /* altitude switch: Trace panel enters from right */
   --animate-slide-left-out: slide-left-out  var(--duration-fast)   var(--ease-in-accelerated);     /* altitude switch: Trace panel exits to right */
 }
 
@@ -200,15 +200,6 @@
   50%       { opacity: 0.45; }
 }
 
-/* TODO(motion-audit): copy-confirm-pulse is a scale-bounce celebration (scale 1→1.18→1) that violates
- * the Sparing adjective. code-block.tsx references it directly — remove after code-block is updated
- * to use an icon/color swap at --motion-state-change instead. */
-@keyframes copy-confirm-pulse {
-  0%   { transform: scale(1); }
-  50%  { transform: scale(1.18); }
-  100% { transform: scale(1); }
-}
-
 @keyframes slide-right-in {
   from { opacity: 0; transform: translateX(-12px); }
   to   { opacity: 1; transform: translateX(0); }
@@ -233,11 +224,11 @@
   /* hover bg, focus ring, badge state swap */
   --motion-state-change: var(--duration-fast) var(--ease-out-standard);
 
-  /* button press scale, row select highlight */
-  --motion-micro:        var(--duration-subtle) var(--ease-out-standard);
+  /* press scale, row select highlight */
+  --motion-micro:        var(--duration-fast) var(--ease-out-standard);
 
-  /* modal/popover open, row reveal, tooltip appear */
-  --motion-enter:        var(--duration-base) var(--ease-out-emphasized);
+  /* modal/popover/accordion/drawer enter */
+  --motion-enter:        var(--duration-subtle) var(--ease-out-emphasized);
 
   /* modal/popover close, tooltip dismiss — clears stage fast */
   --motion-exit:         var(--duration-fast) var(--ease-in-accelerated);

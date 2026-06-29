@@ -20,7 +20,7 @@ const switchTrackVariants = cva(
     "disabled:data-[state=unchecked]:bg-border-disabled",
     // Disabled-on: absolute washed teal avoids the alpha-on-dark inversion (38% over dark → near-black).
     "disabled:data-[state=checked]:bg-primary-disabled",
-    "transition-[background-color,border-color] duration-[180ms] ease-out-standard",
+    "transition-[background-color,border-color] duration-subtle ease-out-standard",
   ],
   {
     variants: {
@@ -44,7 +44,7 @@ const switchThumbVariants = cva(
     // Off-state: shadow is the sole separation mechanism (white on #d9d9e0 is ~1.05:1 color-only).
     "data-[state=unchecked]:shadow-sw-thumb-off",
     "data-[state=checked]:shadow-chip",
-    "transition-[transform,box-shadow] duration-[180ms] ease-out-standard",
+    "transition-[transform,box-shadow] duration-subtle ease-out-standard",
   ],
   {
     variants: {

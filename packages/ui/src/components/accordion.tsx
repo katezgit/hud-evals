@@ -203,7 +203,7 @@ function AccordionContent({
     <AccordionPrimitive.Content
       data-slot="accordion-content"
       // grid-template-rows: 0fr→1fr animation approach (GPU-friendly, no JS measurement).
-      // Enter: duration-base (220ms) ease-out-emphasized (--motion-enter)
+      // Enter: duration-subtle (160ms) ease-out-emphasized (--motion-enter)
       // Exit:  duration-fast (120ms) ease-in-accelerated (--motion-exit)
       // data-[state=closed] applies exit timing; data-[state=open] applies enter timing.
       // Opacity crossfade is also on this element (it carries data-state from Radix).
@@ -211,7 +211,7 @@ function AccordionContent({
         "overflow-hidden",
         // Height animation via grid-template-rows
         "grid transition-[grid-template-rows,opacity]",
-        "data-[state=open]:duration-base data-[state=open]:ease-out-emphasized data-[state=open]:opacity-100",
+        "data-[state=open]:duration-subtle data-[state=open]:ease-out-emphasized data-[state=open]:opacity-100",
         "data-[state=closed]:duration-fast data-[state=closed]:ease-in-accelerated data-[state=closed]:opacity-0",
         "data-[state=open]:grid-rows-[1fr] data-[state=closed]:grid-rows-[0fr]",
       )}

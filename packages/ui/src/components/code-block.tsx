@@ -125,7 +125,6 @@ function CopyButton({ value, surface, className }: CopyButtonProps) {
   const iconBase = cn(
     "size-4",
     "transition-opacity",
-    // motion-state-change: var(--duration-fast) var(--ease-out-standard) = 120ms
   )
 
   const isActive = state !== "idle"
@@ -157,7 +156,6 @@ function CopyButton({ value, surface, className }: CopyButtonProps) {
         }}
       />
 
-      {/* Success: Check icon */}
       <Check
         aria-hidden="true"
         className={cn(
@@ -165,18 +163,13 @@ function CopyButton({ value, surface, className }: CopyButtonProps) {
           "absolute",
           "text-state-scored",
           state === "success" ? "opacity-100" : "opacity-0",
-          state === "success" ? "animate-copy-confirm" : "",
         )}
         style={{
           transitionDuration: "var(--duration-fast)",
           transitionTimingFunction: "var(--ease-out-standard)",
-          ...(state === "success" ? {
-            animation: `copy-confirm-pulse var(--duration-subtle) var(--ease-out-standard) 1`,
-          } : {}),
         }}
       />
 
-      {/* Error: X icon */}
       <X
         aria-hidden="true"
         className={cn(
@@ -188,9 +181,6 @@ function CopyButton({ value, surface, className }: CopyButtonProps) {
         style={{
           transitionDuration: "var(--duration-fast)",
           transitionTimingFunction: "var(--ease-out-standard)",
-          ...(state === "error" ? {
-            animation: `copy-confirm-pulse var(--duration-subtle) var(--ease-out-standard) 1`,
-          } : {}),
         }}
       />
     </button>
