@@ -55,9 +55,9 @@ function DrawerOverlay({
       data-slot="drawer-overlay"
       className={cn(
         "fixed inset-0 z-overlay bg-overlay-drawer backdrop-blur-overlay-drawer",
-        // Enter — 200ms natural ease (work surface, non-zero initial velocity)
+        // Enter — 160ms natural ease (work surface, non-zero initial velocity)
         "data-[state=open]:animate-in data-[state=open]:fade-in-0",
-        "data-[state=open]:duration-[200ms] data-[state=open]:ease-natural",
+        "data-[state=open]:duration-subtle data-[state=open]:ease-natural",
         // Exit — 120ms accelerated (same as --motion-drawer-exit)
         "data-[state=closed]:animate-out data-[state=closed]:fade-out-0",
         "data-[state=closed]:duration-fast data-[state=closed]:ease-in-accelerated",
@@ -128,21 +128,20 @@ const EDGE_HEIGHT_CLASSES: Record<DrawerSize, string> = {
 
 // Enter duration scales with panel travel distance — a 320px sm panel at the same
 // duration as a 720px lg panel reads as slow because the panel finishes its translation
-// well before the duration expires. Smallest size stays at/above the 140ms perception
-// floor for spatial motion; largest stays at the 220ms ceiling.
+// well before the duration expires.
 const ENTER_DURATION_CLASSES: Record<DrawerSize, string> = {
-  sm: "data-[state=open]:duration-[140ms]",
-  md: "data-[state=open]:duration-[180ms]",
-  lg: "data-[state=open]:duration-[180ms]",
+  sm: "data-[state=open]:duration-fast",
+  md: "data-[state=open]:duration-subtle",
+  lg: "data-[state=open]:duration-subtle",
 }
 
 const DRAWER_BODY_STYLE: React.CSSProperties = { scrollbarGutter: "stable both-edges" }
 
 // Individual longhands beat vaul's shorthand — prevents vaul from overriding our duration/timing-function with its defaults.
 const DRAWER_TRANSITION_STYLES: Record<DrawerSize, React.CSSProperties> = {
-  sm: { transitionProperty: "transform", transitionDuration: "140ms", transitionTimingFunction: "var(--ease-natural)" },
-  md: { transitionProperty: "transform", transitionDuration: "180ms", transitionTimingFunction: "var(--ease-natural)" },
-  lg: { transitionProperty: "transform", transitionDuration: "180ms", transitionTimingFunction: "var(--ease-natural)" },
+  sm: { transitionProperty: "transform", transitionDuration: "var(--duration-fast)",   transitionTimingFunction: "var(--ease-natural)" },
+  md: { transitionProperty: "transform", transitionDuration: "var(--duration-subtle)", transitionTimingFunction: "var(--ease-natural)" },
+  lg: { transitionProperty: "transform", transitionDuration: "var(--duration-subtle)", transitionTimingFunction: "var(--ease-natural)" },
 }
 
 // Marks all direct children of <body> as inert + aria-hidden while the drawer

@@ -50,7 +50,7 @@ const ChipTrigger = React.forwardRef<HTMLButtonElement, ChipTriggerProps>(
         type="button"
         title={title}
         className={cn(
-          "inline-flex h-8 shrink-0 cursor-pointer items-center justify-center gap-1.5 whitespace-nowrap rounded-lg border border-border bg-transparent px-3 py-0 font-sans text-body font-medium text-foreground transition-colors duration-150",
+          "inline-flex h-8 shrink-0 cursor-pointer items-center justify-center gap-1.5 whitespace-nowrap rounded-lg border border-border bg-transparent px-3 py-0 font-sans text-body font-medium text-foreground transition-colors duration-instant",
           "hover:bg-secondary-surface active:bg-primary-soft",
           "data-[state=open]:shadow-focus-ring",
           "[&_svg]:pointer-events-none [&_svg]:shrink-0",
